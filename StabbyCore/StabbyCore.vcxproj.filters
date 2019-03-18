@@ -1,0 +1,225 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Engine">
+      <UniqueIdentifier>{d568e20f-335d-432a-b8c4-1f6e6795440a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Game">
+      <UniqueIdentifier>{96115753-da09-4856-b22a-bc3e60ef8f7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Engine\ECS">
+      <UniqueIdentifier>{287a2f6d-c347-4873-b7b3-0fd939124c0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Engine\Input">
+      <UniqueIdentifier>{d34b8293-30e5-4f2e-88ed-0394aeb7c49d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Engine\Physics">
+      <UniqueIdentifier>{bec3e6bf-be03-49c0-b60b-83c0d3ec358c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Engine\Render">
+      <UniqueIdentifier>{5db41f3d-c467-4ee9-8a1a-8f3008ea2077}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Engine\Util">
+      <UniqueIdentifier>{cd210af7-6c96-4214-8ddd-6f6ad0584423}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Engine\Util\Command">
+      <UniqueIdentifier>{3da06a5a-e075-463c-8ebb-b408fad9df8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine">
+      <UniqueIdentifier>{f5b1301b-070c-41e1-8283-67b9672328be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Game">
+      <UniqueIdentifier>{43faec7a-492c-4a9b-af80-235452498cc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\ECS">
+      <UniqueIdentifier>{21b84226-614c-4ac9-a4c9-ba728f670881}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Input">
+      <UniqueIdentifier>{17ec5048-9674-45f5-83f2-9378bb2a5761}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Util">
+      <UniqueIdentifier>{be2de421-cfa1-487b-95aa-ad59348f2cf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Util\Command">
+      <UniqueIdentifier>{0f47dabc-ad5c-479d-b01b-d93646760f93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Render">
+      <UniqueIdentifier>{b863e5dd-7155-46e3-9f16-b2b73453cc5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Physics">
+      <UniqueIdentifier>{c7ebcbaa-9a03-4262-8f9d-70b8c732c928}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Game\Network">
+      <UniqueIdentifier>{6af85677-80df-429a-b88d-87387924597f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\AABBLC.h">
+      <Filter>Header Files\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\AngleUtil.h">
+      <Filter>Header Files\Engine\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\AnimatedSprite.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\BitmapFont.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Command.h">
+      <Filter>Header Files\Engine\Util\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\CommandManager.h">
+      <Filter>Header Files\Engine\Util\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Controller.h">
+      <Filter>Header Files\Engine\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\DebugIO.h">
+      <Filter>Header Files\Engine\Util\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\EntitySystem.h">
+      <Filter>Header Files\Engine\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\GLRenderer.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\ImageGC.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\ImgData.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\NetworkTypes.h">
+      <Filter>Header Files\Game\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Packet.h">
+      <Filter>Header Files\Game\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\PhysicsAABBLC.h">
+      <Filter>Header Files\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerLC.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Pool.h">
+      <Filter>Header Files\Engine\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\PoolMap.h">
+      <Filter>Header Files\Engine\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\RandomUtil.h">
+      <Filter>Header Files\Engine\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Shader.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Sprite.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\TypeData.h">
+      <Filter>Header Files\Engine\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Vec2.h">
+      <Filter>Header Files\Engine\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerData.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Stage.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerClientData.h">
+      <Filter>Header Files\Game\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="FileNotFoundException.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Attack.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\AABBLC.cpp">
+      <Filter>Source Files\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\AnimatedSprite.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\BitmapFont.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\CommandManager.cpp">
+      <Filter>Source Files\Engine\Util\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\Controller.cpp">
+      <Filter>Source Files\Engine\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\DebugIO.cpp">
+      <Filter>Source Files\Engine\Util\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\EntitySystem.cpp">
+      <Filter>Source Files\Engine\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\glad.c">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\GLRenderer.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\ImageGC.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\PhysicsAABBLC.cpp">
+      <Filter>Source Files\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerLC.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\Shader.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\Sprite.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\stb_image.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\TypeData.cpp">
+      <Filter>Source Files\Engine\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Stage.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="FileNotFoundException.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Attack.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

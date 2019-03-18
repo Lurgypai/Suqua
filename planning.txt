@@ -1,0 +1,9 @@
+what is missing:
+need more play testing
+sfx
+ui
+
+What is possible
+ctf
+kills
+classes (more specials, stab, big slash, shoot slash
