@@ -28,6 +28,7 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 				states.erase(states.begin(), states.begin() + i + 1);
 				if (tstate.plr != state) {
 					std::cout << "Prediction failed, re-predicting\n";
+
 					this->state = state.state;
 					pos = state.pos;
 					vel = state.vel;

@@ -58,7 +58,10 @@ int main(int argv, char* argc[])
 	ENetPacket * packet;
 	WelcomePacket welcomePacket;
 
+	//current tick in server time
 	Time_t currentTick{0};
+	double serverDelta{0};
+
 	Time_t gameTime{ 0 };
 	NetworkId incrementer{ 0 };
 
@@ -67,13 +70,16 @@ int main(int argv, char* argc[])
 
 	Stage stage{};
 
+	//switch game to tick at client speed, but only send updates out at server speed
+	//test this, it looks like its done.
+
 	while (true) {
 
 		Time_t now = SDL_GetPerformanceCounter();
-		if ((static_cast<double>(now - prev) / SDL_GetPerformanceFrequency() >= SERVER_TIME_STEP)) {
-			currentTick++;
-			gameTime += SERVER_TIME_STEP / GAME_TIME_STEP;
+		if (static_cast<double>(now - prev) / SDL_GetPerformanceFrequency() >= CLIENT_TIME_STEP) {
+			gameTime += CLIENT_TIME_STEP / GAME_TIME_STEP;
 			prev = now;
+
 			//std::cout << "Server tick, polling packets...\n";
 			ENetEvent event;
 			int packetsPolled = 0;
@@ -121,7 +127,14 @@ int main(int argv, char* argc[])
 						if (key == CONT_KEY) {
 							ControllerPacket cont{};
 							std::memcpy(&cont, event.packet->data, event.packet->dataLength);
-							ctrls.push_back(cont);
+
+							for (auto& user : users) {
+								ServerPlayerLC& player = user->getPlayer();
+								if (user->getNetId() == cont.netId) {
+									ClientCommand comm{ Controller{ cont.state }, cont.time };
+									player.bufferInput(comm);
+								}
+							}
 						}
 						else if (key == TIME_KEY) {
 							TimestampPacket time{};
@@ -157,51 +170,44 @@ int main(int argv, char* argc[])
 				}
 				++packetsPolled;
 			}
-
-			//the amount of loops here is gratuitous
-			//handle updates
-			for (auto& controlState : ctrls) {
-				for (auto& user : users) {
-					ServerPlayerLC& player = user->getPlayer();
-					if (user->getNetId() == controlState.netId) {
-						ClientCommand comm{ Controller{ controlState.state }, controlState.time };
-						player.bufferInput(comm);
-					}
-				}
-			}
-
+			
 			//move
 			for (auto& user : users) {
 				user->getPlayer().update(gameTime);
 			}
-			
+
 			//after movement, run collisisons
 			for (auto& user : users) {
 				user->getPlayer().runHitDetect(gameTime);
 			}
-			
-			//tell all
-			for (auto& user : users) {
-				for (auto& other : users) {
 
-					ServerPlayerLC & player = user->getPlayer();
-					StatePacket pos{};
-					pos.state.pos = player.getPos();
-					pos.state.vel = player.getVel();
-					pos.state.when = player.getWhen();
-					pos.state.activeAttack = player.getAttack().getActiveId();
-					pos.state.attackFrame = player.getAttack().getCurrFrame();
-					pos.state.rollFrame = player.getRollFrame();
-					pos.state.health = player.getHealth();
-					pos.state.stunFrames = player.getStunFrame();
-					pos.state.state = player.getState();
-					pos.when = gameTime;
-					pos.id = user->getNetId();
+			serverDelta += CLIENT_TIME_STEP / SERVER_TIME_STEP;
 
-					enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(&pos, sizeof(pos), 0));
+			if (serverDelta >= 1) {
+				currentTick += round(serverDelta);
+				serverDelta = 0;
+				//tell all
+				for (auto& user : users) {
+					for (auto& other : users) {
+
+						ServerPlayerLC & player = user->getPlayer();
+						StatePacket pos{};
+						pos.state.pos = player.getPos();
+						pos.state.vel = player.getVel();
+						pos.state.when = player.getWhen();
+						pos.state.activeAttack = player.getAttack().getActiveId();
+						pos.state.attackFrame = player.getAttack().getCurrFrame();
+						pos.state.rollFrame = player.getRollFrame();
+						pos.state.health = player.getHealth();
+						pos.state.stunFrames = player.getStunFrame();
+						pos.state.state = player.getState();
+						pos.when = gameTime;
+						pos.id = user->getNetId();
+
+						enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(&pos, sizeof(pos), 0));
+					}
 				}
 			}
-
 
 			
 			size_t size = ctrls.size();

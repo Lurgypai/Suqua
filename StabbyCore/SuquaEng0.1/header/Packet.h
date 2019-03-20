@@ -43,6 +43,10 @@ struct ControllerPacket {
 	//game time when the packet was sent
 	Time_t when;
 	unsigned char state;
+
+	bool operator!=(const ControllerPacket & other) {
+		return netId != other.netId || time != other.time || when != other.when || state != other.state;
+	}
 };
 
 //sent to all previously connected clients when a new player joins

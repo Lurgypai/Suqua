@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 	GLRenderer::GetShaderRef(shaderId[1]).use();
 	GLRenderer::GetShaderRef(shaderId[1]).uniform2f("windowRes", windowWidth, windowHeight);
 
-
+	//client time
 	Time_t currentTick{ 0 };
 
 	Client client{};
@@ -200,13 +200,25 @@ int main(int argc, char* argv[]) {
 			if (client.getConnected()) {
 				//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
 				client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
+
+				static ControllerPacket lastSent{};
+
 				ControllerPacket state{};
 				state.time = currentTick;
 				state.state = controller.getState();
 				state.netId = client.getNetId();
 				state.when = client.getTime();
-				ENetPacket * p = enet_packet_create(&state, sizeof(StatePacket), 0);
-				client.send(p);
+
+				lastSent.when = client.getTime();
+				lastSent.time = currentTick;
+
+				if (lastSent != state) {
+					//when you die you don't teleport. furthermore, there are failed predictions
+					lastSent = state;
+					ENetPacket * p = enet_packet_create(&state, sizeof(StatePacket), 0);
+					client.send(p);
+
+				}
 
 				client.service(currentTick);
 

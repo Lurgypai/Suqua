@@ -10,6 +10,8 @@
 #include "ClientPlayerLC.h"
 #include "ServerClientData.h"
 
+#include <iostream>
+
 Client::Client() :
 	id{ 0 }
 {
@@ -172,8 +174,9 @@ void Client::receive(ENetEvent & e) {
 		}
 		if (id == p.id) {
 			ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
-			if (player != nullptr)
+			if (player != nullptr) {
 				player->repredict(p.state);
+			}
 		}
 	}
 	else if (packetKey == QUIT_KEY) {

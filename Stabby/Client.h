@@ -49,5 +49,6 @@ private:
 	bool connected;
 	NetworkId id;
 	EntityId playerId;
+	//gameTime
 	Time_t networkTime;
 };

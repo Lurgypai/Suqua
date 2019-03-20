@@ -25,6 +25,6 @@ public:
 private:
 	//the client time of the owning client that the last packet processed by the server was sent from the client
 	Time_t when;
-	std::vector<ClientCommand> inputs;
+	ClientCommand latest;
 	std::deque<PlayerState> prevStates;
 };

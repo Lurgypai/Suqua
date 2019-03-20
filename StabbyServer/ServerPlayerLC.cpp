@@ -9,17 +9,16 @@
 ServerPlayerLC::ServerPlayerLC(EntityId id_) :
 	PlayerLC{id_},
 	when{0},
-	inputs{},
+	latest{},
 	prevStates{}
 {
 	prevStates.emplace_back(PlayerState{});
-	inputs.reserve(INPUT_QUEUE_SIZE);
 }
 
 ServerPlayerLC::ServerPlayerLC(const ServerPlayerLC & other) :
 	PlayerLC{other},
 	when{other.when},
-	inputs{other.inputs},
+	latest{other.latest},
 	prevStates{other.prevStates}
 {}
 
@@ -43,24 +42,20 @@ void ServerPlayerLC::setWhen(Time_t when_) {
 }
 
 void ServerPlayerLC::bufferInput(ClientCommand c) {
-	if (inputs.size() < INPUT_QUEUE_SIZE);
-	inputs.push_back(c);
+	if (c.when > latest.when) {
+		latest = c;
+		when = latest.when - 1; // move back a single client tick. Update will increment client time while we wait for our next input.
+	}
 }
 
 void ServerPlayerLC::update(Time_t gameTime) {
-	std::sort(inputs.begin(), inputs.end(), [](ClientCommand & first, ClientCommand & second) {return first.when < second.when;});
-	for (auto input = inputs.begin(); input != inputs.end(); ++input) {
-		when = input->when;
-		
-		PlayerLC::update(CLIENT_TIME_STEP, input->controllerState);
+	//we need to increment when as time passes, so that the client knows the times when things should happen. Update runs at client speed.
+	++when;
+	PlayerLC::update(CLIENT_TIME_STEP, latest.controllerState);
 
-		if (prevStates.size() >= 32)
-			prevStates.pop_front();
-		prevStates.emplace_back(PlayerState{state, gameTime, pos, vel, rollFrame, attack.getActiveId(), attack.getCurrFrame(), health, stunFrame});
-	}
-
-	inputs.clear();
-	inputs.reserve(INPUT_QUEUE_SIZE);
+	if (prevStates.size() >= 32)
+		prevStates.pop_front();
+	prevStates.emplace_back(PlayerState{state, gameTime, pos, vel, rollFrame, attack.getActiveId(), attack.getCurrFrame(), health, stunFrame});
 }
 
 //check if we hit anyone else from ze past
