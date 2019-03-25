@@ -4,7 +4,9 @@
 Arrow keys to move, 'x' to attack, 'c' to roll.
 
 # Hosting a Server
-As of now, the server runs on the port 25565. If you host you will need to port forward this port.
+Alter the port value in the 'settings' file to change hosted ported. This port needs to be forwarded for online use.
+'disconectDelay' represents the amount of seconds a server will wait between receiving packets from the client before disconnecting them.
+'forceDisconnectDelay' if by this time in seconds a server has not received a disconnection from the client, it will force close the connection.
 
 # Connectiong to a Server
 Press the '~' key in the top left corner of your keyboard to open the console.
