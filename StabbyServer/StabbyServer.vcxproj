@@ -162,6 +162,7 @@
     <ClInclude Include="Connection.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="ServerPlayerLC.h" />
+    <ClInclude Include="Settings.h" />
     <ClInclude Include="User.h" />
   </ItemGroup>
   <ItemGroup>

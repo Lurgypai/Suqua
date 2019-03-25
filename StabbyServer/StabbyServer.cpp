@@ -3,6 +3,8 @@
 
 #include "pch.h"
 #include <iostream>
+#include <fstream>
+
 #include "enet/enet.h"
 
 #include "SDL.h"
@@ -18,6 +20,7 @@
 #include "Stage.h"
 
 #include "ServerClientData.h"
+#include "Settings.h"
 
 #define MAX_PACKET_COUNT 500
 #define CLIENT_SIDE_DELTA 1.0 / 120
@@ -26,18 +29,61 @@
 //to ensure peer->data isn't deleted multiple times
 
 using UserPtr = std::unique_ptr<User>;
+using std::ifstream;
+using std::string;
+using std::cout;
 
 int main(int argv, char* argc[])
 {
-
 	SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER);
-	std::cout << "Starting server...\n";
+	cout << "Starting server...\n";
 	enet_initialize();
 	ENetAddress address;
 	ENetHost * server;
 
+	ifstream file{ "settings" };
+	if (!file.good()) {
+		cout << "Unable to open 'settings' file. Closing server.\n";
+		return 1;
+	}
+
+	string line;
+	Settings settings{0, 0, 0};
+	while (std::getline(file, line, '\n')) {
+		size_t splitPos = line.find('=');
+		string idToken = line.substr(0, splitPos);
+		string value = line.substr(splitPos + 1, line.size() - splitPos);
+		if (idToken == "port") {
+			try {
+				settings.port = std::stoi(value);
+			}
+			catch (std::invalid_argument e) {
+				cout << "Unable to read port, closing server.\n";
+				return 1;
+			}
+		}
+		else if (idToken == "disconnectDelay") {
+			try {
+				settings.disconnectDelay = std::stod(value);
+			}
+			catch (std::invalid_argument e) {
+				cout << "Unable to read disconnectDelay, closing server.\n";
+				return 1;
+			}
+		}
+		else if (idToken == "forceDisconnectDelay") {
+			try {
+				settings.forceDisconnectDelay = std::stod(value);
+			}
+			catch (std::invalid_argument e) {
+				cout << "Unable to read forceDisconenctDelay, closing server.\n";
+				return 1;
+			}
+		}
+	}
+
 	address.host = ENET_HOST_ANY;
-	address.port = 25565;
+	address.port = settings.port;
 
 	server = enet_host_create(&address, 32, 2, 0, 0);
 
@@ -49,9 +95,9 @@ int main(int argv, char* argc[])
 
 
 	//wait this long to disconnect a client
-	double disconnectDelay{ 5.0 };
+	double disconnectDelay{ settings.disconnectDelay }; // 5.0
 	//force a disconenct at this point
-	double forceDisconnectDelay{ 10.0 };
+	double forceDisconnectDelay{ settings.forceDisconnectDelay }; // 10.0
 
 	Uint64 prev = SDL_GetPerformanceCounter();
 
@@ -187,25 +233,29 @@ int main(int argv, char* argc[])
 				currentTick += round(serverDelta);
 				serverDelta = 0;
 				//tell all
+				std::vector<StatePacket> states;
+				states.reserve(users.size());
 				for (auto& user : users) {
-					for (auto& other : users) {
+					ServerPlayerLC & player = user->getPlayer();
+					StatePacket pos{};
+					pos.state.pos = player.getPos();
+					pos.state.vel = player.getVel();
+					pos.state.when = player.getWhen();
+					pos.state.activeAttack = player.getAttack().getActiveId();
+					pos.state.attackFrame = player.getAttack().getCurrFrame();
+					pos.state.rollFrame = player.getRollFrame();
+					pos.state.health = player.getHealth();
+					pos.state.stunFrames = player.getStunFrame();
+					pos.state.state = player.getState();
+					pos.when = gameTime;
+					pos.id = user->getNetId();
 
-						ServerPlayerLC & player = user->getPlayer();
-						StatePacket pos{};
-						pos.state.pos = player.getPos();
-						pos.state.vel = player.getVel();
-						pos.state.when = player.getWhen();
-						pos.state.activeAttack = player.getAttack().getActiveId();
-						pos.state.attackFrame = player.getAttack().getCurrFrame();
-						pos.state.rollFrame = player.getRollFrame();
-						pos.state.health = player.getHealth();
-						pos.state.stunFrames = player.getStunFrame();
-						pos.state.state = player.getState();
-						pos.when = gameTime;
-						pos.id = user->getNetId();
+					states.push_back(pos);
+				}
 
-						enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(&pos, sizeof(pos), 0));
-					}
+				for (auto& other : users) {
+					//send the contiguous state block
+					enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(&states[0], sizeof(StatePacket) * states.size(), 0));
 				}
 			}
 

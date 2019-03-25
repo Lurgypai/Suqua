@@ -162,6 +162,31 @@ void Client::receive(ENetEvent & e) {
 	}
 
 	else if (packetKey == STATE_KEY) {
+		std::vector<StatePacket> states;
+		size_t size = e.packet->dataLength / sizeof(StatePacket);
+		states.resize(size);
+
+		PacketUtil::readInto<StatePacket>(&states[0], e.packet, size);
+
+		Pool<OnlinePlayerLC> * onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
+
+		for (auto & p : states) {
+			if (onlinePlayers != nullptr) {
+				for (auto& onlinePlayer : *onlinePlayers) {
+					if ((!onlinePlayer.isFree) && onlinePlayer.val.getNetId() == p.id) {
+						onlinePlayer.val.interp(p.state, p.when);
+					}
+				}
+			}
+			if (id == p.id) {
+				ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
+				if (player != nullptr) {
+					player->repredict(p.state);
+				}
+			}
+		}
+
+		/*
 		StatePacket p;
 		PacketUtil::readInto<StatePacket>(p, e.packet);
 		Pool<OnlinePlayerLC> * onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
@@ -178,6 +203,7 @@ void Client::receive(ENetEvent & e) {
 				player->repredict(p.state);
 			}
 		}
+		*/
 	}
 	else if (packetKey == QUIT_KEY) {
 		QuitPacket q;

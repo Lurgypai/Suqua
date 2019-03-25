@@ -118,4 +118,9 @@ namespace PacketUtil {
 	inline void readInto(T& t, ENetPacket * p) {
 		std::memcpy(&t, p->data, sizeof(t));
 	}
+
+	template<typename T>
+	inline void readInto(T * t, ENetPacket * p, size_t count) {
+		std::memcpy(t, p->data, sizeof(T) * count);
+	}
 }
