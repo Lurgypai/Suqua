@@ -156,7 +156,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Attack.h" />
-    <ClInclude Include="FileNotFoundException.h" />
+    <ClInclude Include="ComputeShader.h" />
+    <ClInclude Include="Particle.h" />
+    <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="PlayerData.h" />
     <ClInclude Include="PlayerLC.h" />
     <ClInclude Include="ServerClientData.h" />
@@ -171,6 +173,8 @@
     <ClInclude Include="SuquaEng0.1\header\Controller.h" />
     <ClInclude Include="SuquaEng0.1\header\DebugIO.h" />
     <ClInclude Include="SuquaEng0.1\header\EntitySystem.h" />
+    <ClInclude Include="SuquaEng0.1\header\FileNotFoundException.h" />
+    <ClInclude Include="SuquaEng0.1\header\Framebuffer.h" />
     <ClInclude Include="SuquaEng0.1\header\GLRenderer.h" />
     <ClInclude Include="SuquaEng0.1\header\ImageGC.h" />
     <ClInclude Include="SuquaEng0.1\header\ImgData.h" />
@@ -183,14 +187,17 @@
     <ClInclude Include="SuquaEng0.1\header\Shader.h" />
     <ClInclude Include="SuquaEng0.1\header\Sprite.h" />
     <ClInclude Include="SuquaEng0.1\header\stb_image.h" />
+    <ClInclude Include="SuquaEng0.1\header\Texture.h" />
     <ClInclude Include="SuquaEng0.1\header\TypeData.h" />
     <ClInclude Include="SuquaEng0.1\header\Vec2.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Attack.cpp" />
-    <ClCompile Include="FileNotFoundException.cpp" />
+    <ClCompile Include="ComputeShader.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="PlayerLC.cpp" />
+    <ClCompile Include="RandomUtil.cpp" />
     <ClCompile Include="Stage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -207,6 +214,8 @@
       <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <ClCompile Include="SuquaEng0.1\src\EntitySystem.cpp" />
+    <ClCompile Include="SuquaEng0.1\src\FileNotFoundException.cpp" />
+    <ClCompile Include="SuquaEng0.1\src\Framebuffer.cpp" />
     <ClCompile Include="SuquaEng0.1\src\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -217,6 +226,7 @@
     <ClCompile Include="SuquaEng0.1\src\Shader.cpp" />
     <ClCompile Include="SuquaEng0.1\src\Sprite.cpp" />
     <ClCompile Include="SuquaEng0.1\src\stb_image.cpp" />
+    <ClCompile Include="SuquaEng0.1\src\Texture.cpp" />
     <ClCompile Include="SuquaEng0.1\src\TypeData.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

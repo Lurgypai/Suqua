@@ -64,6 +64,12 @@
     <Filter Include="Header Files\Game\Network">
       <UniqueIdentifier>{6af85677-80df-429a-b88d-87387924597f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Engine\Render\Particles">
+      <UniqueIdentifier>{3c5d899d-59c0-4711-ae46-d2e07c42bca8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Render\Particles">
+      <UniqueIdentifier>{de23ae7c-4bd0-443f-9945-ff4a0f08fa29}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -153,11 +159,26 @@
     <ClInclude Include="ServerClientData.h">
       <Filter>Header Files\Game\Network</Filter>
     </ClInclude>
-    <ClInclude Include="FileNotFoundException.h">
-      <Filter>Header Files\Engine\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Attack.h">
       <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\FileNotFoundException.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Framebuffer.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\Texture.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeShader.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>Header Files\Engine\Render\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="Particle.h">
+      <Filter>Header Files\Engine\Render\Particles</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -215,11 +236,26 @@
     <ClCompile Include="Stage.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="FileNotFoundException.cpp">
-      <Filter>Source Files\Engine\Render</Filter>
-    </ClCompile>
     <ClCompile Include="Attack.cpp">
       <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\FileNotFoundException.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\Framebuffer.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\Texture.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RandomUtil.cpp">
+      <Filter>Source Files\Engine\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>Source Files\Engine\Render\Particles</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -27,16 +27,6 @@ out vec2 FragCoord;
 void main() {
 	ImgData dat = data[ gl_VertexID / 6];
 	
-	vec2 screenSize = camRes;
-	
-	if(screenSize.x > windowRes.x)
-		screenSize.x = windowRes.x;
-		
-	if(screenSize.y > windowRes.y)
-		screenSize.y = windowRes.y;
-		
-	screenSize /= zoom;
-	
 	int id = abs((gl_VertexID % 6) - 3);
 	vec2 pos = vec2(id % 2, id / 2);
 	vec2 imgPos = pos;
@@ -62,10 +52,21 @@ void main() {
 	pixelPos = vec2(magn * cos(newAngle), magn * sin(newAngle));
 	pixelPos += dat.origin;
 	
+    	
+	vec2 screenSize = camRes;
+	
+	if(screenSize.x > windowRes.x)
+		screenSize.x = windowRes.x;
+		
+	if(screenSize.y > windowRes.y)
+		screenSize.y = windowRes.y;
+    
 	//position
 	pixelPos += (dat.objPos - camPos);
-	vec2 windowPos = pixelPos / screenSize;
-	windowPos.y = (-windowPos.y) + 1;
+	vec2 camWindowPos = pixelPos / (screenSize / zoom);
+	camWindowPos.y = (-camWindowPos.y) + 1;
+    //scale camera into the window
+    vec2 windowPos = camWindowPos * (screenSize / windowRes);
 	windowPos = 2 * (windowPos) - 1;
 	
 	gl_Position = vec4(windowPos, 0.0, 1.0);

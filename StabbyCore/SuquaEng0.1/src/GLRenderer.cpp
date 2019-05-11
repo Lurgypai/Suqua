@@ -1,9 +1,15 @@
 #include "stdafx.h"
 #include "GLRenderer.h"
 #include "ImgData.h"
+#include "Particle.h"
+#include "RandomUtil.h"
+#include "DebugIO.h"
+#include <iostream>
 
-void GLRenderer::Init(SDL_Window * window_) {
+void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 	window = window_;
+	windowRes = windowRes_;
+	viewRes = viewRes_;
 	SDL_GL_LoadLibrary(NULL);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -17,7 +23,6 @@ void GLRenderer::Init(SDL_Window * window_) {
 
 	SDL_GL_SetSwapInterval(0);
 	
-	SDL_GetWindowSize(window, &windowRes.x, &windowRes.y);
 	glViewport(0, 0, windowRes.x, windowRes.y);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -31,6 +36,20 @@ void GLRenderer::Init(SDL_Window * window_) {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ImgDataBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(ImgData) * IMG_DATA_BUFFER_SIZE, NULL, GL_STATIC_DRAW);
 
+	particleSystem.genBuffer();
+
+	GLRenderer::LoadShaders({
+		{Folder + "shaders/image.vert", Folder + "shaders/image.frag"},
+		{Folder + "shaders/image.vert", Folder + "shaders/text.frag"},
+		{Folder + "shaders/basic.vert", Folder + "shaders/basic.frag"},
+		{Folder + "shaders/particle.vert", Folder + "shaders/particle.frag"}
+		}, &DefaultShaders[0]);
+	GLRenderer::GetShaderRef(DefaultShaders[ImageShader]).use();
+	GLRenderer::GetShaderRef(DefaultShaders[ImageShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
+	GLRenderer::GetShaderRef(DefaultShaders[DebugShader]).use();
+	GLRenderer::GetShaderRef(DefaultShaders[DebugShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
+	GLRenderer::GetShaderRef(DefaultShaders[ParticleShader]).use();
+	GLRenderer::GetShaderRef(DefaultShaders[ParticleShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
 }
 
 void GLRenderer::Clear(GLbitfield bits) {
@@ -38,6 +57,7 @@ void GLRenderer::Clear(GLbitfield bits) {
 }
 
 void GLRenderer::LoadShaders(const std::vector<std::pair<std::string, std::string>> & shaders_, int * idsToFill) {
+	shaders.reserve(shaders.size() + shaders_.size());
 	for (int i = 0; i != shaders_.size(); ++i) {
 		Shader shader{ shaders_[i].first, shaders_[i].second };
 		shaders.emplace(shader.id, shader);
@@ -53,6 +73,10 @@ void GLRenderer::SetShader(unsigned int id) {
 
 void GLRenderer::SetBuffer(unsigned int styleId) {
 	currentRenderBuffer = &renderBuffers[styleId];
+}
+
+void GLRenderer::SetRenderBufferShader(unsigned int renderBufferId, unsigned int id) {
+	renderBuffers[renderBufferId].shaderId = id;
 }
 
 //rework
@@ -120,35 +144,37 @@ void GLRenderer::Draw(SelectType t_, int count, unsigned int * ids) {
 	for (int j = 0; j != count; ++j) {
 		RenderBuffer & renderBuf = renderBuffers[ids[j]];
 		std::vector<ImgData> & textureBuf = renderBuf.data;
+		if (!textureBuf.empty()) {
 
-		shaders[renderBuf.shaderId].use();
-		shaders[renderBuf.shaderId].uniform2f("camPos", cam.pos.x, cam.pos.y);
-		shaders[renderBuf.shaderId].uniform2f("camRes", cam.res.x, cam.res.y);
-		shaders[renderBuf.shaderId].uniform2f("zoom", cam.camScale, cam.camScale);
+			shaders[renderBuf.shaderId].use();
+			shaders[renderBuf.shaderId].uniform2f("camPos", cam.pos.x, cam.pos.y);
+			shaders[renderBuf.shaderId].uniform2f("camRes", cam.res.x, cam.res.y);
+			shaders[renderBuf.shaderId].uniform2f("zoom", cam.camScale, cam.camScale);
 
-		//grab the size
-		int size = static_cast<int>(textureBuf.size());
-		//bind the range for the first IMG_DATA_BUFFER_SIZE
-		glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ImgDataBuffer, 0, sizeof(ImgData) * IMG_DATA_BUFFER_SIZE);
-		//loop through batches of IMG_DATA_BUFFER_SIZE ImgDatas
-		for (int i = 0; i != ceil(static_cast<float>(size) / IMG_DATA_BUFFER_SIZE); i++) {
+			//grab the size
+			int size = static_cast<int>(textureBuf.size());
+			//bind the range for the first IMG_DATA_BUFFER_SIZE
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ImgDataBuffer);
+			//loop through batches of IMG_DATA_BUFFER_SIZE ImgDatas
+			for (int i = 0; i != ceil(static_cast<float>(size) / IMG_DATA_BUFFER_SIZE); i++) {
 
-			int objsToBuffer{ size - (i * IMG_DATA_BUFFER_SIZE) };
-			if (objsToBuffer > IMG_DATA_BUFFER_SIZE)
-				objsToBuffer = IMG_DATA_BUFFER_SIZE;
+				int objsToBuffer{ size - (i * IMG_DATA_BUFFER_SIZE) };
+				if (objsToBuffer > IMG_DATA_BUFFER_SIZE)
+					objsToBuffer = IMG_DATA_BUFFER_SIZE;
 
-			//buffer in as many as there are
-			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(ImgData) * objsToBuffer, &(textureBuf.front()) + (IMG_DATA_BUFFER_SIZE * i));
+				//buffer in as many as there are
+				glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(ImgData) * objsToBuffer, &(textureBuf.front()) + (IMG_DATA_BUFFER_SIZE * i));
 
-			//bind the texture
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, renderBuf.textureId);
+				//bind the texture
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, renderBuf.textureId);
 
-			//draw. 6 vertices (should) make a rectangle
-			glDrawArrays(GL_TRIANGLES, 0, 6 * objsToBuffer);
+				//draw. 6 vertices (should) make a rectangle
+				glDrawArrays(GL_TRIANGLES, 0, 6 * objsToBuffer);
+			}
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+			//glBindVertexArray(0);
 		}
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-		//glBindVertexArray(0);
 	}
 }
 
@@ -160,13 +186,85 @@ Shader & GLRenderer::GetShaderRef(int id) {
 	return shaders[id];
 }
 
+const Shader & GLRenderer::GetDefaultShader(DefShader shader) {
+	return shaders[DefaultShaders[shader]];
+}
+
+void GLRenderer::SetDefShader(DefShader shader) {
+	currentShader = &shaders[DefaultShaders[shader]];
+}
+
 unsigned int GLRenderer::GenRenderStyleBuf(unsigned int id, unsigned int shaderId) {
+	for (int i = 0; i != renderBuffers.size(); ++i) {
+		auto& renderBuf = renderBuffers[i];
+		if (renderBuf.textureId == id)
+			return i;
+	}
 	renderBuffers.push_back(RenderBuffer{ id, shaderId, {} });
+	return renderBuffers.size() - 1;
+}
+
+
+unsigned int GLRenderer::GenNewRenderStyleBuf(unsigned int textureId, unsigned int shaderId) {
+	renderBuffers.push_back(RenderBuffer{ textureId, shaderId, {} });
 	return renderBuffers.size() - 1;
 }
 
 void GLRenderer::SetRenderBufSize(unsigned int id, int size) {
 	renderBuffers[id].data.reserve(size);
+}
+
+void GLRenderer::DrawOverScreen(unsigned int texId) {
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texId);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+PartitionID GLRenderer::GenParticleType(unsigned int size, ComputeShader && shader) {
+	return particleSystem.genPartition(size, std::forward<ComputeShader>(shader));
+}
+
+void GLRenderer::SpawnParticles(PartitionID id, unsigned int count, Vec2f pos, const Particle & base) {
+	particleSystem.spawnParticles(id, count, pos, base);
+}
+
+void GLRenderer::UpdateAndDrawParticles() {
+	particleSystem.updateAndDraw(currentCam);
+}
+
+bool GLRenderer::ReadErrors() {
+	GLenum error = glGetError();
+	bool ret = false;
+	while (error) {
+		ret = true;
+		std::cout << "Error detected: ";
+		switch (error) {
+		case GL_INVALID_ENUM:
+			std::cout << "Invalid Enum";
+			break;
+		case GL_INVALID_VALUE:
+			std::cout << "Invalid Value";
+			break;
+		case GL_INVALID_OPERATION:
+			std::cout << "Invalid Operation";
+			break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION:
+			std::cout << "Invalid Framebuffer Operation";
+			break;
+		case GL_OUT_OF_MEMORY:
+			std::cout << "Out of Memory";
+			break;
+		case GL_STACK_UNDERFLOW:
+			std::cout << "Stack Underflow";
+			break;
+		case GL_STACK_OVERFLOW:
+			std::cout << "Stack Overflow";
+			break;
+		}
+		std::cout << '\n';
+		error = glGetError();
+	}
+	return ret;
 }
 
 void GLRenderer::ClearRenderBufs(SelectType t_, std::vector<unsigned int>& ids) {
@@ -216,6 +314,10 @@ Camera& GLRenderer::getCamera(int id) {
 	return cameras[id];
 }
 
+void GLRenderer::bindCurrShader() {
+	currentShader->use();
+}
+
 Vec2f GLRenderer::screenToWorld(Vec2f point, int camId) {
 
 	Camera& cam = cameras[camId];
@@ -249,6 +351,11 @@ unsigned int GLRenderer::ImgDataBuffer{};
 std::vector<Camera> GLRenderer::cameras{};
 int GLRenderer::currentCam{};
 Vec2i GLRenderer::windowRes{};
+Vec2i GLRenderer::viewRes{};
 RenderBuffer * GLRenderer::currentRenderBuffer{};
 std::unordered_map<unsigned int, Shader> GLRenderer::shaders{};
 Shader * GLRenderer::currentShader{nullptr};
+int GLRenderer::DefaultShaders[4]{};
+ParticleSystem GLRenderer::particleSystem{};
+
+const std::string GLRenderer::Folder{"SuquaEng0.1/"};

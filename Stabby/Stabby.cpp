@@ -36,9 +36,14 @@
 #include "HeadParticleLC.h"
 
 #include "ServerClientData.h"
+#include "RandomUtil.h"
 
-const int windowWidth = 1440;
-const int windowHeight = 810;
+
+const int windowWidth = 1920;
+const int windowHeight = 1080;
+
+const int viewWidth = windowWidth / 3;
+const int viewHeight = windowHeight / 3;
 
 void MessageCallback(GLenum source,
 	GLenum type,
@@ -70,13 +75,8 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	GLRenderer::Init(window);
-	int shaderId[2];
-	GLRenderer::LoadShaders({ {"SuquaEng0.1/shaders/image.vert", "SuquaEng0.1/shaders/image.frag"}, {"SuquaEng0.1/shaders/image.vert", "SuquaEng0.1/shaders/text.frag"} }, &shaderId[0]);
-	GLRenderer::GetShaderRef(shaderId[0]).use();
-	GLRenderer::GetShaderRef(shaderId[0]).uniform2f("windowRes", windowWidth, windowHeight);
-	GLRenderer::GetShaderRef(shaderId[1]).use();
-	GLRenderer::GetShaderRef(shaderId[1]).uniform2f("windowRes", windowWidth, windowHeight);
+	GLRenderer::Init(window, { windowWidth, windowHeight }, {viewWidth, viewHeight});
+
 
 	//client time
 	Time_t currentTick{ 0 };
@@ -86,7 +86,11 @@ int main(int argc, char* argv[]) {
 	DebugIO::startDebug("SuquaEng0.1/fonts/consolas_0.png", "SuquaEng0.1/fonts/consolas.fnt");
 	DebugIO::getCommandManager().registerCommand<ConnectCommand>(ConnectCommand{ client, currentTick });
 
+	PartitionID basicParticles = GLRenderer::GenParticleType(1, {"particles/basic.vert"});
+	PartitionID wavyParticles = GLRenderer::GenParticleType(1, { "particles/wavy.vert" });
 
+	//glEnable(GL_DEBUG_OUTPUT);
+	//glDebugMessageCallback(MessageCallback, 0);
 
 	/*------------------------ Player Preparation -----------------------------*/
 	Vec2f spawnPos{ 0, -32 };
@@ -108,15 +112,22 @@ int main(int argc, char* argv[]) {
 	Controller controller;
 
 	/*---------------------------------- Camera Preparation -------------------------------------------------------*/
-	PlayerCam playerCam{ playerId, windowWidth, windowHeight };
+	PlayerCam playerCam{ playerId, viewWidth, viewHeight };
 	int camId = GLRenderer::addCamera(playerCam);
-	int menuCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowHeight, windowHeight }, .5 });
-
-	
+	int menuCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
 
 	double gfxDelay{ 1.0 / 60 };
 	Uint64 currentLog = SDL_GetPerformanceCounter();
 	Uint64 currentGfx = SDL_GetPerformanceCounter();
+
+	/*--------------------------------------------- PostProcessing -------------------------------------------------*/
+	Framebuffer fb{};
+	unsigned int screenTex;
+	fb.bind();
+	screenTex = fb.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	fb.finalizeFramebuffer();
+	Framebuffer::unbind();
+
 
 	/*--------------------------------------------- GAME LOOP -----------------------------------------------*/
 	bool lockFPS{ true }, lockUPS{ true };
@@ -267,24 +278,27 @@ int main(int argc, char* argv[]) {
 			updateGFX = true;
 		if (updateGFX) {
 			double fps = 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency());
+			
 			DebugIO::setLine(1, "FPS: " + std::to_string(int(round(fps))));
 			//std::cout << 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency()) << std::endl;
 			currentGfx = now;
 
+			fb.bind();
+
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
 			GLRenderer::ClearRenderBufs(GLRenderer::all);
-
+			
 			//update camera
 			const Uint8 *state = SDL_GetKeyboardState(NULL);
 
 			unsigned int debugTextBuffer = DebugIO::getRenderBuffer();
-			GLRenderer::SetShader(shaderId[0]);
+			GLRenderer::SetDefShader(ImageShader);
 			GLRenderer::setCamera(camId);
 			static_cast<PlayerCam &>(GLRenderer::getCamera(camId)).update(playerId);
 			EntitySystem::GetComp<PlayerGC>(playerId)->update<ClientPlayerLC>();
 			GLRenderer::SetBuffer(EntitySystem::GetComp<PlayerGC>(playerId)->getRenderBuffer());
 			GLRenderer::Buffer(EntitySystem::GetComp<PlayerGC>(playerId)->getImgData());
-
+			
 
 			bool setBuffer{ true };
 			Pool<OnlinePlayerLC> * onlinePlayers = EntitySystem::GetPool<OnlinePlayerLC>();
@@ -304,6 +318,7 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
+			
 			setBuffer = true;
 			Pool<HeadParticleLC> * heads = EntitySystem::GetPool<HeadParticleLC>();
 			if (heads != nullptr) {
@@ -321,30 +336,33 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
+			
 			GLRenderer::SetBuffer(EntitySystem::GetComp<ImageGC>(stage.getId())->getRenderBuffer());
 			GLRenderer::Buffer(EntitySystem::GetComp<ImageGC>(stage.getId())->getImgData());
-
-			/*
-			ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
-			Hitbox * currHitbox = player->getAttack().getActive();
-			if (currHitbox != nullptr) {
-				Vec2f hitBoxRes = currHitbox->hit.getRes();
-				Vec2f imgRes = tempHitbox.getImgRes();
-
-				tempHitbox.setPos(currHitbox->hit.getPos());
-				tempHitbox.setScale({ hitBoxRes.x / imgRes.x, hitBoxRes.y / imgRes.y});
-
-				GLRenderer::SetBuffer(tempHitbox.getRenderBufferId());
-				// GLRenderer::Buffer(tempHitbox.getImgData());
-			}
-			*/
-
+			
+			
 			GLRenderer::Draw(GLRenderer::exclude, 1, &debugTextBuffer);
 
+			Particle p{ {0, -50}, -45.0f + (random(0, 10) - 5), 2.0f, 500, 0};
+			GLRenderer::SpawnParticles(basicParticles, 1, { 0, -50 }, p);
+			Particle p1{ {0, -50}, 0.0f, 0.7f, 1000, 0 };
+			GLRenderer::SpawnParticles(wavyParticles, 1, { 0, -50 }, p1);
+
+			GLRenderer::UpdateAndDrawParticles();
+			
+			Framebuffer::unbind();
+			GLRenderer::SetDefShader(FullscreenShader);
+			GLRenderer::bindCurrShader();
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			
+			GLRenderer::DrawOverScreen(fb.getTexture(0).id);
+
 			GLRenderer::setCamera(menuCamId);
-			GLRenderer::SetShader(shaderId[1]);
+			GLRenderer::SetDefShader(DebugShader);
 			DebugIO::drawLines(windowHeight);
+
 			GLRenderer::Swap();
+			GLRenderer::ReadErrors();
 		}
 	}
 
