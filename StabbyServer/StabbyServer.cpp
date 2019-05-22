@@ -219,7 +219,7 @@ int main(int argv, char* argc[])
 			
 			//move
 			for (auto& user : users) {
-				user->getPlayer().update(gameTime);
+				user->getPlayer().update(gameTime, stage);
 			}
 
 			//after movement, run collisisons
@@ -255,7 +255,7 @@ int main(int argv, char* argc[])
 
 				for (auto& other : users) {
 					//send the contiguous state block
-					enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(&states[0], sizeof(StatePacket) * states.size(), 0));
+					enet_peer_send(other->getConnection()->getPeer(), 0, enet_packet_create(states.data(), sizeof(StatePacket) * states.size(), 0));
 				}
 			}
 

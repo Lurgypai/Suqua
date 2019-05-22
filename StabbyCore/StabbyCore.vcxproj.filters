@@ -81,9 +81,6 @@
     <ClInclude Include="SuquaEng0.1\header\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SuquaEng0.1\header\AABBLC.h">
-      <Filter>Header Files\Engine\Physics</Filter>
-    </ClInclude>
     <ClInclude Include="SuquaEng0.1\header\AngleUtil.h">
       <Filter>Header Files\Engine\Util</Filter>
     </ClInclude>
@@ -122,9 +119,6 @@
     </ClInclude>
     <ClInclude Include="SuquaEng0.1\header\Packet.h">
       <Filter>Header Files\Game\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="SuquaEng0.1\header\PhysicsAABBLC.h">
-      <Filter>Header Files\Engine\Physics</Filter>
     </ClInclude>
     <ClInclude Include="PlayerLC.h">
       <Filter>Header Files\Game</Filter>
@@ -180,13 +174,16 @@
     <ClInclude Include="Particle.h">
       <Filter>Header Files\Engine\Render\Particles</Filter>
     </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\AABB.h">
+      <Filter>Header Files\Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="SuquaEng0.1\header\PhysicsAABB.h">
+      <Filter>Header Files\Engine\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SuquaEng0.1\src\AABBLC.cpp">
-      <Filter>Source Files\Engine\Physics</Filter>
     </ClCompile>
     <ClCompile Include="SuquaEng0.1\src\AnimatedSprite.cpp">
       <Filter>Source Files\Engine\Render</Filter>
@@ -214,9 +211,6 @@
     </ClCompile>
     <ClCompile Include="SuquaEng0.1\src\ImageGC.cpp">
       <Filter>Source Files\Engine\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="SuquaEng0.1\src\PhysicsAABBLC.cpp">
-      <Filter>Source Files\Engine\Physics</Filter>
     </ClCompile>
     <ClCompile Include="PlayerLC.cpp">
       <Filter>Source Files\Game</Filter>
@@ -256,6 +250,12 @@
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
       <Filter>Source Files\Engine\Render\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\PhysicsAABB.cpp">
+      <Filter>Source Files\Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="SuquaEng0.1\src\AABB.cpp">
+      <Filter>Source Files\Engine\Physics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

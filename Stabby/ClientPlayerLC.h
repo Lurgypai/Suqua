@@ -16,9 +16,9 @@ struct TotalPlayerState {
 class ClientPlayerLC : public PlayerLC {
 public:
 	ClientPlayerLC(EntityId id_ = 0);
-	void update(Time_t now, double timeDelta, const Controller & controller);
+	void update(Time_t now, double timeDelta, const Controller & controller, const Stage& stage);
 	//Repredict current loc using correct position at time when.
-	void repredict(const PlayerState & state);
+	void repredict(const PlayerState & state, const Stage& stage);
 	std::string getHeadPath();
 	Vec2f getCenter();
 private:

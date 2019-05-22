@@ -3,9 +3,9 @@
 #include <unordered_map>
 #include "EntitySystem.h"
 
-//create an AABBLC class that holds velocity, and handles moving bounding boxes, including collision.
+//create an AABB class that holds velocity, and handles moving bounding boxes, including collision.
 
-class AABBLC {
+class AABB {
 public:
 	enum class Direction {
 		up,
@@ -14,8 +14,7 @@ public:
 		right
 	};
 
-	AABBLC(EntityId id_ = 0);
-	AABBLC(Vec2f pos_, Vec2f res_);
+	AABB(Vec2f pos_, Vec2f res_);
 	Vec2f getPos() const;
 	Vec2f getRes() const;
 	Vec2f center() const;
@@ -25,11 +24,9 @@ public:
 	void setRes(const Vec2f& res_);
 
 	bool contains(Vec2f point);
-	bool intersects(AABBLC& other);
-	EntityId getId() const;
+	bool intersects(const AABB& other) const;
 
 protected:
-	EntityId id;
 	Vec2f pos;
 	Vec2f res;
 };

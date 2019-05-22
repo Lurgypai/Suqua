@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "User.h"
-#include "PhysicsAABBLC.h"
+#include "PhysicsAABB.h"
 #include "PlayerData.h"
 
 User::User(NetworkId id_, ConnectionPtr && con_) :
@@ -9,10 +9,8 @@ User::User(NetworkId id_, ConnectionPtr && con_) :
 {
 	EntitySystem::GenEntities(1, &id);
 	EntitySystem::MakeComps<ServerPlayerLC>(1, &id);
-	EntitySystem::MakeComps<PhysicsAABBLC>(1, &id);
 
-	EntitySystem::GetComp<ServerPlayerLC>(id)->setPos({ -PLAYER_WIDTH / 2, -PLAYER_HEIGHT });
-	EntitySystem::GetComp<PhysicsAABBLC>(id)->setRes({PLAYER_WIDTH, PLAYER_HEIGHT});
+	EntitySystem::GetComp<ServerPlayerLC>(id)->setPos({ -2, -20 });
 }
 
 EntityId User::getId() const {

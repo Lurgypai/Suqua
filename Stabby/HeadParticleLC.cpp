@@ -7,7 +7,8 @@ HeadParticleLC::HeadParticleLC(EntityId id_) :
 	gravity{3},
 	life{0},
 	pos{0, 0},
-	vel{0, 0}
+	vel{0, 0},
+	collider{ pos, Vec2f{4, 4} }
 {}
 
 Vec2f HeadParticleLC::getPos() const {
@@ -30,22 +31,19 @@ EntityId HeadParticleLC::getId() const {
 	return id;
 }
 
-void HeadParticleLC::update(double delta) {
-
-	PhysicsAABBLC * collider = EntitySystem::GetComp<PhysicsAABBLC>(id);
+void HeadParticleLC::update(double delta, const Stage& stage) {
 
 	life--;
 	if (life == 0) {
 		EntitySystem::FreeComps<HeadParticleLC>(1, &id);
-		EntitySystem::FreeComps<PhysicsAABBLC>(1, &id);
 		EntitySystem::FreeComps<ImageGC>(1, &id);
 	}
-	else if (collider != nullptr) {
+	else {
 		vel.y += gravity;
 
-		collider->setPos(pos);
-		collider->setVel(vel);
-		pos = collider->handleCollisions(*EntitySystem::GetPool<AABBLC>(), delta);
-		vel = collider->getVel();
+		collider.setPos(pos);
+		collider.setVel(vel);
+		pos = collider.handleCollision(stage.getCollider(), delta);
+		vel = collider.getVel();
 	}
 }

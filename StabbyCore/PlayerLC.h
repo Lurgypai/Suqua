@@ -3,6 +3,8 @@
 #include "Vec2.h"
 #include "Controller.h"
 #include "Attack.h"
+#include "PhysicsAABB.h"
+#include "Stage.h"
 enum class State {
 	free,
 	attacking,
@@ -14,10 +16,11 @@ enum class State {
 class PlayerLC {
 public:
 	PlayerLC(EntityId id_ = 0);
-	void update(double timeDelta, const Controller& controller);
+	void update(double timeDelta, const Controller& controller, const Stage& stage);
 	void setPos(Vec2f pos);
 	Vec2f getPos() const;
 	Vec2f getVel() const;
+	Vec2f getRes() const;
 	EntityId getId() const;
 	Attack& getAttack();
 	State getState();
@@ -35,6 +38,7 @@ protected:
 
 	Vec2f pos;
 	Vec2f vel;
+	PhysicsAABB collider;
 	//as a multiple of acceleration
 	int maxXVel;
 	float xAccel;
@@ -66,4 +70,7 @@ protected:
 
 	int deathFrame;
 	int deathFrameMax;
+
+	const static int PLAYER_WIDTH = 4;
+	const static int PLAYER_HEIGHT = 20;
 };

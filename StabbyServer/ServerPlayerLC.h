@@ -20,7 +20,7 @@ public:
 	PlayerState getStateAt(Time_t gameTime);
 	void setWhen(Time_t when_);
 	void bufferInput(ClientCommand c);
-	void update(Time_t gameTime);
+	void update(Time_t gameTime, const Stage& stage);
 	void runHitDetect(Time_t gameTime);
 private:
 	//the client time of the owning client that the last packet processed by the server was sent from the client

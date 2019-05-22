@@ -9,8 +9,8 @@ ClientPlayerLC::ClientPlayerLC(EntityId id_) :
 	last{0}
 {}
 
-void ClientPlayerLC::update(Time_t now, double timeDelta, const Controller & controller) {
-	PlayerLC::update(timeDelta, controller);
+void ClientPlayerLC::update(Time_t now, double timeDelta, const Controller & controller, const Stage& stage) {
+	PlayerLC::update(timeDelta, controller, stage);
 
 	//maintain constant max size
 	if (states.size() >= BUFFER_SIZE)
@@ -19,7 +19,7 @@ void ClientPlayerLC::update(Time_t now, double timeDelta, const Controller & con
 	states.emplace_back(TotalPlayerState{ PlayerState{state, now, pos, vel, rollFrame, attack.getActiveId(), attack.getCurrFrame(), health, stunFrame}, controller.getState() });
 }
 
-void ClientPlayerLC::repredict(const PlayerState & state) {
+void ClientPlayerLC::repredict(const PlayerState & state, const Stage& stage) {
 	if (state.when > last) {
 		for (auto i = 0; i != states.size(); ++i) {
 			auto tstate = states[i];
@@ -44,7 +44,7 @@ void ClientPlayerLC::repredict(const PlayerState & state) {
 
 					//now reevaulate, this will refill states
 					for (auto& updateState : toUpdate) {
-						update(updateState.plr.when, CLIENT_TIME_STEP, Controller{updateState.in});
+						update(updateState.plr.when, CLIENT_TIME_STEP, Controller{updateState.in}, stage);
 					}
 				}
 
@@ -60,5 +60,5 @@ std::string ClientPlayerLC::getHeadPath() {
 }
 
 Vec2f ClientPlayerLC::getCenter() {
-	return pos + Vec2f{PLAYER_WIDTH / 2, PLAYER_HEIGHT / 2};
+	return pos + Vec2f{static_cast<float>(PLAYER_WIDTH / 2), static_cast<float>(PLAYER_HEIGHT / 2)};
 }

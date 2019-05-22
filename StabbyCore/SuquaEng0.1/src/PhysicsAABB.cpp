@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include "PhysicsAABBLC.h"
+#include "PhysicsAABB.h"
 
-PhysicsAABBLC::PhysicsAABBLC(EntityId id_) : AABBLC{id_}
+PhysicsAABB::PhysicsAABB(Vec2f pos_, Vec2f res_) : AABB{pos_, res_}
 {}
 
-Vec2f PhysicsAABBLC::collides(AABBLC & other, double timeDelta) {
+Vec2f PhysicsAABB::collides(const AABB & other, double timeDelta) {
 
 	Vec2f oldPos = pos;
 	pos = { pos.x + vel.x * static_cast<float>(timeDelta), pos.y + vel.y * static_cast<float>(timeDelta) };
@@ -45,7 +45,7 @@ Vec2f PhysicsAABBLC::collides(AABBLC & other, double timeDelta) {
 	return overlap;
 }
 
-float PhysicsAABBLC::collides(AABBLC & other, double timeDelta, Direction dir) {
+float PhysicsAABB::collides(const AABB & other, double timeDelta, Direction dir) {
 
 	Vec2f oldPos = pos;
 	pos = { pos.x + vel.x * static_cast<float>(timeDelta), pos.y + vel.y * static_cast<float>(timeDelta) };
@@ -90,10 +90,51 @@ float PhysicsAABBLC::collides(AABBLC & other, double timeDelta, Direction dir) {
 	return overlap;
 }
 
-Vec2f PhysicsAABBLC::getVel() const {
+
+
+Vec2f PhysicsAABB::handleCollision(const AABB& other, double timeDelta) {		//place we are updating from
+	Vec2f currPos = pos;
+	//plce we are updating too
+	Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
+
+	AABB projection{ newPos, res };
+
+	//handle collisions
+	if (other.intersects(projection)) {
+		Vec2f overlap = collides(other, timeDelta);
+		//horizontal collision
+		if (overlap.x != 0.0f && overlap.y == 0.0f) {
+			vel.x = 0.0f;
+		}
+		//vertical collision
+		else if (overlap.x == 0.0f && overlap.y != 0.0f) {
+			vel.y = 0.0f;
+		}
+		//corner collision
+		else if (overlap.x != 0.0f && overlap.y != 0.0f) {
+			float absXVel = abs(vel.x);
+			float absYVel = abs(vel.y);
+			if (absXVel > absYVel) {
+				//this means don't resolve collisions allong the x axis
+				overlap.x = 0;
+				//and stop moving allong the y axis
+				vel.y = 0;
+			}
+			else {
+				overlap.y = 0;
+				vel.x = 0;
+			}
+		}
+		newPos -= overlap;
+	}
+	pos = newPos;
+	return newPos;
+}
+
+Vec2f PhysicsAABB::getVel() const {
 	return vel;
 }
 
-void PhysicsAABBLC::setVel(const Vec2f & vel_) {
+void PhysicsAABB::setVel(const Vec2f & vel_) {
 	vel = vel_;
 }

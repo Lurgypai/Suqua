@@ -3,13 +3,14 @@
 #include "enet/enet.h"
 #include "Packet.h"
 #include "EntitySystem.h"
+#include "Stage.h"
 #include <deque>
 
 #define PING_COUNT 10
 
 class Client {
 public:
-	Client();
+	Client(const Stage& stage_);
 
 	~Client();
 
@@ -51,4 +52,5 @@ private:
 	EntityId playerId;
 	//gameTime
 	Time_t networkTime;
+	const Stage& stage;
 };

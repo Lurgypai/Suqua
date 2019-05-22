@@ -2,7 +2,7 @@
 #include "ServerPlayerLC.h"
 #include <algorithm>
 #include "ServerClientData.h"
-#include "PhysicsAABBLC.h"
+#include "PhysicsAABB.h"
 #include <iostream>
 
 #include "SDL.h"
@@ -48,10 +48,10 @@ void ServerPlayerLC::bufferInput(ClientCommand c) {
 	}
 }
 
-void ServerPlayerLC::update(Time_t gameTime) {
+void ServerPlayerLC::update(Time_t gameTime, const Stage& stage) {
 	//we need to increment when as time passes, so that the client knows the times when things should happen. Update runs at client speed.
 	++when;
-	PlayerLC::update(CLIENT_TIME_STEP, latest.controllerState);
+	PlayerLC::update(CLIENT_TIME_STEP, latest.controllerState, stage);
 
 	if (prevStates.size() >= 32)
 		prevStates.pop_front();
@@ -64,27 +64,24 @@ void ServerPlayerLC::runHitDetect(Time_t gameTime) {
 	PlayerState stateWhenAction = getStateAt(timeToFind);
 
 	if (stateWhenAction.state != State::rolling) {
-		PhysicsAABBLC * ourCollider = EntitySystem::GetComp<PhysicsAABBLC>(id);
-		Vec2f restorePos = ourCollider->getPos();
+		Vec2f restorePos = collider.getPos();
 
-		ourCollider->setPos(stateWhenAction.pos);
+		collider.setPos(stateWhenAction.pos);
 
-		if (ourCollider != nullptr) {
-			bool wasHit = false;
-			for (auto& playerComp : *EntitySystem::GetPool<ServerPlayerLC>()) {
-				if (!playerComp.isFree && playerComp.val.id != id) {
-					auto& player = playerComp.val;
-					if (player.getAttack().getActive() != nullptr && ourCollider->intersects(player.getAttack().getActive()->hit)) {
-						if (!isBeingHit) {
-							damage(1);
-						}
-						wasHit = true;
+		bool wasHit = false;
+		for (auto& playerComp : *EntitySystem::GetPool<ServerPlayerLC>()) {
+			if (!playerComp.isFree && playerComp.val.id != id) {
+				auto& player = playerComp.val;
+				if (player.getAttack().getActive() != nullptr && collider.intersects(player.getAttack().getActive()->hit)) {
+					if (!isBeingHit) {
+						damage(1);
 					}
+					wasHit = true;
 				}
 			}
-			isBeingHit = wasHit;
 		}
+		isBeingHit = wasHit;
 
-		ourCollider->setPos(restorePos);
+		collider.setPos(restorePos);
 	}
 }

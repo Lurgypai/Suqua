@@ -3,7 +3,7 @@
 #include "ClientPlayerLC.h"
 #include "FileNotFoundException.h"
 #include <iostream>
-#include "PhysicsAABBLC.h"
+#include "PhysicsAABB.h"
 #include "ImageGC.h"
 #include "HeadParticleLC.h"
 
@@ -38,7 +38,10 @@ void PlayerGC::load(std::string filePath) {
 	sprite.addAnimation(stun, 38, 39);
 	sprite.addAnimation(dead, 39, 51);
 
-	offset = Vec2f{ (sprite.getObjRes().abs().x - PLAYER_WIDTH) / 2, (sprite.getObjRes().abs().y - PLAYER_HEIGHT) };
+	//ClientPlayerLC* playerLogic = EntitySystem::GetComp<ClientPlayerLC>(id);
+	//Vec2f res = playerLogic->getRes();
+	Vec2f res = { 4.0f, 20.0f };
+	offset = Vec2f{ (sprite.getObjRes().abs().x - res.x) / 2, (sprite.getObjRes().abs().y - res.y) };
 }
 
 EntityId PlayerGC::getId() const {
@@ -56,12 +59,8 @@ ImgData PlayerGC::getImgData() const {
 void PlayerGC::spawnHead(Vec2f pos, std::string filePath) {
 	unsigned int id_;
 	EntitySystem::GenEntities(1, &id_);
-	EntitySystem::MakeComps<PhysicsAABBLC>(1, &id_);
 	EntitySystem::MakeComps<HeadParticleLC>(1, &id_);
 	EntitySystem::MakeComps<ImageGC>(1, &id_);
-
-	PhysicsAABBLC * collider = EntitySystem::GetComp<PhysicsAABBLC>(id_);
-	collider->setRes({4, 4});
 
 	HeadParticleLC * particle = EntitySystem::GetComp<HeadParticleLC>(id_);
 	particle->setLife(240);

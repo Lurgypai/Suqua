@@ -2,18 +2,22 @@
 #include "Attack.h"
 #include "PlayerData.h"
 
+#include <iostream>
+
 Attack::Attack() :
 	hitboxes{
-		Hitbox{AABBLC{Vec2f{0, 0}, Vec2f{14, 13}},
+		Hitbox{AABB{Vec2f{0, 0}, Vec2f{14, 13}},
 			Vec2f{2, -1}, 0, 20, 16},
-		Hitbox{AABBLC{Vec2f{0, 0}, Vec2f{20, 20}},
+		Hitbox{AABB{Vec2f{0, 0}, Vec2f{20, 20}},
 			Vec2f{2, -1}, 0, 28, 16},
-		Hitbox{AABBLC{Vec2f{0, 0}, Vec2f{30, 25}},
+		Hitbox{AABB{Vec2f{0, 0}, Vec2f{30, 25}},
 			Vec2f{-1, -5}, 8, 32, 8}
 	},
 	currFrame{0},
 	nextIsBuffered{false},
-	active{0}
+	active{0},
+	restartDelay{0},
+	restartDelayMax{40}
 {}
 
 void Attack::setActive(int i) {
@@ -23,6 +27,12 @@ void Attack::setActive(int i) {
 
 void Attack::setFrame(int frame) {
 	currFrame = frame;
+}
+
+void Attack::startAttacking() {
+	if (restartDelay == restartDelayMax) {
+		active = 1;
+	}
 }
 
 Hitbox * Attack::getActive() {
@@ -51,13 +61,17 @@ void Attack::bufferNext() {
 	nextIsBuffered = true;
 }
 
-void Attack::forward(Vec2f pos, int facing) {
+void Attack::update(Vec2f pos, Vec2f res, int facing) {
+	if (restartDelay != restartDelayMax) {
+		++restartDelay;
+		return;
+	}
 	//update pos
 	if (active != 0) {
 		Hitbox& hbox = hitboxes[active - 1];
 		Vec2f offset = hbox.offset;
 		if(facing == -1)
-			offset.x = (-(hbox.hit.getRes().x - PLAYER_WIDTH)) - offset.x;
+			offset.x = (-(hbox.hit.getRes().x - res.x)) - offset.x;
 
 		hbox.hit.setPos(pos + offset);
 	}
@@ -74,10 +88,11 @@ void Attack::forward(Vec2f pos, int facing) {
 			++currFrame;
 		}
 	}
-	//otherwise reset
-	else {
+	//otherwise reset (only if we weren't attacking)
+	else if(active != 0) {
 		active = 0;
 		currFrame = 0;
 		nextIsBuffered = false;
+		restartDelay = 0;
 	}
 }

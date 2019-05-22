@@ -19,11 +19,11 @@
 #include "Shader.h"
 #include "ImageGC.h"
 #include "PlayerGC.h"
-#include "AABBLC.h"
+#include "AABB.h"
 #include "Controller.h"
 #include "DebugIO.h"
 #include "EntitySystem.h"
-#include "PhysicsAABBLC.h"
+#include "PhysicsAABB.h"
 
 #include "GLRenderer.h"
 #include "PlayerCam.h"
@@ -81,10 +81,7 @@ int main(int argc, char* argv[]) {
 	//client time
 	Time_t currentTick{ 0 };
 
-	Client client{};
-
 	DebugIO::startDebug("SuquaEng0.1/fonts/consolas_0.png", "SuquaEng0.1/fonts/consolas.fnt");
-	DebugIO::getCommandManager().registerCommand<ConnectCommand>(ConnectCommand{ client, currentTick });
 
 	PartitionID basicParticles = GLRenderer::GenParticleType(1, {"particles/basic.vert"});
 	PartitionID wavyParticles = GLRenderer::GenParticleType(1, { "particles/wavy.vert" });
@@ -97,17 +94,17 @@ int main(int argc, char* argv[]) {
 	unsigned int playerId;
 	EntitySystem::GenEntities(1, &playerId);
 	EntitySystem::MakeComps<ClientPlayerLC>(1, &playerId);
-	EntitySystem::GetComp<ClientPlayerLC>(playerId)->setPos({ -PLAYER_WIDTH / 2, -PLAYER_HEIGHT });
+	EntitySystem::GetComp<ClientPlayerLC>(playerId)->setPos({ -2, -20 });
 	EntitySystem::MakeComps<PlayerGC>(1, &playerId);
 	EntitySystem::GetComp<PlayerGC>(playerId)->load("images/stabbyman.png");
-	EntitySystem::MakeComps<PhysicsAABBLC>(1, &playerId);
-	//these defines are in PlayerData.h in the core.
-	EntitySystem::GetComp<PhysicsAABBLC>(playerId)->setRes({ PLAYER_WIDTH, PLAYER_HEIGHT });
 
-	client.setPlayer(playerId);
 
 	Stage stage{};
 	stage.loadGraphics("images/stage.png");
+
+	Client client{stage};
+	client.setPlayer(playerId);
+	DebugIO::getCommandManager().registerCommand<ConnectCommand>(ConnectCommand{ client, currentTick });
 
 	Controller controller;
 
@@ -206,7 +203,7 @@ int main(int argc, char* argv[]) {
 			}
 
 			ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
-			player->update(currentTick, CLIENT_TIME_STEP, controller);
+			player->update(currentTick, CLIENT_TIME_STEP, controller, stage);
 
 			if (client.getConnected()) {
 				//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
@@ -263,7 +260,7 @@ int main(int argc, char* argv[]) {
 			if (heads != nullptr) {
 				for (auto& head : *heads) {
 					if (!head.isFree) {
-						head.val.update(CLIENT_TIME_STEP);
+						head.val.update(CLIENT_TIME_STEP, stage);
 					}
 				}
 			}
@@ -343,13 +340,15 @@ int main(int argc, char* argv[]) {
 			
 			GLRenderer::Draw(GLRenderer::exclude, 1, &debugTextBuffer);
 
+			/*
 			Particle p{ {0, -50}, -45.0f + (random(0, 10) - 5), 2.0f, 500, 0};
 			GLRenderer::SpawnParticles(basicParticles, 1, { 0, -50 }, p);
 			Particle p1{ {0, -50}, 0.0f, 0.7f, 1000, 0 };
 			GLRenderer::SpawnParticles(wavyParticles, 1, { 0, -50 }, p1);
 
 			GLRenderer::UpdateAndDrawParticles();
-			
+			*/
+
 			Framebuffer::unbind();
 			GLRenderer::SetDefShader(FullscreenShader);
 			GLRenderer::bindCurrShader();

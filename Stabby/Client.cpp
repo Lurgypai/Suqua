@@ -12,7 +12,8 @@
 
 #include <iostream>
 
-Client::Client() :
+Client::Client(const Stage& stage_) :
+	stage{stage_},
 	id{ 0 }
 {
 	enet_initialize();
@@ -181,7 +182,7 @@ void Client::receive(ENetEvent & e) {
 			if (id == p.id) {
 				ClientPlayerLC * player = EntitySystem::GetComp<ClientPlayerLC>(playerId);
 				if (player != nullptr) {
-					player->repredict(p.state);
+					player->repredict(p.state, stage);
 				}
 			}
 		}

@@ -1,10 +1,10 @@
 #pragma once
-#include "AABBLC.h"
+#include "AABB.h"
 #include <array>
 
 //begin and end framess
 struct Hitbox {
-	AABBLC hit;
+	AABB hit;
 	Vec2f offset;
 	unsigned int startup;
 	unsigned int active;
@@ -16,16 +16,19 @@ public:
 	Attack();
 	void setActive(int i);
 	void setFrame(int frame);
+	void startAttacking();
 	Hitbox* getActive();
 	unsigned int getActiveId();
 	unsigned int getCurrFrame();
 	unsigned int getCurrentTotalFrames();
 	void bufferNext();
-	void forward(Vec2f pos, int facing);
+	void update(Vec2f pos, Vec2f res, int facing);
 private:
 	std::array<Hitbox, 3> hitboxes;
 	int active = 0;
 	//current frame relative to the current attack
 	unsigned int currFrame;
 	bool nextIsBuffered;
+	int restartDelay;
+	int restartDelayMax;
 };

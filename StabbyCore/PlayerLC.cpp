@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "PlayerLC.h"
-#include "PhysicsAABBLC.h"
+#include "PhysicsAABB.h"
 #include "PlayerData.h"
 
 #include <iostream>
@@ -29,10 +29,11 @@ PlayerLC::PlayerLC(EntityId id_) :
 	stunSlideSpeed{10},
 	state{State::free},
 	deathFrame{0},
-	deathFrameMax{200}
+	deathFrameMax{200},
+	collider{ pos, Vec2f{static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)} }
 {}
 
-void PlayerLC::update(double timeDelta, const Controller & controller) {
+void PlayerLC::update(double timeDelta, const Controller & controller, const Stage& stage) {
 
 	bool attackToggledDown{ false };
 	bool currButton2 = controller[ControllerBits::BUTTON_2];
@@ -42,6 +43,9 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 			attackToggledDown = true;
 		}
 	}
+
+	//always update the attack. Hitboxes should only be out when we are stuck in attack mode.
+	attack.update(pos, collider.getRes(), facing);
 
 	switch (state) {
 	case State::stunned:
@@ -59,7 +63,6 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 		break;
 	case State::attacking:
 		vel.x = 0;
-		attack.forward(pos, facing);
 		if (attack.getActiveId() == 0)
 			state = State::free;
 		else if(attackToggledDown)
@@ -91,19 +94,21 @@ void PlayerLC::update(double timeDelta, const Controller & controller) {
 
 	vel.y += gravity;
 
-	PhysicsAABBLC * collider = EntitySystem::GetComp<PhysicsAABBLC>(id);
-	collider->setPos(pos);
-	collider->setVel(vel);
+	collider.setPos(pos);
+	collider.setVel(vel);
 
-	pos = collider->handleCollisions(*EntitySystem::GetPool<AABBLC>(), timeDelta);
-	if (collider->getVel().y == 0 && vel.y > 0) {
+
+
+	pos = collider.handleCollision(stage.getCollider(), timeDelta);
+
+	if (collider.getVel().y == 0 && vel.y > 0) {
 		canJump = true;
 	}
 	else {
 		canJump = false;
 	}
 
-	vel = collider->getVel();
+	vel = collider.getVel();
 	if (pos.y > 1000) {
 		respawn();
 	}
@@ -119,6 +124,10 @@ Vec2f PlayerLC::getPos() const {
 
 Vec2f PlayerLC::getVel() const {
 	return vel;
+}
+
+Vec2f PlayerLC::getRes() const {
+	return collider.getRes();
 }
 
 EntityId PlayerLC::getId() const {
@@ -178,7 +187,7 @@ void PlayerLC::kill() {
 void PlayerLC::respawn() {
 	state = State::free;
 	health = 3;
-	pos = { -PLAYER_WIDTH / 2, -PLAYER_HEIGHT };
+	pos = {static_cast<float>( -PLAYER_WIDTH / 2), static_cast<float>(-PLAYER_HEIGHT) };
 	vel = { 0, 0 };
 	attack.setActive(0);
 	attack.setFrame(0);
@@ -189,7 +198,7 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 	if (attackToggledDown_) {
 		state = State::attacking;
 		if (attack.getActiveId() == 0) {
-			attack.setActive(1);
+			attack.startAttacking();
 		}
 	}
 

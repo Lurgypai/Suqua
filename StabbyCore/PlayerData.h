@@ -3,9 +3,6 @@
 #include "NetworkTypes.h"
 #include "PlayerLC.h"
 
-#define PLAYER_WIDTH 4
-#define PLAYER_HEIGHT 20
-
 struct PlayerState {
 	bool operator==(const PlayerState & other) {
 		return when == other.when && pos == other.pos && vel == other.vel && state == other.state &&
