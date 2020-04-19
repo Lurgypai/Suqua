@@ -3,6 +3,7 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
+#include <list>
 
 #include "TypeData.h"
 #include "PoolNotFoundException.h"

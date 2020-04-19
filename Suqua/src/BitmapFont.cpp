@@ -6,8 +6,8 @@
 #include <sstream>
 #include <vector>
 
-#include <glad\glad.h>
-#include <SDL.H>
+#include "glad/glad.h"
+#include "SDL.h"
 #include "stb_image.h"
 
 BitmapFont::BitmapFont() : texture{0} {

@@ -1,6 +1,7 @@
 #include "PhysicsComponent.h"
 #include "AngleUtil.h"
 #include "PositionComponent.h"
+#include <cmath>
 
 PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, Vec2f vel_, bool collideable_) :
 	id{ id_ },

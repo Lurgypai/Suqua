@@ -4,8 +4,8 @@
 #include <fstream>
 #include <sstream>
 
-#include <glad\glad.h>
-#include <SDL.H>
+#include <glad/glad.h>
+#include <SDL.h>
 #include "stb_image.h"
 
 #include "GLRenderer.h"

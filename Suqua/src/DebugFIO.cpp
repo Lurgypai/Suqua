@@ -1,4 +1,4 @@
-#include "DebugFIO.h"
+#include "../header/DebugFIO.h"
 #include <chrono>
 #include <ctime>
 
@@ -13,9 +13,7 @@ std::ostream& DebugFIO::Out(const std::string& file)
 	if (outs.find(file) != outs.end()) {
 		auto now = std::chrono::system_clock().now();
 		std::time_t time = std::chrono::system_clock::to_time_t(now);
-		std::string s{};
-		s.resize(26); ctime_s(s.data(), s.size(), &time);
-		return (outs[file] << '[' << s.substr(0, s.size() - 2) << "] ");
+		return (outs[file] << '[' << std::ctime(&time) << "] ");
 	}
 
 	std::out_of_range e{"Unable to find output file \"" + file + "\""};
