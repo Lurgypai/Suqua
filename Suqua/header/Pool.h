@@ -28,11 +28,11 @@ class Pool : public IPool {
 
 public:
 
-	template<typename T>
+	template<typename U>
 	class PoolIterator {
 	public:
 		PoolIterator() : size{ 0 }, pos{ 0 }, current{ nullptr } {}
-		explicit PoolIterator(size_t pos_, size_t size_, Resource<T> * start) : size{ size_ }, pos{ pos_ }, current{ start } {
+		explicit PoolIterator(size_t pos_, size_t size_, Resource<U> * start) : size{ size_ }, pos{ pos_ }, current{ start } {
 			while (pos < size && current->isFree) {
 				++current;
 				++pos;
