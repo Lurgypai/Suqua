@@ -1,0 +1,11 @@
+{
+    "columns": 3,
+    "frame_width": 64,
+    "frame_height": 64,
+    "hits": [
+        {
+            "begin_frame": 0,
+            "end_frame": 3
+        }
+    ]
+}
