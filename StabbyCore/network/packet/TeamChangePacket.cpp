@@ -1,12 +1,13 @@
 #include "TeamChangePacket.h"
+#include "ByteOrder.h"
 
 
 void TeamChangePacket::serialize() {
-	targetTeamId = htonll(targetTeamId);
-	id = htonll(id);
+	targetTeamId = s_htonll(targetTeamId);
+	id = s_htonll(id);
 }
 
 void TeamChangePacket::unserialize() {
-	targetTeamId = ntohll(targetTeamId);
-	id = ntohll(id);
+	targetTeamId = s_ntohll(targetTeamId);
+	id = s_ntohll(id);
 }

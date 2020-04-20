@@ -1,9 +1,10 @@
 #include "QuitPacket.h"
+#include "ByteOrder.h"
 
 void QuitPacket::serialize() {
-	id = htonll(id);
+	id = s_htonll(id);
 }
 
 void QuitPacket::unserialize() {
-	id = ntohll(id);
+	id = s_ntohll(id);
 }

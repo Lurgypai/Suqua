@@ -1,11 +1,12 @@
 #include "WelcomePacket.h"
+#include "ByteOrder.h"
 
 void WelcomePacket::serialize() {
-	netId = htonll(netId);
-	currentTick = htonll(currentTick);
+	netId = s_htonll(netId);
+	currentTick = s_htonll(currentTick);
 }
 
 void WelcomePacket::unserialize() {
-	netId = ntohll(netId);
-	currentTick = ntohll(currentTick);
+	netId = s_ntohll(netId);
+	currentTick = s_ntohll(currentTick);
 }

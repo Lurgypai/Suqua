@@ -1,9 +1,10 @@
 #include "JoinPacket.h"
+#include "ByteOrder.h"
 
 void JoinPacket::serialize() {
-	joinerId = htonll(joinerId);
+	joinerId = s_htonll(joinerId);
 }
 
 void JoinPacket::unserialize() {
-	joinerId = ntohll(joinerId);
+	joinerId = s_ntohll(joinerId);
 }

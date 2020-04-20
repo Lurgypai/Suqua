@@ -1,11 +1,12 @@
 #include "WeaponChangePacket.h"
+#include "ByteOrder.h"
 
 void WeaponChangePacket::serialize() {
-	size = htonll(size);
-	id = htonll(id);
+	size = s_htonll(size);
+	id = s_htonll(id);
 }
 
 void WeaponChangePacket::unserialize() {
-	size = ntohll(size);
-	id = ntohll(id);
+	size = s_ntohll(size);
+	id = s_ntohll(id);
 }
