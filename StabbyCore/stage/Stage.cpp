@@ -1,9 +1,11 @@
+#include <fstream>
+#include <cstring>
+
 #include "Stage.h"
 #include "RenderComponent.h"
 #include "PositionComponent.h"
 #include "ClimbableComponent.h"
 #include "PhysicsComponent.h"
-#include <fstream>
 #include "../player/spawn/SpawnComponent.h"
 
 const std::string Stage::folder{"stage"};

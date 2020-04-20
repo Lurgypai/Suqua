@@ -15,9 +15,9 @@ file(GLOB_RECURSE header_files
 add_executable(Stabby ${source_files} ${header_files})
 
 target_include_directories(Stabby PUBLIC
-	"${CMAKE_CURRENT_SOURCE_DIR}/../include"
-	"${CMAKE_CURRENT_SOURCE_DIR}/../Suqua/header"
-	"${CMAKE_CURRENT_SOURCE_DIR}/../StabbyCore/include"
+	${CMAKE_CURRENT_SOURCE_DIR}/../include
+	${CMAKE_CURRENT_SOURCE_DIR}/../Suqua/header
+	${CMAKE_CURRENT_SOURCE_DIR}/../StabbyCore/include
 )
 
 target_link_libraries(Stabby ${SDL2_LIBRARIES} StabbyCore enet)

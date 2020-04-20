@@ -11,8 +11,8 @@
 #include <algorithm>
 
 
-#include <glad\glad.h>
-#include <SDL.H>
+#include <glad/glad.h>
+#include <SDL.h>
 #include "stb_image.h"
 #include "Shader.h"
 #include "AABB.h"
@@ -23,12 +23,13 @@
 #include "PhysicsSystem.h"
 #include "RenderSystem.h"
 #include "RenderComponent.h"
-#include "Stage.h"
 #include "PositionComponent.h"
 #include "RandomUtil.h"
 #include "DebugFIO.h"
 #include <ControllerComponent.h>
 #include "RectDrawable.h"
+
+#include "stage.h"
 
 #include "game/Game.h"
 #include "graphics/camera/PlayerCam.h"
@@ -70,9 +71,11 @@ void MessageCallback(GLenum source,
 		type, severity, message);
 }
 
+/*
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
+*/
 
 int main(int argc, char* argv[]) {
 

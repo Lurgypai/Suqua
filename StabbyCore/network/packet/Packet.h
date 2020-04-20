@@ -2,6 +2,7 @@
 #include "enet/enet.h"
 #include "../NetworkTypes.h"
 #include <string>
+#include <cstring>
 #define PACKET_KEY_SIZE 3	//will be plus oned in the packets to hold the null character.
 
 /*

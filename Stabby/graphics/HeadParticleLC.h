@@ -1,6 +1,6 @@
 #pragma once
 #include "EntitySystem.h"
-#include "Stage.h"
+#include "stage.h"
 #include "PhysicsComponent.h"
 
 class HeadParticleLC {

@@ -3,7 +3,7 @@
 #include "DirectionComponent.h"
 #include "DebugIO.h"
 #include "../stage/ClimbableComponent.h"
-#include "../player/spawn/RespawnComponent.h";
+#include "../player/spawn/RespawnComponent.h"
 
 #include <iostream>
 #include <ControllerComponent.h>

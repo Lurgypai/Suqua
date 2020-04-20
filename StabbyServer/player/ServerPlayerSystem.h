@@ -3,7 +3,7 @@
 #include "network.h"
 #include "player.h"
 
-#include "Stage.h"
+#include "stage.h"
 
 class ServerPlayerSystem {
 public:

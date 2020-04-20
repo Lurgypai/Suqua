@@ -11,6 +11,7 @@
 #include <RenderComponent.h>
 #include <EntityBaseComponent.h>
 #include <PositionComponent.h>
+#include <cstring>
 
 EditableSystem::EditableSystem() :
 	isEnabled{false}

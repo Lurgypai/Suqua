@@ -6,6 +6,7 @@
 #include "PositionComponent.h"
 
 #include <iostream>
+#include <cmath>
 
 EditableStageComponent::EditableStageComponent(EntityId id_) :
 	id{id_},

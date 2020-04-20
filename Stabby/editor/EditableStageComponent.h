@@ -1,6 +1,6 @@
 #pragma once
 #include "AABB.h"
-#include "Stage.h"
+#include "stage.h"
 
 enum class AnchorSide {
 	right,

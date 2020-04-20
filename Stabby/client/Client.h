@@ -2,7 +2,7 @@
 #include <string>
 #include "enet/enet.h"
 #include "EntitySystem.h"
-#include "Stage.h"
+#include "stage.h"
 #include <deque>
 
 #include "network.h"

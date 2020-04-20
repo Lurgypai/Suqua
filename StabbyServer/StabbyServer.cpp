@@ -12,8 +12,9 @@
 #include <list>
 #include <algorithm>
 #include <vector>
+#include <cstring>
 
-#include "Stage.h"
+#include "stage.h"
 
 #include "PhysicsSystem.h"
 #include "EntityBaseComponent.h"
@@ -338,7 +339,7 @@ int main(int argv, char* argc[])
 				if (!wasRestarting && mode.isRestarting()) {
 					MessagePacket message{};
 					std::string text = "Game over, team " + std::to_string(mode.getWinningTeam()) + " has won.";
-					strcpy_s(message.message, text.data());
+					strcpy(message.message, text.data());
 					for (auto& user : users) {
 						server.sendPacket(user->getConnection()->getPeer(), 0, message);
 					}
