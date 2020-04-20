@@ -14,3 +14,7 @@ target_include_directories(Suqua PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/header)
 target_include_directories(Suqua PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 target_link_libraries(Suqua ${CMAKE_DL_LIBS})
+
+if(UNIX)
+	target_link_libraries(Suqua stdc++fs)
+endif()
