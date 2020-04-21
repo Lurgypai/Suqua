@@ -165,15 +165,22 @@ void Client::setSpawns(SpawnSystem* spawns_) {
 	spawns = spawns_;
 }
 
+const std::vector<NetworkId>& Client::getNewPlayers() const {
+	return toJoinIds;
+}
+
+void Client::clearNewPlayers() {
+	toJoinIds.clear();
+}
+
 void Client::receive(ENetEvent & e) {
 	std::string packetKey = PacketUtil::readPacketKey(e.packet);
-	std::vector<NetworkId> ids;
 	if (packetKey == JOIN_KEY) {
 		JoinPacket p;
 		PacketUtil::readInto<JoinPacket>(p, e.packet);
 		p.unserialize();
 		DebugIO::printLine("Player with id " + std::to_string(p.joinerId) + " has joined!");
-		ids.push_back(p.joinerId);
+		toJoinIds.push_back(p.joinerId);
 	}
 	else if (packetKey == STATE_KEY) {
 		std::vector<StatePacket> states;
@@ -293,25 +300,5 @@ void Client::receive(ENetEvent & e) {
 		message.unserialize();
 
 		DebugIO::printLine(std::string{ message.message });
-	}
-	if (!ids.empty()) {
-		std::vector<EntityId> entities;
-		entities.resize(ids.size());
-		EntitySystem::GenEntities(ids.size(), entities.data());
-		EntitySystem::MakeComps<OnlinePlayerLC>(entities.size(), entities.data());
-		EntitySystem::MakeComps<PlayerGC>(entities.size(), entities.data());
-		EntitySystem::MakeComps<OnlineComponent>(entities.size(), entities.data());
-
-		for (int i = 0; i != ids.size(); ++i) {
-			EntityId entity = entities[i];
-			NetworkId netId = ids[i];
-			online->registerOnlineComponent(entity, netId);
-			EntitySystem::GetComp<RenderComponent>(entity)->loadDrawable<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
-			EntitySystem::GetComp<PlayerGC>(entity)->loadAnimations();
-			EntitySystem::GetComp<PlayerGC>(entity)->attackSprite = weapons->cloneAnimation("player_sword");
-			EntitySystem::GetComp<CombatComponent>(entity)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
-			EntitySystem::GetComp<CombatComponent>(entity)->health = 100;
-			EntitySystem::GetComp<CombatComponent>(entity)->attack = weapons->cloneAttack("player_sword");
-		}
 	}
 }

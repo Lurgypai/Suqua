@@ -10,7 +10,6 @@
 #include <time.h>
 #include <algorithm>
 
-
 #include <glad/glad.h>
 #include <SDL.h>
 #include "stb_image.h"
@@ -99,7 +98,7 @@ int main(int argc, char* argv[]) {
 	}
 
 
-	GLRenderer::Init(window, { windowWidth, windowHeight }, {viewWidth, viewHeight});
+	GLRenderer::Init(window, { windowWidth, windowHeight }, { viewWidth, viewHeight });
 
 	DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
 	DebugFIO::AddFOut("c_out.txt");
@@ -107,7 +106,7 @@ int main(int argc, char* argv[]) {
 	int debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
 	game.loadCameras(viewWidth, viewHeight);
 
-	PartitionID blood = GLRenderer::GenParticleType("blood", 1, {"particles/blood.vert"});
+	PartitionID blood = GLRenderer::GenParticleType("blood", 1, { "particles/blood.vert" });
 	PartitionID test = GLRenderer::GenParticleType("test", 4, { "particles/test.vert" });
 	PartitionID floating = GLRenderer::GenParticleType("float", 1, { "particles/float.vert" });
 
@@ -118,16 +117,16 @@ int main(int argc, char* argv[]) {
 
 	glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(MessageCallback, 0);
-	
+
 	EntityId title;
 	EntitySystem::GenEntities(1, &title);
 	EntitySystem::MakeComps<RenderComponent>(1, &title);
-	RenderComponent * titleRender = EntitySystem::GetComp<RenderComponent>(title);
+	RenderComponent* titleRender = EntitySystem::GetComp<RenderComponent>(title);
 	titleRender->loadDrawable<Sprite>("images/tempcover.png");
-	EntitySystem::GetComp<PositionComponent>(title)->pos = {-320 , -300 };
+	EntitySystem::GetComp<PositionComponent>(title)->pos = { -320 , -300 };
 
-	PhysicsSystem & physics = game.physics;
-	Client & client = game.client;
+	PhysicsSystem& physics = game.physics;
+	Client& client = game.client;
 	game.palettes.loadPalettes("images/palettes");
 
 	/*--------------------------------------------- Commands ---------------------------------------------------------*/
@@ -142,7 +141,7 @@ int main(int argc, char* argv[]) {
 	DebugIO::getCommandManager().registerCommand<VelocityCommand>();
 	DebugIO::getCommandManager().registerCommand<TeleportCommand>();
 	DebugIO::getCommandManager().registerCommand<SpawnPlayerCommand>(SpawnPlayerCommand{ &game.players, &game.weapons });
-	DebugIO::getCommandManager().registerCommand<TeamChangeCommand>(TeamChangeCommand{&game.client});
+	DebugIO::getCommandManager().registerCommand<TeamChangeCommand>(TeamChangeCommand{ &game.client });
 	DebugIO::getCommandManager().registerCommand<HealthCommand>();
 	bool doFBF{ false };
 	DebugIO::getCommandManager().registerCommand<FrameByFrameCommand>(doFBF);
@@ -361,6 +360,7 @@ int main(int argc, char* argv[]) {
 							}
 						}
 
+						game.loadNewPlayers();
 
 						DebugIO::setLine(3, "NetId: " + std::to_string(online->getNetId()));
 						DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
@@ -421,7 +421,7 @@ int main(int argc, char* argv[]) {
 			GLRenderer::ClearRenderBufs(GLRenderer::all);
 
 			//update camera
-			const Uint8 *state = SDL_GetKeyboardState(NULL);
+			const Uint8* state = SDL_GetKeyboardState(NULL);
 
 			unsigned int debugTextBuffer = DebugIO::getRenderBuffer();
 
@@ -521,17 +521,14 @@ int main(int argc, char* argv[]) {
 			GLRenderer::getComputeShader("blood").use();
 			GLRenderer::getComputeShader("blood").uniform2f("camPos", GLRenderer::getCamera(game.playerCamId).pos.x, GLRenderer::getCamera(game.playerCamId).pos.y);
 			GLRenderer::getComputeShader("blood").uniform1f("zoom", GLRenderer::getCamera(game.playerCamId).camScale);
-
 			GLRenderer::UpdateAndDrawParticles();
 			*/
 
 			//palettes, for later
 			/*
 			pongBuffer.bind();
-
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, game.palettes.getCurrentPalette().getTexture());
-
 			GLRenderer::GetShaderRef(colorShader).use();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
 			GLRenderer::DrawOverScreen(pingBuffer.getTexture(0).id, viewWidth, viewHeight);
@@ -571,12 +568,9 @@ int main(int argc, char* argv[]) {
 finished
 capped health
 restarting the game
-
 tomorrow
 attack costs stamina
-
 make crouch, after delay seconds start healing.
 add more hurtbox stuff (multiple different, can be swapped)
 heal uses regen stat
 */
-

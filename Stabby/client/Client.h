@@ -50,6 +50,9 @@ public:
 	void setOnlineSystem(OnlineSystem* online);
 	void setMode(DominationMode* mode);
 	void setSpawns(SpawnSystem* spawns);
+
+	const std::vector<NetworkId>& getNewPlayers() const;
+	void clearNewPlayers();
 	//client time
 	Time_t clientTime;
 private:
@@ -73,6 +76,8 @@ private:
 	OnlineSystem* online;
 	DominationMode* mode;
 	SpawnSystem* spawns;
+
+	std::vector<NetworkId> toJoinIds;
 };
 
 template<typename Packet>
