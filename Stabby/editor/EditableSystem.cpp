@@ -75,7 +75,6 @@ void EditableSystem::updateGfx() {
 void EditableSystem::loadStageImage(const std::string& stage_) {
 
 	std::string stage = Stage::folder + '/' + stage_ + ".png";
-	EntityId bgImage;
 	EntitySystem::GenEntities(1, &bgImage);
 	EntitySystem::MakeComps<RenderComponent>(1, &bgImage);
 	EntitySystem::GetComp<RenderComponent>(bgImage)->loadDrawable<Sprite>(stage);
@@ -147,4 +146,8 @@ EntityId EditableSystem::makeEditable(Vec2f pos, Vec2f res, StageElement type, b
 	EntitySystem::MakeComps<EditableColliderGC>(1, &id);
 
 	return id;
+}
+
+EntityId EditableSystem::getStageImage() const {
+	return bgImage;
 }

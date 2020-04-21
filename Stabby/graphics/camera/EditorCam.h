@@ -3,6 +3,7 @@
 
 class EditorCam {
 public:
+	EditorCam();
 	EditorCam(int id_);
 	void update();
 private:

@@ -4,6 +4,10 @@
 #include "GLRenderer.h"
 #include "DebugIO.h"
 
+EditorCam::EditorCam() :
+	id{0}
+{}
+
 EditorCam::EditorCam(int id_) :
 	id{id_}
 {

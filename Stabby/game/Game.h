@@ -1,5 +1,10 @@
 #pragma once
 #include <string>
+#include <vector>
+#include <unordered_map>
+
+#include "RenderSystem.h"
+
 #include "player.h"
 #include "gamemode.h"
 #include "network.h"
@@ -8,6 +13,15 @@
 #include "../editor/EditableSystem.h"
 #include "../player/ClientPlayerSystem.h"
 #include "../graphics/PaletteManager.h"
+#include "../graphics/camera/EditorCam.h"
+
+enum class GameState {
+	online,
+	offline,
+	main_menu,
+	pause_menu,
+	stage_editor
+};
 
 class Game {
 public:
@@ -16,9 +30,18 @@ public:
 	void startOnlineGame();
 	void startStageEditor(const std::string & filePath);
 	void loadStage(const std::string& stageName);
+	void loadCameras(int viewWidth, int viewHeight);
+	
+	void updatePlayerCamera();
+
+	void updateEditorCamera();
+	void updateEditor();
+
+	void renderAll(double gfxDelay);
 
 	//client side time
 	Time_t tick;
+	RenderSystem render;
 	Client client;
 	PhysicsSystem physics;
 	CombatSystem combat;
@@ -32,17 +55,23 @@ public:
 	DominationMode mode;
 	OnlineSystem online;
 
+	EntityId getPlayerId();
+	const Stage& getStage() const;
+
+	GameState getState();
+private:
+	void makePlayerGFX();
+
+	Stage stage;
+	EntityId playerId;
+	GameState gameState;
+	std::unordered_map<int, std::vector<EntityId>> renderGroups;
+
 	int playerCamId;
 	int debugCamId;
 	int editorCamId;
 
-	EntityId getPlayerId();
-	const Stage& getStage() const;
-
-	EntityId testText;
-private:
-	Stage stage;
-	EntityId playerId;
+	EditorCam editorCam;
 };
 
 /*

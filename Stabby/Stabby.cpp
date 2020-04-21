@@ -100,18 +100,12 @@ int main(int argc, char* argv[]) {
 
 
 	GLRenderer::Init(window, { windowWidth, windowHeight }, {viewWidth, viewHeight});
-	RenderSystem render;
 
 	DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
 	DebugFIO::AddFOut("c_out.txt");
-	game.debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
 
-	PlayerCam playerCam{ viewWidth, viewHeight };
-	//playerCam.setZoom(.08);
-	game.playerCamId = GLRenderer::addCamera(playerCam);
-	game.editorCamId = GLRenderer::addCamera(Camera{ {0.0f, 0.0f}, {viewWidth, viewHeight}, 1.0});
-
-	EditorCam cam{ game.editorCamId };
+	int debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
+	game.loadCameras(viewWidth, viewHeight);
 
 	PartitionID blood = GLRenderer::GenParticleType("blood", 1, {"particles/blood.vert"});
 	PartitionID test = GLRenderer::GenParticleType("test", 4, { "particles/test.vert" });
@@ -131,9 +125,6 @@ int main(int argc, char* argv[]) {
 	RenderComponent * titleRender = EntitySystem::GetComp<RenderComponent>(title);
 	titleRender->loadDrawable<Sprite>("images/tempcover.png");
 	EntitySystem::GetComp<PositionComponent>(title)->pos = {-320 , -300 };
-
-	GLRenderer::getCamera(game.playerCamId).pos = { -320 , -300 };
-	GLRenderer::getCamera(game.editorCamId).center({ 0, 0 });
 
 	PhysicsSystem & physics = game.physics;
 	Client & client = game.client;
@@ -301,79 +292,99 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
+			/*------------------------------------------------------ Update States -----------------------------------------------*/
 
 			if (canProgressFrame) {
+				switch (game.getState())
+				{
+				case GameState::main_menu:
+					break;
+				case GameState::pause_menu:
+					break;
+				case GameState::online:
+					game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
+					physics.runPhysics(CLIENT_TIME_STEP);
+					game.combat.runAttackCheck(CLIENT_TIME_STEP);
+					if (EntitySystem::Contains<HeadParticleLC>()) {
+						Pool<HeadParticleLC>& heads = EntitySystem::GetPool<HeadParticleLC>();
+						for (auto& head : heads) {
+							head.update(CLIENT_TIME_STEP);
+						}
+					}
 
-				game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
-				physics.runPhysics(CLIENT_TIME_STEP);
-				game.combat.runAttackCheck(CLIENT_TIME_STEP);
-				game.clientPlayers.update(client.getTime(), client.clientTime);
+					game.clientPlayers.update(client.getTime(), client.clientTime);
 
-				game.editables.updateLogic(game.editorCamId);
+					if (client.getConnected()) {
 
-				if(!client.getConnected())
-					game.mode.tickCapturePoints(game.spawns, CLIENT_TIME_STEP);
-
-				if (client.getConnected()) {
-
-					OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(game.getPlayerId());
+						OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(game.getPlayerId());
 
 
-					//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
-					client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
+						//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
+						client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
 
-					if (EntitySystem::Contains<ControllerComponent>()) {
-						ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(game.getPlayerId());
-						if (cont != nullptr) {
-							auto& controller = cont->getController();
-							static ControllerPacket lastSent{};
+						if (EntitySystem::Contains<ControllerComponent>()) {
+							ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(game.getPlayerId());
+							if (cont != nullptr) {
+								auto& controller = cont->getController();
+								static ControllerPacket lastSent{};
 
-							ControllerPacket state{};
-							state.clientTime = client.clientTime;
-							state.state = controller.getState();
-							state.when = client.getTime();
-							state.netId = online->getNetId();
+								ControllerPacket state{};
+								state.clientTime = client.clientTime;
+								state.state = controller.getState();
+								state.when = client.getTime();
+								state.netId = online->getNetId();
 
-							lastSent.when = client.getTime();
-							lastSent.clientTime = client.clientTime;
+								lastSent.when = client.getTime();
+								lastSent.clientTime = client.clientTime;
 
-							//the sent state is the controller state from after the timestamped update has run
-							if (lastSent != state) {
-								lastSent = state;
-								client.send(state);
-								//DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
-								//std::cout << "Sending update for time: " << lastSent.when << '\n';
+								//the sent state is the controller state from after the timestamped update has run
+								if (lastSent != state) {
+									lastSent = state;
+									client.send(state);
+									//DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
+									//std::cout << "Sending update for time: " << lastSent.when << '\n';
+								}
 							}
 						}
+
+						client.service();
+
+						if (client.isBehindServer()) {
+							std::cout << "We're behind the server, pinging our time.\n";
+							client.ping();
+							client.resetBehindServer();
+						}
+
+						if (EntitySystem::Contains<OnlinePlayerLC>()) {
+							for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
+								onlinePlayer.update(client.getTime());
+							}
+						}
+
+
+						DebugIO::setLine(3, "NetId: " + std::to_string(online->getNetId()));
+						DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
 					}
-
-					client.service();
-
-					if (client.isBehindServer()) {
-						std::cout << "We're behind the server, pinging our time.\n";
-						client.ping();
-						client.resetBehindServer();
-					}
-
-					if (EntitySystem::Contains<OnlinePlayerLC>()) {
-						for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
-							onlinePlayer.update(client.getTime());
+					break;
+				case GameState::offline:
+					game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
+					physics.runPhysics(CLIENT_TIME_STEP);
+					game.combat.runAttackCheck(CLIENT_TIME_STEP);
+					if (EntitySystem::Contains<HeadParticleLC>()) {
+						Pool<HeadParticleLC>& heads = EntitySystem::GetPool<HeadParticleLC>();
+						for (auto& head : heads) {
+							head.update(CLIENT_TIME_STEP);
 						}
 					}
 
-
-					DebugIO::setLine(3, "NetId: " + std::to_string(online->getNetId()));
-					DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
+					game.mode.tickCapturePoints(game.spawns, CLIENT_TIME_STEP);
+					break;
+				case GameState::stage_editor:
+					game.updateEditor();
+					break;
+				default:
+					break;
 				}
-
-
-				if (EntitySystem::Contains<HeadParticleLC>()) {
-					Pool<HeadParticleLC>& heads = EntitySystem::GetPool<HeadParticleLC>();
-					for (auto& head : heads) {
-						head.update(CLIENT_TIME_STEP);
-					}
-				}
-
 				canProgressFrame = true;
 			}
 		}
@@ -414,29 +425,36 @@ int main(int argc, char* argv[]) {
 
 			unsigned int debugTextBuffer = DebugIO::getRenderBuffer();
 
-			//players
-			if (EntitySystem::Contains<PlayerGC>()) {
-				for (auto & comp : EntitySystem::GetPool<PlayerGC>()) {
-					comp.updateState(gfxDelay);
+			switch (game.getState()) {
+			case GameState::offline:
+			case GameState::online:
+				//players
+				if (EntitySystem::Contains<PlayerGC>()) {
+					for (auto& comp : EntitySystem::GetPool<PlayerGC>()) {
+						comp.updateState(gfxDelay);
+					}
 				}
-			}
 
-			//capture points
-			if (EntitySystem::Contains<CapturePointGC>()) {
-				for (auto& comp : EntitySystem::GetPool<CapturePointGC>()) {
-					comp.update(gfxDelay);
+				//capture points
+				if (EntitySystem::Contains<CapturePointGC>()) {
+					for (auto& comp : EntitySystem::GetPool<CapturePointGC>()) {
+						comp.update(gfxDelay);
+					}
 				}
-			}
 
-			if (game.editables.isEnabled) {
-				GLRenderer::setCamera(game.editorCamId);
-				cam.update();
+				game.updatePlayerCamera();
+				break;
+			case GameState::stage_editor:
+				game.updateEditorCamera();
 				game.editables.updateGfx();
+				break;
+			case GameState::main_menu:
+				break;
+			case GameState::pause_menu:
+				break;
 			}
-			else {
-				GLRenderer::setCamera(game.playerCamId);
-				static_cast<PlayerCam&>(GLRenderer::getCamera(game.playerCamId)).update(game.getPlayerId());
-			}
+
+			game.renderAll(gfxDelay);
 
 			//hitbox rendering
 			/*
@@ -480,7 +498,7 @@ int main(int argc, char* argv[]) {
 			}
 			*/
 
-			render.drawAll();
+			game.render.drawAll();
 
 			//Draw all the physics components to the occlusion map.
 			occlusionMap.bind();
@@ -498,11 +516,14 @@ int main(int argc, char* argv[]) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, occlusionMap.getTexture(0).id);
 
+			//particles
+			/*
 			GLRenderer::getComputeShader("blood").use();
 			GLRenderer::getComputeShader("blood").uniform2f("camPos", GLRenderer::getCamera(game.playerCamId).pos.x, GLRenderer::getCamera(game.playerCamId).pos.y);
 			GLRenderer::getComputeShader("blood").uniform1f("zoom", GLRenderer::getCamera(game.playerCamId).camScale);
 
 			GLRenderer::UpdateAndDrawParticles();
+			*/
 
 			//palettes, for later
 			/*
@@ -526,7 +547,7 @@ int main(int argc, char* argv[]) {
 
 			//draw the debugio over the screen
 
-			GLRenderer::setCamera(game.debugCamId);
+			GLRenderer::setCamera(debugCamId);
 			DebugIO::drawLines();
 
 			GLRenderer::Swap();
