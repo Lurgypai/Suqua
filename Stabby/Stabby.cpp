@@ -314,7 +314,6 @@ int main(int argc, char* argv[]) {
 					game.clientPlayers.update(client.getTime(), client.clientTime);
 
 					if (client.getConnected()) {
-
 						OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(game.getPlayerId());
 
 
@@ -565,12 +564,13 @@ int main(int argc, char* argv[]) {
 }
 
 /*
-finished
-capped health
-restarting the game
-tomorrow
-attack costs stamina
-make crouch, after delay seconds start healing.
-add more hurtbox stuff (multiple different, can be swapped)
-heal uses regen stat
+to do
+main menu
+ui
+weapon selector
+weapon-online syncing (currently players are loaded in with the default weapon, uh oh)
+player colors
+capture point particles
+MAYBE
+player
 */
