@@ -28,6 +28,7 @@
 #include "DebugFIO.h"
 #include <ControllerComponent.h>
 #include "RectDrawable.h"
+#include "TextDrawable.h"
 
 #include "stage.h"
 
@@ -101,7 +102,7 @@ int main(int argc, char* argv[]) {
 	GLRenderer::Init(window, { windowWidth, windowHeight }, {viewWidth, viewHeight});
 	RenderSystem render;
 
-	DebugIO::startDebug("SuquaEng0.1/fonts/consolas_0.png", "SuquaEng0.1/fonts/consolas.fnt");
+	DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
 	DebugFIO::AddFOut("c_out.txt");
 	game.debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
 
@@ -138,6 +139,7 @@ int main(int argc, char* argv[]) {
 	Client & client = game.client;
 	game.palettes.loadPalettes("images/palettes");
 
+	/*--------------------------------------------- Commands ---------------------------------------------------------*/
 	DebugIO::getCommandManager().registerCommand<StartCommand>(StartCommand{ game });
 	DebugIO::getCommandManager().registerCommand<AttackSpeedCommand>(AttackSpeedCommand{ game });
 	DebugIO::getCommandManager().registerCommand<MoveSpeedCommand>(MoveSpeedCommand{ game });
@@ -154,6 +156,7 @@ int main(int argc, char* argv[]) {
 	bool doFBF{ false };
 	DebugIO::getCommandManager().registerCommand<FrameByFrameCommand>(doFBF);
 
+	/*--------------------------------------------- Load more Assets --------------------------------------------------*/
 	game.weapons.loadAttacks("attacks/hit");
 	game.weapons.loadAnimations("attacks/asset");
 
@@ -476,7 +479,14 @@ int main(int argc, char* argv[]) {
 				}
 			}
 			*/
-			
+
+			if (EntitySystem::Contains<PlayerLC>()) {
+				PhysicsComponent* player = EntitySystem::GetComp<PhysicsComponent>(game.getPlayerId());
+				Vec2f playerPos = player->getPos();
+				RenderComponent* testText = EntitySystem::GetComp<RenderComponent>(game.testText);
+				PositionComponent* testtextPos = EntitySystem::GetComp<PositionComponent>(game.testText);
+				testtextPos->pos = { playerPos.x - (testText->getDrawable<TextDrawable>()->getBoundingBox().res.x / 2), playerPos.y - 30 };
+			}
 
 			render.drawAll();
 
@@ -525,7 +535,6 @@ int main(int argc, char* argv[]) {
 			//draw the debugio over the screen
 
 			GLRenderer::setCamera(game.debugCamId);
-			GLRenderer::SetDefShader(DebugShader);
 			DebugIO::drawLines();
 
 			GLRenderer::Swap();

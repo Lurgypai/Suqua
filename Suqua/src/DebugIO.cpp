@@ -78,6 +78,12 @@ void DebugIO::setLine(int line, std::string txt) {
 
 void DebugIO::drawLines() {
 
+	GLRenderer::SetDefShader(TextShader);
+
+	GLRenderer::bindCurrShader();
+	GLRenderer::GetDefaultShader(TextShader).uniform3f("color", 1, 1, 1);
+	GLRenderer::GetDefaultShader(TextShader).uniform1i("anti_alias", 1);
+
 	unsigned int renderBuf = font.getRenderBuffer();
 	GLRenderer::ClearRenderBufs(GLRenderer::include, 1, &renderBuf);
 	GLRenderer::SetBuffer(renderBuf);

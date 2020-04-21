@@ -39,6 +39,7 @@ public:
 	EntityId getPlayerId();
 	const Stage& getStage() const;
 
+	EntityId testText;
 private:
 	Stage stage;
 	EntityId playerId;

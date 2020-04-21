@@ -14,6 +14,11 @@ BitmapFont::BitmapFont() : texture{0} {
 }
 
 BitmapFont::BitmapFont(const std::string & fontFile, const std::string & fontDataFile) {
+	std::ifstream fontImageFile{ fontFile };
+	if (!fontImageFile.is_open())
+		throw std::exception{};
+	fontImageFile.close();
+
 	int imgW, imgH, numChannels;
 	unsigned char* img = stbi_load(fontFile.c_str(), &imgW, &imgH, &numChannels, 0);
 
@@ -32,6 +37,8 @@ BitmapFont::BitmapFont(const std::string & fontFile, const std::string & fontDat
 	//read data
 	std::ifstream file;
 	file.open(fontDataFile);
+	if (!file.is_open())
+		throw std::exception{};
 	std::stringstream data;
 	data << file.rdbuf();
 	file.close();
@@ -132,6 +139,11 @@ BitmapFont::BitmapFont(const std::string & fontFile, const std::string & fontDat
 }
 
 void BitmapFont::loadFromFiles(const std::string & fontFile, const std::string & fontDataFile) {
+	std::ifstream fontImageFile{ fontFile };
+	if (!fontImageFile.is_open())
+		throw std::exception{};
+	fontImageFile.close();
+
 	chars.clear();
 	int imgW, imgH, numChannels;
 	unsigned char* img = stbi_load(fontFile.c_str(), &imgW, &imgH, &numChannels, 0);
@@ -153,6 +165,8 @@ void BitmapFont::loadFromFiles(const std::string & fontFile, const std::string &
 	//read data
 	std::ifstream file;
 	file.open(fontDataFile);
+	if (!file.is_open())
+		throw std::exception{};
 	std::stringstream data;
 	data << file.rdbuf();
 	file.close();

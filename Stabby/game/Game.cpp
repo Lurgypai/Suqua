@@ -3,6 +3,8 @@
 #include <EntityBaseComponent.h>
 #include <ControllerComponent.h>
 #include <RectDrawable.h>
+#include "TextDrawable.h"
+#include "PositionComponent.h"
 #include <fstream>
 
 #include "nlohmann/json.hpp"
@@ -49,6 +51,18 @@ void Game::startOfflineGame() {
 
 	auto spawnables = stage.getSpawnables();
 	EntitySystem::MakeComps<CapturePointGC>(spawnables.size(), spawnables.data());
+
+	EntitySystem::GenEntities(1, &testText);
+	EntitySystem::MakeComps<RenderComponent>(1, &testText);
+	RenderComponent* testTextRender = EntitySystem::GetComp<RenderComponent>(testText);
+	testTextRender->loadDrawable<TextDrawable>();
+	testTextRender->getDrawable<TextDrawable>()->text = "Hello World!";
+	testTextRender->getDrawable<TextDrawable>()->scale.x = 0.25;
+	testTextRender->getDrawable<TextDrawable>()->scale.y = 0.25;
+	testTextRender->getDrawable<TextDrawable>()->anti_alias = false;
+	testTextRender->getDrawable<TextDrawable>()->font.loadFromFiles("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
+	testTextRender->getDrawable<TextDrawable>()->setColor(1.0, 1.0, 1.0);
+	EntitySystem::GetComp<PositionComponent>(testText)->pos = { 0, -30 };
 }
 
 void Game::startOnlineGame() {

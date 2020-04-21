@@ -58,8 +58,8 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 		}, &DefaultShaders[0]);
 	GLRenderer::GetShaderRef(DefaultShaders[ImageShader]).use();
 	GLRenderer::GetShaderRef(DefaultShaders[ImageShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
-	GLRenderer::GetShaderRef(DefaultShaders[DebugShader]).use();
-	GLRenderer::GetShaderRef(DefaultShaders[DebugShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
+	GLRenderer::GetShaderRef(DefaultShaders[TextShader]).use();
+	GLRenderer::GetShaderRef(DefaultShaders[TextShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
 	GLRenderer::GetShaderRef(DefaultShaders[ParticleShader]).use();
 	GLRenderer::GetShaderRef(DefaultShaders[ParticleShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
 	GLRenderer::GetShaderRef(DefaultShaders[PrimitiveShader]).use();
@@ -434,4 +434,4 @@ Shader * GLRenderer::currentShader{nullptr};
 int GLRenderer::DefaultShaders[5]{};
 ParticleSystem GLRenderer::particleSystem{};
 
-const std::string GLRenderer::Folder{"SuquaEng0.1/"};
+const std::string GLRenderer::Folder{"suqua/"};

@@ -77,7 +77,7 @@ struct RenderBuffer {
 
 enum DefShader {
 	ImageShader = 0,
-	DebugShader = 1,
+	TextShader = 1,
 	FullscreenShader = 2,
 	ParticleShader = 3,
 	PrimitiveShader = 4
