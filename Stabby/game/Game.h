@@ -44,3 +44,9 @@ private:
 	Stage stage;
 	EntityId playerId;
 };
+
+/*
+the game is getting a hand in rendering now, as it needs to handle the camera
+as renderables are loaded in, store them in "render groups", which are combinations of two things, a vector holding all the things that need to be rendered, and a camera to render them with.
+when its time to render, loop through all of the "render groups" and set the camera and render.
+*/

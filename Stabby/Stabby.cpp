@@ -480,14 +480,6 @@ int main(int argc, char* argv[]) {
 			}
 			*/
 
-			if (EntitySystem::Contains<PlayerLC>()) {
-				PhysicsComponent* player = EntitySystem::GetComp<PhysicsComponent>(game.getPlayerId());
-				Vec2f playerPos = player->getPos();
-				RenderComponent* testText = EntitySystem::GetComp<RenderComponent>(game.testText);
-				PositionComponent* testtextPos = EntitySystem::GetComp<PositionComponent>(game.testText);
-				testtextPos->pos = { playerPos.x - (testText->getDrawable<TextDrawable>()->getBoundingBox().res.x / 2), playerPos.y - 30 };
-			}
-
 			render.drawAll();
 
 			//Draw all the physics components to the occlusion map.
