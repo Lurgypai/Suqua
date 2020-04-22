@@ -12,7 +12,7 @@ public:
 	MenuButtonComponent(EntityId id_ = 0);
 	EntityId getId() const;
 
-	void update(Vec2f mousePos);
+	void update(Vec2f mousePos, bool toggled_);
 
 	bool pollToggled();
 private:

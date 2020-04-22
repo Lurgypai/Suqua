@@ -6,8 +6,9 @@ MenuSystem::MenuSystem() :
 {}
 
 MenuId MenuSystem::makeMenu() {
-	menus[currMenuId++] = Menu{currMenuId};
-	return currMenuId;
+	MenuId id = currMenuId++;
+	menus[id] = Menu{id};
+	return id;
 }
 
 Menu& MenuSystem::getMenu(MenuId id_) {

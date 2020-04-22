@@ -2,7 +2,10 @@
 #include "PositionComponent.h"
 
 MenuButtonComponent::MenuButtonComponent(EntityId id_) :
-	id{id_}
+	id{id_},
+	wasActive{false},
+	isActive{false},
+	toggled{false}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
@@ -15,15 +18,18 @@ EntityId MenuButtonComponent::getId() const {
 	return id;
 }
 
-void MenuButtonComponent::update(Vec2f mousePos) {
+void MenuButtonComponent::update(Vec2f mousePos, bool toggled_) {
 	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
 	boundingBox.pos = pos->pos;
 
 	wasActive = isActive;
-	if (boundingBox.contains(mousePos)) {
+	if (boundingBox.contains(mousePos) && toggled_) {
 		isActive = true;
 		if (isActive && !wasActive)
 			toggled = true;
+	}
+	else {
+		isActive = false;
 	}
 }
 

@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "RenderSystem.h"
+#include "MenuSystem.h"
 
 #include "player.h"
 #include "gamemode.h"
@@ -26,6 +27,7 @@ enum class GameState {
 class Game {
 public:
 	Game();
+	void startMainMenu();
 	void startOfflineGame();
 	void startOnlineGame();
 	void startStageEditor(const std::string & filePath);
@@ -37,6 +39,8 @@ public:
 
 	void updateEditorCamera();
 	void updateEditor();
+
+	void updateMainMenu();
 
 	void renderAll(double gfxDelay);
 
@@ -71,8 +75,13 @@ private:
 	int playerCamId;
 	int debugCamId;
 	int editorCamId;
+	int menuCamId;
 
 	EditorCam editorCam;
+
+	MenuSystem menus;
+
+	MenuId mainMenu;
 };
 
 /*

@@ -77,6 +77,7 @@ extern "C" {
 }
 */
 
+
 int main(int argc, char* argv[]) {
 
 	std::ifstream settingsFile{ "settings.json" };
@@ -118,13 +119,6 @@ int main(int argc, char* argv[]) {
 	glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(MessageCallback, 0);
 
-	EntityId title;
-	EntitySystem::GenEntities(1, &title);
-	EntitySystem::MakeComps<RenderComponent>(1, &title);
-	RenderComponent* titleRender = EntitySystem::GetComp<RenderComponent>(title);
-	titleRender->loadDrawable<Sprite>("images/tempcover.png");
-	EntitySystem::GetComp<PositionComponent>(title)->pos = { -320 , -300 };
-
 	PhysicsSystem& physics = game.physics;
 	Client& client = game.client;
 	game.palettes.loadPalettes("images/palettes");
@@ -151,6 +145,8 @@ int main(int argc, char* argv[]) {
 	game.weapons.loadAnimations("attacks/asset");
 
 	game.climbables.updateClimbables();
+
+	game.startMainMenu();
 
 	/*--------------------------------------------- PostProcessing -------------------------------------------------*/
 	Framebuffer screenBuffer{};
@@ -297,6 +293,7 @@ int main(int argc, char* argv[]) {
 				switch (game.getState())
 				{
 				case GameState::main_menu:
+					game.updateMainMenu();
 					break;
 				case GameState::pause_menu:
 					break;

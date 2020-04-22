@@ -6,6 +6,7 @@
 #include "PositionComponent.h"
 #include "RectDrawable.h"
 #include "GLRenderer.h"
+#include "DebugIO.h"
 
 Menu::Menu()
 {}
@@ -14,15 +15,19 @@ Menu::Menu(MenuId id_) :
 	id{id_},
 	results{},
 	buttons{},
-	text_boxes{}
+	text_boxes{},
+
+	prevButton1{false}
 {}
 
 void Menu::addMenuEntry(MenuEntryType type, const std::string& entryTag_, const AABB& boundingBox) {
 	switch (type) {
 	case MenuEntryType::button:
 		makeButton(entryTag_, boundingBox);
+		break;
 	case MenuEntryType::text_box:
 		makeTextBox(entryTag_, boundingBox);
+		break;
 	}
 }
 
@@ -44,17 +49,25 @@ void Menu::updateMenuEntries(int camId) {
 	Uint32 mouseState = SDL_GetMouseState(&mousePos_.x, &mousePos_.y);
 	Vec2f mousePos = GLRenderer::screenToWorld(mousePos_, camId);
 
+	bool currButton1 = mouseState & SDL_BUTTON(SDL_BUTTON_LEFT);
+	bool toggled = false;
+
+	if (currButton1 && !prevButton1)
+		toggled = true;
+
 	for (auto& buttonId : buttons) {
 		MenuButtonComponent* button = EntitySystem::GetComp<MenuButtonComponent>(buttonId);
-		button->update(mousePos);
+		button->update(mousePos, toggled);
 		if (button->pollToggled()) {
-			MenuResult r;
+			MenuResult r{};
 			r.type = MenuEntryType::button;
 			r.entryTag = button->tag;
-			r.button.response = button->tag;
+			strcpy(r.button.response, button->tag.c_str());
 			results.emplace_back(std::move(r));
 		}
 	}
+
+	prevButton1 = currButton1;
 }
 
 EntityId Menu::makeButton(const std::string& entryTag_, const AABB& boundingBox) {
@@ -78,10 +91,16 @@ EntityId Menu::makeButton(const std::string& entryTag_, const AABB& boundingBox)
 	drawable->r = 1;
 	drawable->g = 1;
 	drawable->b = 1;
+
+	buttons.push_back(id);
 	return id;
 }
 
 EntityId Menu::makeTextBox(const std::string& entryTag_, const AABB& boundingBox)
 {
 	return EntityId();
+}
+
+const std::vector<EntityId>& Menu::getButtons() const {
+	return buttons;
 }

@@ -6,6 +6,7 @@
 #include "TextDrawable.h"
 #include "PositionComponent.h"
 #include "GLRenderer.h"
+#include "DebugIO.h"
 
 #include "nlohmann/json.hpp"
 #include "../graphics/PlayerGC.h"
@@ -19,24 +20,47 @@
 using json = nlohmann::json;
 
 Game::Game() :
+	gameState{GameState::main_menu},
 	physics{},
 	combat{},
 	clientPlayers{&physics, &combat}
 {}
 
+void Game::startMainMenu() {
+	if (EntitySystem::Contains<EntityBaseComponent>()) {
+		for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
+			entity.isDead = true;
+		}
+		renderGroups.clear();
+	}
+
+	mainMenu = menus.makeMenu();
+	auto& menu = menus.getMenu(mainMenu);
+	menu.addMenuEntry(MenuEntryType::button, "start", AABB{ {269, 246}, {100, 35} });
+
+	for (auto& button : menu.getButtons()) {
+		renderGroups[menuCamId].push_back(button);
+	}
+
+	EntityId mainMenuBG;
+	EntitySystem::GenEntities(1, &mainMenuBG);
+	EntitySystem::MakeComps<RenderComponent>(1, &mainMenuBG);
+	RenderComponent* mainMenuRender = EntitySystem::GetComp<RenderComponent>(mainMenuBG);
+	mainMenuRender->loadDrawable<Sprite>("images/temp_main_menu.png");
+	EntitySystem::GetComp<PositionComponent>(mainMenuBG)->pos = { 0 , 0 };
+}
+
 void Game::startOfflineGame() {
 	for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
 		entity.isDead = true;
 	}
-
+	renderGroups.clear();
 	editables.isEnabled = false;
 	
 	std::ifstream settingsFile{ "settings.json" };
 	json settings{};
 	settingsFile >> settings;
 	std::string stageName = settings["stage"];
-
-
 
 	loadStage(stageName);
 
@@ -65,6 +89,7 @@ void Game::startOnlineGame() {
 	for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
 		entity.isDead = true;
 	}
+	renderGroups.clear();
 	editables.isEnabled = false;
 
 	std::ifstream settingsFile{ "settings.json" };
@@ -90,12 +115,18 @@ void Game::startOnlineGame() {
 	client.connect(address, port);
 
 	gameState = GameState::online;
+
+	renderGroups[playerCamId].push_back(playerId);
+	for (auto& stageAsset : stage.getRenderables()) {
+		renderGroups[playerCamId].push_back(stageAsset);
+	}
 }
 
 void Game::startStageEditor(const std::string & filePath) {
 	for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
 		entity.isDead = true;
 	}
+	renderGroups.clear();
 
 	editables.isEnabled = true;
 	editables.load(filePath);
@@ -116,8 +147,10 @@ void Game::loadStage(const std::string& stageName) {
 void Game::loadCameras(int viewWidth, int viewHeight) {
 	PlayerCam playerCam{ viewWidth, viewHeight };
 	Camera editorCamera{ Vec2f{0.0f, 0.0f}, Vec2f{static_cast<float>(viewWidth), static_cast<float>(viewHeight)}, 1.0 };
+	Camera menuCamera{ Vec2f{0.0f, 0.0f}, Vec2f{static_cast<float>(viewWidth), static_cast<float>(viewHeight)}, 1.0 };
 	playerCamId = GLRenderer::addCamera(playerCam);
 	editorCamId = GLRenderer::addCamera(editorCamera);
+	menuCamId = GLRenderer::addCamera(menuCamera);
 
 	editorCam = EditorCam{ editorCamId };
 }
@@ -160,6 +193,25 @@ void Game::updateEditorCamera() {
 
 void Game::updateEditor() {
 	editables.updateLogic(editorCamId);
+}
+
+void Game::updateMainMenu() {
+	auto& menu = menus.getMenu(mainMenu);
+	menu.updateMenuEntries(menuCamId);
+	MenuResult r{};
+	while (menu.pollResult(r)) {
+		DebugIO::printLine(r.button.response);
+
+		switch (r.type) {
+		case MenuEntryType::button:
+		{
+			std::string response{ r.button.response };
+			if (response == "start") {
+				startOnlineGame();
+			}
+		}
+		}
+	}
 }
 
 void Game::makePlayerGFX(EntityId playerId_) {

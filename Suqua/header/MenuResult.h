@@ -9,19 +9,15 @@ enum class MenuEntryType {
 };
 
 struct MenuResult {
-	MenuResult();
-	MenuResult(const MenuResult& other);
-	MenuResult& operator=(const MenuResult& other);
-	~MenuResult();
 
 	MenuEntryType type;
 	std::string entryTag;
 	union {
 		struct {
-			std::string response;
+			char response[8];
 		} button;
 		struct {
-			std::string response;
+			char resposne[8];
 		} text_box;
 	};
 };
