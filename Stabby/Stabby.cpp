@@ -53,6 +53,14 @@
 #include "player/OnlinePlayerLC.h"
 
 #include "nlohmann/json.hpp"
+
+//automatic run on nvidia card if on windwos
+#if defined(WIN32) || defined(_WIN32)
+extern "C" {
+	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+}
+#endif
+
 using json = nlohmann::json;
 
 const int viewWidth = 640;
@@ -70,12 +78,6 @@ void MessageCallback(GLenum source,
 		(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
 		type, severity, message);
 }
-
-/*
-extern "C" {
-	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
-}
-*/
 
 
 int main(int argc, char* argv[]) {
