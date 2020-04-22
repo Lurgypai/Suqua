@@ -7,6 +7,7 @@
 #include "PositionComponent.h"
 #include "GLRenderer.h"
 #include "DebugIO.h"
+#include "MenuButtonComponent.h"
 
 #include "nlohmann/json.hpp"
 #include "../graphics/PlayerGC.h"
@@ -39,6 +40,19 @@ void Game::startMainMenu() {
 	menu.addMenuEntry(MenuEntryType::button, "start", AABB{ {269, 246}, {100, 35} });
 
 	for (auto& button : menu.getButtons()) {
+
+		EntityId id = button;
+		EntitySystem::MakeComps<RenderComponent>(1, &id);
+		RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
+		MenuButtonComponent* menuButton = EntitySystem::GetComp<MenuButtonComponent>(id);
+
+		render->loadDrawable<RectDrawable>();
+		auto* drawable = render->getDrawable<RectDrawable>();
+		drawable->shape = menuButton->getBoundingBox();
+		drawable->r = 1;
+		drawable->g = 1;
+		drawable->b = 1;
+
 		renderGroups[menuCamId].push_back(button);
 	}
 

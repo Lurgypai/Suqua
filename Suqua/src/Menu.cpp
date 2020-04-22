@@ -74,23 +74,14 @@ EntityId Menu::makeButton(const std::string& entryTag_, const AABB& boundingBox)
 	EntityId id;
 	EntitySystem::GenEntities(1, &id);
 	EntitySystem::MakeComps<MenuButtonComponent>(1, &id);
-	EntitySystem::MakeComps<RenderComponent>(1, &id);
 
 	MenuButtonComponent* button = EntitySystem::GetComp<MenuButtonComponent>(id);
-	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
 	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
 
 	pos->pos = boundingBox.pos;
 
 	button->boundingBox = boundingBox;
 	button->tag = entryTag_;
-	
-	render->loadDrawable<RectDrawable>();
-	auto* drawable = render->getDrawable<RectDrawable>();
-	drawable->shape = boundingBox;
-	drawable->r = 1;
-	drawable->g = 1;
-	drawable->b = 1;
 
 	buttons.push_back(id);
 	return id;

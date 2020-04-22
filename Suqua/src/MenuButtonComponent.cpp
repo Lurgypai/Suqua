@@ -38,3 +38,7 @@ bool MenuButtonComponent::pollToggled() {
 	toggled = false;
 	return ret;
 }
+
+const AABB& MenuButtonComponent::getBoundingBox() const {
+	return boundingBox;
+}

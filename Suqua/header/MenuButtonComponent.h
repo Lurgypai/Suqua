@@ -15,6 +15,7 @@ public:
 	void update(Vec2f mousePos, bool toggled_);
 
 	bool pollToggled();
+	const AABB& getBoundingBox() const;
 private:
 	EntityId id;
 
