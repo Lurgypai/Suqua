@@ -69,6 +69,13 @@ struct Camera {
 	}
 };
 
+struct Primitive {
+	std::vector<Vec2f> points;
+	float r;
+	float g;
+	float b;
+};
+
 struct RenderBuffer {
 	unsigned int textureId;
 	unsigned int shaderId;
@@ -110,6 +117,8 @@ public:
 	static void Draw(SelectType t_, std::vector<unsigned int>& ids);
 	//Draw the selected RenderBuffers
 	static void Draw(SelectType t_, int count = 0, unsigned int * ids = nullptr);
+	//Draw everything thats been buffered since the last draw call
+	static void DrawBuffered();
 	//Draw a simple shape outline
 	static void DrawPrimitve(std::vector<Vec2f> points, float r, float g, float b);
 	//Draw an aabb outline
@@ -169,6 +178,8 @@ private:
 	static std::unordered_map<unsigned int, Shader> shaders;
 	static Shader * currentShader;
 	static int DefaultShaders[5];
+	static std::vector<unsigned int> bufferedIds;
+	static std::vector<Primitive> primitives;
 
 	static const std::string Folder;
 	static ParticleSystem particleSystem;

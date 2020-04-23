@@ -198,6 +198,10 @@ void GLRenderer::Draw(SelectType t_, int count, unsigned int * ids) {
 	}
 }
 
+void GLRenderer::DrawBuffered() {
+	Draw(SelectType::include, bufferedIds);
+}
+
 void GLRenderer::DrawPrimitve(std::vector<Vec2f> points, float r, float g, float b) {
 
 	GLRenderer::SetDefShader(PrimitiveShader);
@@ -213,14 +217,8 @@ void GLRenderer::DrawPrimitve(std::vector<Vec2f> points, float r, float g, float
 	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
 	currentShader->uniform3f("color", r, g, b);
 
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
 	glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(Vec2f), points.data(), GL_DYNAMIC_DRAW);
 
-	/*
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2f), (void*)0);
-	glEnableVertexAttribArray(0);
-	*/
 
 	glDrawArrays(GL_LINE_LOOP, 0, points.size());
 
@@ -255,13 +253,13 @@ unsigned int GLRenderer::GenRenderStyleBuf(unsigned int id, unsigned int shaderI
 		if (renderBuf.textureId == id)
 			return i;
 	}
-	renderBuffers.push_back(RenderBuffer{ id, shaderId, {} });
+	renderBuffers.push_back(RenderBuffer{id, shaderId, {} });
 	return renderBuffers.size() - 1;
 }
 
 
 unsigned int GLRenderer::GenNewRenderStyleBuf(unsigned int textureId, unsigned int shaderId) {
-	renderBuffers.push_back(RenderBuffer{ textureId, shaderId, {} });
+	renderBuffers.push_back(RenderBuffer{textureId, shaderId, {} });
 	return renderBuffers.size() - 1;
 }
 
@@ -433,5 +431,7 @@ std::unordered_map<unsigned int, Shader> GLRenderer::shaders{};
 Shader * GLRenderer::currentShader{nullptr};
 int GLRenderer::DefaultShaders[5]{};
 ParticleSystem GLRenderer::particleSystem{};
+std::vector<unsigned int> GLRenderer::bufferedIds{};
+std::vector<Primitive> GLRenderer::primitives{};
 
 const std::string GLRenderer::Folder{"suqua/"};

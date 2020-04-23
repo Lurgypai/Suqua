@@ -23,8 +23,8 @@ void SpawnPlayerCommand::onCommand(const std::vector<std::string>& args) {
 			EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations();
 			EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons->cloneAnimation("player_sword");
 
-			EntitySystem::GetComp<PlayerLC>(playerId)->kill();
-			EntitySystem::GetComp<CombatComponent>(playerId)->teamId = playerId;
+			EntitySystem::GetComp<PlayerLC>(playerId)->chooseSpawn();
+			EntitySystem::GetComp<CombatComponent>(playerId)->teamId = 2;
 		}
 	}
 }

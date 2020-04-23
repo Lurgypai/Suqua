@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
 	Framebuffer blueOutlineBuffer{};
 	unsigned int blueOutlineBufferTex;
 	blueOutlineBuffer.bind();
-	redOutlineBufferTex = blueOutlineBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	blueOutlineBufferTex = blueOutlineBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
 	blueOutlineBuffer.finalizeFramebuffer();
 	Framebuffer::unbind();
 
@@ -546,8 +546,10 @@ int main(int argc, char* argv[]) {
 
 			redOutlineBuffer.bind();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+
 			blueOutlineBuffer.bind();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+
 			if (EntitySystem::Contains<PlayerLC>()) {
 				for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
 					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(player.getId());

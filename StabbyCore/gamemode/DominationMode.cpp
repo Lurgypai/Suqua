@@ -141,11 +141,6 @@ void DominationMode::tickCapturePoints(SpawnSystem& spawns, double timeDelta) {
 				break;
 			}
 		}
-
-		for (auto& pair : teams) {
-			if (pair.second.teamId != 0)
-				DebugIO::printLine("Team " + std::to_string(pair.second.teamId) + " has " + std::to_string(pair.second.points) + " points!");
-		}
 	}
 	else {
 		++restartDelay;

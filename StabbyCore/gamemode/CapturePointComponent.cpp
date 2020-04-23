@@ -76,7 +76,7 @@ void CapturePointComponent::tickCapturePoint(double timeDelta) {
 				state = idle;
 			}
 			else {
-				DebugIO::printLine(std::to_string(id) + " Capping point:" + std::to_string(remainingCaptureTime));
+				//DebugIO::printLine(std::to_string(id) + " Capping point:" + std::to_string(remainingCaptureTime));
 
 				CombatComponent* frontPlayer = EntitySystem::GetComp<CombatComponent>(players.front());
 				targetTeamid = frontPlayer->teamId;
@@ -85,13 +85,13 @@ void CapturePointComponent::tickCapturePoint(double timeDelta) {
 				SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(id);
 				if (remainingCaptureTime <= 0) {
 					if (!spawn->isDefault()) {
-						DebugIO::printLine(std::to_string(id) + " Point capped.");
+						//DebugIO::printLine(std::to_string(id) + " Point capped.");
 						remainingCaptureTime = totalCaptureTime;
 						currTeamId = targetTeamid;
 						state = idle;
 					}
 					else {
-						DebugIO::printLine("Unable to cap point, its a default point and right now that means you can't okay.");
+						//DebugIO::printLine("Unable to cap point, its a default point and right now that means you can't okay.");
 					}
 				}
 			}
