@@ -116,6 +116,9 @@ int main(int argc, char* argv[]) {
 	int colorShader;
 	GLRenderer::LoadShaders({ {"shaders/color.vert", "shaders/color.frag"} }, &colorShader);
 	GLRenderer::GetShaderRef(colorShader).uniform2f("viewRes", viewWidth, viewHeight);
+	int outlineShader;
+	GLRenderer::LoadShaders({ {"shaders/outline.vert", "shaders/outline.frag"} }, &outlineShader);
+	GLRenderer::GetShaderRef(outlineShader).uniform2f("viewRes", viewWidth, viewHeight);
 	Sprite colors{ "images/palettes/test.png" };
 
 	glEnable(GL_DEBUG_OUTPUT);
@@ -163,6 +166,20 @@ int main(int argc, char* argv[]) {
 	occlusionMap.bind();
 	occlusionTex = occlusionMap.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
 	occlusionMap.finalizeFramebuffer();
+	Framebuffer::unbind();
+
+	Framebuffer redOutlineBuffer{};
+	unsigned int redOutlineBufferTex;
+	redOutlineBuffer.bind();
+	redOutlineBufferTex = redOutlineBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	redOutlineBuffer.finalizeFramebuffer();
+	Framebuffer::unbind();
+
+	Framebuffer blueOutlineBuffer{};
+	unsigned int blueOutlineBufferTex;
+	blueOutlineBuffer.bind();
+	redOutlineBufferTex = blueOutlineBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	blueOutlineBuffer.finalizeFramebuffer();
 	Framebuffer::unbind();
 
 	Framebuffer pingBuffer{};
@@ -527,6 +544,34 @@ int main(int argc, char* argv[]) {
 			GLRenderer::UpdateAndDrawParticles();
 			*/
 
+			redOutlineBuffer.bind();
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			blueOutlineBuffer.bind();
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			if (EntitySystem::Contains<PlayerLC>()) {
+				for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
+					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(player.getId());
+					RenderComponent* render = EntitySystem::GetComp<RenderComponent>(player.getId());
+					if (combat->teamId == 1) {
+						redOutlineBuffer.bind();
+						game.render.draw(*render);
+					}
+					else if (combat->teamId == 2) {
+						blueOutlineBuffer.bind();
+						game.render.draw(*render);
+					}
+				}
+			}
+
+
+			//render into the pongbuffer
+			pingBuffer.bind();
+			GLRenderer::GetShaderRef(outlineShader).use();
+			GLRenderer::GetShaderRef(outlineShader).uniform3f("color", 1.0, 0.0, 0.0);
+			GLRenderer::DrawOverScreen(redOutlineBuffer.getTexture(0).id, viewWidth, viewHeight);
+			GLRenderer::GetShaderRef(outlineShader).uniform3f("color", 0.0, 0.0, 1.0);
+			GLRenderer::DrawOverScreen(blueOutlineBuffer.getTexture(0).id, viewWidth, viewHeight);
+
 			//palettes, for later
 			/*
 			pongBuffer.bind();
@@ -569,11 +614,9 @@ int main(int argc, char* argv[]) {
 
 /*
 to do
-main menu
 ui
 weapon selector
 weapon-online syncing (currently players are loaded in with the default weapon, uh oh)
-player colors
 capture point particles
 MAYBE
 player msgs
