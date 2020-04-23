@@ -11,7 +11,7 @@
 #include "GLRenderer.h"
 #define CONSOLE_DISPLAY_SIZE 10
 
-BitmapFont DebugIO::font{};
+FontData DebugIO::font{};
 std::vector<std::string> DebugIO::lines = std::vector<std::string>{};
 std::deque<std::string> DebugIO::console = std::deque<std::string>{};
 bool DebugIO::isOpen = false;
@@ -22,7 +22,7 @@ std::string DebugIO::inputText{};
 CommandManager DebugIO::command_manager{};
 
 void DebugIO::startDebug(std::string fontFile, std::string readFile) {
-	font.loadFromFiles(fontFile, readFile);
+	font.loadDataFile(readFile);
 	lines.resize(10);
 }
 
@@ -84,9 +84,6 @@ void DebugIO::drawLines() {
 	GLRenderer::GetDefaultShader(TextShader).uniform3f("color", 1, 1, 1);
 	GLRenderer::GetDefaultShader(TextShader).uniform1i("anti_alias", 1);
 
-	unsigned int renderBuf = font.getRenderBuffer();
-	GLRenderer::ClearRenderBufs(GLRenderer::include, 1, &renderBuf);
-	GLRenderer::SetBuffer(renderBuf);
 	Vec2i pos = displayOffset;
 	for (std::string line : lines) {
 		for (char c : line) {
@@ -95,7 +92,7 @@ void DebugIO::drawLines() {
 			ImgData data{ Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 				Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
 				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f };
-			GLRenderer::Buffer(data);
+			GLRenderer::DrawImage(data, "test_font");
 			pos.x += glyph.advance;
 		}
 		pos.x = displayOffset.x;
@@ -110,7 +107,7 @@ void DebugIO::drawLines() {
 			ImgData data{ Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 				Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
 				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f };
-			GLRenderer::Buffer(data);
+			GLRenderer::DrawImage(data, "test_font");
 			pos.x += glyph.advance;
 		}
 		pos.x = consoleOffset.x;
@@ -123,20 +120,16 @@ void DebugIO::drawLines() {
 				ImgData data{ Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 					Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
 					Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f };
-				GLRenderer::Buffer(data);
+				GLRenderer::DrawImage(data, "test_font");
 				pos.x += glyph.advance;
 			}
 			pos.x = consoleOffset.x;
 			pos.y -= lineSpacing;
 		}
 	}
-	GLRenderer::Draw(GLRenderer::include, 1, &renderBuf);
 }
 
 void DebugIO::drawDebugInfo() {
-	unsigned int renderBuf = font.getRenderBuffer();
-	GLRenderer::ClearRenderBufs(GLRenderer::include, 1, &renderBuf);
-	GLRenderer::SetBuffer(renderBuf);
 	Vec2i pos = displayOffset;
 	for (std::string line : lines) {
 		for (char c : line) {
@@ -145,20 +138,15 @@ void DebugIO::drawDebugInfo() {
 			ImgData data{ Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 				Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
 				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f };
-			GLRenderer::Buffer(data);
+			GLRenderer::DrawImage(data, "test_font");
 			pos.x += glyph.advance;
 		}
 		pos.x = displayOffset.x;
 		pos.y += lineSpacing;
 	}
-	GLRenderer::Draw(GLRenderer::include, 1, &renderBuf);
 }
 
 void DebugIO::stopDebug() {
-}
-
-unsigned int DebugIO::getRenderBuffer() {
-	return font.getRenderBuffer();
 }
 
 bool DebugIO::getOpen() {

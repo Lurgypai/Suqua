@@ -173,6 +173,14 @@ void Client::clearNewPlayers() {
 	toJoinIds.clear();
 }
 
+const std::vector<CapturePointPacket>& Client::getMissingCapturePoints() const {
+	return toMakeCapturePoins;
+}
+
+void Client::clearMissingCapturePoints() {
+	toMakeCapturePoins.clear();
+}
+
 void Client::receive(ENetEvent & e) {
 	std::string packetKey = PacketUtil::readPacketKey(e.packet);
 	if (packetKey == JOIN_KEY) {
@@ -272,25 +280,7 @@ void Client::receive(ENetEvent & e) {
 				spawns->assignTeam(targetId, packet.state.currTeamId);
 			}
 			else {
-				bool spawnWasFound = false;
-				for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
-					if (spawn.getSpawnZone() == packet.zone) {
-						EntityId id = spawn.getId();
-						spawnWasFound = true;
-						mode->createZone(id, packet.zone, packet.state.currTeamId, packet.state.totalCaptureTime, packet.state.remainingCaptureTime);
-
-						CapturePointComponent* capturePoint = EntitySystem::GetComp<CapturePointComponent>(id);
-						capturePoint->setState(packet.state);
-
-						EntitySystem::MakeComps<CapturePointGC>(1, &id);
-
-						online->registerOnlineComponent(id, packet.netId);
-					}
-				}
-				if (!spawnWasFound) {
-					//unable to sync with server, throw an error
-					throw std::exception{};
-				}
+				toMakeCapturePoins.push_back(packet);
 			}
 		}
 	}

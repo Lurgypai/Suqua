@@ -3,6 +3,8 @@
 #include "Particle.h"
 #include "RandomUtil.h"
 #include "DebugIO.h"
+#include "stb_image.h"
+#include "FileNotFoundException.h"
 #include <iostream>
 
 void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
@@ -24,7 +26,7 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 
 
 	SDL_GL_SetSwapInterval(1);
-	
+
 	glViewport(0, 0, windowRes.x, windowRes.y);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -64,6 +66,14 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 	GLRenderer::GetShaderRef(DefaultShaders[ParticleShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
 	GLRenderer::GetShaderRef(DefaultShaders[PrimitiveShader]).use();
 	GLRenderer::GetShaderRef(DefaultShaders[PrimitiveShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
+
+	//generate texture atlas framebuffer
+	textureAtlas = std::make_unique<Framebuffer>();
+	unsigned int textureAtlasTex;
+	textureAtlas->bind();
+	textureAtlasTex = textureAtlas->addTexture2D(8000, 8000, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	textureAtlas->finalizeFramebuffer();
+	Framebuffer::unbind();
 }
 
 void GLRenderer::Clear(GLbitfield bits) {
@@ -81,32 +91,154 @@ void GLRenderer::LoadShaders(const std::vector<std::pair<std::string, std::strin
 	}
 }
 
+void GLRenderer::LoadTexture(const std::string& filePath, const std::string& tag) {
+	int w, h, channels;
+	unsigned char* imgData = stbi_load(filePath.c_str(), &w, &h, &channels, 0);
+	if (imgData == NULL) {
+		FileNotFoundException e{ filePath };
+		throw e;
+	}
+	Texture t = createTexture2D(w, h, GL_RGBA, GL_RGBA, imgData);
+
+	Vec2f atlasRes = textureAtlas->getTexture(0).res;
+	if (textureAtlasPos.x + w > atlasRes.x) {
+		textureAtlasPos.x = 0;
+		textureAtlasPos.y += textureAtlasDropdown;
+		textureAtlasDropdown = 0;
+	}
+
+	if (textureAtlasDropdown < h) {
+		textureAtlasDropdown = h;
+	}
+
+	ImgData drawData{
+		textureAtlasPos,
+		Vec2f{static_cast<float>(w), static_cast<float>(h)},
+		Vec2f{0, 0},
+		Vec2f{static_cast<float>(w), static_cast<float>(h)},
+		Vec2f{0, 0},
+		Vec2f{1.0, 1.0},
+		0.0f
+	};
+
+	shaders[DefaultShaders[ImageShader]].use();
+	shaders[DefaultShaders[ImageShader]].uniform2f("camPos", 0, 0);
+	shaders[DefaultShaders[ImageShader]].uniform2f("camRes", atlasRes.x, atlasRes.y);
+	shaders[DefaultShaders[ImageShader]].uniform2f("zoom", 1.0, 1.0);
+	shaders[DefaultShaders[ImageShader]].uniform1i("flip_vertically", false);
+
+	textureAtlas->bind();
+	glViewport(0, 0, atlasRes.x, atlasRes.y);
+	glBindVertexArray(IMG_VAO);
+	glDisableVertexAttribArray(0);
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ImgDataBuffer);
+
+	//buffer in as many as there are
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(ImgData), &drawData);
+
+	//bind the texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, t.id);
+
+	//draw. 6 vertices (should) make a rectangle
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	Framebuffer::unbind();
+
+	textures.emplace(tag, AtlasTextureData{ tag, textureAtlasPos, Vec2i{w, h} });
+
+	textureAtlasPos.x += w;
+}
+
+AtlasTextureData GLRenderer::GetTextureData(const std::string& tag) {
+	return textures[tag];
+}
+
+void GLRenderer::DrawTextureAtlas() {
+	Vec2f atlasRes = textureAtlas->getTexture(0).res;
+
+	ImgData drawData{
+	Vec2f{0, 0},
+	Vec2f{atlasRes.x, atlasRes.y},
+	Vec2f{0, 0},
+	Vec2f{atlasRes.x, atlasRes.y},
+	Vec2f{0, 0},
+	Vec2f{1.0, 1.0},
+	0.0f
+	};
+
+	shaders[DefaultShaders[ImageShader]].use();
+	shaders[DefaultShaders[ImageShader]].uniform2f("camPos", 0, 0);
+	shaders[DefaultShaders[ImageShader]].uniform2f("camRes", atlasRes.x, atlasRes.y);
+	shaders[DefaultShaders[ImageShader]].uniform2f("zoom", 1.0, 1.0);
+	shaders[DefaultShaders[ImageShader]].uniform1i("flip_vertically", true);
+
+	glViewport(0, 0, atlasRes.x, atlasRes.y);
+	glBindVertexArray(IMG_VAO);
+	glDisableVertexAttribArray(0);
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ImgDataBuffer);
+
+	//buffer in as many as there are
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(ImgData), &drawData);
+
+	//bind the texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureAtlas->getTexture(0).id);
+
+	//draw. 6 vertices (should) make a rectangle
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void GLRenderer::BufferImgData(const ImgData& data) {
+	imgData.push_back(data);
+}
+
+void GLRenderer::BufferImgData(ImgData&& data) {
+	imgData.emplace_back(std::forward<ImgData>(data));
+}
+
+void GLRenderer::DrawImage(ImgData data, const std::string& tag) {
+	Vec2f atlasRes = textureAtlas->getTexture(0).res;
+	AtlasTextureData textureData = textures[tag];
+	data.imgOffset.x += textureData.offset.x;
+	data.imgOffset.y += textureData.offset.y;
+	data.imgRes = atlasRes;
+
+	Camera& cam = cameras[currentCam];
+	currentShader->use();
+	currentShader->uniform2f("camPos", cam.pos.x, cam.pos.y);
+	currentShader->uniform2f("camRes", cam.res.x, cam.res.y);
+	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
+	currentShader->uniform1i("flip_vertically", true);
+
+	glViewport(0, 0, cam.res.x, cam.res.y);
+	glBindVertexArray(IMG_VAO);
+	glDisableVertexAttribArray(0);
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ImgDataBuffer);
+
+	//buffer in as many as there are
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(ImgData), &data);
+
+	//bind the texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureAtlas->getTexture(0).id);
+
+	//draw. 6 vertices (should) make a rectangle
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
 void GLRenderer::SetShader(unsigned int id) {
 	currentShader = &shaders[id];
-}
-
-void GLRenderer::SetBuffer(unsigned int styleId) {
-	currentRenderBuffer = &renderBuffers[styleId];
-}
-
-void GLRenderer::SetRenderBufferShader(unsigned int renderBufferId, unsigned int id) {
-	renderBuffers[renderBufferId].shaderId = id;
-}
-
-//rework
-void GLRenderer::Buffer(const ImgData& data) {
-	currentRenderBuffer->shaderId = currentShader->id;
-	currentRenderBuffer->data.push_back(data);
-}
-
-void GLRenderer::Draw(SelectType t_, std::vector<unsigned int> & ids) {
-	Draw(t_, ids.size(), &ids[0]);
 }
 
 //select type spcifies how to draw
 //include means draw only the specified texture buffers
 //exclude means draw all texture buffers except the ones specified
 //all means draw all texture buffers
+
+/*
 void GLRenderer::Draw(SelectType t_, int count, unsigned int * ids) {
 
 	if (renderBuffers.size() > 0) {
@@ -197,10 +329,7 @@ void GLRenderer::Draw(SelectType t_, int count, unsigned int * ids) {
 		glBindVertexArray(0);
 	}
 }
-
-void GLRenderer::DrawBuffered() {
-	Draw(SelectType::include, bufferedIds);
-}
+*/
 
 void GLRenderer::DrawPrimitve(std::vector<Vec2f> points, float r, float g, float b) {
 
@@ -245,26 +374,6 @@ const Shader & GLRenderer::GetDefaultShader(DefShader shader) {
 
 void GLRenderer::SetDefShader(DefShader shader) {
 	currentShader = &shaders[DefaultShaders[shader]];
-}
-
-unsigned int GLRenderer::GenRenderStyleBuf(unsigned int id, unsigned int shaderId) {
-	for (int i = 0; i != renderBuffers.size(); ++i) {
-		auto& renderBuf = renderBuffers[i];
-		if (renderBuf.textureId == id)
-			return i;
-	}
-	renderBuffers.push_back(RenderBuffer{id, shaderId, {} });
-	return renderBuffers.size() - 1;
-}
-
-
-unsigned int GLRenderer::GenNewRenderStyleBuf(unsigned int textureId, unsigned int shaderId) {
-	renderBuffers.push_back(RenderBuffer{textureId, shaderId, {} });
-	return renderBuffers.size() - 1;
-}
-
-void GLRenderer::SetRenderBufSize(unsigned int id, int size) {
-	renderBuffers[id].data.reserve(size);
 }
 
 void GLRenderer::DrawOverScreen(unsigned int texId) {
@@ -338,40 +447,6 @@ bool GLRenderer::ReadErrors() {
 	return ret;
 }
 
-void GLRenderer::ClearRenderBufs(SelectType t_, std::vector<unsigned int>& ids) {
-	ClearRenderBufs(t_, ids.size(), &ids.front());
-}
-
-void GLRenderer::ClearRenderBufs(SelectType t_, int count, unsigned int * ids) {
-	switch (t_) {
-	case all:
-		for (auto& renderBuf : renderBuffers) {
-			int size = renderBuf.data.size();;
-			renderBuf.data.clear();
-			renderBuf.data.reserve(size);
-		}
-		break;
-	case include:
-		for (int j = 0; j != count; ++j) {
-			int size = renderBuffers[ids[j]].data.size();
-			renderBuffers[ids[j]].data.clear();
-			renderBuffers[ids[j]].data.reserve(size);
-		}
-		break;
-	case exclude:
-		for (int j = 0; j != count; ++j) {
-			for (int id = 0; id != renderBuffers.size(); ++id) {
-				if (id != ids[j]) {
-					int size = renderBuffers[id].data.size();
-					renderBuffers[id].data.clear();
-					renderBuffers[id].data.reserve(size);
-				}
-			}
-		}
-		break;
-	}
-}
-
 int GLRenderer::addCamera(const Camera & cam) {
 	cameras.push_back(cam);
 	return cameras.size() - 1;
@@ -413,8 +488,6 @@ Vec2f GLRenderer::worldToSceen(Vec2f point, int camId) {
 	point.y *= windowRes.y;
 	return point;
 }
-
-std::vector<RenderBuffer> GLRenderer::renderBuffers{};
 SDL_GLContext GLRenderer::context{};
 SDL_Window* GLRenderer::window{nullptr};
 unsigned int GLRenderer::SCREEN_VAO{};
@@ -426,12 +499,16 @@ std::vector<Camera> GLRenderer::cameras{};
 int GLRenderer::currentCam{};
 Vec2i GLRenderer::windowRes{};
 Vec2i GLRenderer::viewRes{};
-RenderBuffer * GLRenderer::currentRenderBuffer{};
 std::unordered_map<unsigned int, Shader> GLRenderer::shaders{};
 Shader * GLRenderer::currentShader{nullptr};
 int GLRenderer::DefaultShaders[5]{};
 ParticleSystem GLRenderer::particleSystem{};
 std::vector<unsigned int> GLRenderer::bufferedIds{};
 std::vector<Primitive> GLRenderer::primitives{};
+std::unique_ptr<Framebuffer> GLRenderer::textureAtlas{};
+Vec2i GLRenderer::textureAtlasPos{};
+unsigned int GLRenderer::textureAtlasDropdown{};
+std::unordered_map<std::string, AtlasTextureData> GLRenderer::textures{};
+std::vector<ImgData> GLRenderer::imgData{};
 
 const std::string GLRenderer::Folder{"suqua/"};

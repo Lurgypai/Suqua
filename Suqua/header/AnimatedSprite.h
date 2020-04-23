@@ -6,9 +6,8 @@
 class AnimatedSprite  : public Sprite {
 public:
 	AnimatedSprite();
-	AnimatedSprite(const std::string &filePath, Vec2f objRes_,
-		int columns_ = 8, float frameDelay = (4.0 / 60),
-		Vec2f pos_ = {0.0, 0.0}, Vec2f origin_ = { 0.0, 0.0 }, Vec2f scale_ = { 1.0, 1.0 }, Vec2f imgOffset_ = { 0.0f, 0.0f });
+	AnimatedSprite(const std::string &texture_tag_, Vec2f objRes_,
+		int columns_ = 8, float frameDelay = (4.0 / 60));
 	void forward(double timeDelta);
 	void backward(double timeDelta);
 	int getFrame();

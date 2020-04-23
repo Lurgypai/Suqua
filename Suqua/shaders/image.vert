@@ -4,6 +4,7 @@
 uniform vec2 camPos = vec2(0.0, 0.0);
 uniform vec2 camRes;
 uniform vec2 zoom = vec2(1.0, 1.0);
+uniform bool flip_vertically = true;
 
 struct ImgData
 {
@@ -56,7 +57,8 @@ void main() {
 	pixelPos += (dat.objPos - camPos);
     
 	vec2 windowPos = pixelPos / (camRes / zoom);
-	windowPos.y = (-windowPos.y) + 1;
+    if(flip_vertically)
+        windowPos.y = (-windowPos.y) + 1;
 	windowPos = 2 * (windowPos) - 1;
 	
 	gl_Position = vec4(windowPos, 0.0, 1.0);

@@ -1,8 +1,10 @@
 #pragma once
 #include "glad/glad.h"
+#include "Vec2.h"
 
 struct Texture {
 	unsigned int id;
+	Vec2f res;
 	GLenum attatchment_loc;
 	GLenum dimensions;
 };

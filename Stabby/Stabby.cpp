@@ -100,7 +100,6 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-
 	GLRenderer::Init(window, { windowWidth, windowHeight }, { viewWidth, viewHeight });
 
 	DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
@@ -126,7 +125,6 @@ int main(int argc, char* argv[]) {
 
 	PhysicsSystem& physics = game.physics;
 	Client& client = game.client;
-	game.palettes.loadPalettes("images/palettes");
 
 	/*--------------------------------------------- Commands ---------------------------------------------------------*/
 	DebugIO::getCommandManager().registerCommand<StartCommand>(StartCommand{ game });
@@ -146,6 +144,7 @@ int main(int argc, char* argv[]) {
 	DebugIO::getCommandManager().registerCommand<FrameByFrameCommand>(doFBF);
 
 	/*--------------------------------------------- Load more Assets --------------------------------------------------*/
+	game.loadTextures();
 	game.weapons.loadAttacks("attacks/hit");
 	game.weapons.loadAnimations("attacks/asset");
 
@@ -381,6 +380,7 @@ int main(int argc, char* argv[]) {
 						}
 
 						game.loadNewPlayers();
+						game.loadNewCapturePoints();
 
 						DebugIO::setLine(3, "NetId: " + std::to_string(online->getNetId()));
 						DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
@@ -438,12 +438,9 @@ int main(int argc, char* argv[]) {
 			pingBuffer.bind();
 
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
-			GLRenderer::ClearRenderBufs(GLRenderer::all);
 
 			//update camera
 			const Uint8* state = SDL_GetKeyboardState(NULL);
-
-			unsigned int debugTextBuffer = DebugIO::getRenderBuffer();
 
 			switch (game.getState()) {
 			case GameState::offline:
@@ -518,8 +515,6 @@ int main(int argc, char* argv[]) {
 			}
 			*/
 
-			game.render.drawAll();
-
 			//Draw all the physics components to the occlusion map.
 			occlusionMap.bind();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
@@ -537,12 +532,12 @@ int main(int argc, char* argv[]) {
 			glBindTexture(GL_TEXTURE_2D, occlusionMap.getTexture(0).id);
 
 			//particles
-			/*
-			GLRenderer::getComputeShader("blood").use();
-			GLRenderer::getComputeShader("blood").uniform2f("camPos", GLRenderer::getCamera(game.playerCamId).pos.x, GLRenderer::getCamera(game.playerCamId).pos.y);
-			GLRenderer::getComputeShader("blood").uniform1f("zoom", GLRenderer::getCamera(game.playerCamId).camScale);
-			GLRenderer::UpdateAndDrawParticles();
-			*/
+			
+			//GLRenderer::getComputeShader("blood").use();
+			//GLRenderer::getComputeShader("blood").uniform2f("camPos", GLRenderer::getCamera(game.playerCamId).pos.x, GLRenderer::getCamera(game.playerCamId).pos.y);
+			//GLRenderer::getComputeShader("blood").uniform1f("zoom", GLRenderer::getCamera(game.playerCamId).camScale);
+			//GLRenderer::UpdateAndDrawParticles();
+			
 
 			redOutlineBuffer.bind();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
@@ -575,24 +570,23 @@ int main(int argc, char* argv[]) {
 			GLRenderer::DrawOverScreen(blueOutlineBuffer.getTexture(0).id, viewWidth, viewHeight);
 
 			//palettes, for later
-			/*
-			pongBuffer.bind();
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, game.palettes.getCurrentPalette().getTexture());
-			GLRenderer::GetShaderRef(colorShader).use();
-			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
-			GLRenderer::DrawOverScreen(pingBuffer.getTexture(0).id, viewWidth, viewHeight);
-			*/
+			//pongBuffer.bind();
+			//glActiveTexture(GL_TEXTURE1);
+			//glBindTexture(GL_TEXTURE_2D, game.palettes.getCurrentPalette().getTexture());
+			//GLRenderer::GetShaderRef(colorShader).use();
+			//GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			//GLRenderer::DrawOverScreen(pingBuffer.getTexture(0).id, viewWidth, viewHeight);
+			
+			//draw the debugio over the screen
 
 			//finished ping-ponging, draw to screen
+
 			Framebuffer::unbind();
 			GLRenderer::SetDefShader(FullscreenShader);
 			GLRenderer::bindCurrShader();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
 
 			GLRenderer::DrawOverScreen(pingBuffer.getTexture(0).id);
-
-			//draw the debugio over the screen
 
 			GLRenderer::setCamera(debugCamId);
 			DebugIO::drawLines();

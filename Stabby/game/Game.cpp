@@ -1,4 +1,5 @@
 #include <fstream>
+#include <filesystem>
 
 #include "EntityBaseComponent.h"
 #include "ControllerComponent.h"
@@ -58,6 +59,7 @@ void Game::startMainMenu() {
 		renderGroups[menuCamId].push_back(button);
 	}
 
+	
 	for (auto& textBox : menu.getTextBoxes()) {
 
 		EntityId id = textBox;
@@ -69,18 +71,20 @@ void Game::startMainMenu() {
 		auto* drawable = render->getDrawable<TextDrawable>();
 		drawable->setColor(1, 1, 1);
 		drawable->anti_alias = true;
-		drawable->font.loadFromFiles("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
+		drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
 		drawable->scale = {.5, .5};
 
 		renderGroups[menuCamId].push_back(textBox);
 	}
+	
 
 	EntityId mainMenuBG;
 	EntitySystem::GenEntities(1, &mainMenuBG);
 	EntitySystem::MakeComps<RenderComponent>(1, &mainMenuBG);
 	RenderComponent* mainMenuRender = EntitySystem::GetComp<RenderComponent>(mainMenuBG);
-	mainMenuRender->loadDrawable<Sprite>("images/temp_main_menu.png");
+	mainMenuRender->loadDrawable<Sprite>("main_menu");
 	EntitySystem::GetComp<PositionComponent>(mainMenuBG)->pos = { 0 , 0 };
+	renderGroups[menuCamId].push_back(mainMenuBG);
 }
 
 void Game::startOfflineGame() {
@@ -110,13 +114,13 @@ void Game::startOfflineGame() {
 
 	gameState = GameState::offline;
 
-	renderGroups[playerCamId].push_back(playerId);
 	for (auto& stageAsset : stage.getRenderables()) {
 		renderGroups[playerCamId].push_back(stageAsset);
 	}
 	for (auto& capturePoint : stage.getSpawnables()) {
 		renderGroups[playerCamId].push_back(capturePoint);
 	}
+	renderGroups[playerCamId].push_back(playerId);
 }
 
 void Game::startOnlineGame() {
@@ -151,10 +155,10 @@ void Game::startOnlineGame() {
 
 	gameState = GameState::online;
 
-	renderGroups[playerCamId].push_back(playerId);
 	for (auto& stageAsset : stage.getRenderables()) {
 		renderGroups[playerCamId].push_back(stageAsset);
 	}
+	renderGroups[playerCamId].push_back(playerId);
 }
 
 void Game::startStageEditor(const std::string & filePath) {
@@ -191,6 +195,40 @@ void Game::loadCameras(int viewWidth, int viewHeight) {
 	editorCam = EditorCam{ editorCamId };
 }
 
+void Game::loadTextures() {
+	//misc
+	GLRenderer::LoadTexture("images/none.png", "none");
+
+	//font
+	GLRenderer::LoadTexture("suqua/fonts/consolas_0.png", "test_font");
+
+	//menus
+	GLRenderer::LoadTexture("images/temp_main_menu.png", "main_menu");
+	
+	//player
+	GLRenderer::LoadTexture("images/stabbyman.png", "character");
+
+	//stage
+	namespace fs = std::filesystem;
+
+	fs::path path{ "stage/" };
+	for (auto& file : fs::directory_iterator(path)) {
+		if (file.path().extension() == ".png") {
+			std::string id = file.path().stem().string();
+			GLRenderer::LoadTexture(file.path().string(), "stage::" + id);
+		}
+	}
+
+	//weapons
+	path = fs::path{ "attacks/asset/" };
+	for (auto& file : fs::directory_iterator(path)) {
+		if (file.path().extension() == ".png") {
+			std::string id = file.path().stem().string();
+			GLRenderer::LoadTexture(file.path().string(), "weapon::" + id);
+		}
+	}
+}
+
 void Game::updatePlayerCamera() {
 	static_cast<PlayerCam&>(GLRenderer::getCamera(playerCamId)).update(playerId);
 }
@@ -221,6 +259,33 @@ void Game::loadNewPlayers() {
 		}
 	}
 	client.clearNewPlayers();
+}
+
+void Game::loadNewCapturePoints() {
+	for (const auto& packet : client.getMissingCapturePoints()) {
+		bool spawnWasFound = false;
+		for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
+			if (spawn.getSpawnZone() == packet.zone) {
+				EntityId id = spawn.getId();
+				spawnWasFound = true;
+				mode.createZone(id, packet.zone, packet.state.currTeamId, packet.state.totalCaptureTime, packet.state.remainingCaptureTime);
+
+				CapturePointComponent* capturePoint = EntitySystem::GetComp<CapturePointComponent>(id);
+				capturePoint->setState(packet.state);
+
+				EntitySystem::MakeComps<CapturePointGC>(1, &id);
+
+				renderGroups[playerCamId].push_back(id);
+
+				online.registerOnlineComponent(id, packet.netId);
+			}
+		}
+		if (!spawnWasFound) {
+			//unable to sync with server, throw an error
+			throw std::exception{};
+		}
+	}
+	client.clearMissingCapturePoints();
 }
 
 void Game::updateEditorCamera() {
@@ -294,7 +359,7 @@ void Game::updateMainMenu() {
 
 void Game::makePlayerGFX(EntityId playerId_) {
 	EntitySystem::MakeComps<PlayerGC>(1, &playerId_);
-	EntitySystem::GetComp<RenderComponent>(playerId_)->loadDrawable<AnimatedSprite>("images/stabbyman.png", Vec2i{ 64, 64 });
+	EntitySystem::GetComp<RenderComponent>(playerId_)->loadDrawable<AnimatedSprite>("character", Vec2i{ 64, 64 });
 	EntitySystem::GetComp<PlayerGC>(playerId_)->loadAnimations();
 	EntitySystem::GetComp<PlayerGC>(playerId_)->attackSprite = weapons.cloneAnimation("player_sword");
 }

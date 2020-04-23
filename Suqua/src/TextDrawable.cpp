@@ -24,9 +24,7 @@ void TextDrawable::draw() {
 	GLRenderer::bindCurrShader();
 	GLRenderer::GetDefaultShader(TextShader).uniform3f("color", r, g, b);
 	GLRenderer::GetDefaultShader(TextShader).uniform1i("anti_alias", anti_alias);
-	unsigned int renderBuf = font.getRenderBuffer();
-	GLRenderer::ClearRenderBufs(GLRenderer::include, 1, &renderBuf);
-	GLRenderer::SetBuffer(renderBuf);
+
 	Vec2f displayOffset = boundingBox.pos;
 	Vec2i pos = displayOffset;
 	for (char c : text) {
@@ -41,11 +39,10 @@ void TextDrawable::draw() {
 			scale,	//scale
 			0.0f	//angle
 		};
-		GLRenderer::Buffer(data);
+		GLRenderer::DrawImage(data, "test_font");
 		pos.x += glyph.advance * scale.x;
 	}
 	pos.x = displayOffset.x;
-	GLRenderer::Draw(GLRenderer::include, 1, &renderBuf);
 }
 
 void TextDrawable::setColor(float r_, float g_, float b_) {

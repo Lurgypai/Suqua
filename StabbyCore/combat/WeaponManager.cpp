@@ -28,7 +28,7 @@ void WeaponManager::loadAnimations(std::string animationDir) {
 				Vec2f objRes{ animDesc["frame_width"], animDesc["frame_height"] };
 				int columns{ animDesc["columns"] };
 
-				animations.emplace(id, AnimatedSprite{ animationDir + id + ".png", objRes, columns });
+				animations.emplace(id, AnimatedSprite{ "weapon::" + id, objRes, columns });
 				AnimatedSprite& animation = animations[id];
 
 				//first attack is attack 1

@@ -4,6 +4,7 @@
 
 #include <list>
 #include <unordered_map>
+#include <memory>
 
 #include "Sprite.h"
 #include "Shader.h"
@@ -76,10 +77,10 @@ struct Primitive {
 	float b;
 };
 
-struct RenderBuffer {
-	unsigned int textureId;
-	unsigned int shaderId;
-	std::vector<ImgData> data;
+struct AtlasTextureData {
+	const std::string tag;
+	Vec2i offset;
+	Vec2i res;
 };
 
 enum DefShader {
@@ -105,28 +106,21 @@ public:
 	static void Clear(GLbitfield bits);
 	static void LoadShaders(const std::vector<std::pair<std::string, std::string>> & shaders, int * idsToFill);
 
+	static void LoadTexture(const std::string& filePath, const std::string& tag);
+	static AtlasTextureData GetTextureData(const std::string& tag);
+	static void DrawTextureAtlas();
+
+	static void BufferImgData(const ImgData& data);
+	static void BufferImgData(ImgData&& data);
+
+	static void DrawImage(ImgData data, const std::string& tag);
+
 	//Sets the shader to use, when data is buffered.
 	static void SetShader(unsigned int id);
-	//Sets the buffer to the specified style ID.
-	static void SetBuffer(unsigned int styleId);
-	//Place copy ImgData into the buffer
-	static void Buffer(const ImgData& data);
-	//set shader associated with a render buffer
-	static void SetRenderBufferShader(unsigned int renderBufferId, unsigned int id);
-	//Draw the selected RenderBuffers
-	static void Draw(SelectType t_, std::vector<unsigned int>& ids);
-	//Draw the selected RenderBuffers
-	static void Draw(SelectType t_, int count = 0, unsigned int * ids = nullptr);
-	//Draw everything thats been buffered since the last draw call
-	static void DrawBuffered();
 	//Draw a simple shape outline
 	static void DrawPrimitve(std::vector<Vec2f> points, float r, float g, float b);
 	//Draw an aabb outline
 	static void DrawPrimitves(std::vector<AABB> rects, float r, float g, float b);
-	//Clear the selected RenderBuffers
-	static void ClearRenderBufs(SelectType t_, std::vector<unsigned int>& ids);
-	//Clear the selected RenderBuffers
-	static void ClearRenderBufs(SelectType t_, int number = 0, unsigned int* ids = nullptr);
 	//Swap
 	static void Swap();
 	//Get Shader based on its stored id.
@@ -136,12 +130,6 @@ public:
 	//Set the current shader to one of the Default shaders.
 	static void SetDefShader(DefShader shader);
 
-
-	//Adds the specified texture/shader pair as its own buffer. Returns the location of the buffer in the RenderBuffer vector.
-	static unsigned int GenRenderStyleBuf(unsigned int textureId, unsigned int shaderId);
-	static unsigned int GenNewRenderStyleBuf(unsigned int textureId, unsigned int shaderId);
-	//Resize specified buffer
-	static void SetRenderBufSize(unsigned int id, int size);
 	//render a single texture stretched over the whole screen (for post processing)
 	static void DrawOverScreen(unsigned int texId);
 	static void DrawOverScreen(unsigned int texId, int width, int height);
@@ -162,7 +150,6 @@ public:
 	static Vec2f worldToSceen(Vec2f point, int camId = currentCam);
 private:
 	static unsigned int counter;
-	static std::vector<RenderBuffer> renderBuffers;
 	static SDL_Window* window;
 	static SDL_GLContext context;
 	static unsigned int IMG_VAO;
@@ -174,12 +161,18 @@ private:
 	static int currentCam;
 	static Vec2i viewRes;
 	static Vec2i windowRes;
-	static RenderBuffer * currentRenderBuffer;
 	static std::unordered_map<unsigned int, Shader> shaders;
 	static Shader * currentShader;
 	static int DefaultShaders[5];
 	static std::vector<unsigned int> bufferedIds;
 	static std::vector<Primitive> primitives;
+
+	static std::unique_ptr<Framebuffer> textureAtlas;
+	static Vec2i textureAtlasPos;
+	//how much to move down once we hit the end of the line;
+	static unsigned int textureAtlasDropdown;
+	static std::unordered_map<std::string, AtlasTextureData> textures;
+	static std::vector<ImgData> imgData;
 
 	static const std::string Folder;
 	static ParticleSystem particleSystem;

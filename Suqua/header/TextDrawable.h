@@ -1,7 +1,7 @@
 #pragma once
 #include "IDrawable.h"
 #include "AABB.h"
-#include "BitmapFont.h"
+#include "FontData.h"
 
 class TextDrawable : public IDrawable {
 public:
@@ -17,7 +17,7 @@ public:
 
 	const AABB& getBoundingBox();
 
-	BitmapFont font;
+	FontData font;
 	std::string text;
 	float r;
 	float g;

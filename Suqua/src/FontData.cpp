@@ -1,4 +1,4 @@
-#include "BitmapFont.h"
+#include "FontData.h"
 #include "Vec2.h"
 #include "GLRenderer.h"
 
@@ -10,30 +10,10 @@
 #include "SDL.h"
 #include "stb_image.h"
 
-BitmapFont::BitmapFont() : texture{0} {
+FontData::FontData() {
 }
 
-BitmapFont::BitmapFont(const std::string & fontFile, const std::string & fontDataFile) {
-	std::ifstream fontImageFile{ fontFile };
-	if (!fontImageFile.is_open())
-		throw std::exception{};
-	fontImageFile.close();
-
-	int imgW, imgH, numChannels;
-	unsigned char* img = stbi_load(fontFile.c_str(), &imgW, &imgH, &numChannels, 0);
-
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, imgW, imgH, 0, GL_RED, GL_UNSIGNED_BYTE, img);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	stbi_image_free(img);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
+FontData::FontData(const std::string & fontDataFile) {
 	//read data
 	std::ifstream file;
 	file.open(fontDataFile);
@@ -134,34 +114,9 @@ BitmapFont::BitmapFont(const std::string & fontFile, const std::string & fontDat
 		//clear for reuse
 		splitLine.clear();
 	}
-
-	renderBufferId = GLRenderer::GenRenderStyleBuf(texture, 0);
 }
 
-void BitmapFont::loadFromFiles(const std::string & fontFile, const std::string & fontDataFile) {
-	std::ifstream fontImageFile{ fontFile };
-	if (!fontImageFile.is_open())
-		throw std::exception{};
-	fontImageFile.close();
-
-	chars.clear();
-	int imgW, imgH, numChannels;
-	unsigned char* img = stbi_load(fontFile.c_str(), &imgW, &imgH, &numChannels, 0);
-	
-	if(texture == 0)
-		glGenTextures(1, &texture);
-
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, imgW, imgH, 0, GL_RED, GL_UNSIGNED_BYTE, img);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	stbi_image_free(img);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
+void FontData::loadDataFile(const std::string & fontDataFile) {
 	//read data
 	std::ifstream file;
 	file.open(fontDataFile);
@@ -262,19 +217,9 @@ void BitmapFont::loadFromFiles(const std::string & fontFile, const std::string &
 		//clear for reuse
 		splitLine.clear();
 	}
-
-	renderBufferId = GLRenderer::GenRenderStyleBuf(texture, 0);
 }
 
-Character BitmapFont::getCharacter(unsigned char c) const {
+Character FontData::getCharacter(unsigned char c) const {
 	if(c != '\0')
 	return chars.at(c);
-}
-
-unsigned int BitmapFont::getTexture() const {
-	return texture;
-}
-
-unsigned int BitmapFont::getRenderBuffer() const {
-	return renderBufferId;
 }

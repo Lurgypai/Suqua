@@ -91,7 +91,7 @@ void Stage::loadGraphics() {
 	for (auto& id : renderables) {
 		RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
 
-		render->loadDrawable<Sprite>(folder + '/' + name + ".png");
+		render->loadDrawable<Sprite>("stage::" + name);
 		Sprite* sprite = render->getDrawable<Sprite>();
 		render->offset = {sprite->getImgRes().x / 2, sprite->getImgRes().y};
 	}

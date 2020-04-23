@@ -6,7 +6,7 @@
 
 class Sprite : public IDrawable{
 public:
-	Sprite(const std::string &filePath, Vec2f pos = {0.0, 0.0}, Vec2f origin_ = { 0.0, 0.0 }, Vec2f scale_ = { 1.0, 1.0 }, Vec2f imgOffset_ = { 0.0f, 0.0f }, float angle_ = 0.0f);
+	Sprite(const std::string &texture_tag);
 	virtual ~Sprite() override;
 
 	Vec2f getImgRes() const;
@@ -18,6 +18,7 @@ public:
 	float getAngle() const;
 	const ImgData & getImgData() const;
 
+	void setImgRes(Vec2f res_);
 	void setPos(Vec2f pos_) override;
 	void setImgOffset(Vec2f imgOffset_);
 	void setObjRes(Vec2f objRes_);
@@ -27,14 +28,10 @@ public:
 
 	int getChannels() const;
 
-	unsigned int getTexture() const; 
-	unsigned int getRenderBufferId() const;
-
 	virtual void draw() override;
 	virtual IDrawable* clone() override;
 protected:
+	std::string texture_tag;
 	ImgData data;
 	int channels;
-	unsigned int texture;
-	unsigned int renderBufferId;
 };

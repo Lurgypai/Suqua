@@ -68,7 +68,9 @@ void PlayerGC::spawnHead(Vec2f pos) {
 	position->pos = pos;
 
 	RenderComponent * image = EntitySystem::GetComp<RenderComponent>(id_);
-	image->loadDrawable<Sprite>("images/head.png");
+	image->loadDrawable<Sprite>("character");
+	image->getDrawable<Sprite>()->setImgOffset({30, 44});
+	image->getDrawable<Sprite>()->setObjRes({ 4, 4 });
 }
 
 void PlayerGC::updateState(double timeDelta) {

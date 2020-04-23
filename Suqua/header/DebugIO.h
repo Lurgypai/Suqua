@@ -6,7 +6,7 @@
 
 #include "Shader.h"
 #include "Vec2.h"
-#include "BitmapFont.h"
+#include "FontData.h"
 #include "CommandManager.h"
 
 class DebugIO {
@@ -23,7 +23,6 @@ public:
 	static void drawLines();
 	static void drawDebugInfo();
 	static void stopDebug();
-	static unsigned int getRenderBuffer();
 	static bool getOpen();
 	static CommandManager& getCommandManager();
 private:
@@ -33,7 +32,7 @@ private:
 	static int lineSpacing;
 
 	static bool isOpen;
-	static BitmapFont font;
+	static FontData font;
 	static std::vector<std::string> lines;
 	static std::deque<std::string> console;
 	static std::string inputText;

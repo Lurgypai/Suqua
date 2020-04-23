@@ -1,6 +1,7 @@
 #include "glad/glad.h"
 #include "Framebuffer.h"
 #include "SDL.h"
+#include "GLRenderer.h"
 
 Framebuffer::Framebuffer() {
 	glGenFramebuffers(1, &id);

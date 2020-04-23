@@ -1,14 +1,13 @@
 #include "AnimatedSprite.h"
 #include "DebugIO.h"
 
-AnimatedSprite::AnimatedSprite() : Sprite{"images/none.png"} {
+AnimatedSprite::AnimatedSprite() : Sprite{"none"} {
 }
 
-AnimatedSprite::AnimatedSprite(const std::string &filePath, Vec2f objRes_,
-	int columns_, float frameDelay_,
-	Vec2f pos_, Vec2f origin_, Vec2f scale_, Vec2f imgOffset_) :
+AnimatedSprite::AnimatedSprite(const std::string &texture_tag_, Vec2f objRes_,
+	int columns_, float frameDelay_) :
 
-	Sprite{ filePath, pos_, origin_, scale_, imgOffset_},
+	Sprite{ texture_tag_ },
 	columns{columns_},
 	frameDelay{ frameDelay_ },
 

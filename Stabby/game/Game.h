@@ -33,9 +33,11 @@ public:
 	void startStageEditor(const std::string & filePath);
 	void loadStage(const std::string& stageName);
 	void loadCameras(int viewWidth, int viewHeight);
+	void loadTextures();
 	
 	void updatePlayerCamera();
 	void loadNewPlayers();
+	void loadNewCapturePoints();
 
 	void updateEditorCamera();
 	void updateEditor();

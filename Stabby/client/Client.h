@@ -53,6 +53,9 @@ public:
 
 	const std::vector<NetworkId>& getNewPlayers() const;
 	void clearNewPlayers();
+
+	const std::vector<CapturePointPacket>& getMissingCapturePoints() const;
+	void clearMissingCapturePoints();
 	//client time
 	Time_t clientTime;
 private:
@@ -78,6 +81,7 @@ private:
 	SpawnSystem* spawns;
 
 	std::vector<NetworkId> toJoinIds;
+	std::vector<CapturePointPacket> toMakeCapturePoins;
 };
 
 template<typename Packet>

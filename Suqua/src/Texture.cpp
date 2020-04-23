@@ -16,6 +16,7 @@ Texture createTexture2D(int width, int height, GLenum colorIn, GLenum colorOut, 
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	texture.dimensions = GL_TEXTURE_2D;
+	texture.res = Vec2f{ static_cast<float>(width), static_cast<float>(height) };
 	return texture;
 }
 
