@@ -5,6 +5,8 @@
 
 class TextDrawable : public IDrawable {
 public:
+	TextDrawable();
+
 	virtual void draw() override;
 
 	virtual void setPos(Vec2f pos) override;

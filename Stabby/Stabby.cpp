@@ -230,14 +230,19 @@ int main(int argc, char* argv[]) {
 				case SDL_TEXTINPUT:
 					if (DebugIO::getOpen())
 						DebugIO::addInput(e.text.text);
+					game.menus.inputAllMenus(e.text.text);
 					break;
 				case SDL_KEYDOWN:
 					if (e.key.keysym.sym == SDLK_BACKQUOTE)
 						toggleDebug = true;
-					else if (e.key.keysym.sym == SDLK_BACKSPACE)
+					else if (e.key.keysym.sym == SDLK_BACKSPACE) {
+						game.menus.backspaceAllMenus();
 						DebugIO::backspace();
-					else if (e.key.keysym.sym == SDLK_RETURN)
+					}
+					else if (e.key.keysym.sym == SDLK_RETURN) {
 						DebugIO::enterInput();
+						game.menus.enterTextAllMenus();
+					}
 					else if (e.key.keysym.sym == SDLK_l)
 						canProgressFrame = true;
 					else if (e.key.keysym.sym == SDLK_k) {

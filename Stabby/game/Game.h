@@ -59,6 +59,7 @@ public:
 	SpawnSystem spawns;
 	DominationMode mode;
 	OnlineSystem online;
+	MenuSystem menus;
 
 	EntityId getPlayerId();
 	const Stage& getStage() const;
@@ -78,8 +79,6 @@ private:
 	int menuCamId;
 
 	EditorCam editorCam;
-
-	MenuSystem menus;
 
 	MenuId mainMenu;
 };

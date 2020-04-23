@@ -2,6 +2,7 @@
 
 #include "Menu.h"
 #include "MenuButtonComponent.h"
+#include "MenuTextBoxComponent.h"
 #include "RenderComponent.h"
 #include "PositionComponent.h"
 #include "RectDrawable.h"
@@ -67,7 +68,59 @@ void Menu::updateMenuEntries(int camId) {
 		}
 	}
 
+	for (auto& textBoxId : text_boxes) {
+		MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(textBoxId);
+		textBox->update(mousePos, toggled);
+
+		//if we were activated, enter all other text boxes data
+		if (textBox->pollActivated()) {
+			for (auto& otherTextBoxId : text_boxes) {
+				if (otherTextBoxId != textBoxId) {
+					MenuTextBoxComponent* otherTextBox = EntitySystem::GetComp<MenuTextBoxComponent>(otherTextBoxId);
+					if(otherTextBox->isActive())
+						otherTextBox->enterText();
+				}
+			}
+		}
+
+		std::string response{};
+		if (textBox->pollEnteredText(response)) {
+			MenuResult r{};
+			r.type = MenuEntryType::text_box;
+			r.entryTag = textBox->tag;
+			strcpy(r.text_box.resposne, response.substr(0, 63).c_str());
+			results.emplace_back(std::move(r));
+		}
+	}
+
 	prevButton1 = currButton1;
+}
+
+void Menu::input(const std::string& text) {
+	for (auto& textBoxId : text_boxes) {
+		MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(textBoxId);
+		if (textBox->isActive()) {
+			textBox->input(text);
+		}
+	}
+}
+
+void Menu::backspace() {
+	for (auto& textBoxId : text_boxes) {
+		MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(textBoxId);
+		if (textBox->isActive()) {
+			textBox->backspace();
+		}
+	}
+}
+
+void Menu::enterText() {
+	for (auto& textBoxId : text_boxes) {
+		MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(textBoxId);
+		if (textBox->isActive()) {
+			textBox->enterText();
+		}
+	}
 }
 
 EntityId Menu::makeButton(const std::string& entryTag_, const AABB& boundingBox) {
@@ -87,11 +140,47 @@ EntityId Menu::makeButton(const std::string& entryTag_, const AABB& boundingBox)
 	return id;
 }
 
-EntityId Menu::makeTextBox(const std::string& entryTag_, const AABB& boundingBox)
-{
-	return EntityId();
+EntityId Menu::makeTextBox(const std::string& entryTag_, const AABB& boundingBox) {
+	EntityId id;
+	EntitySystem::GenEntities(1, &id);
+	EntitySystem::MakeComps<MenuTextBoxComponent>(1, &id);
+
+	MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(id);
+	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
+
+	pos->pos = boundingBox.pos;
+
+	textBox->boundingBox = boundingBox;
+	textBox->tag = entryTag_;
+
+	text_boxes.push_back(id);
+	return id;
 }
 
 const std::vector<EntityId>& Menu::getButtons() const {
 	return buttons;
+}
+
+const std::vector<EntityId>& Menu::getTextBoxes() const {
+	return text_boxes;
+}
+
+EntityId Menu::getMenuEntry(const std::string& entryTag_) {
+	for (auto& buttonId : buttons) {
+		MenuButtonComponent* button = EntitySystem::GetComp<MenuButtonComponent>(buttonId);
+		if (button->tag == entryTag_)
+			return buttonId;
+	}
+	for (auto& textBoxId : text_boxes) {
+		MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(textBoxId);
+		if (textBox->tag == entryTag_)
+			return textBoxId;
+	}
+
+	return 0;
+}
+
+void Menu::clear() {
+	buttons.clear();
+	text_boxes.clear();
 }

@@ -11,7 +11,8 @@ layout(binding = 0) uniform sampler2D textImg;
 
 void main() {
     if(!anti_alias) {
-        FragColor = vec4(color, ceil(texture(textImg, FragCoord).r));
+        float alpha = float(int(texture(textImg, FragCoord).r * 2));
+        FragColor = vec4(color, alpha);
     }
     else {
         FragColor = vec4(color, texture(textImg, FragCoord).r);

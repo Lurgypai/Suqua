@@ -3,8 +3,6 @@
 #include "EntitySystem.h"
 #include "AABB.h"
 
-#include "Menu.h"
-
 class MenuButtonComponent {
 	friend class Menu;
 
@@ -16,6 +14,7 @@ public:
 
 	bool pollToggled();
 	const AABB& getBoundingBox() const;
+	const std::string& getTag() const;
 private:
 	EntityId id;
 

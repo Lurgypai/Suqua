@@ -8,6 +8,7 @@
 #include "GLRenderer.h"
 #include "DebugIO.h"
 #include "MenuButtonComponent.h"
+#include "MenuTextBoxComponent.h"
 
 #include "nlohmann/json.hpp"
 #include "../graphics/PlayerGC.h"
@@ -37,10 +38,11 @@ void Game::startMainMenu() {
 
 	mainMenu = menus.makeMenu();
 	auto& menu = menus.getMenu(mainMenu);
-	menu.addMenuEntry(MenuEntryType::button, "start", AABB{ {269, 246}, {100, 35} });
+	menu.addMenuEntry(MenuEntryType::button, "start", AABB{ {278, 305}, {100, 25} });
+	menu.addMenuEntry(MenuEntryType::text_box, "ip_address", AABB{ {295, 262}, {100, 20} });
+	menu.addMenuEntry(MenuEntryType::text_box, "port", AABB{ {295, 283}, {100, 20} });
 
 	for (auto& button : menu.getButtons()) {
-
 		EntityId id = button;
 		EntitySystem::MakeComps<RenderComponent>(1, &id);
 		RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
@@ -56,6 +58,23 @@ void Game::startMainMenu() {
 		renderGroups[menuCamId].push_back(button);
 	}
 
+	for (auto& textBox : menu.getTextBoxes()) {
+
+		EntityId id = textBox;
+		EntitySystem::MakeComps<RenderComponent>(1, &id);
+		RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
+		MenuButtonComponent* menuButton = EntitySystem::GetComp<MenuButtonComponent>(id);
+
+		render->loadDrawable<TextDrawable>();
+		auto* drawable = render->getDrawable<TextDrawable>();
+		drawable->setColor(1, 1, 1);
+		drawable->anti_alias = true;
+		drawable->font.loadFromFiles("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
+		drawable->scale = {.5, .5};
+
+		renderGroups[menuCamId].push_back(textBox);
+	}
+
 	EntityId mainMenuBG;
 	EntitySystem::GenEntities(1, &mainMenuBG);
 	EntitySystem::MakeComps<RenderComponent>(1, &mainMenuBG);
@@ -69,6 +88,7 @@ void Game::startOfflineGame() {
 		entity.isDead = true;
 	}
 	renderGroups.clear();
+	menus.getMenu(mainMenu).clear();
 	editables.isEnabled = false;
 	
 	std::ifstream settingsFile{ "settings.json" };
@@ -104,6 +124,7 @@ void Game::startOnlineGame() {
 		entity.isDead = true;
 	}
 	renderGroups.clear();
+	menus.getMenu(mainMenu).clear();
 	editables.isEnabled = false;
 
 	std::ifstream settingsFile{ "settings.json" };
@@ -141,6 +162,7 @@ void Game::startStageEditor(const std::string & filePath) {
 		entity.isDead = true;
 	}
 	renderGroups.clear();
+	menus.getMenu(mainMenu).clear();
 
 	editables.isEnabled = true;
 	editables.load(filePath);
@@ -212,10 +234,16 @@ void Game::updateEditor() {
 void Game::updateMainMenu() {
 	auto& menu = menus.getMenu(mainMenu);
 	menu.updateMenuEntries(menuCamId);
+
+	std::ifstream settingsFile{ "settings.json" };
+	json settings{};
+	settingsFile >> settings;
+	std::string address = settings["ip"];
+	int port = settings["port"];
+	settingsFile.close();
+
 	MenuResult r{};
 	while (menu.pollResult(r)) {
-		DebugIO::printLine(r.button.response);
-
 		switch (r.type) {
 		case MenuEntryType::button:
 		{
@@ -224,6 +252,42 @@ void Game::updateMainMenu() {
 				startOnlineGame();
 			}
 		}
+		case MenuEntryType::text_box:
+			std::string response{ r.text_box.resposne };
+			if (r.entryTag == "ip_address") {
+				settings["ip"] = response;
+				address = response;
+			}
+			else if(r.entryTag == "port") {
+				try {
+					int newPort = std::stoi(response);
+					settings["port"] = newPort;
+					port = newPort;
+				}
+				catch (std::invalid_argument e) {}
+			}
+		}
+	}
+
+	std::ofstream out{ "settings.json" };
+	out << settings;
+	out.close();
+
+	for (auto& textBoxId : menu.getTextBoxes()) {
+		MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(textBoxId);
+		RenderComponent* render = EntitySystem::GetComp<RenderComponent>(textBoxId);
+
+		if (textBox->getTag() == "ip_address") {
+			if (textBox->isActive())
+				render->getDrawable<TextDrawable>()->text = textBox->getActiveText();
+			else
+				render->getDrawable<TextDrawable>()->text = address;
+		}
+		else if (textBox->getTag() == "port") {
+			if (textBox->isActive())
+				render->getDrawable<TextDrawable>()->text = textBox->getActiveText();
+			else
+				render->getDrawable<TextDrawable>()->text = std::to_string(port);
 		}
 	}
 }

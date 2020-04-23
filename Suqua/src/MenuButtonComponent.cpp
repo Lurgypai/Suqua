@@ -42,3 +42,7 @@ bool MenuButtonComponent::pollToggled() {
 const AABB& MenuButtonComponent::getBoundingBox() const {
 	return boundingBox;
 }
+
+const std::string& MenuButtonComponent::getTag() const {
+	return tag;
+}

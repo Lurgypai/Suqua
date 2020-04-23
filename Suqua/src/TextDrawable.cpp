@@ -1,6 +1,16 @@
 #include "TextDrawable.h"
 #include "GLRenderer.h"
 
+TextDrawable::TextDrawable() :
+	font{},
+	text{},
+	r{},
+	g{},
+	b{},
+	scale{ 1.0, 1.0 },
+	anti_alias{ false }
+{}
+
 void TextDrawable::setPos(Vec2f pos) {
 	boundingBox.pos = pos;
 }

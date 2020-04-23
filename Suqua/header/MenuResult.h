@@ -17,7 +17,7 @@ struct MenuResult {
 			char response[8];
 		} button;
 		struct {
-			char resposne[8];
+			char resposne[64];
 		} text_box;
 	};
 };
