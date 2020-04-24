@@ -10,9 +10,9 @@
 
 PlayerGC::PlayerGC(EntityId id_) :
 	id{ id_ },
-	shouldSpawnHead{true},
-	prevXVel{0},
-	prevAttack{0}
+	shouldSpawnHead{ true },
+	prevXVel{ 0 },
+	prevAttack{ 0 }
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<RenderComponent>() || EntitySystem::GetComp<RenderComponent>(id) == nullptr) {
@@ -26,8 +26,8 @@ PlayerGC::PlayerGC(EntityId id_) :
 }
 
 void PlayerGC::loadAnimations() {
-	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite & animSprite_ = *render->getDrawable<AnimatedSprite>();
+	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
+	AnimatedSprite& animSprite_ = *render->getDrawable<AnimatedSprite>();
 
 
 	//keep in mind graphics gale starts at frame 1, not 0
@@ -77,7 +77,7 @@ void PlayerGC::spawnHead(Vec2f pos) {
 */
 
 void PlayerGC::updateState(double timeDelta) {
-	PlayerLC * player = EntitySystem::GetComp<PlayerLC>(id);
+	PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);
 	PlayerState state{};
 	if (player) {
 		state = player->getState();
@@ -93,8 +93,8 @@ void PlayerGC::updateState(double timeDelta) {
 		}
 	}
 
-	RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
-	DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(id);
+	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
+	DirectionComponent* direction = EntitySystem::GetComp<DirectionComponent>(id);
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
 
 	State plrState = state.state;
@@ -103,7 +103,7 @@ void PlayerGC::updateState(double timeDelta) {
 		if (plrState == State::attacking) {
 			if (prevState != State::attacking) {
 				render->setDrawable<AnimatedSprite>(attackSprite);
-					
+
 			}
 			AnimatedSprite& sprite = *render->getDrawable<AnimatedSprite>();
 			int width = sprite.getObjRes().abs().x;
@@ -165,10 +165,10 @@ void PlayerGC::updateState(double timeDelta) {
 					sprite.setAnimation(idle);
 				else if (prevState != State::free || prevXVel == 0)
 					sprite.setAnimation(walking);
-					
+
 			}
 
-			if(plrState != State::climbing || state.vel.x != 0 || state.vel.y != 0)
+			if (plrState != State::climbing || state.vel.x != 0 || state.vel.y != 0)
 				sprite.forward(timeDelta);
 		}
 
@@ -177,7 +177,7 @@ void PlayerGC::updateState(double timeDelta) {
 		prevState = plrState;
 
 		//put this at the end so we don't modify the RenderComponent pool and screw up the sprite reference
-			
+
 		if (shouldSpawnHead && plrState == State::dead) {
 			shouldSpawnHead = false;
 			Vec2f spawnPos = state.pos;

@@ -547,8 +547,8 @@ int main(int argc, char* argv[]) {
 			blueOutlineBuffer.bind();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
 
-			if (EntitySystem::Contains<PlayerLC>()) {
-				for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
+			if (EntitySystem::Contains<PlayerStateComponent>()) {
+				for (auto& player : EntitySystem::GetPool<PlayerStateComponent>()) {
 					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(player.getId());
 					RenderComponent* render = EntitySystem::GetComp<RenderComponent>(player.getId());
 					if (combat->teamId == 1) {
