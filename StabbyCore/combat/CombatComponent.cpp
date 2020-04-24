@@ -117,6 +117,10 @@ bool CombatComponent::isAlive() {
 	return health > 0;
 }
 
+bool CombatComponent::isFrozen() {
+	return freezeFrame != freezeFrameMax;
+}
+
 void CombatComponent::updateStun() {
 	if (stunFrame > 0)
 		--stunFrame;

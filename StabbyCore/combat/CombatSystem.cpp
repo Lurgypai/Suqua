@@ -19,7 +19,7 @@ void CombatSystem::runAttackCheck(double timeDelta) {
 				attacker.updateFreezeFrame();
 
 				if (physics != nullptr) {
-					if (attacker.freezeFrame == attacker.freezeFrameMax)
+					if (!attacker.isFrozen())
 						physics->frozen = false;
 					else
 						physics->frozen = true;
@@ -61,7 +61,7 @@ void CombatSystem::runAttackCheck(double timeDelta, EntityId id) {
 				attacker.updateStamina();
 			
 				if (physics != nullptr) {
-					if (attacker.freezeFrame == attacker.freezeFrameMax)
+					if (!attacker.isFrozen())
 						physics->frozen = false;
 					else
 						physics->frozen = true;
@@ -108,25 +108,26 @@ void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defen
 	EntityId attackerId = attacker.getId();
 	EntityId defenderId = defender.getId();
 	if (attackerId != defenderId) {
-		if (attacker.teamId != 0 && defender.teamId != 0 && attacker.teamId != defender.teamId) {
+		if(defender.isAlive()) {
+			if (attacker.teamId != 0 && defender.teamId != 0 && attacker.teamId != defender.teamId) {
+				if (attackChanged || !attacker.hasHitEntity(defenderId)) {
+					auto* activeHitbox = attacker.getActiveHitbox();
+					if (activeHitbox != nullptr) {
+						const AABB& hit = activeHitbox->hit;
+						if (hit.intersects(defender.getBoundingBox())) {
+							auto hurtboxes = defender.hurtboxes;
+							for (auto& hurtbox : hurtboxes) {
+								if (hurtbox.box.intersects(hit)) {
+									defender.damage(attacker.rollDamage());
+									defender.stun(attacker.getStun());
+									defender.lastAttacker = attackerId;
+									attacker.onAttackLand();
 
-			if (attackChanged || !attacker.hasHitEntity(defenderId)) {
-				auto* activeHitbox = attacker.getActiveHitbox();
-				if (activeHitbox != nullptr) {
-					const AABB& hit = activeHitbox->hit;
-					if (hit.intersects(defender.getBoundingBox())) {
-						auto hurtboxes = defender.hurtboxes;
-						for (auto& hurtbox : hurtboxes) {
-							if (hurtbox.box.intersects(hit)) {
-								defender.damage(attacker.rollDamage());
-								defender.stun(attacker.getStun());
-								defender.lastAttacker = attackerId;
-								attacker.onAttackLand();
+									attacker.addHitEntity(defenderId);
 
-								attacker.addHitEntity(defenderId);
-
-								attacker.freeze();
-								defender.freeze();
+									attacker.freeze();
+									defender.freeze();
+								}
 							}
 						}
 					}

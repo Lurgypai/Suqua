@@ -222,6 +222,7 @@ void PlayerLC::update(double timeDelta) {
 	state.health = combat->health;
 	state.stamina = combat->stamina;
 	state.stunFrame = combat->stunFrame;
+	state.attackFreezeFrame = combat->freezeFrame;
 
 	state.activeAttack = attack.getActiveId();
 	state.attackFrame = attack.getCurrFrame();

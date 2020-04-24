@@ -38,6 +38,7 @@ public:
 	unsigned int getStaminaCost();
 	bool isStunned();
 	bool isAlive();
+	bool isFrozen();
 
 	void damage(unsigned int i);
 	void heal(unsigned int i);

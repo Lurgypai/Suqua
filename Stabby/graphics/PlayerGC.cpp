@@ -76,15 +76,16 @@ void PlayerGC::spawnHead(Vec2f pos) {
 */
 
 void PlayerGC::updateState(double timeDelta) {
-	PlayerStateComponent * player = EntitySystem::GetComp<PlayerStateComponent>(id);
+	PlayerLC * player = EntitySystem::GetComp<PlayerLC>(id);
 	if (player != nullptr) {
 		RenderComponent * render = EntitySystem::GetComp<RenderComponent>(id);
 		DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(id);
-		PlayerState state = player->playerState;
+		PlayerState state = player->getState();
+		CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
 
 		State plrState = state.state;
 
-		if (state.attackFreezeFrame == 0) {
+		if (!combat->isFrozen()) {
 			if (plrState == State::attacking) {
 				if (prevState != State::attacking) {
 					render->setDrawable<AnimatedSprite>(attackSprite);
@@ -169,6 +170,22 @@ void PlayerGC::updateState(double timeDelta) {
 				spawnPos.y -= 15;
 				Particle p1{ Color{1, 1, 1, 1}, spawnPos, -90, 1.5f, 100, 0 };
 				GLRenderer::SpawnParticles("blood", 50, p1, 180.0f, 1.0f, 0.0f, { 2.0f, 2.0f });
+			}
+		}
+		else {
+			if (state.state != State::attacking) {
+				//if we're frozen, start/continue the stun animation
+				if (prevState == State::attacking) {
+					render->setDrawable<AnimatedSprite>(animSprite);
+				}
+
+				AnimatedSprite& sprite = *render->getDrawable<AnimatedSprite>();
+				int width = sprite.getObjRes().abs().x;
+				int height = sprite.getObjRes().abs().y;
+				sprite.setObjRes(Vec2i{ direction->dir * width, height });
+				sprite.looping = false;
+				sprite.frameDelay = defaultFrameDelay;
+				sprite.setAnimation(stun);
 			}
 		}
 	}
