@@ -1,7 +1,7 @@
-
-#include "OnlinePlayerLC.h"
 #include <iostream>
+
 #include "SDL.h"
+#include "OnlinePlayerLC.h"
 #include "PositionComponent.h"
 
 #include "combat.h"
