@@ -3,6 +3,7 @@
 #include "../player/PlayerLC.h"
 #include <DebugIO.h>
 
+//stop rebuilding
 CapturePointComponent::CapturePointComponent(EntityId id_) :
 	id{id_},
 	state{idle},

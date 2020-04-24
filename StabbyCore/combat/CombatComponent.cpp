@@ -5,6 +5,7 @@
 #include "PositionComponent.h"
 #include <iostream>
 
+//stop rebuilding
 CombatComponent::CombatComponent(EntityId id_) :
 	id{ id_ },
 	invulnerable{ false },
