@@ -42,6 +42,7 @@ public:
 	void damage(unsigned int i);
 	void heal(unsigned int i);
 	void stun(unsigned int i);
+	void freeze();
 	bool startAttacking();
 	bool bufferNextAttack();
 	bool hasHitEntity(const EntityId & target);
@@ -56,6 +57,7 @@ public:
 	int health;
 	uint32_t stamina;
 	uint32_t staminaRechargeFrame;
+	uint32_t freezeFrame;
 	unsigned int teamId;
 	unsigned int stunFrame;
 	bool invulnerable;
@@ -64,6 +66,7 @@ private:
 	void updateStun();
 	void updateHurtboxes();
 	void updateStamina();
+	void updateFreezeFrame();
 	void addHitEntity(EntityId hit);
 	void clearHitEntities();
 
@@ -82,4 +85,5 @@ private:
 
 	uint32_t staminaMax;
 	uint32_t staminaRechargeMax;
+	uint32_t freezeFrameMax;
 };

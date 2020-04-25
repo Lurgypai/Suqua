@@ -9,8 +9,11 @@ uniform vec2 windowRes;
 uniform int start = 0;
 uniform int size = 0;
 
+out vec4 Color;
+
 struct Particle
 {
+    vec4 color;
 	vec2 pos;
     float angle;
     float vel;
@@ -26,22 +29,15 @@ void main () {
     int id = (start + gl_VertexID) % size;
     Particle part = data[id];
     
-    vec2 windowPos = vec2(-50.0, -50.0);
+    //outside of window if dead
+    vec2 windowPos = vec2(-50, -50);
     if(part.life > 0) {
-        vec2 screenSize = camRes;
-        
-        if(screenSize.x > windowRes.x)
-            screenSize.x = windowRes.x;
-            
-        if(screenSize.y > windowRes.y)
-            screenSize.y = windowRes.y;
-        
+        Color = part.color;
+    
         //position
         vec2 pixelPos = (part.pos - camPos);
-        vec2 camWindowPos = pixelPos / (screenSize / zoom);
-        camWindowPos.y = (-camWindowPos.y) + 1;
-        //scale camera into the window
-        windowPos = camWindowPos * (screenSize / windowRes);
+        windowPos = pixelPos / (camRes / zoom);
+        windowPos.y = (-windowPos.y) + 1;
         windowPos = 2 * (windowPos) - 1;
 	}
 	gl_Position = vec4(windowPos, 0.0, 1.0);

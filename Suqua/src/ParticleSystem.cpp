@@ -13,6 +13,8 @@ ParticleSystem::ParticleSystem() :
 }
 
 void ParticleSystem::genBuffer() {
+	glGenVertexArrays(1, &PARTICLE_VAO);
+
 	glGenBuffers(1, &ParticleDataBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ParticleDataBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * MAX_PARTICLES, NULL, GL_STATIC_DRAW);
@@ -110,6 +112,11 @@ void ParticleSystem::spawnParticles(const std::string & tag, unsigned int count,
 }
 
 void ParticleSystem::updateAndDraw(unsigned int camera) {
+	Camera& cam = GLRenderer::getCamera(camera);
+	glViewport(0, 0, cam.res.x, cam.res.y);
+	glBindVertexArray(PARTICLE_VAO);
+	glDisableVertexAttribArray(0);
+
 	++time;
 	unsigned int particleCount{0};
 	for (auto& partition : partitions) {
@@ -131,7 +138,6 @@ void ParticleSystem::updateAndDraw(unsigned int camera) {
 
 		glDispatchCompute(size / WORK_GROUP_SIZE, 1, 1);
 
-		Camera& cam = GLRenderer::getCamera(camera);
 		const Shader& particleShader = GLRenderer::GetDefaultShader(ParticleShader);
 
 		particleShader.use();

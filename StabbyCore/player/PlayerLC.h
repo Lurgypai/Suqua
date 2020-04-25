@@ -51,7 +51,6 @@ protected:
 	float storedVel;
 	int rollFrameMax;
 
-	int attackFreezeFrameMax;
 	int healFrameMax;
 	int healDelayMax;
 	uint32_t rollCost;

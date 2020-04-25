@@ -2,7 +2,7 @@
 #include "GLRenderer.h"
 
 void RectDrawable::draw() {
-	GLRenderer::DrawPrimitves({shape}, r, g, b);
+	GLRenderer::DrawPrimitives({shape}, r, g, b);
 }
 
 void RectDrawable::setPos(Vec2f pos) {

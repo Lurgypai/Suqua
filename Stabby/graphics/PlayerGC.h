@@ -3,6 +3,7 @@
 #include "EntitySystem.h"
 #include "AnimatedSprite.h"
 #include "RenderComponent.h"
+#include "IDrawable.h"
 
 #include "player.h"
 
@@ -21,7 +22,7 @@ public:
 
 	PlayerGC(EntityId id_ = 0);
 	void loadAnimations();
-	void spawnHead(Vec2f pos);
+	//void spawnHead(Vec2f pos);
 
 	void updateState(double timeDelta);
 

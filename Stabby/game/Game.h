@@ -15,6 +15,7 @@
 #include "../player/ClientPlayerSystem.h"
 #include "../graphics/PaletteManager.h"
 #include "../graphics/camera/EditorCam.h"
+#include "../graphics/camera/PlayerCam.h"
 
 enum class GameState {
 	online,
@@ -45,6 +46,8 @@ public:
 	void updateMainMenu();
 
 	void renderAll(double gfxDelay);
+
+	const PlayerCam& getPlayerCam() const;
 
 	//client side time
 	Time_t tick;

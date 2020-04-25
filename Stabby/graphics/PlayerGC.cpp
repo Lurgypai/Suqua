@@ -1,10 +1,10 @@
-
 #include "PlayerGC.h"
 #include "FileNotFoundException.h"
 #include <iostream>
 #include "HeadParticleLC.h"
 #include "PositionComponent.h"
 #include "DirectionComponent.h"
+#include "Color.h"
 
 
 PlayerGC::PlayerGC(EntityId id_) :
@@ -49,6 +49,7 @@ void PlayerGC::loadAnimations() {
 	defaultFrameDelay = animSprite_.frameDelay;
 }
 
+/*
 void PlayerGC::spawnHead(Vec2f pos) {
 	unsigned int id_;
 	EntitySystem::GenEntities(1, &id_);
@@ -72,6 +73,7 @@ void PlayerGC::spawnHead(Vec2f pos) {
 	image->getDrawable<Sprite>()->setImgOffset({30, 44});
 	image->getDrawable<Sprite>()->setObjRes({ 4, 4 });
 }
+*/
 
 void PlayerGC::updateState(double timeDelta) {
 	PlayerStateComponent * player = EntitySystem::GetComp<PlayerStateComponent>(id);
@@ -160,26 +162,14 @@ void PlayerGC::updateState(double timeDelta) {
 			prevState = plrState;
 
 			//put this at the end so we don't modify the RenderComponent pool and screw up the sprite reference
+			
 			if (shouldSpawnHead && plrState == State::dead) {
 				shouldSpawnHead = false;
-				PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
-				spawnHead(position->pos);
-			}
-			/*
-			if (plrState == State::stunned && attacker->playerState.activeAttack != prevAttackerAttack) {
-				float offset = 7;
-				Vec2f spawnPos = attacker->playerState.pos;
-				int dir = spawnPos.x < state.pos.x ? 1 : -1;
-				spawnPos.x += offset * dir;
+				Vec2f spawnPos = state.pos;
 				spawnPos.y -= 15;
-
-				Particle p1{ spawnPos, -90 + 36.0f * dir, 1.6f, 100, 0 };
-				GLRenderer::SpawnParticles("blood", 5, p1, 5.0f, 0.0f, 0.0f, { 0.3f, 3.0f });
+				Particle p1{ Color{1, 1, 1, 1}, spawnPos, -90, 1.5f, 100, 0 };
+				GLRenderer::SpawnParticles("blood", 50, p1, 180.0f, 1.0f, 0.0f, { 2.0f, 2.0f });
 			}
-
-			if(attacker != nullptr)
-				prevAttackerAttack = attacker->playerState.activeAttack;
-				*/
 		}
 	}
 }

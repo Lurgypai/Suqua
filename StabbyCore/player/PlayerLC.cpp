@@ -18,7 +18,6 @@ PlayerLC::PlayerLC(EntityId id_) :
 	storedVel{0},
 	rollFrameMax{54},
 	deathFrameMax{1200},
-	attackFreezeFrameMax{17},
 	healFrameMax{60},
 	healDelayMax{120},
 	horizontalAccel{10.0},
@@ -208,13 +207,6 @@ void PlayerLC::update(double timeDelta) {
 			kill();
 		}
 	}
-	else {
-		++state.attackFreezeFrame;
-		if (state.attackFreezeFrame == attackFreezeFrameMax) {
-			comp->frozen = false;
-			state.attackFreezeFrame = 0;
-		}
-	}
 
 	if (combat->health <= 0)
 		state.state = State::dead;
@@ -272,6 +264,7 @@ void PlayerLC::setState(const PlayerState& newState) {
 	combat->teamId = newState.teamId;
 	combat->stamina = newState.stamina;
 	combat->staminaRechargeFrame = newState.staminaRechargeFrame;
+	combat->freezeFrame = newState.attackFreezeFrame;
 
 	dir->dir = newState.facing;
 	
@@ -294,6 +287,7 @@ PlayerState PlayerLC::getState() {
 	playerState->playerState.teamId = combat->teamId;
 	playerState->playerState.stamina = combat->stamina;
 	playerState->playerState.staminaRechargeFrame = combat->staminaRechargeFrame;
+	playerState->playerState.attackFreezeFrame = combat->freezeFrame;
 
 	playerState->playerState.facing = dir->dir;
 

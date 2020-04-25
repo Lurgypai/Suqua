@@ -109,6 +109,7 @@ int main(int argc, char* argv[]) {
 	game.loadCameras(viewWidth, viewHeight);
 
 	PartitionID blood = GLRenderer::GenParticleType("blood", 1, { "particles/blood.vert" });
+	PartitionID wavy = GLRenderer::GenParticleType("wavy", 1, { "particles/wavy.vert" });
 	PartitionID test = GLRenderer::GenParticleType("test", 4, { "particles/test.vert" });
 	PartitionID floating = GLRenderer::GenParticleType("float", 1, { "particles/float.vert" });
 
@@ -293,7 +294,7 @@ int main(int argc, char* argv[]) {
 				else {
 					controller.off(ControllerBits::ALL);
 				}
-				constexpr bool aiDo{ true };
+				constexpr bool aiDo{ false };
 				if (aiDo) {
 					for (auto& aiCont : EntitySystem::GetPool<ControllerComponent>()) {
 						if (aiCont.getId() != game.getPlayerId()) {
@@ -514,31 +515,32 @@ int main(int argc, char* argv[]) {
 				}
 			}
 			*/
-
+			
 			//Draw all the physics components to the occlusion map.
 			occlusionMap.bind();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
 			if (EntitySystem::Contains<PhysicsComponent>()) {
 				for (auto& physics : EntitySystem::GetPool<PhysicsComponent>()) {
-					GLRenderer::DrawPrimitves({ physics.getCollider() }, 1.0, 1.0, 1.0);
+					if(physics.collideable)
+						GLRenderer::DrawFilledPrimitives({ physics.getCollider() }, 1.0, 1.0, 1.0);
 				}
 			}
+			
 
 			//draw the pixels to the framebuffer, draw the framebuffer over the screen
 
 			pingBuffer.bind();
 
+			//particles
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, occlusionMap.getTexture(0).id);
-
-			//particles
+			const auto& playerCam = game.getPlayerCam();
+			GLRenderer::getComputeShader("blood").use();
+			GLRenderer::getComputeShader("blood").uniform2f("camPos", playerCam.pos.x, playerCam.pos.y);
+			GLRenderer::getComputeShader("blood").uniform1f("zoom", playerCam.camScale);
+			GLRenderer::setCamera(1); //hackish fix, player camera
+			GLRenderer::UpdateAndDrawParticles();
 			
-			//GLRenderer::getComputeShader("blood").use();
-			//GLRenderer::getComputeShader("blood").uniform2f("camPos", GLRenderer::getCamera(game.playerCamId).pos.x, GLRenderer::getCamera(game.playerCamId).pos.y);
-			//GLRenderer::getComputeShader("blood").uniform1f("zoom", GLRenderer::getCamera(game.playerCamId).camScale);
-			//GLRenderer::UpdateAndDrawParticles();
-			
-
 			redOutlineBuffer.bind();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
 
@@ -559,15 +561,16 @@ int main(int argc, char* argv[]) {
 					}
 				}
 			}
+			
 
-
-			//render into the pongbuffer
+			
 			pingBuffer.bind();
 			GLRenderer::GetShaderRef(outlineShader).use();
 			GLRenderer::GetShaderRef(outlineShader).uniform3f("color", 1.0, 0.0, 0.0);
 			GLRenderer::DrawOverScreen(redOutlineBuffer.getTexture(0).id, viewWidth, viewHeight);
 			GLRenderer::GetShaderRef(outlineShader).uniform3f("color", 0.0, 0.0, 1.0);
 			GLRenderer::DrawOverScreen(blueOutlineBuffer.getTexture(0).id, viewWidth, viewHeight);
+			
 
 			//palettes, for later
 			//pongBuffer.bind();

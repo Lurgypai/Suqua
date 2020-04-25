@@ -16,9 +16,17 @@ void CombatSystem::runAttackCheck(double timeDelta) {
 				attacker.updateHurtboxes();
 				attacker.updateStun();
 				attacker.updateStamina();
+				attacker.updateFreezeFrame();
 
-				if (physics != nullptr && !physics->frozen)
-					attacker.attack.update(timeDelta, physics->getPos(), direction->dir);
+				if (physics != nullptr) {
+					if (attacker.freezeFrame == attacker.freezeFrameMax)
+						physics->frozen = false;
+					else
+						physics->frozen = true;
+
+					if(!physics->frozen)
+						attacker.attack.update(timeDelta, physics->getPos(), direction->dir);
+				}
 
 
 				bool attackChanged = attacker.attack.pollAttackChange();
@@ -52,8 +60,15 @@ void CombatSystem::runAttackCheck(double timeDelta, EntityId id) {
 				attacker.updateStun();
 				attacker.updateStamina();
 			
-				if (physics != nullptr && !physics->frozen)
-					attacker.attack.update(timeDelta, physics->getPos(), direction->dir);
+				if (physics != nullptr) {
+					if (attacker.freezeFrame == attacker.freezeFrameMax)
+						physics->frozen = false;
+					else
+						physics->frozen = true;
+
+					if (!physics->frozen)
+						attacker.attack.update(timeDelta, physics->getPos(), direction->dir);
+				}
 				
 				bool attackChanged = attacker.attack.pollAttackChange();
 				if (attackChanged) {
@@ -109,6 +124,9 @@ void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defen
 								attacker.onAttackLand();
 
 								attacker.addHitEntity(defenderId);
+
+								attacker.freeze();
+								defender.freeze();
 							}
 						}
 					}

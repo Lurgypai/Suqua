@@ -1,5 +1,6 @@
 #include "SpawnPlayerCommand.h"
 #include "EntitySystem.h"
+#include "PositionComponent.h"
 #include "../graphics/PlayerGC.h"
 #include "player.h"
 
@@ -13,8 +14,9 @@ std::string SpawnPlayerCommand::getTag() const {
 }
 
 void SpawnPlayerCommand::onCommand(const std::vector<std::string>& args) {
-	if (args.size() == 2) {
+	if (args.size() == 4) {
 		int amount = std::stoi(args[1]);
+		Vec2f pos{ std::stof(args[2]), std::stof(args[3]) };
 		for (int i = 0; i != amount; ++i) {
 			EntityId playerId = players->makePlayer(*weapons);
 
@@ -23,8 +25,9 @@ void SpawnPlayerCommand::onCommand(const std::vector<std::string>& args) {
 			EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations();
 			EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons->cloneAnimation("player_sword");
 
-			EntitySystem::GetComp<PlayerLC>(playerId)->chooseSpawn();
 			EntitySystem::GetComp<CombatComponent>(playerId)->teamId = 2;
+
+			EntitySystem::GetComp<PositionComponent>(playerId)->pos = pos;
 		}
 	}
 }

@@ -6,15 +6,17 @@
 #include <iostream>
 
 CombatComponent::CombatComponent(EntityId id_) :
-	id{id_},
-	invulnerable{false},
+	id{ id_ },
+	invulnerable{ false },
 	stats{},
-	stunFrame{0},
-	teamId{0},
-	stamina{0},
-	staminaMax{500},
-	staminaRechargeFrame{0},
-	staminaRechargeMax{80}
+	stunFrame{ 0 },
+	teamId{ 0 },
+	stamina{ 0 },
+	staminaMax{ 500 },
+	staminaRechargeFrame{ 0 },
+	staminaRechargeMax{ 80 },
+	freezeFrame{0},
+	freezeFrameMax{ 17 }
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
@@ -63,6 +65,11 @@ void CombatComponent::updateStamina() {
 			++stamina;
 		}
 	}
+}
+
+void CombatComponent::updateFreezeFrame() {
+	if (freezeFrame < freezeFrameMax)
+		++freezeFrame;
 }
 
 void CombatComponent::onAttackLand()
@@ -134,6 +141,10 @@ void CombatComponent::stun(unsigned int i) {
 	if(!invulnerable)
 		stunFrame = i;
 	onStun(i);
+}
+
+void CombatComponent::freeze() {
+	freezeFrame = 0;
 }
 
 bool CombatComponent::startAttacking() {

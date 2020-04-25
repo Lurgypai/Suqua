@@ -174,8 +174,10 @@ void Game::startStageEditor(const std::string & filePath) {
 	gameState = GameState::stage_editor;
 
 	renderGroups[editorCamId].push_back(editables.getStageImage());
-	for (auto& editableStageComponent : EntitySystem::GetPool<EditableStageComponent>()) {
-		renderGroups[editorCamId].push_back(editableStageComponent.getId());
+	if (EntitySystem::Contains<EditableStageComponent>()) {
+		for (auto& editableStageComponent : EntitySystem::GetPool<EditableStageComponent>()) {
+			renderGroups[editorCamId].push_back(editableStageComponent.getId());
+		}
 	}
 }
 
@@ -371,6 +373,10 @@ void Game::renderAll(double gfxDelay) {
 			render.draw(*EntitySystem::GetComp<RenderComponent>(entity));
 		}
 	}
+}
+
+const PlayerCam& Game::getPlayerCam() const {
+	return static_cast<PlayerCam&>(GLRenderer::getCamera(playerCamId));
 }
 
 EntityId Game::getPlayerId() {

@@ -31,6 +31,8 @@ public:
 	ComputeShader & getShader(PartitionID id);
 	ComputeShader & getShader(const std::string & tag);
 private:
+	unsigned int PARTICLE_VAO;
+
 	unsigned int ParticleDataBuffer;
 	unsigned int time;
 	unsigned int partitionOffset;

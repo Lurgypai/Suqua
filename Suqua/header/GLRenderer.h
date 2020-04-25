@@ -118,9 +118,13 @@ public:
 	//Sets the shader to use, when data is buffered.
 	static void SetShader(unsigned int id);
 	//Draw a simple shape outline
-	static void DrawPrimitve(std::vector<Vec2f> points, float r, float g, float b);
+	static void DrawPrimitive(std::vector<Vec2f> points, float r, float g, float b);
 	//Draw an aabb outline
-	static void DrawPrimitves(std::vector<AABB> rects, float r, float g, float b);
+	static void DrawPrimitives(std::vector<AABB> rects, float r, float g, float b);
+
+	static void DrawFilledPrimitive(std::vector<Vec2f> points, float r, float g, float b);
+	static void DrawFilledPrimitives(std::vector<AABB> rects, float r, float g, float b);
+
 	//Swap
 	static void Swap();
 	//Get Shader based on its stored id.
