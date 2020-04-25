@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "SDL.h"
 
 #include "Menu.h"

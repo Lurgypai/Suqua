@@ -5,9 +5,6 @@
 #include "MenuId.h"
 #include "Menu.h"
 
-class Menu;
-enum class MenuEntryType;
-
 class MenuSystem {
 public:
 	MenuSystem();
