@@ -23,6 +23,8 @@ EntityId OnlinePlayerLC::getId() const {
 }
 
 void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
+	//physics aren't applied
+	st.frozen = true;
 	PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);
 
 	previousPos[0] = previousPos[1];

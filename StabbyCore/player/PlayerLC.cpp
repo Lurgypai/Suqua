@@ -90,7 +90,7 @@ void PlayerLC::update(double timeDelta) {
 	Vec2f & vel = comp->vel;
 	comp->weightless = false;
 
-	if (!comp->frozen) {
+	if (!combat->isFrozen()) {
 		switch (state.state) {
 		case State::stunned:
 			if (combat->isStunned()) {

@@ -352,11 +352,12 @@ int main(int argv, char* argc[])
 			std::vector<StatePacket> states;
 			states.reserve(users.size());
 			for (auto& user : users) {
-
 				StatePacket pos{};
 				pos.state = user->getPlayer().getState();
 				pos.when = gameTime;
 				pos.id = user->getOnline().getNetId();
+				pos.controllerState = user->getController().getController().getState();
+
 				pos.serialize();
 				states.push_back(pos);
 				pos.unserialize();

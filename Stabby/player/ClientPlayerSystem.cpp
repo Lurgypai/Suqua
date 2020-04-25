@@ -37,12 +37,11 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 	if (state.clientTime > lastTick.clientTime) {
 		PlrContState plrContState{};
 
-		std::ostream& out = std::cout;
+		std::ostream& out = DebugFIO::Out("c_out.txt");
 		bool wasUpdated = false;
 		while (clientPlayer->pollState(plrContState)) {
 			auto& plrState = plrContState.plrState;
 			auto& contState = plrContState.contState;
-			DebugFIO::Out("c_out.txt") << "Checking server time " << state.clientTime << " against client " << plrState.clientTime << '\n';
 			if (plrState.clientTime == state.clientTime) {
 				wasUpdated = true;
 
@@ -87,8 +86,6 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 					player->setState(state);
 
 					PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
-					//DebugFIO::Out("c_out.txt") << "reset pos at time " << state.clientTime << " to: " << physics->getPos() << '\n';
-					//DebugFIO::Out("c_out.txt") << "reset vel at time " << state.clientTime << " to: " << physics->vel << '\n';
 
 					Controller currentController = Controller{ contState };
 
@@ -99,18 +96,14 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 
 					ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(id);
 					for(auto& unprocessedState : states) {
-						//DebugFIO::Out("c_out.txt") << "Processing unprocessed state at time " << unprocessedState.plrState.clientTime << '\n';
-						//DebugFIO::Out("c_out.txt") << "reset pos to: " << physics->getPos() << '\n';
-						//DebugFIO::Out("c_out.txt") << "reset vel to: " << physics->vel << '\n';
 						Controller cont{ unprocessedState.contState };
 						controller->getController() = cont;
 						player->update(timeDelta);
-						//DebugFIO::Out("c_out.txt") << "updated pos to: " << physics->getPos() << '\n';
-						//DebugFIO::Out("c_out.txt") << "updated vel to: " << physics->vel << '\n';
 						physicsSystem->runPhysics(timeDelta, id);
-						//DebugFIO::Out("c_out.txt") << "physics pos to: " << physics->getPos() << '\n';
-						//DebugFIO::Out("c_out.txt") << "physics vel to: " << physics->vel << '\n';
+						DebugFIO::Out("c_out.txt") << "Freeze frame before: " << player->getState().attackFreezeFrame << '\n';
 						combatSystem->runAttackCheck(timeDelta, id);
+						DebugFIO::Out("c_out.txt") << "Freeze frame after: " << player->getState().attackFreezeFrame << '\n';
+
 						clientPlayer->storePlayerState(unprocessedState.plrState.gameTime, unprocessedState.plrState.clientTime, cont);
 					}
 				}

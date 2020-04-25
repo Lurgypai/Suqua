@@ -2,6 +2,7 @@
 #include "Vec2.h"
 #include "Connection.h"
 #include "PositionComponent.h"
+#include "ControllerComponent.h"
 
 #include "player.h"
 #include "network.h"
@@ -22,6 +23,7 @@ public:
 	PlayerStateComponent & getPlayerState();
 	CombatComponent & getCombat();
 	OnlineComponent& getOnline();
+	ControllerComponent& getController();
 
 private:
 	EntityId id;

@@ -252,6 +252,7 @@ void Game::loadNewPlayers() {
 			EntitySystem::GetComp<CombatComponent>(entity)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
 			EntitySystem::GetComp<CombatComponent>(entity)->health = 100;
 			EntitySystem::GetComp<CombatComponent>(entity)->attack = weapons.cloneAttack("player_sword");
+			EntitySystem::GetComp<CombatComponent>(entity)->stats = CombatStats{ 100, 2, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 			makePlayerGFX(entity);
 
@@ -370,7 +371,13 @@ void Game::renderAll(double gfxDelay) {
 	for (auto& pair : renderGroups) {
 		GLRenderer::setCamera(pair.first);
 		for (auto& entity : pair.second) {
-			render.draw(*EntitySystem::GetComp<RenderComponent>(entity));
+			RenderComponent* comp = EntitySystem::GetComp<RenderComponent>(entity);
+			if (comp) {
+				render.draw(*comp);
+			}
+			else {
+				//remove it
+			}
 		}
 	}
 }

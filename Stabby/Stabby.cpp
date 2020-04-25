@@ -325,12 +325,6 @@ int main(int argc, char* argv[]) {
 					game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 					physics.runPhysics(CLIENT_TIME_STEP);
 					game.combat.runAttackCheck(CLIENT_TIME_STEP);
-					if (EntitySystem::Contains<HeadParticleLC>()) {
-						Pool<HeadParticleLC>& heads = EntitySystem::GetPool<HeadParticleLC>();
-						for (auto& head : heads) {
-							head.update(CLIENT_TIME_STEP);
-						}
-					}
 
 					game.clientPlayers.update(client.getTime(), client.clientTime);
 
@@ -360,7 +354,7 @@ int main(int argc, char* argv[]) {
 								if (lastSent != state) {
 									lastSent = state;
 									client.send(state);
-									//DebugFIO::Out("c_out.txt") << "Sent time input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
+									DebugFIO::Out("c_out.txt") << "Sent input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
 									//std::cout << "Sending update for time: " << lastSent.when << '\n';
 								}
 							}
@@ -613,10 +607,15 @@ int main(int argc, char* argv[]) {
 
 /*
 to do
+player weapon syncing
+	- maybe store weapons in player state? (char [10])
+	- weapons need to be passed to the client rather frequently to be sure they're correct
+
+-how to puppet dominationmode?
 ui
 weapon selector
-weapon-online syncing (currently players are loaded in with the default weapon, uh oh)
 capture point particles
+game state title msgs
 MAYBE
 player msgs
 */

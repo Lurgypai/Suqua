@@ -11,8 +11,10 @@
 #include "Client.h"
 #include "EntitySystem.h"
 #include "EntityBaseComponent.h"
+#include "ControllerComponent.h"
 
-Client::Client()
+Client::Client() :
+	clientTime{0}
 {
 	enet_initialize();
 	DebugIO::printLine("Starting client.");
@@ -209,6 +211,8 @@ void Client::receive(ENetEvent & e) {
 					auto onlinePlayer = EntitySystem::GetComp<OnlinePlayerLC>(targetId);
 					if (onlinePlayer) {
 						onlinePlayer->interp(p.state, p.when);
+						ControllerComponent* onlinePlayerController = EntitySystem::GetComp<ControllerComponent>(targetId);
+						onlinePlayerController->getController() = Controller{ p.controllerState };
 					}
 					else {
 						DebugIO::printLine("Unable to find player " + std::to_string(p.id) + ". Did they disconnect?");

@@ -52,7 +52,7 @@ void CombatSystem::updateState(CombatComponent& attacker, double timeDelta) {
 		else
 			physics->frozen = true;
 
-		if (!physics->frozen)
+		if (!attacker.isFrozen())
 			attacker.attack.update(timeDelta, physics->getPos(), direction->dir);
 	}
 }

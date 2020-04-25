@@ -26,6 +26,9 @@ public:
 	uint64_t attackSpeed;
 	uint64_t moveSpeed;
 
+	//used for client side graphical prediction
+	unsigned char controllerState;
+
 	// Inherited via Packet
 	void serialize();
 	void unserialize();

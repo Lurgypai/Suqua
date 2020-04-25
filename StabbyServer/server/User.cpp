@@ -48,3 +48,7 @@ CombatComponent& User::getCombat() {
 OnlineComponent& User::getOnline() {
 	return *EntitySystem::GetComp<OnlineComponent>(id);
 }
+
+ControllerComponent& User::getController() {
+	return *EntitySystem::GetComp<ControllerComponent>(id);
+}

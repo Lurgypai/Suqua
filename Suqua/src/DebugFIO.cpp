@@ -13,7 +13,8 @@ std::ostream& DebugFIO::Out(const std::string& file)
 	if (outs.find(file) != outs.end()) {
 		auto now = std::chrono::system_clock().now();
 		std::time_t time = std::chrono::system_clock::to_time_t(now);
-		return (outs[file] << '[' << std::ctime(&time) << "] ");
+		std::string timeString{ std::ctime(&time) };
+		return (outs[file] << '[' << timeString.substr(0, timeString.size() - 1) << "] ");
 	}
 
 	std::out_of_range e{"Unable to find output file \"" + file + "\""};
