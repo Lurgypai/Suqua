@@ -23,7 +23,7 @@ struct PlayerState {
 			health == other.health && stunFrame == other.stunFrame && facing == other.facing &&
 			spawnPoint == other.spawnPoint && attackFreezeFrame == other.attackFreezeFrame && frozen == other.frozen &&
 			attackSpeed == other.attackSpeed && moveSpeed == other.moveSpeed && healFrame == other.healFrame && healDelay == other.healDelay && teamId == other.teamId &&
-			stamina == other.stamina && staminaRechargeFrame == other.staminaRechargeFrame && deathFrame == other.deathFrame && strcmp(weapon_tag, other.weapon_tag);
+			stamina == other.stamina && staminaRechargeFrame == other.staminaRechargeFrame && deathFrame == other.deathFrame;
 	}
 
 
