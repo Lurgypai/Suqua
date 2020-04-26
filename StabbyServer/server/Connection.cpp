@@ -12,7 +12,7 @@ Connection::Connection(ENetPeer & peer_, PeerId id_, Time_t currentTime) :
 
 Connection::~Connection() {
 	if (peer->data) {
-		delete peer->data;
+		delete static_cast<PeerId*>(peer->data);
 	}
 }
 

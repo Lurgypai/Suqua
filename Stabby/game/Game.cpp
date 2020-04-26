@@ -251,7 +251,7 @@ void Game::loadNewPlayers() {
 			online.registerOnlineComponent(entity, netId);
 			EntitySystem::GetComp<CombatComponent>(entity)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
 			EntitySystem::GetComp<CombatComponent>(entity)->health = 100;
-			EntitySystem::GetComp<CombatComponent>(entity)->attack = weapons.cloneAttack("player_sword");
+			EntitySystem::GetComp<CombatComponent>(entity)->attack = weapons.cloneAttack("sword");
 			EntitySystem::GetComp<CombatComponent>(entity)->stats = CombatStats{ 100, 2, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 			makePlayerGFX(entity);
@@ -364,7 +364,7 @@ void Game::makePlayerGFX(EntityId playerId_) {
 	EntitySystem::MakeComps<PlayerGC>(1, &playerId_);
 	EntitySystem::GetComp<RenderComponent>(playerId_)->loadDrawable<AnimatedSprite>("character", Vec2i{ 64, 64 });
 	EntitySystem::GetComp<PlayerGC>(playerId_)->loadAnimations();
-	EntitySystem::GetComp<PlayerGC>(playerId_)->attackSprite = weapons.cloneAnimation("player_sword");
+	EntitySystem::GetComp<PlayerGC>(playerId_)->attackSprite = weapons.cloneAnimation("sword");
 }
 
 void Game::renderAll(double gfxDelay) {

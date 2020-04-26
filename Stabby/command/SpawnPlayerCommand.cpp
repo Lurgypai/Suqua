@@ -23,7 +23,7 @@ void SpawnPlayerCommand::onCommand(const std::vector<std::string>& args) {
 			EntitySystem::MakeComps<PlayerGC>(1, &playerId);
 			EntitySystem::GetComp<RenderComponent>(playerId)->loadDrawable<AnimatedSprite>("character", Vec2i{ 64, 64 });
 			EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations();
-			EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons->cloneAnimation("player_sword");
+			EntitySystem::GetComp<PlayerGC>(playerId)->attackSprite = weapons->cloneAnimation("sword");
 
 			EntitySystem::GetComp<CombatComponent>(playerId)->teamId = 2;
 

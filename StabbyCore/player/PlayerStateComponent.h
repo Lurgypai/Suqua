@@ -3,6 +3,7 @@
 #include "Vec2.h"
 #include "../network/NetworkTypes.h"
 #include <cstdint>
+#include <cstring>
 
 enum class State : uint8_t {
 	free,
@@ -22,7 +23,7 @@ struct PlayerState {
 			health == other.health && stunFrame == other.stunFrame && facing == other.facing &&
 			spawnPoint == other.spawnPoint && attackFreezeFrame == other.attackFreezeFrame && frozen == other.frozen &&
 			attackSpeed == other.attackSpeed && moveSpeed == other.moveSpeed && healFrame == other.healFrame && healDelay == other.healDelay && teamId == other.teamId &&
-			stamina == other.stamina && staminaRechargeFrame == other.staminaRechargeFrame && deathFrame == other.deathFrame;
+			stamina == other.stamina && staminaRechargeFrame == other.staminaRechargeFrame && deathFrame == other.deathFrame && strcmp(weapon_tag, other.weapon_tag);
 	}
 
 
@@ -50,6 +51,7 @@ struct PlayerState {
 	uint32_t deathFrame;
 	double attackSpeed;
 	double moveSpeed;
+	char weapon_tag[10];
 
 	Vec2f pos;
 	Vec2f vel;

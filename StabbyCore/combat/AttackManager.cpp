@@ -1,4 +1,4 @@
-
+#include "AttackTag.h"
 #include "AttackManager.h"
 
 #include <filesystem>
@@ -13,54 +13,60 @@ void AttackManager::loadAttacks(const std::string & attackDir) {
 	fs::path path{ attackDir };
 	for (auto & file : fs::directory_iterator(path)) {
 		if (file.path().extension() == ".json") {
-			std::ifstream stream{ file.path().string() };
-			if (stream.is_open()) {
-				try {
-					json jsonFile;
-					stream >> jsonFile;
+			std::string id = file.path().stem().string();
+			if (id.size() < WEAPON_TAG_SIZE) {
+				std::ifstream stream{ file.path().string() };
+				if (stream.is_open()) {
+					try {
+						json jsonFile;
+						stream >> jsonFile;
 
-					int restartDelayMax = jsonFile["restartDelay"];
+						int restartDelayMax = jsonFile["restartDelay"];
 
-					Attack attack{file.path().stem().string(), restartDelayMax };
+						Attack attack{ id, restartDelayMax };
 
-					for (auto& hitbox : jsonFile["hitboxes"]) {
-						Vec2f res{}, offset{};
+						for (auto& hitbox : jsonFile["hitboxes"]) {
+							Vec2f res{}, offset{};
 
-						res.x = hitbox["width"];
-						res.y = hitbox["height"];
-						offset.x = hitbox["offset_x"];
-						offset.y = hitbox["offset_y"];
+							res.x = hitbox["width"];
+							res.y = hitbox["height"];
+							offset.x = hitbox["offset_x"];
+							offset.y = hitbox["offset_y"];
 
-						unsigned int startup = hitbox["startup"];
-						unsigned int active = hitbox["active"];
-						unsigned int ending = hitbox["ending"];
-						
-						auto hitboxStats = hitbox["stats"];
-						AttackStats stats{};
+							unsigned int startup = hitbox["startup"];
+							unsigned int active = hitbox["active"];
+							unsigned int ending = hitbox["ending"];
 
-						stats.staminaCost = hitboxStats["staminaCost"];
+							auto hitboxStats = hitbox["stats"];
+							AttackStats stats{};
 
-						stats.damage = hitboxStats["damage"];
-						stats.stun = hitboxStats["stun"];
+							stats.staminaCost = hitboxStats["staminaCost"];
 
-						stats.critChance = hitboxStats["critChance"];
-						stats.critMultiplier = hitboxStats["critMultiplier"];
+							stats.damage = hitboxStats["damage"];
+							stats.stun = hitboxStats["stun"];
 
-						stats.vampirismChance = hitboxStats["vampirismChance"];
-						stats.vampirismMultiplier = hitboxStats["vampirismMultiplier"];
+							stats.critChance = hitboxStats["critChance"];
+							stats.critMultiplier = hitboxStats["critMultiplier"];
 
-						attack.addHitbox(Hitbox{ AABB{{0 ,0}, res}, offset, startup, active, ending, stats});
+							stats.vampirismChance = hitboxStats["vampirismChance"];
+							stats.vampirismMultiplier = hitboxStats["vampirismMultiplier"];
+
+							attack.addHitbox(Hitbox{ AABB{{0 ,0}, res}, offset, startup, active, ending, stats });
+						}
+
+						attacks.insert(std::pair{ id, attack });
 					}
-
-					attacks.insert(std::pair{ file.path().stem().string(), attack });
+					catch (std::exception e) {
+						std::cout << "An error occurred while reading the file \"" << file.path() << "\"\n";
+						std::cout << e.what() << '\n';
+					}
 				}
-				catch (std::exception e) {
-					std::cout << "An error occurred while reading the file \"" << file.path() << "\"\n";
-					std::cout << e.what() << '\n';
+				else {
+					std::cout << "Unable to open file \"" << file.path() << "\"\n";
 				}
 			}
 			else {
-				std::cout << "Unable to open file \"" << file.path() << "\"\n";
+				std::cout << "Weapon name " << id << " to large. Must be 10 or less characters.\n";
 			}
 		}
 	}

@@ -607,9 +607,21 @@ int main(int argc, char* argv[]) {
 
 /*
 to do
+CString - c string wrapper with std::string auto conversion and better interface (=, ==, etc)
 player weapon syncing
-	- maybe store weapons in player state? (char [10])
-	- weapons need to be passed to the client rather frequently to be sure they're correct
+	- all attacks loaded on game startup.
+	- all combat components have their own hashmap of attacks (means they need to be created by the CombatSystem, and their attackMap set by it)
+	- currAttack pointer, set by "setAttack(const std::string& attack_tag)"
+weapon ui
+	tree structure for autoname population
+	grid topped by search bar
+	grid populates as search bar is filled
+when a weapon is selected online ->
+	request a weapon change
+	if the state change succeeds, your weapon tag will be out of date, and will get updated by onlinePlayerLC
+
+	requirements for weapon change:
+		dead.
 
 -how to puppet dominationmode?
 ui
