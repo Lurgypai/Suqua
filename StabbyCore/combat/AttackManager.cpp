@@ -1,5 +1,6 @@
 #include "AttackTag.h"
 #include "AttackManager.h"
+#include "CombatComponent.h"
 
 #include <filesystem>
 #include <fstream>
@@ -70,10 +71,8 @@ void AttackManager::loadAttacks(const std::string & attackDir) {
 			}
 		}
 	}
-}
 
-Attack AttackManager::cloneAttack(const std::string & attackId) const {
-	return attacks.at(attackId);
+	CombatComponent::AttackMap = attacks;
 }
 
 attack_iterator AttackManager::begin() {

@@ -322,9 +322,10 @@ int main(int argc, char* argv[]) {
 				case GameState::pause_menu:
 					break;
 				case GameState::online:
-					game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 					physics.runPhysics(CLIENT_TIME_STEP);
 					game.combat.runAttackCheck(CLIENT_TIME_STEP);
+
+					game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 
 					game.clientPlayers.update(client.getTime(), client.clientTime);
 
@@ -382,9 +383,9 @@ int main(int argc, char* argv[]) {
 					}
 					break;
 				case GameState::offline:
-					game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 					physics.runPhysics(CLIENT_TIME_STEP);
 					game.combat.runAttackCheck(CLIENT_TIME_STEP);
+					game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 					if (EntitySystem::Contains<HeadParticleLC>()) {
 						Pool<HeadParticleLC>& heads = EntitySystem::GetPool<HeadParticleLC>();
 						for (auto& head : heads) {
@@ -607,11 +608,6 @@ int main(int argc, char* argv[]) {
 
 /*
 to do
-CString - c string wrapper with std::string auto conversion and better interface (=, ==, etc)
-player weapon syncing
-	- all attacks loaded on game startup.
-	- all combat components have their own hashmap of attacks (means they need to be created by the CombatSystem, and their attackMap set by it)
-	- currAttack pointer, set by "setAttack(const std::string& attack_tag)"
 weapon ui
 	tree structure for autoname population
 	grid topped by search bar

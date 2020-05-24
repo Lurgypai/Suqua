@@ -22,7 +22,7 @@ void WeaponCommand::onCommand(const std::vector<std::string>& args) {
 					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
 					PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(id);
 
-					combat->attack = weapons->cloneAttack(args[1]);
+					combat->setAttack(args[1]);
 					graphics->attackSprite = weapons->cloneAnimation(args[1]);
 
 					if (client->getConnected()) {

@@ -17,7 +17,9 @@ CombatComponent::CombatComponent(EntityId id_) :
 	staminaRechargeFrame{ 0 },
 	staminaRechargeMax{ 80 },
 	freezeFrame{0},
-	freezeFrameMax{ 17 }
+	freezeFrameMax{ 17 },
+	attacks{AttackMap},
+	attack{nullptr}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
@@ -97,16 +99,16 @@ void CombatComponent::onStun(unsigned int amount) {
 }
 
 const Hitbox * CombatComponent::getActiveHitbox() const {
-	return attack.getActive();
+	return attack->getActive();
 }
 
 unsigned int CombatComponent::getStun() {
-	auto activeAttack = attack.getActive();
+	auto activeAttack = attack->getActive();
 	return activeAttack == nullptr ? 0 : activeAttack->stats.stun;
 }
 
 unsigned int CombatComponent::getStaminaCost() {
-	auto activeAttack = attack.getActive();
+	auto activeAttack = attack->getActive();
 	return activeAttack == nullptr ? 0 : activeAttack->stats.staminaCost;
 }
 
@@ -153,10 +155,10 @@ void CombatComponent::freeze() {
 }
 
 bool CombatComponent::startAttacking() {
-	if (attack.canStartAttacking()) {
+	if (attack->canStartAttacking()) {
 		if (stamina > 0) {
-			attack.startAttacking();
-			useStamina(attack.getHitbox(1)->stats.staminaCost);
+			attack->startAttacking();
+			useStamina(attack->getHitbox(1)->stats.staminaCost);
 			return true;
 		}
 	}
@@ -164,12 +166,12 @@ bool CombatComponent::startAttacking() {
 }
 
 bool CombatComponent::bufferNextAttack() {
-	if (!attack.getNextIsBuffered()) {
-		int currAttack = attack.getActiveId();
-		auto nextHitbox = attack.getHitbox(currAttack + 1);
+	if (!attack->getNextIsBuffered()) {
+		int currAttack = attack->getActiveId();
+		auto nextHitbox = attack->getHitbox(currAttack + 1);
 		if (nextHitbox) {
 			if (stamina > 0) {
-				attack.bufferNext();
+				attack->bufferNext();
 				useStamina(nextHitbox->stats.staminaCost);
 				return true;
 			}
@@ -187,6 +189,33 @@ void CombatComponent::useStamina(uint32_t amount) {
 	staminaRechargeFrame = 0;
 }
 
+void CombatComponent::setActiveHitbox(int i) {
+	attack->setActive(i);
+}
+
+void CombatComponent::setFrame(int frame) {
+	attack->setFrame(frame);
+}
+
+void CombatComponent::setAttackSpeed(double newSpeed) {
+	attack->setSpeed(newSpeed);
+}
+
+void CombatComponent::setAttack(const std::string& attackId) {
+	auto iter = attacks.find(attackId);
+	if (iter != attacks.end())
+		attack = &(iter->second);
+	else
+		throw std::exception{};
+}
+
+const Attack& CombatComponent::getAttack() const {
+	if (attack)
+		return *attack;
+	else
+		throw std::exception{};
+}
+
 void CombatComponent::addHitEntity(EntityId hit) {
 	if (hitEntities.size() < hit + 1)
 		hitEntities.resize(hit + 1);
@@ -199,10 +228,10 @@ void CombatComponent::clearHitEntities() {
 
 int CombatComponent::rollDamage() {
 
-	const Hitbox* active = attack.getActive();
+	const Hitbox* active = attack->getActive();
 
 	if (active != nullptr) {
-		AttackStats attackStats = attack.getStats();
+		AttackStats attackStats = attack->getStats();
 
 		float critChance = stats.critChance + attackStats.critChance;
 		float critMultiplier = stats.critMultiplier + attackStats.critMultiplier;
@@ -232,3 +261,5 @@ int CombatComponent::rollDamage() {
 EntityId CombatComponent::getLastAttacker() {
 	return lastAttacker;
 }
+
+std::unordered_map<std::string, Attack> CombatComponent::AttackMap{};

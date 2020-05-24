@@ -26,6 +26,7 @@ struct CombatStats {
 class CombatComponent {
 
 friend class CombatSystem;
+friend class AttackManager;
 
 public:
 	CombatComponent(EntityId id = 0);
@@ -49,11 +50,17 @@ public:
 	bool hasHitEntity(const EntityId & target);
 	void useStamina(uint32_t amount);
 
+	void setActiveHitbox(int i);
+	void setFrame(int frame);
+	void setAttackSpeed(double newSpeed);
+
+	void setAttack(const std::string& attackId);
+	const Attack& getAttack() const;
+
 	//runs damage calculations and returns the result
 	int rollDamage();
 	EntityId getLastAttacker();
 
-	Attack attack;
 	CombatStats stats;
 	int health;
 	uint32_t stamina;
@@ -87,4 +94,8 @@ private:
 	uint32_t staminaMax;
 	uint32_t staminaRechargeMax;
 	uint32_t freezeFrameMax;
+	Attack* attack;
+	std::unordered_map<std::string, Attack> attacks;
+
+	static std::unordered_map<std::string, Attack> AttackMap;
 };

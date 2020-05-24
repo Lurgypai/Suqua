@@ -72,7 +72,7 @@ void PlayerLC::update(double timeDelta) {
 	ControllerComponent* contPtr = EntitySystem::GetComp<ControllerComponent>(id);
 	auto& controller = contPtr->getController();
 	PlayerState& state = playerState->playerState;
-	Attack & attack = combat->attack;
+	const Attack & attack = combat->getAttack();
 	
 
 
@@ -257,9 +257,9 @@ void PlayerLC::setState(const PlayerState& newState) {
 
 	state->playerState = newState;
 
-	combat->attack.setActive(newState.activeAttack);
-	combat->attack.setFrame(newState.attackFrame);
-	combat->attack.setSpeed(newState.attackSpeed);
+	combat->setActiveHitbox(newState.activeAttack);
+	combat->setFrame(newState.attackFrame);
+	combat->setAttackSpeed(newState.attackSpeed);
 	combat->health = newState.health;
 	combat->stunFrame = newState.stunFrame;
 	combat->teamId = newState.teamId;
@@ -280,9 +280,9 @@ PlayerState PlayerLC::getState() {
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 	DirectionComponent* dir = EntitySystem::GetComp<DirectionComponent>(id);
 
-	playerState->playerState.activeAttack = combat->attack.getActiveId();
-	playerState->playerState.attackFrame = combat->attack.getCurrFrame();
-	playerState->playerState.attackSpeed = combat->attack.getSpeed();
+	playerState->playerState.activeAttack = combat->getAttack().getActiveId();
+	playerState->playerState.attackFrame = combat->getAttack().getCurrFrame();
+	playerState->playerState.attackSpeed = combat->getAttack().getSpeed();
 	playerState->playerState.health = combat->health;
 	playerState->playerState.stunFrame = combat->stunFrame;
 	playerState->playerState.teamId = combat->teamId;
@@ -313,14 +313,13 @@ void PlayerLC::respawn(const Vec2f & spawnPos) {
 	state.attackFrame = 0;
 
 	PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(id);\
-	Attack & attack = combat->attack;
 
 	state.deathFrame = 0;
 
 	comp->teleport(spawnPos);
 	comp->vel = { 0, 0 };
-	attack.setActive(0);
-	attack.setFrame(0);
+	combat->setActiveHitbox(0);
+	combat->setFrame(0);
 }
 
 bool PlayerLC::shouldRespawn() {
@@ -370,7 +369,6 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 	DirectionComponent* direction = EntitySystem::GetComp<DirectionComponent>(id);
 
 	CombatComponent * combat = EntitySystem::GetComp<CombatComponent>(id);
-	Attack & attack = combat->attack;
 
 	if (attackToggledDown_) {
 		if(combat->startAttacking())

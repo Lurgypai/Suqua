@@ -53,7 +53,7 @@ void CombatSystem::updateState(CombatComponent& attacker, double timeDelta) {
 			physics->frozen = true;
 
 		if (!attacker.isFrozen())
-			attacker.attack.update(timeDelta, physics->getPos(), direction->dir);
+			attacker.attack->update(timeDelta, physics->getPos(), direction->dir);
 	}
 }
 
@@ -63,7 +63,7 @@ void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defen
 	if (attackerId != defenderId) {
 		if(defender.isAlive()) {
 			if (attacker.teamId != 0 && defender.teamId != 0 && attacker.teamId != defender.teamId) {
-				bool attackChanged = attacker.attack.pollAttackChange();
+				bool attackChanged = attacker.attack->pollAttackChange();
 				if (attackChanged) {
 					attacker.clearHitEntities();
 					uint32_t staminaCost = attacker.getStaminaCost();

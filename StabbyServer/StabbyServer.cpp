@@ -241,12 +241,12 @@ int main(int argv, char* argc[])
 								free(data);
 
 								if (user->getOnline().getNetId() == p.id) {
-									user->getCombat().attack = weapons.cloneAttack(attackId);
+									user->getCombat().setAttack(attackId);
 								}
 							}
 							else {
 								if (user->getOnline().getNetId() == p.id) {
-									attackId = user->getCombat().attack.getId();;
+									attackId = user->getCombat().getAttack().getId();
 									WeaponChangePacket ret;
 									ret.size = attackId.size();
 									ret.id = p.id;
@@ -321,13 +321,14 @@ int main(int argv, char* argc[])
 
 			while (lastUpdatedTime != gameTime) {
 				++lastUpdatedTime;
-				onlinePlayers.updatePlayers(players, lastUpdatedTime, stage, spawns);
-				for (auto& user : users)
-					DebugFIO::Out("s_out.txt") << "Updated to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 				physics.runPhysics(CLIENT_TIME_STEP);
 				for (auto& user : users)
 					DebugFIO::Out("s_out.txt") << "Physics to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 				combat.runAttackCheck(CLIENT_TIME_STEP);
+
+				onlinePlayers.updatePlayers(players, lastUpdatedTime, stage, spawns);
+				for (auto& user : users)
+					DebugFIO::Out("s_out.txt") << "Updated to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 
 				for (auto& user : users)
 					DebugFIO::Out("s_out.txt") << "Final state at time " << user->getServerPlayer().getClientTime() << ", pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';

@@ -37,16 +37,16 @@ public:
 	const Hitbox* getActive() const;
 	const Hitbox* getHitbox(int pos) const;
 	const size_t getHitboxCount() const;
-	unsigned int getActiveId();
-	unsigned int getCurrFrame();
+	unsigned int getActiveId() const;
+	unsigned int getCurrFrame() const;
 	unsigned int getCurrentTotalFrames();
 	AttackStats getStats() const;
-	double getSpeed();
+	double getSpeed() const;
 	void bufferNext();
 	void update(double timeDelta, Vec2f pos, int facing);
 	void addHitbox(Hitbox && hitbox);
 	bool pollAttackChange();
-	std::string getId();
+	const std::string& getId() const;
 private:
 	std::vector<Hitbox> hitboxes;
 	int active = 0;

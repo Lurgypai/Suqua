@@ -103,7 +103,6 @@ void PlayerGC::updateState(double timeDelta) {
 		if (plrState == State::attacking) {
 			if (prevState != State::attacking) {
 				render->setDrawable<AnimatedSprite>(attackSprite);
-
 			}
 			AnimatedSprite& sprite = *render->getDrawable<AnimatedSprite>();
 			int width = sprite.getObjRes().abs().x;
@@ -115,6 +114,7 @@ void PlayerGC::updateState(double timeDelta) {
 			sprite.looping = false;
 
 			if (state.activeAttack != prevAttack) {
+				std::cout << state.activeAttack << '\n';
 				sprite.setAnimation(state.activeAttack);
 			}
 			sprite.forward(timeDelta);

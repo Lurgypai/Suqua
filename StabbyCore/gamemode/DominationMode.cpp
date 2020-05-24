@@ -36,8 +36,10 @@ void DominationMode::reset(SpawnSystem* spawns) {
 	assignSpawns(spawns);
 	clearPoints();
 
-	for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
-		player.chooseSpawn();
+	if (EntitySystem::Contains<PlayerLC>()) {
+		for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
+			player.chooseSpawn();
+		}
 	}
 }
 

@@ -83,11 +83,11 @@ const size_t Attack::getHitboxCount() const {
 	return hitboxes.size();
 }
 
-unsigned int Attack::getActiveId(){
+unsigned int Attack::getActiveId() const {
 	return active;
 }
 
-unsigned int Attack::getCurrFrame() {
+unsigned int Attack::getCurrFrame() const {
 	return currFrame;
 }
 
@@ -99,7 +99,7 @@ AttackStats Attack::getStats() const {
 	return hitboxes[active - 1].stats;
 }
 
-double Attack::getSpeed() {
+double Attack::getSpeed() const {
 	return speed;
 }
 
@@ -162,6 +162,6 @@ bool Attack::pollAttackChange() {
 	return false;
 }
 
-std::string Attack::getId() {
+const std::string& Attack::getId() const {
 	return id;
 }

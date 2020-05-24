@@ -261,7 +261,7 @@ void Client::receive(ENetEvent & e) {
 		EntityId playerId = online->getEntity(p.id);
 		if (playerId != 0) {
 			CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
-			combat->attack = weapons->cloneAttack(attackId);
+			combat->setAttack(attackId);
 
 			PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(playerId);
 			graphics->attackSprite = weapons->cloneAnimation(attackId);

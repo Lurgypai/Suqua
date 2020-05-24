@@ -251,7 +251,7 @@ void Game::loadNewPlayers() {
 			online.registerOnlineComponent(entity, netId);
 			EntitySystem::GetComp<CombatComponent>(entity)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
 			EntitySystem::GetComp<CombatComponent>(entity)->health = 100;
-			EntitySystem::GetComp<CombatComponent>(entity)->attack = weapons.cloneAttack("sword");
+			EntitySystem::GetComp<CombatComponent>(entity)->setAttack("sword");
 			EntitySystem::GetComp<CombatComponent>(entity)->stats = CombatStats{ 100, 2, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 			makePlayerGFX(entity);

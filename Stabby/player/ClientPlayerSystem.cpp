@@ -96,13 +96,14 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 
 					ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(id);
 					for(auto& unprocessedState : states) {
-						Controller cont{ unprocessedState.contState };
-						controller->getController() = cont;
-						player->update(timeDelta);
 						physicsSystem->runPhysics(timeDelta, id);
 						DebugFIO::Out("c_out.txt") << "Freeze frame before: " << player->getState().attackFreezeFrame << '\n';
 						combatSystem->runAttackCheck(timeDelta, id);
 						DebugFIO::Out("c_out.txt") << "Freeze frame after: " << player->getState().attackFreezeFrame << '\n';
+
+						Controller cont{ unprocessedState.contState };
+						controller->getController() = cont;
+						player->update(timeDelta);
 
 						clientPlayer->storePlayerState(unprocessedState.plrState.gameTime, unprocessedState.plrState.clientTime, cont);
 					}
