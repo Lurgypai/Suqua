@@ -15,7 +15,7 @@ public:
 	attack_iterator end();
 
 	bool hasAttack(const std::string& attackId);
-
+	std::vector<std::string> getAttackTags();
 private:
 	std::unordered_map<std::string, Attack> attacks;
 };

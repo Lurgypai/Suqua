@@ -5,7 +5,8 @@
 enum class MenuEntryType {
 	none,
 	button,
-	text_box
+	text_box,
+	grid
 };
 
 struct MenuResult {
@@ -19,5 +20,8 @@ struct MenuResult {
 		struct {
 			char resposne[64];
 		} text_box;
+		struct {
+			char response[8];
+		} grid;
 	};
 };

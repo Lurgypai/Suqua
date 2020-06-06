@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
 
 	game.climbables.updateClimbables();
 
-	game.startMainMenu();
+	game.startMainMenu ();
 
 	/*--------------------------------------------- PostProcessing -------------------------------------------------*/
 	Framebuffer screenBuffer{};
@@ -456,6 +456,7 @@ int main(int argc, char* argv[]) {
 				}
 
 				game.updatePlayerCamera();
+				game.updateWeaponMenu();
 				break;
 			case GameState::stage_editor:
 				game.updateEditorCamera();
@@ -627,3 +628,8 @@ game state title msgs
 MAYBE
 player msgs
 */
+
+//load and store the buttons
+//clear the main menu
+//load weapon menu into menu camera
+//add control for displaying it

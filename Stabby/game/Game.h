@@ -44,6 +44,10 @@ public:
 	void updateEditor();
 
 	void updateMainMenu();
+	void updateWeaponMenu();
+
+	void loadWeaponMenu();
+	void openWeaponMenu();
 
 	void renderAll(double gfxDelay);
 
@@ -86,6 +90,10 @@ private:
 	EditorCam editorCam;
 
 	MenuId mainMenu;
+	MenuId weaponMenu;
+	std::unordered_map<std::string, EntityId> weaponIcons;
+	bool weaponMenuOpen;
+	EntityId weaponMenuBG;
 };
 
 /*

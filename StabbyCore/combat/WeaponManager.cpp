@@ -55,3 +55,7 @@ AnimatedSprite WeaponManager::cloneAnimation(const std::string& attackId) {
 bool WeaponManager::hasWeapon(const std::string& attackId) {
 	return attacks.hasAttack(attackId);
 }
+
+std::vector<std::string> WeaponManager::getAttackTags() {
+	return attacks.getAttackTags();
+}

@@ -13,6 +13,7 @@ public:
 	AnimatedSprite cloneAnimation(const std::string& attackId);
 
 	bool hasWeapon(const std::string & attackId);
+	std::vector<std::string> getAttackTags();
 private:
 	AttackManager attacks;
 	std::unordered_map<std::string, AnimatedSprite> animations;

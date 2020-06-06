@@ -5,6 +5,7 @@
 #include "Menu.h"
 #include "MenuButtonComponent.h"
 #include "MenuTextBoxComponent.h"
+#include "MenuGridComponent.h"
 #include "RenderComponent.h"
 #include "PositionComponent.h"
 #include "RectDrawable.h"
@@ -31,6 +32,8 @@ void Menu::addMenuEntry(MenuEntryType type, const std::string& entryTag_, const 
 	case MenuEntryType::text_box:
 		makeTextBox(entryTag_, boundingBox);
 		break;
+	case MenuEntryType::grid:
+		makeGrid(entryTag_, boundingBox);
 	}
 }
 
@@ -91,6 +94,19 @@ void Menu::updateMenuEntries(int camId) {
 			r.type = MenuEntryType::text_box;
 			r.entryTag = textBox->tag;
 			strcpy(r.text_box.resposne, response.substr(0, 63).c_str());
+			results.emplace_back(std::move(r));
+		}
+	}
+
+	for (auto& gridId : grids) {
+		MenuGridComponent* grid = EntitySystem::GetComp<MenuGridComponent>(gridId);
+		grid->update(mousePos, toggled);
+
+		if (grid->pollToggled()) {
+			MenuResult r{};
+			r.type = MenuEntryType::grid;
+			r.entryTag = grid->tag;
+			strcpy(r.grid.response, grid->selected.c_str());
 			results.emplace_back(std::move(r));
 		}
 	}
@@ -159,12 +175,33 @@ EntityId Menu::makeTextBox(const std::string& entryTag_, const AABB& boundingBox
 	return id;
 }
 
+EntityId Menu::makeGrid(const std::string& entryTag_, const AABB& boundingBox) {
+	EntityId id;
+	EntitySystem::GenEntities(1, &id);
+	EntitySystem::MakeComps<MenuGridComponent>(1, &id);
+
+	MenuGridComponent* grid = EntitySystem::GetComp<MenuGridComponent>(id);
+	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
+
+	pos->pos = boundingBox.pos;
+
+	grid->boundingBox = boundingBox;
+	grid->tag = entryTag_;
+
+	grids.push_back(id);
+	return id;
+}
+
 const std::vector<EntityId>& Menu::getButtons() const {
 	return buttons;
 }
 
 const std::vector<EntityId>& Menu::getTextBoxes() const {
 	return text_boxes;
+}
+
+const std::vector<EntityId>& Menu::getGrids() const {
+	return grids;
 }
 
 EntityId Menu::getMenuEntry(const std::string& entryTag_) {
@@ -178,6 +215,11 @@ EntityId Menu::getMenuEntry(const std::string& entryTag_) {
 		if (textBox->tag == entryTag_)
 			return textBoxId;
 	}
+	for (auto& gridId : grids) {
+		MenuGridComponent* grid = EntitySystem::GetComp<MenuGridComponent>(gridId);
+		if (grid->tag == entryTag_)
+			return gridId;
+	}
 
 	return 0;
 }
@@ -185,4 +227,5 @@ EntityId Menu::getMenuEntry(const std::string& entryTag_) {
 void Menu::clear() {
 	buttons.clear();
 	text_boxes.clear();
+	grids.clear();
 }

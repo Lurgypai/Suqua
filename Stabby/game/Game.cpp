@@ -10,6 +10,7 @@
 #include "DebugIO.h"
 #include "MenuButtonComponent.h"
 #include "MenuTextBoxComponent.h"
+#include "MenuGridComponent.h"
 
 #include "nlohmann/json.hpp"
 #include "../graphics/PlayerGC.h"
@@ -26,7 +27,8 @@ Game::Game() :
 	gameState{GameState::main_menu},
 	physics{},
 	combat{},
-	clientPlayers{&physics, &combat}
+	clientPlayers{&physics, &combat},
+	weaponMenuOpen{false}
 {}
 
 void Game::startMainMenu() {
@@ -58,14 +60,13 @@ void Game::startMainMenu() {
 
 		renderGroups[menuCamId].push_back(button);
 	}
-
+	
 	
 	for (auto& textBox : menu.getTextBoxes()) {
 
 		EntityId id = textBox;
 		EntitySystem::MakeComps<RenderComponent>(1, &id);
 		RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
-		MenuButtonComponent* menuButton = EntitySystem::GetComp<MenuButtonComponent>(id);
 
 		render->loadDrawable<TextDrawable>();
 		auto* drawable = render->getDrawable<TextDrawable>();
@@ -93,6 +94,7 @@ void Game::startOfflineGame() {
 	}
 	renderGroups.clear();
 	menus.getMenu(mainMenu).clear();
+	loadWeaponMenu();
 	editables.isEnabled = false;
 	
 	std::ifstream settingsFile{ "settings.json" };
@@ -129,6 +131,7 @@ void Game::startOnlineGame() {
 	}
 	renderGroups.clear();
 	menus.getMenu(mainMenu).clear();
+	loadWeaponMenu();
 	editables.isEnabled = false;
 
 	std::ifstream settingsFile{ "settings.json" };
@@ -206,6 +209,7 @@ void Game::loadTextures() {
 
 	//menus
 	GLRenderer::LoadTexture("images/temp_main_menu.png", "main_menu");
+	GLRenderer::LoadTexture("images/weapon_gui.png", "weapon_menu");
 	
 	//player
 	GLRenderer::LoadTexture("images/stabbyman.png", "character");
@@ -321,12 +325,13 @@ void Game::updateMainMenu() {
 			}
 		}
 		case MenuEntryType::text_box:
+		{
 			std::string response{ r.text_box.resposne };
 			if (r.entryTag == "ip_address") {
 				settings["ip"] = response;
 				address = response;
 			}
-			else if(r.entryTag == "port") {
+			else if (r.entryTag == "port") {
 				try {
 					int newPort = std::stoi(response);
 					settings["port"] = newPort;
@@ -334,6 +339,7 @@ void Game::updateMainMenu() {
 				}
 				catch (std::invalid_argument e) {}
 			}
+		}
 		}
 	}
 
@@ -357,6 +363,144 @@ void Game::updateMainMenu() {
 			else
 				render->getDrawable<TextDrawable>()->text = std::to_string(port);
 		}
+	}
+}
+
+void Game::updateWeaponMenu() {
+	CombatComponent* playerCombat = EntitySystem::GetComp<CombatComponent>(playerId);
+	if (!playerCombat->isAlive()) {
+		if (!weaponMenuOpen) {
+			weaponMenuOpen = true;
+			openWeaponMenu();
+		}
+
+		//position gfx
+		auto& weaponMenu_ = menus.getMenu(weaponMenu);
+		weaponMenu_.updateMenuEntries(menuCamId);
+		MenuTextBoxComponent* text = EntitySystem::GetComp<MenuTextBoxComponent>(weaponMenu_.getMenuEntry("search_bar"));
+		MenuGridComponent* grid = EntitySystem::GetComp<MenuGridComponent>(weaponMenu_.getMenuEntry("weapon_grid"));
+
+		auto buttonBoxes = grid->generateButtonBoxes();
+		auto buttonTags = grid->getCurrButtons();
+		int i = 0;
+		
+		for (auto& pair : weaponIcons) {
+			RenderComponent* render = EntitySystem::GetComp<RenderComponent>(pair.second);
+			render->getDrawable<Sprite>()->setScale({ 0, 0 });
+		}
+		if (buttonTags.empty()) {
+			if (!grid->prefix.empty()) {
+				auto iter = weaponIcons.find(grid->prefix);
+				if (iter != weaponIcons.end()) {
+					auto& currButton = buttonBoxes[i];
+
+					EntityId buttonImgId = weaponIcons[grid->prefix];
+					RenderComponent* render = EntitySystem::GetComp<RenderComponent>(buttonImgId);
+					PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(buttonImgId);
+					pos->pos = currButton.pos;
+					render->getDrawable<Sprite>()->setScale({ 1, 1 });
+				}
+			}
+		}
+		else {
+			for (auto buttonTag : buttonTags) {
+				buttonTag = grid->prefix + buttonTag;
+				auto& currButton = buttonBoxes[i];
+
+				EntityId buttonImgId = weaponIcons[buttonTag];
+				RenderComponent* render = EntitySystem::GetComp<RenderComponent>(buttonImgId);
+				PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(buttonImgId);
+				pos->pos = currButton.pos;
+				render->getDrawable<Sprite>()->setScale({ 1, 1 });
+				++i;
+			}
+		}
+
+		MenuResult r;
+		std::string currQuery;
+		while (weaponMenu_.pollResult(r)) {
+			switch (r.type) {
+			case MenuEntryType::text_box:
+			{
+				std::string response{ r.text_box.resposne };
+				if (r.entryTag == "search_bar") {
+					currQuery = response;
+				}
+			}
+			}
+		}
+
+		for (auto& textBoxId : weaponMenu_.getTextBoxes()) {
+			MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(textBoxId);
+			RenderComponent* render = EntitySystem::GetComp<RenderComponent>(textBoxId);
+
+			if (textBox->getTag() == "search_bar") { 
+				if (textBox->isActive()) {
+					render->getDrawable<TextDrawable>()->text = textBox->getActiveText();
+					grid->prefix = textBox->getActiveText();
+				}
+				else {
+					render->getDrawable<TextDrawable>()->text = currQuery;
+					grid->prefix = currQuery;
+				}
+			}
+		}
+	}
+}
+
+void Game::loadWeaponMenu() {
+	//weapon menu
+	weaponMenu = menus.makeMenu();
+	auto& weaponMenu_ = menus.getMenu(weaponMenu);
+	weaponMenu_.addMenuEntry(MenuEntryType::text_box, "search_bar", AABB{ {222, 71}, {182, 18} });
+	weaponMenu_.addMenuEntry(MenuEntryType::grid, "weapon_grid", AABB{ {218, 87}, {190, 190} });
+	MenuGridComponent* weaponMenuGrid = EntitySystem::GetComp<MenuGridComponent>(weaponMenu_.getMenuEntry("weapon_grid"));
+	weaponMenuGrid->buttonRes = { 32, 32 };
+	weaponMenuGrid->margins = { 5, 5 };
+	auto& tags = weapons.getAttackTags();
+	weaponMenuGrid->setButtons(tags);
+
+	EntitySystem::GenEntities(1, &weaponMenuBG);
+	EntitySystem::MakeComps<RenderComponent>(1, &weaponMenuBG);
+	RenderComponent* weaponMenuRender = EntitySystem::GetComp<RenderComponent>(weaponMenuBG);
+	weaponMenuRender->loadDrawable<Sprite>("weapon_menu");
+	EntitySystem::GetComp<PositionComponent>(weaponMenuBG)->pos = { 0, 0 };
+
+	for (auto& weapon : tags) {
+		EntityId iconId;
+		EntitySystem::GenEntities(1, &iconId);
+		EntitySystem::MakeComps<RenderComponent>(1, &iconId);
+		RenderComponent* render = EntitySystem::GetComp<RenderComponent>(iconId);
+		render->loadDrawable<Sprite>("weapon::" + weapon + "_icon");
+		render->getDrawable<Sprite>()->setScale({ 0, 0 });
+		weaponIcons.emplace(weapon, iconId);
+	}
+
+	for (auto& textBox : weaponMenu_.getTextBoxes()) {
+		EntityId id = textBox;
+		EntitySystem::MakeComps<RenderComponent>(1, &id);
+		RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
+
+		render->loadDrawable<TextDrawable>();
+		auto* drawable = render->getDrawable<TextDrawable>();
+		drawable->setColor(1, 1, 1);
+		drawable->anti_alias = true;
+		drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
+		drawable->scale = { .5, .5 };
+	}
+}
+
+void Game::openWeaponMenu() {
+	renderGroups[menuCamId].clear();
+	renderGroups[menuCamId].push_back(weaponMenuBG);
+
+	Menu& menu = menus.getMenu(weaponMenu);
+	for (auto& text : menu.getTextBoxes()) {
+		renderGroups[menuCamId].push_back(text);
+	}
+
+	for (auto& pair : weaponIcons) {
+		renderGroups[menuCamId].push_back(pair.second);
 	}
 }
 

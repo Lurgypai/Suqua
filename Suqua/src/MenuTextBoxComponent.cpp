@@ -36,7 +36,9 @@ void MenuTextBoxComponent::input(const std::string& input) {
 }
 
 void MenuTextBoxComponent::backspace() {
-	textBuffer.pop_back();
+	if (!textBuffer.empty()) {
+		textBuffer.pop_back();
+	}
 }
 
 void MenuTextBoxComponent::enterText() {

@@ -86,3 +86,11 @@ attack_iterator AttackManager::end() {
 bool AttackManager::hasAttack(const std::string& attackId) {
 	return attacks.find(attackId) != attacks.end();
 }
+
+std::vector<std::string> AttackManager::getAttackTags() {
+	std::vector<std::string> attackTags;
+	for (auto& pair : attacks) {
+		attackTags.push_back(pair.first);
+	}
+	return std::move(attackTags);
+}
