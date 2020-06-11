@@ -14,7 +14,6 @@ private:
 	};
 
 public:
-	struct StringTreeNode;
 
 	class StringTreeIter {
 		friend class StringTree;
