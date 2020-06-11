@@ -260,11 +260,8 @@ void Client::receive(ENetEvent & e) {
 
 		EntityId playerId = online->getEntity(p.id);
 		if (playerId != 0) {
-			CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
-			combat->setAttack(attackId);
-
-			PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(playerId);
-			graphics->attackSprite = weapons->cloneAnimation(attackId);
+			PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
+			player->setWeapon(attackId);
 		}
 	}
 	else if (packetKey == CAP_KEY) {

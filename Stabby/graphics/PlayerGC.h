@@ -5,6 +5,9 @@
 #include "RenderComponent.h"
 #include "IDrawable.h"
 
+#include "../combat/WeaponManager.h"
+#include "../combat/AttackTag.h"
+
 #include "player.h"
 
 class PlayerGC {
@@ -21,14 +24,15 @@ public:
 	};
 
 	PlayerGC(EntityId id_ = 0);
-	void loadAnimations();
+	void loadAnimations(const WeaponManager& weapons);
 	//void spawnHead(Vec2f pos);
 
 	void updateState(double timeDelta);
 
 	EntityId getId() const;
+	std::unordered_map<std::string, AnimatedSprite> attackAnimations;
+	std::string currAttackTag;
 	AnimatedSprite animSprite;
-	AnimatedSprite attackSprite;
 private:
 	EntityId id;
 

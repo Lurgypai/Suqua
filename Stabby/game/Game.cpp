@@ -368,12 +368,23 @@ void Game::updateMainMenu() {
 
 void Game::updateWeaponMenu() {
 	CombatComponent* playerCombat = EntitySystem::GetComp<CombatComponent>(playerId);
+	//if he's dead, open the menu and toggle it to not open again.
+	//if he's alive, allow to open menu, and clear the menu
 	if (!playerCombat->isAlive()) {
-		if (!weaponMenuOpen) {
+		if (shouldOpenWeaponMenu) {
+			shouldOpenWeaponMenu = false;
 			weaponMenuOpen = true;
 			openWeaponMenu();
 		}
+	}
+	else {
+		shouldOpenWeaponMenu = true;
+		weaponMenuOpen = false;
+		renderGroups[menuCamId].clear();
+	}
 
+	//when the menu is open, update
+	if(weaponMenuOpen) {
 		//position gfx
 		auto& weaponMenu_ = menus.getMenu(weaponMenu);
 		weaponMenu_.updateMenuEntries(menuCamId);
@@ -425,6 +436,43 @@ void Game::updateWeaponMenu() {
 				std::string response{ r.text_box.resposne };
 				if (r.entryTag == "search_bar") {
 					currQuery = response;
+				}
+			}
+			case MenuEntryType::grid:
+			{
+				std::string response{ r.grid.response };
+				if (r.entryTag == "weapon_grid") {
+					if (weapons.hasWeapon(response)) {
+						//close the menu
+						weaponMenuOpen = false;
+						renderGroups[menuCamId].clear();
+
+
+						if (EntitySystem::Contains<PlayerLC>() && EntitySystem::Contains<PlayerGC>()) {
+							for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
+								if (!client.getConnected()) {
+									PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
+									PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(playerId);
+
+									player->setWeapon(response);
+								}
+								else {
+									OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerId);
+									size_t size = response.size();
+
+									WeaponChangePacket p;
+									p.size = size;
+									p.id = online->getNetId();
+									p.serialize();
+									char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + size));
+									memcpy(data, &p, sizeof(WeaponChangePacket));
+									memcpy(data + sizeof(WeaponChangePacket), response.data(), size);
+									client.send(sizeof(WeaponChangePacket) + size, data);
+									free(data);
+								}
+							}
+						}
+					}
 				}
 			}
 			}
@@ -507,8 +555,7 @@ void Game::openWeaponMenu() {
 void Game::makePlayerGFX(EntityId playerId_) {
 	EntitySystem::MakeComps<PlayerGC>(1, &playerId_);
 	EntitySystem::GetComp<RenderComponent>(playerId_)->loadDrawable<AnimatedSprite>("character", Vec2i{ 64, 64 });
-	EntitySystem::GetComp<PlayerGC>(playerId_)->loadAnimations();
-	EntitySystem::GetComp<PlayerGC>(playerId_)->attackSprite = weapons.cloneAnimation("sword");
+	EntitySystem::GetComp<PlayerGC>(playerId_)->loadAnimations(weapons);
 }
 
 void Game::renderAll(double gfxDelay) {

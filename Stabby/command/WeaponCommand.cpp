@@ -19,11 +19,10 @@ void WeaponCommand::onCommand(const std::vector<std::string>& args) {
 			if (EntitySystem::Contains<PlayerLC>() && EntitySystem::Contains<PlayerGC>()) {
 				for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
 					EntityId id = player.getId();
-					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+					PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);
 					PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(id);
 
-					combat->setAttack(args[1]);
-					graphics->attackSprite = weapons->cloneAnimation(args[1]);
+					player->setWeapon(args[1]);
 
 					if (client->getConnected()) {
 						OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(id);

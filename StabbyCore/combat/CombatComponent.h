@@ -30,6 +30,7 @@ friend class AttackManager;
 
 public:
 	CombatComponent(EntityId id = 0);
+	CombatComponent(const CombatComponent& other);
 	virtual ~CombatComponent() {};
 	EntityId getId() const;
 

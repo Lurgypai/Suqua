@@ -12,7 +12,9 @@ PlayerGC::PlayerGC(EntityId id_) :
 	id{ id_ },
 	shouldSpawnHead{ true },
 	prevXVel{ 0 },
-	prevAttack{ 0 }
+	prevAttack{ 0 },
+	attackAnimations{},
+	currAttackTag{}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<RenderComponent>() || EntitySystem::GetComp<RenderComponent>(id) == nullptr) {
@@ -25,7 +27,7 @@ PlayerGC::PlayerGC(EntityId id_) :
 	}
 }
 
-void PlayerGC::loadAnimations() {
+void PlayerGC::loadAnimations(const WeaponManager& weapons) {
 	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
 	AnimatedSprite& animSprite_ = *render->getDrawable<AnimatedSprite>();
 
@@ -48,6 +50,8 @@ void PlayerGC::loadAnimations() {
 	animSprite_.setAnimation(idle);
 	animSprite = animSprite_;
 	defaultFrameDelay = animSprite_.frameDelay;
+
+	attackAnimations = weapons.cloneAnimations();
 }
 
 /*
@@ -102,7 +106,10 @@ void PlayerGC::updateState(double timeDelta) {
 	if (!combat->isFrozen()) {
 		if (plrState == State::attacking) {
 			if (prevState != State::attacking) {
-				render->setDrawable<AnimatedSprite>(attackSprite);
+				if (state.weaponTag != currAttackTag) {
+					currAttackTag = state.weaponTag;
+				}
+				render->setDrawable<AnimatedSprite>(attackAnimations[currAttackTag]);
 			}
 			AnimatedSprite& sprite = *render->getDrawable<AnimatedSprite>();
 			int width = sprite.getObjRes().abs().x;
@@ -114,7 +121,6 @@ void PlayerGC::updateState(double timeDelta) {
 			sprite.looping = false;
 
 			if (state.activeAttack != prevAttack) {
-				std::cout << state.activeAttack << '\n';
 				sprite.setAnimation(state.activeAttack);
 			}
 			sprite.forward(timeDelta);

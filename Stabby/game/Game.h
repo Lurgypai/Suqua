@@ -93,6 +93,7 @@ private:
 	MenuId weaponMenu;
 	std::unordered_map<std::string, EntityId> weaponIcons;
 	bool weaponMenuOpen;
+	bool shouldOpenWeaponMenu;
 	EntityId weaponMenuBG;
 };
 

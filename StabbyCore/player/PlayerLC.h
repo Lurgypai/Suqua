@@ -25,6 +25,7 @@ public:
 
 	EntityId getId() const;
 
+	void setWeapon(const std::string& weaponTag);
 	void setState(const PlayerState& state);
 	PlayerState getState();
 

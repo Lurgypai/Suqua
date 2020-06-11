@@ -48,8 +48,8 @@ void WeaponManager::loadAnimations(std::string animationDir) {
 	}
 }
 
-AnimatedSprite WeaponManager::cloneAnimation(const std::string& attackId) {
-	return animations[attackId];
+std::unordered_map<std::string, AnimatedSprite> WeaponManager::cloneAnimations() const {
+	return animations;
 }
 
 bool WeaponManager::hasWeapon(const std::string& attackId) {

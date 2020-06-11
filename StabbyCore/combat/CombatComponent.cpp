@@ -28,6 +28,29 @@ CombatComponent::CombatComponent(EntityId id_) :
 			direction->dir = -1;
 		}
 	}
+
+	//set default attack
+	attack = &(attacks.begin()->second);
+}
+
+CombatComponent::CombatComponent(const CombatComponent& other) :
+	id{other.id},
+	invulnerable{other.invulnerable},
+	stats{other.stats},
+	stunFrame{other.stunFrame},
+	teamId{other.teamId},
+	stamina{other.stamina},
+	staminaMax{other.staminaMax},
+	staminaRechargeFrame{other.staminaRechargeFrame},
+	staminaRechargeMax{other.staminaRechargeMax},
+	freezeFrame{other.freezeFrame},
+	freezeFrameMax{other.freezeFrameMax},
+	attacks{AttackMap},
+	attack{nullptr},
+	health{other.health},
+	lastAttacker{other.lastAttacker}
+{
+	attack = &attacks[other.attack->getId()];
 }
 
 EntityId CombatComponent::getId() const {

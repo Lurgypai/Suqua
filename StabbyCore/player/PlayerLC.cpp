@@ -249,6 +249,15 @@ Vec2f PlayerLC::getRes() const {
 	return comp->getRes();
 }
 
+void PlayerLC::setWeapon(const std::string& weaponTag) {
+	std::cout << "weapon set too: " << weaponTag << '\n';
+	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+	combat->setAttack(weaponTag);
+
+	PlayerStateComponent* plrStateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
+	plrStateComp->playerState.weaponTag = weaponTag;
+}
+
 void PlayerLC::setState(const PlayerState& newState) {
 	PlayerStateComponent* state = EntitySystem::GetComp<PlayerStateComponent>(id);
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
@@ -266,6 +275,7 @@ void PlayerLC::setState(const PlayerState& newState) {
 	combat->stamina = newState.stamina;
 	combat->staminaRechargeFrame = newState.staminaRechargeFrame;
 	combat->freezeFrame = newState.attackFreezeFrame;
+	combat->setAttack(newState.weaponTag);
 
 	dir->dir = newState.facing;
 	
@@ -289,6 +299,7 @@ PlayerState PlayerLC::getState() {
 	playerState->playerState.stamina = combat->stamina;
 	playerState->playerState.staminaRechargeFrame = combat->staminaRechargeFrame;
 	playerState->playerState.attackFreezeFrame = combat->freezeFrame;
+	playerState->playerState.weaponTag = combat->getAttack().getId();
 
 	playerState->playerState.facing = dir->dir;
 

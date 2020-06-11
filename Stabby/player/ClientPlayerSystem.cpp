@@ -80,10 +80,13 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 						out << "stamina: " << plrState.stamina << ", " << state.stamina << '\n';
 					if (state.staminaRechargeFrame != plrState.staminaRechargeFrame)
 						out << "staminaRechargeFrame: " << plrState.staminaRechargeFrame << ", " << state.staminaRechargeFrame << '\n';
+					if(state.weaponTag != plrState.weaponTag)
+						out << "weaponTag: " << plrState.weaponTag << ", " << state.weaponTag << '\n';
 
 					auto id = lastTick.player;
 					PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);
 					player->setState(state);
+					//set weapon
 
 					PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 

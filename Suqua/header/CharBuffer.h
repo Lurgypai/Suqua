@@ -8,10 +8,13 @@ public:
 	CharBuffer();
 	CharBuffer(const char* data_);
 	CharBuffer(const CharBuffer& other);
+	CharBuffer(const std::string& s);
 	CharBuffer& operator=(const CharBuffer& other);
 	CharBuffer& operator=(const char* other);
-	bool operator==(const CharBuffer& other);
-	bool operator!=(const CharBuffer& other);
+	CharBuffer& operator=(const std::string& s);
+	bool operator==(const CharBuffer& other) const;
+	bool operator!=(const CharBuffer& other) const;
+	operator std::string() const;
 
 	const char* data() const;
 	const size_t size();
@@ -43,6 +46,16 @@ inline CharBuffer<Size>::CharBuffer(const CharBuffer& other) :
 }
 
 template<size_t Size>
+inline CharBuffer<Size>::CharBuffer(const std::string& s) :
+	_data{}
+{
+	if (s.size() <= Size)
+		strcpy(_data, s.c_str());
+	else
+		throw std::exception{};
+}
+
+template<size_t Size>
 inline CharBuffer<Size>& CharBuffer<Size>::operator=(const CharBuffer& other)
 {
 	strcpy(_data, other._data);
@@ -57,14 +70,29 @@ inline CharBuffer<Size>& CharBuffer<Size>::operator=(const char* other)
 }
 
 template<size_t Size>
-inline bool CharBuffer<Size>::operator==(const CharBuffer& other) {
+inline CharBuffer<Size>& CharBuffer<Size>::operator=(const std::string& s)
+{
+		if (s.size() <= Size)
+		strcpy(_data, s.c_str());
+	else
+		throw std::exception{};
+	return *this;
+}
+
+template<size_t Size>
+inline bool CharBuffer<Size>::operator==(const CharBuffer& other) const {
 	return !strcmp(_data, other._data);
 }
 
 template<size_t Size>
-inline bool CharBuffer<Size>::operator!=(const CharBuffer& other)
+inline bool CharBuffer<Size>::operator!=(const CharBuffer& other) const
 {
 	return !(*this == other);
+}
+
+template<size_t Size>
+inline CharBuffer<Size>::operator std::string() const {
+	return std::string{_data};
 }
 
 template<size_t Size>

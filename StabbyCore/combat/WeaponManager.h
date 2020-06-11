@@ -1,6 +1,8 @@
 #pragma once
 #include "AttackManager.h"
 #include "AnimatedSprite.h"
+#include "CharBuffer.h"
+#include "AttackTag.h"
 
 class WeaponManager {
 public:
@@ -9,8 +11,7 @@ public:
 	//load animations for the attacks, from the specified folder (requires loaded attacks)
 	void loadAnimations(std::string animationDir);
 
-	Attack cloneAttack(const std::string& attackId) const;
-	AnimatedSprite cloneAnimation(const std::string& attackId);
+	std::unordered_map<std::string, AnimatedSprite> cloneAnimations() const;
 
 	bool hasWeapon(const std::string & attackId);
 	std::vector<std::string> getAttackTags();
