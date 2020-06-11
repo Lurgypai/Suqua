@@ -31,7 +31,7 @@ void MenuGridComponent::update(Vec2f mousePos, bool toggled_) {
 	if (boundingBox.contains(mousePos) && toggled_) {
 		//clicked inside bounding box
 		int i = 0;
-		for (auto& button : buttons[prefix]) {
+		for (auto button : buttons[prefix]) {
 			Vec2i buttonPos = { i % columns, i / columns };
 			if (buttonPos.y < rows) {
 				AABB currBox = AABB{ {pos->pos.x + margins.x + buttonPos.x * (buttonRes.x + margins.x), pos->pos.y + margins.y + buttonPos.y * (buttonRes.y + margins.y)}, buttonRes };
@@ -87,7 +87,7 @@ std::vector<AABB> MenuGridComponent::generateButtonBoxes() {
 
 	int i = 0;
 	std::vector<AABB> boxes;
-	for (auto& tag : buttons) {
+	for (auto tag : buttons) {
 		Vec2i buttonPos = { i % columns, i / columns };
 		boxes.emplace_back( Vec2f{ pos->pos.x + margins.x + buttonPos.x * (buttonRes.x + margins.x), pos->pos.y + margins.y + buttonPos.y * (buttonRes.y + margins.y) }, buttonRes);
 		++i;
