@@ -8,13 +8,14 @@ uniform bool flip_vertically = true;
 
 struct ImgData
 {
-	vec2 objPos;	//
+	vec2 objPos;
 	vec2 imgRes;
 	vec2 imgOffset;
 	vec2 objRes;
 	vec2 origin;
 	vec2 scale;
 	float angle;
+    float depth;
 };
 
 layout (std140, binding = 0) buffer ImgDataBuffer {
@@ -61,5 +62,5 @@ void main() {
         windowPos.y = (-windowPos.y) + 1;
 	windowPos = 2 * (windowPos) - 1;
 	
-	gl_Position = vec4(windowPos, 0.0, 1.0);
+	gl_Position = vec4(windowPos, dat.depth, 1.0);
 }

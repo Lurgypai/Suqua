@@ -14,6 +14,8 @@ public:
 
 	Texture getTexture(unsigned int i);
 
+	void makeDepthBuffer(int width, int height);
+
 	void finalizeFramebuffer();
 
 	//const access to iterating over the textures
@@ -23,5 +25,6 @@ public:
 	static void unbind();
 private:
 	unsigned int id;
+	unsigned int rbo; //for depth/stencil of the buffer
 	std::vector<Texture> textures;
 };

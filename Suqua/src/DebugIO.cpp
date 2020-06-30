@@ -91,7 +91,7 @@ void DebugIO::drawLines() {
 
 			ImgData data{ Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 				Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
-				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f };
+				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f, -1.0f };
 			GLRenderer::DrawImage(data, "test_font");
 			pos.x += glyph.advance;
 		}
@@ -106,7 +106,7 @@ void DebugIO::drawLines() {
 
 			ImgData data{ Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 				Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
-				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f };
+				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f, -1.0f };
 			GLRenderer::DrawImage(data, "test_font");
 			pos.x += glyph.advance;
 		}
@@ -119,7 +119,7 @@ void DebugIO::drawLines() {
 
 				ImgData data{ Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 					Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
-					Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f };
+					Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f, -1.0f };
 				GLRenderer::DrawImage(data, "test_font");
 				pos.x += glyph.advance;
 			}
@@ -137,7 +137,7 @@ void DebugIO::drawDebugInfo() {
 
 			ImgData data{ Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 				Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
-				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f };
+				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f, -1.0f };
 			GLRenderer::DrawImage(data, "test_font");
 			pos.x += glyph.advance;
 		}

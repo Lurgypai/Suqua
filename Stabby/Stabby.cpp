@@ -158,6 +158,7 @@ int main(int argc, char* argv[]) {
 	unsigned int screenTex;
 	screenBuffer.bind();
 	screenTex = screenBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	screenBuffer.makeDepthBuffer(viewWidth, viewHeight);
 	screenBuffer.finalizeFramebuffer();
 	Framebuffer::unbind();
 
@@ -165,6 +166,7 @@ int main(int argc, char* argv[]) {
 	unsigned int occlusionTex;
 	occlusionMap.bind();
 	occlusionTex = occlusionMap.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	occlusionMap.makeDepthBuffer(viewWidth, viewHeight);
 	occlusionMap.finalizeFramebuffer();
 	Framebuffer::unbind();
 
@@ -172,6 +174,7 @@ int main(int argc, char* argv[]) {
 	unsigned int redOutlineBufferTex;
 	redOutlineBuffer.bind();
 	redOutlineBufferTex = redOutlineBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	redOutlineBuffer.makeDepthBuffer(viewWidth, viewHeight);
 	redOutlineBuffer.finalizeFramebuffer();
 	Framebuffer::unbind();
 
@@ -179,6 +182,7 @@ int main(int argc, char* argv[]) {
 	unsigned int blueOutlineBufferTex;
 	blueOutlineBuffer.bind();
 	blueOutlineBufferTex = blueOutlineBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	blueOutlineBuffer.makeDepthBuffer(viewWidth, viewHeight);
 	blueOutlineBuffer.finalizeFramebuffer();
 	Framebuffer::unbind();
 
@@ -186,6 +190,7 @@ int main(int argc, char* argv[]) {
 	unsigned int pingTex;
 	pingBuffer.bind();
 	pingTex = pingBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	pingBuffer.makeDepthBuffer(viewWidth, viewHeight);
 	pingBuffer.finalizeFramebuffer();
 	Framebuffer::unbind();
 
@@ -193,6 +198,7 @@ int main(int argc, char* argv[]) {
 	unsigned int pongTex;
 	pongBuffer.bind();
 	pongTex = pongBuffer.addTexture2D(viewWidth, viewHeight, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	pongBuffer.makeDepthBuffer(viewWidth, viewHeight);
 	pongBuffer.finalizeFramebuffer();
 	Framebuffer::unbind();
 
@@ -433,7 +439,7 @@ int main(int argc, char* argv[]) {
 			//draw everything to the framebuffer
 			pingBuffer.bind();
 
-			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			//update camera
 			const Uint8* state = SDL_GetKeyboardState(NULL);
@@ -514,7 +520,7 @@ int main(int argc, char* argv[]) {
 			
 			//Draw all the physics components to the occlusion map.
 			occlusionMap.bind();
-			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			if (EntitySystem::Contains<PhysicsComponent>()) {
 				for (auto& physics : EntitySystem::GetPool<PhysicsComponent>()) {
 					if(physics.collideable)
@@ -538,10 +544,10 @@ int main(int argc, char* argv[]) {
 			GLRenderer::UpdateAndDrawParticles();
 			
 			redOutlineBuffer.bind();
-			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			blueOutlineBuffer.bind();
-			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			if (EntitySystem::Contains<PlayerStateComponent>()) {
 				for (auto& player : EntitySystem::GetPool<PlayerStateComponent>()) {
@@ -583,7 +589,7 @@ int main(int argc, char* argv[]) {
 			Framebuffer::unbind();
 			GLRenderer::SetDefShader(FullscreenShader);
 			GLRenderer::bindCurrShader();
-			GLRenderer::Clear(GL_COLOR_BUFFER_BIT);
+			GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			GLRenderer::DrawOverScreen(pingBuffer.getTexture(0).id);
 

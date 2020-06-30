@@ -7,7 +7,7 @@
 
 Sprite::Sprite(const std::string &texture_tag_) :
 	texture_tag{texture_tag_},
-	data{ {0, 0}, {0.0f, 0.0f}, {0, 0}, {0.0f, 0.0f}, {0, 0}, {1.0, 1.0}, 0 }
+	data{ {0, 0}, {0.0f, 0.0f}, {0, 0}, {0.0f, 0.0f}, {0, 0}, {1.0, 1.0}, 0, 0 }
 {
 	auto textureData = GLRenderer::GetTextureData(texture_tag);
 	data.objRes = textureData.res;
@@ -44,6 +44,10 @@ float Sprite::getAngle() const {
 	return data.angle;
 }
 
+float Sprite::getDepth() const {
+	return data.depth;
+}
+
 const ImgData & Sprite::getImgData() const {
 	return data;
 }
@@ -74,6 +78,10 @@ void Sprite::setScale(Vec2f scale_) {
 
 void Sprite::setAngle(float angle_) {
 	data.angle = angle_;
+}
+
+void Sprite::setDepth(float depth_) {
+	data.depth = depth_;
 }
 
 int Sprite::getChannels() const {

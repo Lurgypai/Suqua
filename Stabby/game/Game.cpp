@@ -512,6 +512,7 @@ void Game::loadWeaponMenu() {
 	EntitySystem::MakeComps<RenderComponent>(1, &weaponMenuBG);
 	RenderComponent* weaponMenuRender = EntitySystem::GetComp<RenderComponent>(weaponMenuBG);
 	weaponMenuRender->loadDrawable<Sprite>("weapon_menu");
+	weaponMenuRender->getDrawable<Sprite>()->setDepth(-0.5);
 	EntitySystem::GetComp<PositionComponent>(weaponMenuBG)->pos = { 0, 0 };
 
 	for (auto& weapon : tags) {
@@ -521,6 +522,7 @@ void Game::loadWeaponMenu() {
 		RenderComponent* render = EntitySystem::GetComp<RenderComponent>(iconId);
 		render->loadDrawable<Sprite>("weapon::" + weapon + "_icon");
 		render->getDrawable<Sprite>()->setScale({ 0, 0 });
+		render->getDrawable<Sprite>()->setDepth(-1.0);
 		weaponIcons.emplace(weapon, iconId);
 	}
 

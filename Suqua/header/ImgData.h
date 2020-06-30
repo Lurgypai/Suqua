@@ -8,5 +8,6 @@ struct ImgData {
 	Vec2f origin;
 	Vec2f scale;
 	float angle;
-	float pad[3];
+	float depth;
+	float pad[2];
 };

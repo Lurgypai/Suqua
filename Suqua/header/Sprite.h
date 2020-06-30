@@ -16,6 +16,7 @@ public:
 	Vec2f getOrigin() const;
 	Vec2f getScale() const;
 	float getAngle() const;
+	float getDepth() const;
 	const ImgData & getImgData() const;
 
 	void setImgRes(Vec2f res_);
@@ -25,6 +26,7 @@ public:
 	void setOrigin(Vec2f origin_);
 	void setScale(Vec2f scale_);
 	void setAngle(float angle_);
+	void setDepth(float depth_);
 
 	int getChannels() const;
 

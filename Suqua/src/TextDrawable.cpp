@@ -38,6 +38,7 @@ void TextDrawable::draw() {
 			{0.0f, 0.0f},	//origin
 			scale,	//scale
 			0.0f	//angle
+			-1.0f	//depth
 		};
 		GLRenderer::DrawImage(data, "test_font");
 		pos.x += glyph.advance * scale.x;

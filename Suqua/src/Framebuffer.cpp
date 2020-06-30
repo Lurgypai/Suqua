@@ -30,6 +30,7 @@ Texture Framebuffer::getTexture(unsigned int i) {
 }
 
 void Framebuffer::finalizeFramebuffer() {
+
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create framebuffer.");
 	}
@@ -49,6 +50,13 @@ auto Framebuffer::getTextureBegin() const {
 
 auto Framebuffer::getTextureEnd() const {
 	return textures.end();
+}
+
+void Framebuffer::makeDepthBuffer(int width, int height) {
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 }
 
 void Framebuffer::unbind() {
