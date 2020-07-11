@@ -40,5 +40,5 @@ void main () {
         windowPos.y = (-windowPos.y) + 1;
         windowPos = 2 * (windowPos) - 1;
 	}
-	gl_Position = vec4(windowPos, 0.0, 1.0);
+	gl_Position = vec4(windowPos, -0.1, 1.0);
 }

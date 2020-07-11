@@ -1,6 +1,7 @@
 #pragma once
 #include "IDrawable.h"
 #include "AABB.h"
+#include "Color.h"
 
 class RectDrawable : public IDrawable {
 public:
@@ -13,9 +14,7 @@ public:
 
 	virtual IDrawable* clone() override;
 
-	float r;
-	float g;
-	float b;
-
+	Color c;
+	float depth;
 	AABB shape;
 };

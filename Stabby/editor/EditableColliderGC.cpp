@@ -26,31 +26,21 @@ void EditableColliderGC::update() {
 	switch (editable->getType())
 	{
 	case StageElement::climbable:
-		rect->r = 0.0;
-		rect->g = 0.0;
-		rect->b = 1.0;
+		rect->c = { 0.0, 0.0, 1.0, 1.0 };
 		break;
 	case StageElement::collideable:
-		rect->r = 1.0;
-		rect->g = 0.0;
-		rect->b = 0.0;
+		rect->c = { 1.0, 0.0, 0.0, 1.0 };
 		break;
 	case StageElement::spawnable:
 		if (editable->isDefaultSpawn()) {
-			rect->r = 0.0;
-			rect->g = 1.0;
-			rect->b = 0.0;
+			rect->c = { 0.0, 1.0, 0.0, 1.0 };
 		}
 		else {
-			rect->r = 0.5;
-			rect->g = 0.8;
-			rect->b = 0.5;
+			rect->c = { 0.5, 0.8, 0.5, 1.0 };
 		}
 		break;
 	default:
-		rect->r = 0.5;
-		rect->g = 0.5;
-		rect->b = 0.5;
+		rect->c = { 0.5, 0.5, 0.5, 1.0 };
 		break;
 	}
 }

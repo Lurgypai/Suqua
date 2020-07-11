@@ -520,11 +520,15 @@ int main(int argc, char* argv[]) {
 			
 			//Draw all the physics components to the occlusion map.
 			occlusionMap.bind();
+			GLRenderer::setCamera(1);
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			if (EntitySystem::Contains<PhysicsComponent>()) {
 				for (auto& physics : EntitySystem::GetPool<PhysicsComponent>()) {
-					if(physics.collideable)
-						GLRenderer::DrawFilledPrimitives({ physics.getCollider() }, 1.0, 1.0, 1.0);
+					if (physics.collideable) {
+						const auto& collider = physics.getCollider();
+						Primitive p{ {collider.pos, {collider.pos.x + collider.res.x, collider.pos.y}, {collider.pos.x, collider.pos.y + collider.res.y}, collider.pos + collider.res}, -1.0, Color{1.0, 1.0, 1.0, 1.0} };
+						GLRenderer::DrawFilledPrimitive(p);
+					}
 				}
 			}
 			
@@ -592,12 +596,11 @@ int main(int argc, char* argv[]) {
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			GLRenderer::DrawOverScreen(pingBuffer.getTexture(0).id);
-
 			GLRenderer::setCamera(debugCamId);
 			DebugIO::drawLines();
 
 			GLRenderer::Swap();
-			//GLRenderer::ReadErrors();
+			GLRenderer::ReadErrors();
 
 			//after drawing clean up dead entities. This way everything gets a chance to be drawn.
 			EntitySystem::FreeDeadEntities();

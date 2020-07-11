@@ -17,6 +17,7 @@
 #include "ComputeShader.h"
 #include "ParticleSystem.h"
 #include "AABB.h"
+#include "Color.h"
 
 #define IMG_DATA_BUFFER_SIZE 1000
 
@@ -72,9 +73,8 @@ struct Camera {
 
 struct Primitive {
 	std::vector<Vec2f> points;
-	float r;
-	float g;
-	float b;
+	float depth;
+	Color color;
 };
 
 struct AtlasTextureData {
@@ -118,12 +118,12 @@ public:
 	//Sets the shader to use, when data is buffered.
 	static void SetShader(unsigned int id);
 	//Draw a simple shape outline
-	static void DrawPrimitive(std::vector<Vec2f> points, float r, float g, float b);
+	static void DrawPrimitive(const Primitive& p);
 	//Draw an aabb outline
-	static void DrawPrimitives(std::vector<AABB> rects, float r, float g, float b);
+	static void DrawPrimitives(const std::vector<Primitive>& p);
 
-	static void DrawFilledPrimitive(std::vector<Vec2f> points, float r, float g, float b);
-	static void DrawFilledPrimitives(std::vector<AABB> rects, float r, float g, float b);
+	static void DrawFilledPrimitive(const Primitive& p);
+	static void DrawFilledPrimitives(const std::vector<Primitive>& p);
 
 	//Swap
 	static void Swap();

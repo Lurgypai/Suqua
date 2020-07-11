@@ -54,9 +54,8 @@ void Game::startMainMenu() {
 		render->loadDrawable<RectDrawable>();
 		auto* drawable = render->getDrawable<RectDrawable>();
 		drawable->shape = menuButton->getBoundingBox();
-		drawable->r = 1;
-		drawable->g = 1;
-		drawable->b = 1;
+		drawable->c = { 1.0, 1.0, 1.0, 1.0 };
+		drawable->depth = 0.0;
 
 		renderGroups[menuCamId].push_back(button);
 	}

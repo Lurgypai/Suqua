@@ -17,6 +17,8 @@ public:
 	AABB(Vec2f pos_ = { 0, 0 }, Vec2f res_ = {0, 0});
 	Vec2f center() const;
 
+	std::vector<Vec2f> toPoints() const;
+
 	void center(const Vec2f & newCenter);
 
 	bool contains(Vec2f point) const;

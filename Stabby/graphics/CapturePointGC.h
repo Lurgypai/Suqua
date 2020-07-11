@@ -1,5 +1,6 @@
 #pragma once
 #include "EntitySystem.h"
+#include "Color.h"
 #include <array>
 
 class CapturePointGC {
@@ -10,11 +11,6 @@ public:
 	void update(double timeDelta);
 	
 private:
-	struct Color {
-		float r;
-		float g;
-		float b;
-	};
 
 	Color currColor;
 	//ticker for color swapper

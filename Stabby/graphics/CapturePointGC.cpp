@@ -26,9 +26,7 @@ CapturePointGC::CapturePointGC(EntityId id_) :
 
 			currColor = teamColors[capture->getState().currTeamId];
 
-			render->getDrawable<RectDrawable>()->r = currColor.r;
-			render->getDrawable<RectDrawable>()->g = currColor.g;
-			render->getDrawable<RectDrawable>()->b = currColor.b;
+			render->getDrawable<RectDrawable>()->c = currColor;
 		}
 	}
 }
@@ -68,9 +66,7 @@ void CapturePointGC::update(double timeDelta) {
 	}
 
 	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
-	render->getDrawable<RectDrawable>()->r = currColor.r;
-	render->getDrawable<RectDrawable>()->g = currColor.g;
-	render->getDrawable<RectDrawable>()->b = currColor.b;
+	render->getDrawable<RectDrawable>()->c = currColor;
 }
 
-const std::array<CapturePointGC::Color, 3> CapturePointGC::teamColors{ CapturePointGC::Color{0.5, 0.5, 0.5}, CapturePointGC::Color{1.0, 0.0, 0.0}, CapturePointGC::Color{0.0, 0.0, 1.0} };
+const std::array<Color, 3> CapturePointGC::teamColors{ Color{0.5, 0.5, 0.5, 1.0}, Color{1.0, 0.0, 0.0, 1.0}, Color{0.0, 0.0, 1.0, 1.0} };

@@ -33,6 +33,7 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glEnable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glGenVertexArrays(1, &PRIMITIVE_VAO);
@@ -332,7 +333,7 @@ void GLRenderer::Draw(SelectType t_, int count, unsigned int * ids) {
 }
 */
 
-void GLRenderer::DrawPrimitive(std::vector<Vec2f> points, float r, float g, float b) {
+void GLRenderer::DrawPrimitive(const Primitive& p) {
 
 	GLRenderer::SetDefShader(PrimitiveShader);
 
@@ -345,23 +346,24 @@ void GLRenderer::DrawPrimitive(std::vector<Vec2f> points, float r, float g, floa
 	currentShader->uniform2f("camPos", cam.pos.x, cam.pos.y);
 	currentShader->uniform2f("camRes", cam.res.x, cam.res.y);
 	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
-	currentShader->uniform3f("color", r, g, b);
+	currentShader->uniform1f("depth", p.depth);
+	currentShader->uniform4f("Color", p.color.r, p.color.g, p.color.b, p.color.a);
 
-	glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(Vec2f), points.data(), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, p.points.size() * sizeof(Vec2f), p.points.data(), GL_DYNAMIC_DRAW);
 
 
-	glDrawArrays(GL_LINE_LOOP, 0, points.size());
+	glDrawArrays(GL_LINE_LOOP, 0, p.points.size());
 
 	glBindVertexArray(0);
 }
 
-void GLRenderer::DrawPrimitives(std::vector<AABB> rects, float r, float g, float b) {
-	for (auto& shape : rects) {
-		GLRenderer::DrawPrimitive({ shape.pos, Vec2f{shape.pos.x + shape.res.x, shape.pos.y}, shape.pos + shape.res, Vec2f{shape.pos.x, shape.pos.y + shape.res.y} }, r, g, b);
+void GLRenderer::DrawPrimitives(const std::vector<Primitive>& primitives) {
+	for (const auto& primitive : primitives) {
+		GLRenderer::DrawPrimitive(primitive);
 	}
 }
 
-void GLRenderer::DrawFilledPrimitive(std::vector<Vec2f> points, float r, float g, float b) {
+void GLRenderer::DrawFilledPrimitive(const Primitive& p) {
 	GLRenderer::SetDefShader(PrimitiveShader);
 
 	Camera& cam = cameras[currentCam];
@@ -373,19 +375,20 @@ void GLRenderer::DrawFilledPrimitive(std::vector<Vec2f> points, float r, float g
 	currentShader->uniform2f("camPos", cam.pos.x, cam.pos.y);
 	currentShader->uniform2f("camRes", cam.res.x, cam.res.y);
 	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
-	currentShader->uniform3f("color", r, g, b);
+	currentShader->uniform1f("depth", p.depth);
+	currentShader->uniform4f("Color", p.color.r, p.color.g, p.color.b, p.color.a);
 
-	glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(Vec2f), points.data(), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, p.points.size() * sizeof(Vec2f), p.points.data(), GL_DYNAMIC_DRAW);
 
 
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, points.size());
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, p.points.size());
 
 	glBindVertexArray(0);
 }
 
-void GLRenderer::DrawFilledPrimitives(std::vector<AABB> rects, float r, float g, float b) {
-	for (auto& shape : rects) {
-		GLRenderer::DrawFilledPrimitive({ shape.pos, Vec2f{shape.pos.x + shape.res.x, shape.pos.y}, Vec2f{shape.pos.x, shape.pos.y + shape.res.y}, shape.pos + shape.res }, r, g, b);
+void GLRenderer::DrawFilledPrimitives(const std::vector<Primitive>& primitives) {
+	for (auto& primitive : primitives) {
+		GLRenderer::DrawFilledPrimitive(primitive);
 	}
 }
 
