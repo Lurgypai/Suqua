@@ -556,6 +556,7 @@ void Game::openWeaponMenu() {
 void Game::makePlayerGFX(EntityId playerId_) {
 	EntitySystem::MakeComps<PlayerGC>(1, &playerId_);
 	EntitySystem::GetComp<RenderComponent>(playerId_)->loadDrawable<AnimatedSprite>("character", Vec2i{ 64, 64 });
+	EntitySystem::GetComp<RenderComponent>(playerId_)->getDrawable<AnimatedSprite>()->setDepth(0.0);
 	EntitySystem::GetComp<PlayerGC>(playerId_)->loadAnimations(weapons);
 }
 
