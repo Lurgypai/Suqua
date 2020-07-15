@@ -230,9 +230,6 @@ void PlayerLC::update(double timeDelta) {
 	prevButton1 = controller[ControllerBits::BUTTON_1];
 	prevButton2 = controller[ControllerBits::BUTTON_2];
 	prevButton3 = controller[ControllerBits::BUTTON_3];
-
-	DebugIO::setLine(6, "Health:  " + std::to_string(state.health));
-	DebugIO::setLine(7, "Stamina: " + std::to_string(state.stamina));
 }
 
 PhysicsComponent * PlayerLC::getPhysics() {

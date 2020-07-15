@@ -447,6 +447,7 @@ int main(int argc, char* argv[]) {
 			switch (game.getState()) {
 			case GameState::offline:
 			case GameState::online:
+			{
 				//players
 				if (EntitySystem::Contains<PlayerGC>()) {
 					for (auto& comp : EntitySystem::GetPool<PlayerGC>()) {
@@ -463,7 +464,14 @@ int main(int argc, char* argv[]) {
 
 				game.updatePlayerCamera();
 				game.updateWeaponMenu();
+
+				PlayerLC* player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
+
+				auto state = player->getState();
+				DebugIO::setLine(6, "Health:  " + std::to_string(state.health));
+				DebugIO::setLine(7, "Stamina: " + std::to_string(state.stamina));
 				break;
+			}
 			case GameState::stage_editor:
 				game.updateEditorCamera();
 				game.editables.updateGfx();
