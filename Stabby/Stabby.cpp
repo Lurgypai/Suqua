@@ -478,45 +478,22 @@ int main(int argc, char* argv[]) {
 
 			//hitbox rendering
 			/*
-			static bool loadedDebugBoxes{ false };
-			EntityId debugBoxes[20];
-			if (!loadedDebugBoxes) {
-				EntitySystem::GenEntities(20, debugBoxes);
-				EntitySystem::MakeComps<RenderComponent>(20, debugBoxes);
-				for (int i = 0; i != 20; ++i) {
-					EntitySystem::GetComp<RenderComponent>(debugBoxes[i])->loadDrawable<RectDrawable>();
-				}
-				loadedDebugBoxes = true;
-			}
+			GLRenderer::setCamera(1);
 			if (EntitySystem::Contains<CombatComponent>()) {
 				int i = 0;
 				for (auto& combat : EntitySystem::GetPool<CombatComponent>()) {
-					RenderComponent* hitboxRender = EntitySystem::GetComp<RenderComponent>(debugBoxes[i++]);
-					if (hitboxRender == nullptr) {
-						loadedDebugBoxes = false;
-						break;
-					}
 					if (combat.getActiveHitbox() != nullptr) {
 						AABB box = combat.getActiveHitbox()->hit;
-						EntityId hitbox = hitboxRender->getId();
-						PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(hitbox);
-						pos->pos = box.pos;
-						hitboxRender->getDrawable<RectDrawable>()->shape = box;
-						hitboxRender->getDrawable<RectDrawable>()->r = 1.0;
-						hitboxRender->getDrawable<RectDrawable>()->g = 0.0;
-						hitboxRender->getDrawable<RectDrawable>()->b = 0.0;
+						Primitive p{ {box.pos, {box.pos.x + box.res.x, box.pos.y}, box.pos + box.res, {box.pos.x, box.pos.y + box.res.y}}, -1.0, Color{0.0, 1.0, 0.5, 1.0} };
+						GLRenderer::DrawPrimitive(p);
 					}
-					RenderComponent* hurtboxRender = EntitySystem::GetComp<RenderComponent>(debugBoxes[i++]);
 					AABB hurtBox = combat.getBoundingBox();
-					PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(hurtboxRender->getId());
-					pos->pos = hurtBox.pos;
-					hurtboxRender->getDrawable<RectDrawable>()->shape = hurtBox;
-					hurtboxRender->getDrawable<RectDrawable>()->r = 0.0;
-					hurtboxRender->getDrawable<RectDrawable>()->g = 0.0;
-					hurtboxRender->getDrawable<RectDrawable>()->b = 1.0;
+					Primitive p{ {hurtBox.pos, {hurtBox.pos.x + hurtBox.res.x, hurtBox.pos.y}, hurtBox.pos + hurtBox.res, {hurtBox.pos.x, hurtBox.pos.y + hurtBox.res.y}}, -1.0, Color{0.8, 0.0, 0.5, 1.0} };
+					GLRenderer::DrawPrimitive(p);
 				}
 			}
 			*/
+			
 			
 			//Draw all the physics components to the occlusion map.
 			occlusionMap.bind();

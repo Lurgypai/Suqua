@@ -37,6 +37,13 @@ void OnlinePlayerLC::interp(PlayerState st, Time_t when) {
 
 	st.pos = previousPos[0];
 	player->setState(st);
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+
+	//std::cout << "interping\n";
+
+	Vec2f minPos = { std::fminf(previousPos[0].x, previousPos[1].x), std::fminf(previousPos[0].y, previousPos[1].y) };
+	Vec2f maxPos = { std::fmaxf(previousPos[0].x, previousPos[1].x), std::fmaxf(previousPos[0].y, previousPos[1].y) };
+	positionBox = { minPos, maxPos - minPos };
 }
 
 void OnlinePlayerLC::update(Time_t gameTime) {
@@ -46,5 +53,10 @@ void OnlinePlayerLC::update(Time_t gameTime) {
 	double delta = static_cast<double>(whens[1] - whens[0]) * GAME_TIME_STEP;
 
 	Vec2f moveDistance = (previousPos[1] - previousPos[0]) * static_cast<float>(CLIENT_TIME_STEP / delta);
-	position->pos += moveDistance;
+	Vec2f newPos = position->pos + moveDistance;
+	if (positionBox.contains(newPos))
+		position->pos = newPos;
+	//std::cout << "updating\n";
 }
+
+//its not moving now? I think. we'll see. you made change...

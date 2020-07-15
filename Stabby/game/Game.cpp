@@ -256,6 +256,8 @@ void Game::loadNewPlayers() {
 			EntitySystem::GetComp<CombatComponent>(entity)->health = 100;
 			EntitySystem::GetComp<CombatComponent>(entity)->setAttack("sword");
 			EntitySystem::GetComp<CombatComponent>(entity)->stats = CombatStats{ 100, 2, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+			PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(entity);
+			pos->pos = { 0, 0 };
 
 			makePlayerGFX(entity);
 

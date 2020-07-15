@@ -15,6 +15,9 @@ public:
 private:
 	//the current and two previous positions. We are moving between the two previous positions.
 	Vec2f previousPos[3];
+
+	//stores a box created by the earliest previous positions, the onlineplayers position can't be updated outside of this.
+	AABB positionBox;
 	//when the current and two previous positions arrived.
 	Time_t whens[3];
 	EntityId id;
