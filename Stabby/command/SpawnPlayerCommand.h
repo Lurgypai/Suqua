@@ -1,14 +1,14 @@
 #pragma once
 #include "Command.h"
 #include "player.h"
+#include "../game/Game.h"
 
 class SpawnPlayerCommand : public Command {
 public:
-	SpawnPlayerCommand(PlayerManager* players_, WeaponManager* weapons_);
+	SpawnPlayerCommand(Game* game);
 	// Inherited via Command
 	virtual std::string getTag() const override;
 	virtual void onCommand(const std::vector<std::string>& args) override;
 private:
-	PlayerManager* players;
-	WeaponManager* weapons;
+	Game* game;
 };

@@ -4,9 +4,8 @@
 #include "../graphics/PlayerGC.h"
 #include "player.h"
 
-SpawnPlayerCommand::SpawnPlayerCommand(PlayerManager* players_, WeaponManager* weapons_) :
-	players{ players_ },
-	weapons{ weapons_ }
+SpawnPlayerCommand::SpawnPlayerCommand(Game* game_) :
+	game{game_}
 {}
 
 std::string SpawnPlayerCommand::getTag() const {
@@ -18,16 +17,15 @@ void SpawnPlayerCommand::onCommand(const std::vector<std::string>& args) {
 		int amount = std::stoi(args[1]);
 		Vec2f pos{ std::stof(args[2]), std::stof(args[3]) };
 		for (int i = 0; i != amount; ++i) {
-			EntityId playerId = players->makePlayer(*weapons);
+			EntityId playerId = game->players.makePlayer(game->weapons);
 
-			EntitySystem::MakeComps<PlayerGC>(1, &playerId);
-			EntitySystem::GetComp<RenderComponent>(playerId)->loadDrawable<AnimatedSprite>("character", Vec2i{ 64, 64 });
-			EntitySystem::GetComp<PlayerGC>(playerId)->loadAnimations(*weapons);
-			EntitySystem::GetComp<RenderComponent>(playerId)->getDrawable<AnimatedSprite>()->setDepth(-0.1);
+			game->makePlayerGFX(playerId);
 
 			EntitySystem::GetComp<CombatComponent>(playerId)->teamId = 2;
 
 			EntitySystem::GetComp<PositionComponent>(playerId)->pos = pos;
+
+			EntitySystem::MakeComps<AIPlayerComponent>(1, &playerId);
 		}
 	}
 }

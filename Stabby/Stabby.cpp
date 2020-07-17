@@ -28,6 +28,7 @@
 #include <ControllerComponent.h>
 #include "RectDrawable.h"
 #include "TextDrawable.h"
+#include "NavMesh.h"
 
 #include "stage.h"
 
@@ -138,7 +139,7 @@ int main(int argc, char* argv[]) {
 	DebugIO::getCommandManager().registerCommand<WeaponCommand>(game);
 	DebugIO::getCommandManager().registerCommand<VelocityCommand>();
 	DebugIO::getCommandManager().registerCommand<TeleportCommand>();
-	DebugIO::getCommandManager().registerCommand<SpawnPlayerCommand>(SpawnPlayerCommand{ &game.players, &game.weapons });
+	DebugIO::getCommandManager().registerCommand<SpawnPlayerCommand>(SpawnPlayerCommand{ &game });
 	DebugIO::getCommandManager().registerCommand<TeamChangeCommand>(TeamChangeCommand{ &game.client });
 	DebugIO::getCommandManager().registerCommand<HealthCommand>();
 	bool doFBF{ false };
@@ -300,19 +301,10 @@ int main(int argc, char* argv[]) {
 				else {
 					controller.off(ControllerBits::ALL);
 				}
-				constexpr bool aiDo{ false };
-				if (aiDo) {
-					for (auto& aiCont : EntitySystem::GetPool<ControllerComponent>()) {
-						if (aiCont.getId() != game.getPlayerId()) {
-							auto& aiController = aiCont.getController();
-							aiController.set(ControllerBits::UP, rand() % 2);
-							aiController.set(ControllerBits::DOWN, rand() % 2);
-							aiController.set(ControllerBits::LEFT, rand() % 2);
-							aiController.set(ControllerBits::RIGHT, rand() % 2);
-							aiController.set(ControllerBits::BUTTON_1, rand() % 2);
-							aiController.set(ControllerBits::BUTTON_2, rand() % 2);
-							aiController.set(ControllerBits::BUTTON_3, rand() % 2);
-						}
+
+				if (EntitySystem::Contains<AIPlayerComponent>()) {
+					for (auto& ai : EntitySystem::GetPool<AIPlayerComponent>()) {
+						ai.update();
 					}
 				}
 			}
@@ -483,6 +475,31 @@ int main(int argc, char* argv[]) {
 			}
 
 			game.renderAll(gfxDelay);
+
+			GLRenderer::setCamera(1);
+			if (EntitySystem::Contains<PhysicsComponent>()) {
+				static NavMesh n{};
+				for (auto& zone : n.getZones()) {
+					const AABB& collider = zone.area;
+					Color c{ 0.5, 0.5, 0.5, 1.0 };
+					switch (zone.type) {
+					case NavZone::Type::walk:
+						c = { 1.0, 0.0, 0.6, 1.0 };
+						break;
+					case NavZone::Type::jump:
+						c = { 0.0, 1.0, 0.6, 1.0 };
+						break;
+					}
+					Primitive p{ {collider.pos, {collider.pos.x + collider.res.x, collider.pos.y}, collider.pos + collider.res, {collider.pos.x, collider.pos.y + collider.res.y}}, -1.0, c};
+					GLRenderer::DrawPrimitive(p);
+
+					for (auto& adjacent : zone.adjacentZones) {
+						Primitive p{ {zone.area.center(), adjacent->area.center()}, -1.0, Color{0.0, 1.0, 1.0, 1.0} };
+						GLRenderer::DrawPrimitive(p);
+					}
+				}
+			}
+
 
 			//hitbox rendering
 			/*

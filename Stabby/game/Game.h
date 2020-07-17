@@ -39,6 +39,7 @@ public:
 	void updatePlayerCamera();
 	void loadNewPlayers();
 	void loadNewCapturePoints();
+	void makePlayerGFX(EntityId playerId_);
 
 	void updateEditorCamera();
 	void updateEditor();
@@ -75,7 +76,6 @@ public:
 
 	GameState getState();
 private:
-	void makePlayerGFX(EntityId playerId_);
 
 	Stage stage;
 	EntityId playerId;

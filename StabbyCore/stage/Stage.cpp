@@ -94,7 +94,7 @@ void Stage::loadGraphics() {
 		render->loadDrawable<Sprite>("stage::" + name);
 		Sprite* sprite = render->getDrawable<Sprite>();
 		render->offset = {sprite->getImgRes().x / 2, sprite->getImgRes().y};
-		sprite->setDepth(0.9);
+		sprite->setDepth(1.0);
 	}
 }
 

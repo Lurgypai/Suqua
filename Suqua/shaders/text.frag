@@ -17,4 +17,7 @@ void main() {
     else {
         FragColor = vec4(color, texture(textImg, FragCoord).r);
     }
+    
+    if(FragColor.a == 0)
+        discard;
 }

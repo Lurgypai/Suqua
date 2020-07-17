@@ -121,7 +121,6 @@ void Game::startOfflineGame() {
 	for (auto& capturePoint : stage.getSpawnables()) {
 		renderGroups[playerCamId].push_back(capturePoint);
 	}
-	renderGroups[playerCamId].push_back(playerId);
 }
 
 void Game::startOnlineGame() {
@@ -160,7 +159,6 @@ void Game::startOnlineGame() {
 	for (auto& stageAsset : stage.getRenderables()) {
 		renderGroups[playerCamId].push_back(stageAsset);
 	}
-	renderGroups[playerCamId].push_back(playerId);
 }
 
 void Game::startStageEditor(const std::string & filePath) {
@@ -260,8 +258,6 @@ void Game::loadNewPlayers() {
 			pos->pos = { 0, 0 };
 
 			makePlayerGFX(entity);
-
-			renderGroups[playerCamId].push_back(entity);
 
 			++i;
 		}
@@ -560,6 +556,8 @@ void Game::makePlayerGFX(EntityId playerId_) {
 	EntitySystem::GetComp<RenderComponent>(playerId_)->loadDrawable<AnimatedSprite>("character", Vec2i{ 64, 64 });
 	EntitySystem::GetComp<RenderComponent>(playerId_)->getDrawable<AnimatedSprite>()->setDepth(0.0);
 	EntitySystem::GetComp<PlayerGC>(playerId_)->loadAnimations(weapons);
+
+	renderGroups[playerCamId].push_back(playerId_);
 }
 
 void Game::renderAll(double gfxDelay) {
