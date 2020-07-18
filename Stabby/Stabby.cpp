@@ -9,6 +9,7 @@
 #include <cmath>
 #include <time.h>
 #include <algorithm>
+#include <set>
 
 #include <glad/glad.h>
 #include <SDL.h>
@@ -31,6 +32,7 @@
 #include "NavMesh.h"
 
 #include "stage.h"
+#include "player.h"
 
 #include "game/Game.h"
 #include "graphics/camera/PlayerCam.h"
@@ -474,32 +476,109 @@ int main(int argc, char* argv[]) {
 				break;
 			}
 
+
+
 			game.renderAll(gfxDelay);
 
 			GLRenderer::setCamera(1);
-			if (EntitySystem::Contains<PhysicsComponent>()) {
-				static NavMesh n{};
-				for (auto& zone : n.getZones()) {
-					const AABB& collider = zone.area;
-					Color c{ 0.5, 0.5, 0.5, 1.0 };
-					switch (zone.type) {
-					case NavZone::Type::walk:
-						c = { 1.0, 0.0, 0.6, 1.0 };
-						break;
-					case NavZone::Type::jump:
-						c = { 0.0, 1.0, 0.6, 1.0 };
-						break;
-					}
-					Primitive p{ {collider.pos, {collider.pos.x + collider.res.x, collider.pos.y}, collider.pos + collider.res, {collider.pos.x, collider.pos.y + collider.res.y}}, -1.0, c};
-					GLRenderer::DrawPrimitive(p);
-
-					for (auto& adjacent : zone.adjacentZones) {
-						Primitive p{ {zone.area.center(), adjacent->area.center()}, -1.0, Color{0.0, 1.0, 1.0, 1.0} };
+			if (EntitySystem::Contains<AIPlayerComponent>()) {
+				for (auto& aiPlayer : EntitySystem::GetPool<AIPlayerComponent>()) {
+					for (auto& id : aiPlayer.getCurrentPath()) {
+						const ClimbableNavMesh& mesh = AIPlayerComponent::getNavMesh();
+						const auto& collider = mesh.getZone(id).area;
+						Primitive p{ {collider.pos, {collider.pos.x + collider.res.x, collider.pos.y}, collider.pos + collider.res, {collider.pos.x, collider.pos.y + collider.res.y}}, -1.0, Color{0.0, 1.0, 1.0, 1.0} };
 						GLRenderer::DrawPrimitive(p);
 					}
+
+					auto collider = aiPlayer.getCurrZone().area;
+					Primitive p{ {collider.pos, {collider.pos.x + collider.res.x, collider.pos.y}, collider.pos + collider.res, {collider.pos.x, collider.pos.y + collider.res.y}}, -1.0, Color{1.0, 0.5, 1.0, 1.0} };
+					GLRenderer::DrawPrimitive(p);
+
+					collider = aiPlayer.getTargetZone().area;
+					p = { {collider.pos, {collider.pos.x + collider.res.x, collider.pos.y}, collider.pos + collider.res, {collider.pos.x, collider.pos.y + collider.res.y}}, -1.0, Color{1.0, 0.5, 0.0, 1.0} };
+					GLRenderer::DrawPrimitive(p);
+
 				}
 			}
 
+			//pathfinding rendering
+			
+			/*
+			GLRenderer::setCamera(1);
+			if (EntitySystem::Contains<PhysicsComponent>()) {
+				/*
+				static bool meshGenerated = false;
+				static ClimbableNavMesh n{20, 4, 20};
+				if (!meshGenerated) {
+					n.addPhysicsMesh();
+					n.addClimbableMesh();
+					meshGenerated = true;
+				}
+				
+				const ClimbableNavMesh& n = AIPlayerComponent::getNavMesh();
+
+				std::set<std::pair<unsigned int, unsigned int>> drawnPaths;
+				for (auto& pair : n.getZones()) {
+					const AABB& collider = pair.second.area;
+					Color c{ 0.5, 0.5, 0.5, 1.0 };
+					if (pair.second.typeTag == "walk") {
+						c = { 1.0, 0, 0.8, 0.5 };
+					}
+					else if (pair.second.typeTag == "climb") {
+						c = { 1.0, 1.0, 0.0, 0.5 };
+
+					}
+					Primitive p{ {collider.pos, {collider.pos.x + collider.res.x, collider.pos.y}, collider.pos + collider.res, {collider.pos.x, collider.pos.y + collider.res.y}}, -1.0, c };
+					GLRenderer::DrawPrimitive(p);
+
+					/*
+					for (auto& adjacentId : pair.second.adjacentZones) {
+						if (drawnPaths.find(std::pair<unsigned int, unsigned int>{adjacentId, pair.first}) == drawnPaths.end()) {
+							auto& zone = n.getZone(adjacentId);
+
+							Primitive p{ {pair.second.area.center() + Vec2f{-5, 0}, zone.area.center() + Vec2f { -5, 0 }}, -1.0, Color{0.0, 1.0, 1.0, 1.0} };
+							GLRenderer::DrawPrimitive(p);
+						}
+						else {
+							auto& zone = n.getZone(adjacentId);
+
+							Primitive p{ {pair.second.area.center() + Vec2f{5, 0}, zone.area.center() + Vec2f{5, 0}}, -1.0, Color{1.0, 0.5, 0.0, 1.0} };
+							GLRenderer::DrawPrimitive(p);
+						}
+						drawnPaths.insert(std::pair<unsigned int, unsigned int>{pair.first, adjacentId});
+					}
+					
+				}
+				*/
+
+				/*
+				PhysicsComponent* playerPhysics = EntitySystem::GetComp<PhysicsComponent>(game.getPlayerId());
+				const auto& startZone = n.getZone(playerPhysics->getPos() + Vec2f{0, -1});
+				const auto& endZone = n.getZone({ 0, 0 });
+				auto path = n.getPath(startZone->id, endZone->id);
+				for (auto& id : path) {
+					NavZone z = n.getZone(id);
+					const AABB& collider = z.area;
+					Primitive p{ {collider.pos, {collider.pos.x + collider.res.x, collider.pos.y}, collider.pos + collider.res, {collider.pos.x, collider.pos.y + collider.res.y}}, -1.0, Color{0.5, 0.0, 1.0, 1.0} };
+					GLRenderer::DrawPrimitive(p);
+				}
+				PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(game.getPlayerId());
+				const auto& zone = n.getZone(physics->getPos() + Vec2f{0, -1});
+				const auto& collider = zone->area;
+				Primitive p{ {collider.pos, {collider.pos.x + collider.res.x, collider.pos.y}, collider.pos + collider.res, {collider.pos.x, collider.pos.y + collider.res.y}}, -1.0, Color{1.0, 0.5, 0.0, 1.0} };
+				GLRenderer::DrawPrimitive(p);
+				DebugIO::setLine(8, "left: " + std::to_string(zone->leftBlocked));
+				DebugIO::setLine(9, "right: " + std::to_string(zone->rightBlocked));
+
+				for (const auto& adjacentId : zone->adjacentZones) {
+					auto& adjZone = n.getZone(adjacentId);
+
+					Primitive p{ {collider.center(), adjZone.area.center()}, -1.0, Color{0.0, 1.0, 1.0, 1.0} };
+					GLRenderer::DrawPrimitive(p);
+				}
+			}
+			*/
+			
 
 			//hitbox rendering
 			/*

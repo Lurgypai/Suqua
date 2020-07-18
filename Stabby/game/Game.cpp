@@ -108,7 +108,7 @@ void Game::startOfflineGame() {
 
 	EntitySystem::GetComp<PlayerLC>(playerId)->chooseSpawn();
 
-	mode.load(&spawns, 2, 1, 6000);
+	mode.load(&spawns, 2, 1, 200000);
 
 	auto spawnables = stage.getSpawnables();
 	EntitySystem::MakeComps<CapturePointGC>(spawnables.size(), spawnables.data());

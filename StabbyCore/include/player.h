@@ -4,6 +4,7 @@
 #include "../player/PlayerManager.h"
 #include "../player/PlayerStateComponent.h"
 #include "../player/AIPlayerComponent.h"
+#include "../player/ClimbableNavMesh.h"
 
 #include "../player/spawn/RespawnComponent.h"
 #include "../player/spawn/SpawnComponent.h"
