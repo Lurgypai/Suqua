@@ -480,6 +480,7 @@ int main(int argc, char* argv[]) {
 
 			game.renderAll(gfxDelay);
 
+			/*
 			GLRenderer::setCamera(1);
 			if (EntitySystem::Contains<AIPlayerComponent>()) {
 				for (auto& aiPlayer : EntitySystem::GetPool<AIPlayerComponent>()) {
@@ -500,6 +501,7 @@ int main(int argc, char* argv[]) {
 
 				}
 			}
+			*/
 
 			//pathfinding rendering
 			

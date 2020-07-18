@@ -40,6 +40,9 @@ struct Vec2 {
 	bool operator==(const Vec2 & other) const;
 	bool operator!=(const Vec2 & other) const;
 	T distance(const Vec2 & other);
+	Vec2 round() const;
+	Vec2 ceil() const;
+	Vec2 floor() const;
 
 	Vec2 abs();
 };
@@ -158,6 +161,22 @@ T Vec2<T>::distance(const Vec2<T> & other) {
 
 	return sqrt(xDiff * xDiff + yDiff * yDiff);
 }
+
+template<typename T>
+inline Vec2<T> Vec2<T>::round() const {
+	return Vec2<T>{std::round(x), std::round(y)};
+}
+
+template<typename T>
+inline Vec2<T> Vec2<T>::ceil() const {
+	return Vec2<T>{std::ceil(x), std::ceil(y)};
+}
+
+template<typename T>
+inline Vec2<T> Vec2<T>::floor() const {
+	return Vec2<T>{std::floor(x), std::floor(y)};
+}
+
 
 template<typename T>
 inline Vec2<T> Vec2<T>::abs() {

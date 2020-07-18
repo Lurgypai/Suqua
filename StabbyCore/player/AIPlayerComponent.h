@@ -7,9 +7,8 @@ public:
 	EntityId getId() const;
 
 	enum class State {
-		IDLE,
-		DEFEND,
-		ATTACK
+		defend,
+		attack
 	};
 
 	void update();
@@ -21,6 +20,9 @@ public:
 
 private:
 	EntityId id;
+	EntityId targetId;
+	unsigned int timer;
+	State state;
 	NavZone currZone;
 	NavZone targetZone;
 	std::list<unsigned int> currPath;

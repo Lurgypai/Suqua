@@ -16,10 +16,10 @@ void AABB::center(const Vec2f & newCenter) {
 
 bool AABB::contains(Vec2f point) const {
 	return (
-		pos.x < point.x &&
-		pos.y < point.y &&
-		point.x < pos.x + res.x &&
-		point.y < pos.y + res.y
+		pos.x <= point.x &&
+		pos.y <= point.y &&
+		point.x <= pos.x + res.x &&
+		point.y <= pos.y + res.y
 		);
 }
 
