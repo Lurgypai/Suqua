@@ -82,7 +82,22 @@ void AIPlayerComponent::update() {
 						}
 					}
 				}
-
+				//we have them all already
+				if (!targetPoint) {
+					minDistance = -1;
+					for (auto& capturePoint : EntitySystem::GetPool<CapturePointComponent>()) {
+						SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(capturePoint.getId());
+						if (!spawn->isDefault()) {
+							if (capturePoint.getState().currTeamId == ourCombat->teamId) {
+								float distance = ourPos.distance(capturePoint.getZone().center());
+								if (minDistance == -1 || distance < minDistance) {
+									minDistance = distance;
+									targetPoint = &capturePoint;
+								}
+							}
+						}
+					}
+				}
 				targetPos = targetPoint->getZone().center();
 			}
 			break;
