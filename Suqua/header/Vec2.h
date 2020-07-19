@@ -1,6 +1,7 @@
 #pragma once
 #include <ostream>
 #include <cstdint>
+#include <cmath>
 
 template<typename T>
 struct Vec2 {
