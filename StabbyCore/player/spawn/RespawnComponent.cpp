@@ -28,9 +28,14 @@ void RespawnComponent::loadSpawnList(SpawnSystem& spawns) {
 		}
 	}
 	//crash here when it takes too long for the spawns to load. THey need to be loaded first mate.
-	selection = spawnList.begin();
-	currentSpawnZone = *selection;
-	state = selecting;
+	if (!spawnList.empty()) {
+		selection = spawnList.begin();
+		currentSpawnZone = *selection;
+		state = selecting;
+	}
+	else {
+		state = none;
+	}
 }
 
 void RespawnComponent::updateSpawnList(SpawnSystem& spawns) {

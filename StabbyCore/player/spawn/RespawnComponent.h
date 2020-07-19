@@ -5,7 +5,8 @@
 enum RespawnState {
 	unselected,
 	selecting,
-	selected
+	selected,
+	none
 };
 
 class RespawnComponent {

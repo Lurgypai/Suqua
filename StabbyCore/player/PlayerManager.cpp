@@ -39,6 +39,7 @@ void PlayerManager::updatePlayer(double timeDelta, PlayerLC& player, const Stage
 		RespawnComponent* respawn = EntitySystem::GetComp<RespawnComponent>(player.getId());
 		switch (respawn->getState())
 		{
+		case none:
 		case unselected:
 			respawn->loadSpawnList(spawns);
 			break;
