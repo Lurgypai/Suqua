@@ -1,19 +1,19 @@
 {
-    "restartDelay": 10,
+    "restartDelay": 15,
     "hitboxes": [
         {
             "width": 9,
             "height": 7,
             "offset_x": 2,
             "offset_y": -16,
-            "startup": 2,
-            "active": 16,
-            "ending": 2,
+            "startup": 8,
+            "active": 20,
+            "ending": 10,
             "stats":
             {
-                "staminaCost": 5,
+                "staminaCost": 10,
                 "damage": 10,
-                "stun": 40,
+                "stun": 6,
                 "critChance": 0.0,
                 "critMultiplier": 0.0,
                 "vampirismChance": 0.0,
@@ -25,14 +25,14 @@
             "height": 12,
             "offset_x": 2,
             "offset_y": -19,
-            "startup": 2,
-            "active": 16,
-            "ending": 2,
+            "startup": 4,
+            "active": 20,
+            "ending": 4,
             "stats":
             {
-                "staminaCost": 10,
+                "staminaCost": 15,
                 "damage": 40,
-                "stun": 40,
+                "stun": 10,
                 "critChance": 0.0,
                 "critMultiplier": 0.0,
                 "vampirismChance": 0.0,

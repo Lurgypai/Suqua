@@ -41,4 +41,5 @@ private:
 	float prevXVel;
 	int prevAttack;
 	double defaultFrameDelay;
+	bool animationFrozen;
 };

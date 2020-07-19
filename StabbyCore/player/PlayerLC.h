@@ -42,7 +42,7 @@ protected:
 	double horizontalAccel;
 	double stepDistance;
 	double climbDistance;
-	bool attackBuffered;
+	bool rollBuffered;
 
 	bool prevButton1;
 	bool prevButton2;

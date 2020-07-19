@@ -23,7 +23,8 @@ PlayerLC::PlayerLC(EntityId id_) :
 	horizontalAccel{10.0},
 	stepDistance{70},
 	climbDistance{35},
-	rollCost{240}
+	rollCost{240},
+	rollBuffered{false}
 {
 	//do not default construct
 	if (id != 0) {
@@ -95,6 +96,13 @@ void PlayerLC::update(double timeDelta) {
 		case State::stunned:
 			if (combat->isStunned()) {
 				vel.x = 0;
+
+				bool currButton3 = controller[ControllerBits::BUTTON_3];
+				if (prevButton3 != currButton3) {
+					if (currButton3) {
+						rollBuffered = true;
+					}
+				}
 			}
 			else {
 				state.state = State::free;
@@ -162,6 +170,7 @@ void PlayerLC::update(double timeDelta) {
 						//remove stamina and restart timer to refill stamina
 						combat->useStamina(rollCost);
 						state.staminaRechargeFrame = 0;
+						break;
 					}
 				}
 			}
@@ -208,9 +217,10 @@ void PlayerLC::update(double timeDelta) {
 		}
 	}
 
-	if (combat->health <= 0)
+	if (combat->health <= 0) {
 		state.state = State::dead;
-
+		rollBuffered = false;
+	}
 	else if (combat->isStunned())
 		state.state = State::stunned;
 
@@ -378,44 +388,51 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 
 	CombatComponent * combat = EntitySystem::GetComp<CombatComponent>(id);
 
+	//always return after changing to a new state
+
+	//start attacking
 	if (attackToggledDown_) {
-		if(combat->startAttacking())
+		if (combat->startAttacking()) {
 			state.state = State::attacking;
+			return;
+		}
 	}
 
 	//try to start rolling
 	if (state.state != State::attacking) {
 		bool currButton3 = controller[ControllerBits::BUTTON_3];
-		if (prevButton3 != currButton3) {
-			if (currButton3) {
-				if (combat->stamina >= rollCost) {
-					state.state = State::rolling;
-					combat->invulnerable = true;
-					storedVel = vel.x;
-					vel.x = direction->dir * rollVel;
+		if ((prevButton3 != currButton3 && currButton3 || rollBuffered)) {
+			rollBuffered = false;
+			if (combat->stamina >= rollCost) {
+				state.state = State::rolling;
+				combat->invulnerable = true;
+				storedVel = vel.x;
+				vel.x = direction->dir * rollVel;
 
-					//remove stamina and restart timer to refill stamina
-					combat->useStamina(rollCost);
-					state.staminaRechargeFrame = 0;
-				}
+				//remove stamina and restart timer to refill stamina
+				combat->useStamina(rollCost);
+				state.staminaRechargeFrame = 0;
+				return;
 			}
 		}
 	}
 
+	//start climbing
 	if (EntitySystem::Contains<ClimbableComponent>()) {
 		for (auto& climable : EntitySystem::GetPool<ClimbableComponent>()) {
 			if (comp->intersects(climable.collider) && controller[ControllerBits::UP]) {
 				state.state = State::climbing;
 				comp->weightless = true;
+				return;
 			}
 		}
 	}
 
 	if (comp->grounded && controller[ControllerBits::DOWN]) {
-
 		state.state = State::crouching;
 		state.healDelay = 0;
 		state.healFrame = 0;
+		return;
 	}
 
 	if (state.state == State::free) {

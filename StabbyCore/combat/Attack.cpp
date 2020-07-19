@@ -91,8 +91,12 @@ unsigned int Attack::getCurrFrame() const {
 	return currFrame;
 }
 
-unsigned int Attack::getCurrentTotalFrames() {
+unsigned int Attack::getCurrTotalFrames() const {
 	return hitboxes[active - 1].startup + hitboxes[active - 1].active + hitboxes[active - 1].ending;
+}
+
+unsigned int Attack::getCurrRemainingFrames() const {
+	return (hitboxes[active - 1].startup + hitboxes[active - 1].active + hitboxes[active - 1].ending) - currFrame;
 }
 
 AttackStats Attack::getStats() const {
@@ -140,7 +144,7 @@ void Attack::update(double timeDelta, Vec2f pos, int facing) {
 			currFrame += passedFrames;
 		}
 	}
-	//otherwise reset (only if we weren't attacking)
+	//otherwise reset (only if we were attacking)
 	else if(active != 0) {
 		active = 0;
 		currFrame = 0;
@@ -160,6 +164,16 @@ bool Attack::pollAttackChange() {
 		return true;
 	}
 	return false;
+}
+
+void Attack::cancelAttack() {
+	if (active != 0)
+		attackChanged = true;
+
+	active = 0;
+	currFrame = 0;
+	nextIsBuffered = false;
+	restartDelay = 0;
 }
 
 const std::string& Attack::getId() const {

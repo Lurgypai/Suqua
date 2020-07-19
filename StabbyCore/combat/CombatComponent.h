@@ -57,6 +57,7 @@ public:
 
 	void setAttack(const std::string& attackId);
 	const Attack& getAttack() const;
+	unsigned int getRemainingFrames() const;
 
 	//runs damage calculations and returns the result
 	int rollDamage();

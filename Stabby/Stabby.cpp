@@ -209,6 +209,7 @@ int main(int argc, char* argv[]) {
 
 	unsigned int frame{};
 	unsigned int tick{};
+	unsigned int updatesPerFrame = 2;
 
 	double gfxDelay{ 1.0 / 60 };
 	Uint64 currentLog = SDL_GetPerformanceCounter();
@@ -304,9 +305,12 @@ int main(int argc, char* argv[]) {
 					controller.off(ControllerBits::ALL);
 				}
 
-				if (EntitySystem::Contains<AIPlayerComponent>()) {
-					for (auto& ai : EntitySystem::GetPool<AIPlayerComponent>()) {
-						ai.update();
+				constexpr bool doAi = true;
+				if (doAi) {
+					if (EntitySystem::Contains<AIPlayerComponent>()) {
+						for (auto& ai : EntitySystem::GetPool<AIPlayerComponent>()) {
+							ai.update();
+						}
 					}
 				}
 			}
@@ -314,94 +318,98 @@ int main(int argc, char* argv[]) {
 			/*------------------------------------------------------ Update States -----------------------------------------------*/
 
 			if (canProgressFrame) {
-				switch (game.getState())
-				{
-				case GameState::main_menu:
-					game.updateMainMenu();
-					break;
-				case GameState::pause_menu:
-					break;
-				case GameState::online:
-					physics.runPhysics(CLIENT_TIME_STEP);
-					game.combat.runAttackCheck(CLIENT_TIME_STEP);
+				for (int i = 0; i != updatesPerFrame; ++i) {
+					switch (game.getState())
+					{
+					case GameState::main_menu:
+						game.updateMainMenu();
+						break;
+					case GameState::pause_menu:
+						break;
+					case GameState::online:
+						physics.runPhysics(CLIENT_TIME_STEP);
+						game.combat.runAttackCheck(CLIENT_TIME_STEP);
 
-					game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
+						game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 
-					game.clientPlayers.update(client.getTime(), client.clientTime);
+						game.clientPlayers.update(client.getTime(), client.clientTime);
 
-					if (client.getConnected()) {
-						OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(game.getPlayerId());
+						if (client.getConnected()) {
+							OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(game.getPlayerId());
 
 
-						//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
-						client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
+							//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
+							client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
 
-						if (EntitySystem::Contains<ControllerComponent>()) {
-							ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(game.getPlayerId());
-							if (cont != nullptr) {
-								auto& controller = cont->getController();
-								static ControllerPacket lastSent{};
+							if (EntitySystem::Contains<ControllerComponent>()) {
+								ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(game.getPlayerId());
+								if (cont != nullptr) {
+									auto& controller = cont->getController();
+									static ControllerPacket lastSent{};
 
-								ControllerPacket state{};
-								state.clientTime = client.clientTime;
-								state.state = controller.getState();
-								state.when = client.getTime();
-								state.netId = online->getNetId();
+									ControllerPacket state{};
+									state.clientTime = client.clientTime;
+									state.state = controller.getState();
+									state.when = client.getTime();
+									state.netId = online->getNetId();
 
-								lastSent.when = client.getTime();
-								lastSent.clientTime = client.clientTime;
+									lastSent.when = client.getTime();
+									lastSent.clientTime = client.clientTime;
 
-								//the sent state is the controller state from after the timestamped update has run
-								if (lastSent != state) {
-									lastSent = state;
-									client.send(state);
-									DebugFIO::Out("c_out.txt") << "Sent input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
-									//std::cout << "Sending update for time: " << lastSent.when << '\n';
+									//the sent state is the controller state from after the timestamped update has run
+									if (lastSent != state) {
+										lastSent = state;
+										client.send(state);
+										DebugFIO::Out("c_out.txt") << "Sent input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
+										//std::cout << "Sending update for time: " << lastSent.when << '\n';
+									}
 								}
 							}
+
+							client.service();
+
+							if (client.isBehindServer()) {
+								std::cout << "We're behind the server, pinging our time.\n";
+								client.ping();
+								client.resetBehindServer();
+							}
+
+							if (EntitySystem::Contains<OnlinePlayerLC>()) {
+								for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
+									onlinePlayer.update(client.getTime());
+								}
+							}
+
+							game.loadNewPlayers();
+							game.loadNewCapturePoints();
+
+							DebugIO::setLine(3, "NetId: " + std::to_string(online->getNetId()));
+							DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
 						}
-
-						client.service();
-
-						if (client.isBehindServer()) {
-							std::cout << "We're behind the server, pinging our time.\n";
-							client.ping();
-							client.resetBehindServer();
-						}
-
-						if (EntitySystem::Contains<OnlinePlayerLC>()) {
-							for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
-								onlinePlayer.update(client.getTime());
+						break;
+					case GameState::offline:
+						physics.runPhysics(CLIENT_TIME_STEP);
+						game.combat.runAttackCheck(CLIENT_TIME_STEP);
+						game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
+						if (EntitySystem::Contains<HeadParticleLC>()) {
+							Pool<HeadParticleLC>& heads = EntitySystem::GetPool<HeadParticleLC>();
+							for (auto& head : heads) {
+								head.update(CLIENT_TIME_STEP);
 							}
 						}
 
-						game.loadNewPlayers();
-						game.loadNewCapturePoints();
-
-						DebugIO::setLine(3, "NetId: " + std::to_string(online->getNetId()));
-						DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
+						game.mode.tickCapturePoints(game.spawns, CLIENT_TIME_STEP);
+						break;
+					case GameState::stage_editor:
+						game.updateEditor();
+						break;
+					default:
+						break;
 					}
-					break;
-				case GameState::offline:
-					physics.runPhysics(CLIENT_TIME_STEP);
-					game.combat.runAttackCheck(CLIENT_TIME_STEP);
-					game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
-					if (EntitySystem::Contains<HeadParticleLC>()) {
-						Pool<HeadParticleLC>& heads = EntitySystem::GetPool<HeadParticleLC>();
-						for (auto& head : heads) {
-							head.update(CLIENT_TIME_STEP);
-						}
-					}
-
-					game.mode.tickCapturePoints(game.spawns, CLIENT_TIME_STEP);
-					break;
-				case GameState::stage_editor:
-					game.updateEditor();
-					break;
-				default:
-					break;
+					//if we aren't doing frame by frame, don't apply multiple updates
+					if (!doFBF)
+						break;
 				}
-				canProgressFrame = true;
 			}
 		}
 
@@ -420,7 +428,7 @@ int main(int argc, char* argv[]) {
 				updateGFX = true;
 		}
 		else {
-			updateGFX = (tick % static_cast<int>(gfxDelay / CLIENT_TIME_STEP) == 0);
+			updateGFX = canProgressFrame;
 		}
 		if (updateGFX) {
 			frame++;
@@ -599,6 +607,7 @@ int main(int argc, char* argv[]) {
 				}
 			}
 			*/
+			
 			
 			
 			//Draw all the physics components to the occlusion map.
