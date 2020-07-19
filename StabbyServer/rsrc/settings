@@ -1,4 +1,0 @@
-port=25565
-disconnectDelay=10000.0
-forceDisconnectDelay=10000.0
-stage=stage0

@@ -26,6 +26,7 @@ private:
 	NavZone currZone;
 	NavZone targetZone;
 	std::list<unsigned int> currPath;
+	bool findSpawn;
 
 	static bool meshGenerated;
 	static ClimbableNavMesh navMesh;

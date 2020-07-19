@@ -23,8 +23,10 @@
 #include "server/User.h"
 #include "server/Settings.h"
 #include "player/ServerPlayerSystem.h"
+#include "player.h"
 
 #include "gamemode.h"
+#include "nlohmann/json.hpp"
 
 #define CLIENT_SIDE_DELTA 1.0 / 120
 
@@ -35,6 +37,7 @@ using UserPtr = std::unique_ptr<User>;
 using std::ifstream;
 using std::string;
 using std::cout;
+using json = nlohmann::json;
 
 int main(int argv, char* argc[])
 {
@@ -42,66 +45,32 @@ int main(int argv, char* argc[])
 	cout << "Starting server...\n";
 	enet_initialize();
 
-	ifstream file{ "settings" };
+	ifstream file{ "settings.json" };
 	if (!file.good()) {
 		cout << "Unable to open 'settings' file. Closing server.\n";
 		return 1;
 	}
 
 	string line;
-	Settings settings{ 0, 0, 0, "" };
-	while (std::getline(file, line, '\n')) {
-		size_t splitPos = line.find('=');
-		string idToken = line.substr(0, splitPos);
-		string value = line.substr(splitPos + 1, line.size() - splitPos);
-		if (idToken == "port") {
-			try {
-				settings.port = std::stoi(value);
-			}
-			catch (std::invalid_argument e) {
-				cout << "Unable to read port, closing server.\n";
-				return 1;
-			}
-		}
-		else if (idToken == "disconnectDelay") {
-			try {
-				settings.disconnectDelay = std::stod(value);
-			}
-			catch (std::invalid_argument e) {
-				cout << "Unable to read disconnectDelay, closing server.\n";
-				return 1;
-			}
-		}
-		else if (idToken == "forceDisconnectDelay") {
-			try {
-				settings.forceDisconnectDelay = std::stod(value);
-			}
-			catch (std::invalid_argument e) {
-				cout << "Unable to read forceDisconenctDelay, closing server.\n";
-				return 1;
-			}
-		}
-		else if (idToken == "stage") {
-			settings.stage = value;
-		}
-	}
+	json settings{};
+	settings << file;
+	int port = settings["port"];
+	double disconnectDelay = settings["disconnectDelay"];
+	double forceDisconnectDelay = settings["forceDisconnectDelay"];
+	int aiPlayerCount = settings["aiPlayerCount"];
+
+	std::string stageName = settings["stage"];
 
 	SpawnSystem spawns;
-	Stage stage{settings.stage, spawns};
+	Stage stage{stageName, spawns};
 
 	Host server;
-	if (!server.createServer(settings.port, 32, 3)) {
+	if (!server.createServer(port, 32, 3)) {
 		std::cout << "Oops, no server! Perhaps one is already running on this port?\n";
 		return -1;
 	}
 
 	std::cout << "Beginning server loop.\n";
-
-
-	//wait this long to disconnect a client
-	double disconnectDelay{ settings.disconnectDelay }; // 5.0
-	//force a disconenct at this point
-	double forceDisconnectDelay{ settings.forceDisconnectDelay }; // 10.0
 
 	Uint64 prev = SDL_GetPerformanceCounter();
 
@@ -119,6 +88,7 @@ int main(int argv, char* argc[])
 	std::list<UserPtr> users;
 
 	PhysicsSystem physics{};
+	physics.runPhysics(CLIENT_TIME_STEP);
 	CombatSystem combat{};
 	WeaponManager weapons{};
 	ClimbableSystem climbables{};
@@ -137,6 +107,17 @@ int main(int argv, char* argc[])
 
 	PeerId clientPeerId = 0;
 	DebugFIO::AddFOut("s_out.txt");
+
+	//generate player buffer
+	std::vector<EntityId> aiPlayers(aiPlayerCount, 0);
+	for (auto& id : aiPlayers) {
+		id = players.makePlayer(weapons);
+		EntitySystem::MakeComps<AIPlayerComponent>(1, &id);
+		mode.addPlayer(id);
+		online.addOnlineComponent(id);
+		PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);
+		player->chooseSpawn();
+	}
 
 	//switch game to tick at client speed, but only send updates out at server speed
 	//test this, it looks like its done.
@@ -171,10 +152,15 @@ int main(int argv, char* argc[])
 						JoinPacket join{};
 						join.joinerId = clientNetId;
 						server.sendPacket<JoinPacket>(user->getConnection()->getPeer(), 0, join);
-
+					}
+				}
+				//fill us in about all players
+				for (auto& playerLC : EntitySystem::GetPool<PlayerLC>()) {
+					OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerLC.getId());
+					if (online->getNetId() != clientNetId) {
 						//tell us about them
 						JoinPacket us{};
-						us.joinerId = user->getOnline().getNetId();
+						us.joinerId = online->getNetId();
 						server.sendPacket(event.peer, 0, us);
 					}
 				}
@@ -326,7 +312,13 @@ int main(int argv, char* argc[])
 					DebugFIO::Out("s_out.txt") << "Physics to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 				combat.runAttackCheck(CLIENT_TIME_STEP);
 
-				onlinePlayers.updatePlayers(players, lastUpdatedTime, stage, spawns);
+				//update all ai players
+				for (auto& aiPlayer : EntitySystem::GetPool<AIPlayerComponent>()) {
+					aiPlayer.update();
+					players.update(aiPlayer.getId(), lastUpdatedTime, stage, spawns);
+				}
+
+				onlinePlayers.updatePlayers(players, CLIENT_TIME_STEP, stage, spawns);
 				for (auto& user : users)
 					DebugFIO::Out("s_out.txt") << "Updated to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 
@@ -351,13 +343,15 @@ int main(int argv, char* argc[])
 			++currentTick;
 			//tell all
 			std::vector<StatePacket> states;
-			states.reserve(users.size());
-			for (auto& user : users) {
+			states.reserve(EntitySystem::GetPool<PlayerLC>().size());
+			for (auto& playerLC : EntitySystem::GetPool<PlayerLC>()) {
+				OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerLC.getId());
+				ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(playerLC.getId());
 				StatePacket pos{};
-				pos.state = user->getPlayer().getState();
+				pos.state = playerLC.getState();
 				pos.when = gameTime;
-				pos.id = user->getOnline().getNetId();
-				pos.controllerState = user->getController().getController().getState();
+				pos.id = online->getNetId();
+				pos.controllerState = controller->getController().getState();
 
 				pos.serialize();
 				states.push_back(pos);

@@ -120,6 +120,10 @@ EntityId RespawnComponent::getCurrentSpawn() {
 	return currentSpawnZone;
 }
 
+const std::set<EntityId>& RespawnComponent::getSpawnList() const {
+	return spawnList;
+}
+
 void RespawnComponent::reset() {
 	state = unselected;
 }

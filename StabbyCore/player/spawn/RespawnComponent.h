@@ -18,6 +18,7 @@ public:
 	void updateSpawnList(SpawnSystem& spawns);
 	void searchForSpawn();
 	EntityId getCurrentSpawn();
+	const std::set<EntityId>& getSpawnList() const;
 	void reset();
 private:
 	EntityId id;
