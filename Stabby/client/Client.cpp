@@ -12,6 +12,7 @@
 #include "EntitySystem.h"
 #include "EntityBaseComponent.h"
 #include "ControllerComponent.h"
+#include "MarkedStream.h"
 
 Client::Client() :
 	clientTime{0}
@@ -193,12 +194,40 @@ void Client::receive(ENetEvent & e) {
 		toJoinIds.push_back(p.joinerId);
 	}
 	else if (packetKey == STATE_KEY) {
+		//skip the key
+		MarkedStream m{e.packet->data + 4, e.packet->dataLength - 4};
+		while (m.hasMoreData()) {
+			StatePacket p;
+			p.readFrom(m);
+			p.unserialize();
+
+			EntityId targetId = online->getEntity(p.id);
+			if (targetId != 0) {
+				ClientPlayerComponent* player = EntitySystem::GetComp<ClientPlayerComponent>(targetId);
+				if (player != nullptr) {
+					clientPlayers->repredict(playerId, p.id, p.state, CLIENT_TIME_STEP);
+				}
+				else if (EntitySystem::Contains<OnlinePlayerLC>()) {
+					auto onlinePlayer = EntitySystem::GetComp<OnlinePlayerLC>(targetId);
+					if (onlinePlayer) {
+						onlinePlayer->interp(p.state, p.when);
+						ControllerComponent* onlinePlayerController = EntitySystem::GetComp<ControllerComponent>(targetId);
+						onlinePlayerController->getController() = Controller{ p.controllerState };
+					}
+					else {
+						DebugIO::printLine("Unable to find player " + std::to_string(p.id) + ". Did they disconnect?");
+					}
+
+				}
+			}
+		}
+		//send acknowledge packet
+
+		/*
 		std::vector<StatePacket> states;
 		size_t size = e.packet->dataLength / sizeof(StatePacket);
 		states.resize(size);
-
 		PacketUtil::readInto<StatePacket>(&states[0], e.packet, size);
-
 		for (auto & p : states) {
 			p.unserialize();
 			EntityId targetId = online->getEntity(p.id);
@@ -221,6 +250,7 @@ void Client::receive(ENetEvent & e) {
 				}
 			}
 		}
+		*/
 	}
 	else if (packetKey == TEAM_KEY) {
 		TeamChangePacket p;

@@ -1,5 +1,6 @@
 #pragma once
 #include "Packet.h"
+#include "MarkedStream.h"
 #include "../../player/PlayerStateComponent.h"
 #define STATE_KEY	"SST"	//suqua state
 
@@ -32,4 +33,7 @@ public:
 	// Inherited via Packet
 	void serialize();
 	void unserialize();
+	void readInto(MarkedStream& m, const PlayerState& prevState);
+	void readInto(MarkedStream& m);
+	void readFrom(MarkedStream& m);
 };

@@ -13,12 +13,14 @@
 #include <algorithm>
 #include <vector>
 #include <cstring>
+#include <unordered_map>
 
 #include "stage.h"
 
 #include "PhysicsSystem.h"
 #include "EntityBaseComponent.h"
 #include "DebugFIO.h"
+#include "MarkedStream.h"
 
 #include "server/User.h"
 #include "server/Settings.h"
@@ -96,6 +98,8 @@ int main(int argv, char* argc[])
 	ServerPlayerSystem onlinePlayers{};
 	DominationMode mode{};
 	OnlineSystem online{};
+
+	std::unordered_map<EntityId, PlayerState> prevPlayerStates;
 	mode.load(&spawns, 2, 1, 144000);
 
 	for (auto& capturePoint : EntitySystem::GetPool<CapturePointComponent>()) {
@@ -155,6 +159,8 @@ int main(int argv, char* argc[])
 					}
 				}
 				//fill us in about all players
+
+				MarkedStream m;
 				for (auto& playerLC : EntitySystem::GetPool<PlayerLC>()) {
 					OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerLC.getId());
 					if (online->getNetId() != clientNetId) {
@@ -164,6 +170,7 @@ int main(int argv, char* argc[])
 						server.sendPacket(event.peer, 0, us);
 					}
 				}
+
 				break;
 			}
 			case ENET_EVENT_TYPE_RECEIVE:
@@ -305,17 +312,26 @@ int main(int argv, char* argc[])
 
 			//std::cout << "Server tick, polling packets...\n";
 
+			if (EntitySystem::Contains<PlayerLC>()) {
+				for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
+					prevPlayerStates[player.getId()] = player.getState();
+				}
+			}
+
 			while (lastUpdatedTime != gameTime) {
 				++lastUpdatedTime;
+
 				physics.runPhysics(CLIENT_TIME_STEP);
 				for (auto& user : users)
 					DebugFIO::Out("s_out.txt") << "Physics to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 				combat.runAttackCheck(CLIENT_TIME_STEP);
 
 				//update all ai players
-				for (auto& aiPlayer : EntitySystem::GetPool<AIPlayerComponent>()) {
-					aiPlayer.update();
-					players.update(aiPlayer.getId(), lastUpdatedTime, stage, spawns);
+				if (EntitySystem::Contains<AIPlayerComponent>()) {
+					for (auto& aiPlayer : EntitySystem::GetPool<AIPlayerComponent>()) {
+						aiPlayer.update();
+							players.update(aiPlayer.getId(), lastUpdatedTime, stage, spawns);
+					}
 				}
 
 				onlinePlayers.updatePlayers(players, CLIENT_TIME_STEP, stage, spawns);
@@ -341,7 +357,26 @@ int main(int argv, char* argc[])
 			}
 
 			++currentTick;
-			//tell all
+			
+			MarkedStream m;
+			StatePacket state;
+			if (EntitySystem::Contains<PlayerLC>()) {
+				for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
+					OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(player.getId());
+					ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(player.getId());
+					state.state = player.getState();
+					state.when = gameTime;
+					state.id = online->getNetId();
+					state.controllerState = controller->getController().getState();
+					state.serialize();
+
+					const auto& prevState = prevPlayerStates[player.getId()];
+					state.readInto(m, prevState);
+				}
+			}
+			
+			//legacy state packing
+			/*
 			std::vector<StatePacket> states;
 			states.reserve(EntitySystem::GetPool<PlayerLC>().size());
 			for (auto& playerLC : EntitySystem::GetPool<PlayerLC>()) {
@@ -357,6 +392,7 @@ int main(int argv, char* argc[])
 				states.push_back(pos);
 				pos.unserialize();
 			}
+			*/
 
 			std::vector<CapturePointPacket> capturePointPackets;
 			auto packetsSize = EntitySystem::GetPool<CapturePointComponent>().size();
@@ -372,7 +408,12 @@ int main(int argv, char* argc[])
 
 			for (auto& other : users) {
 				//send the contiguous state block
-				server.sendData(other->getConnection()->getPeer(), 1, states.data(), sizeof(StatePacket) * states.size());
+				//server.sendData(other->getConnection()->getPeer(), 1, states.data(), sizeof(StatePacket) * states.size());
+				std::vector<char> data;
+				data.resize(m.size() + 4);
+				std::memcpy(data.data(), "SST", 4);
+				std::memcpy(data.data() + 4, m.data(), m.size());
+				server.sendData(other->getConnection()->getPeer(), 1, data.data(), data.size());
 				//DebugFIO::Out("s_out.txt") << "Attempting to send batched player updates.\n";
 				server.sendData(other->getConnection()->getPeer(), 2, capturePointPackets.data(), sizeof(CapturePointPacket)* capturePointPackets.size());
 			}
@@ -454,4 +495,28 @@ A client state packet will have to things:
 - Player State
 	- Player pos
 	- player vel
+*/
+
+
+/*
+create a master state class to store all player states, and id
+create acknowledgement packet
+add master state queue to serverplayercomponent
+for each user
+	if no states acknowledged or empty
+		send full master state
+	otherwise
+		compare changes, send changes
+
+on receive acknowledgement
+	mark state as acknowledged in respective ServerPlayerComponent
+
+
+when a player joins initialize prev akcnowledged master states to 0
+for each client
+	send the changes from the last acknowledged master state (if its empty, send the current master state)
+
+on client receive
+	send acknowledgement
+	update to match all changes
 */
