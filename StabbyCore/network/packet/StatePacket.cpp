@@ -244,102 +244,104 @@ DynamicBitset StatePacket::readFrom(MarkedStream& m) {
 
 	DynamicBitset b;
 	b.resize(23); // number of fields in PlayerState;
+	
+	using Bits = PlayerState::StateBits;
 
 	if (m >> state.gameTime) {
 		state.gameTime = s_ntohll(state.gameTime);
-		b.set(0, true);
+		b.set(Bits::b_game_time, true);
 	}
 	if (m >> state.clientTime) {
 		state.clientTime = s_ntohll(state.clientTime);
-		b.set(1, true);
+		b.set(Bits::b_client_time, true);
 	}
 	if (m >> state.state) {
-		b.set(2, true);
+		b.set(Bits::b_state, true);
 	}
 
 	if (m >> state.rollFrame) {
 		state.rollFrame = s_ntohl(state.rollFrame);
-		b.set(3, true);
+		b.set(Bits::b_roll_frame, true);
 	}
 	if (m >> state.activeAttack) {
 		state.activeAttack = s_ntohl(state.activeAttack);
-		b.set(4, true);
+		b.set(Bits::b_active_attack, true);
 	}
 	if (m >> state.attackFrame) {
 		state.attackFrame = s_ntohl(state.attackFrame);
-		b.set(5, true);
+		b.set(Bits::b_attack_frame, true);
 	}
 	if (m >> state.health) {
 		state.health = s_ntohl(state.health);
-		b.set(6, true);
+		b.set(Bits::b_health, true);
 	}
 	if (m >> state.stunFrame) {
 		state.stunFrame = s_ntohl(state.stunFrame);
-		b.set(7, true);
+		b.set(Bits::b_stun_frame, true);
 	}
 	if (m >> state.healFrame) {
 		state.healFrame = s_ntohl(state.healFrame);
-		b.set(8, true);
+		b.set(Bits::b_heal_frame, true);
 	}
 	if (m >> state.healDelay) {
 		state.healDelay = s_ntohl(state.healDelay);
-		b.set(9, true);
+		b.set(Bits::b_heal_delay, true);
 	}
 	if (m >> state.facing) {
 		state.facing = s_ntohl(state.facing);
-		b.set(10, true);
+		b.set(Bits::b_facing, true);
 	}
 	if (m >> spawnPoint) {
 		state.spawnPoint.x = s_ntohf(spawnPoint.x);
 		state.spawnPoint.y = s_ntohf(spawnPoint.y);
-		b.set(11, true);
+		b.set(Bits::b_spawn_point, true);
 	}
 	if (m >> state.attackFreezeFrame) {
 		state.attackFreezeFrame = s_ntohl(state.attackFreezeFrame);
-		b.set(12, true);
+		b.set(Bits::b_attack_freeze_frame, true);
 	}
 	if (m >> state.teamId) {
 		state.teamId = s_ntohl(state.teamId);
-		b.set(13, true);
+		b.set(Bits::b_team_id, true);
 	}
 	if (m >> state.stamina) {
 		state.stamina = s_ntohl(state.stamina);
-		b.set(14, true);
+		b.set(Bits::b_stamina, true);
 	}
 	if (m >> state.staminaRechargeFrame) {
 		state.staminaRechargeFrame = s_ntohl(state.staminaRechargeFrame);
-		b.set(15, true);
+		b.set(Bits::b_stamina_recharge_frame, true);
 	}
 	if (m >> state.deathFrame) {
 		state.deathFrame = s_ntohl(state.deathFrame);
-		b.set(16, true);
+		b.set(Bits::b_death_frame, true);
 	}
 	if (m >> moveSpeed) {
 		state.moveSpeed = s_ntohd(moveSpeed);
-		b.set(17, true);
+		b.set(Bits::b_move_speed, true);
 	}
 	if (m >> attackSpeed) {
 		state.attackSpeed = s_ntohd(attackSpeed);
-		b.set(18, true);
+		b.set(Bits::b_attack_speed, true);
 	}
 
 	if (m >> state.weaponTag) {
-		b.set(19, true);
+		b.set(Bits::b_weapon_tag, true);
 	}
 
 	if (m >> pos) {
 		state.pos.x = s_ntohf(pos.x);
 		state.pos.y = s_ntohf(pos.y);
-		b.set(20, true);
+		b.set(Bits::b_pos, true);
 	}
 	if (m >> vel) {
 		state.vel.x = s_ntohf(vel.x);
 		state.vel.y = s_ntohf(vel.y);
-		b.set(21, true);
+		b.set(Bits::b_vel, true);
 	}
 
 	if (m >> state.frozen) {
-		b.set(22, true);
+		b.set(Bits::b_frozen, true);
 	}
 	return b;
 }

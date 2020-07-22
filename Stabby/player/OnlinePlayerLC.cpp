@@ -27,42 +27,46 @@ void OnlinePlayerLC::interp(PlayerState state, const DynamicBitset& changedField
 	PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);
 	const auto& plrState = player->getState();
 
-	if (!changedFields[2])
+	//compare to bitset, and set all values that weren't changed
+	using Bits = PlayerState::StateBits;
+	if (!changedFields[Bits::b_state])
 		state.state = plrState.state;
-	if (!changedFields[3])
+	if (!changedFields[Bits::b_roll_frame])
 		state.rollFrame = plrState.rollFrame;
-	if (!changedFields[4])
+	if (!changedFields[Bits::b_active_attack])
 		state.activeAttack = plrState.activeAttack;
-	if (!changedFields[5])
+	if (!changedFields[Bits::b_attack_frame])
 		state.attackFrame = plrState.attackFrame;
-	if (!changedFields[6])
+	if (!changedFields[Bits::b_health])
 		state.health = plrState.health;
-	if (!changedFields[7])
+	if (!changedFields[Bits::b_stun_frame])
 		state.stunFrame = plrState.stunFrame;
-	if (!changedFields[8])
+	if (!changedFields[Bits::b_heal_frame])
 		state.healFrame = plrState.healFrame;
-	if (!changedFields[9])
+	if (!changedFields[Bits::b_heal_delay])
 		state.healDelay = plrState.healDelay;
-	if (!changedFields[10])
+	if (!changedFields[Bits::b_facing])
 		state.facing = plrState.facing;
-	if (!changedFields[11])
+	if (!changedFields[Bits::b_spawn_point])
 		state.spawnPoint = plrState.spawnPoint;
-	if (!changedFields[12])
+	if (!changedFields[Bits::b_attack_freeze_frame])
 		state.attackFreezeFrame = plrState.attackFreezeFrame;
-	if (!changedFields[13])
+	if (!changedFields[Bits::b_team_id])
 		state.teamId = plrState.teamId;
-	if (!changedFields[14])
+	if (!changedFields[Bits::b_stamina])
 		state.stamina = plrState.stamina;
-	if (!changedFields[15])
+	if (!changedFields[Bits::b_stamina_recharge_frame])
 		state.staminaRechargeFrame = plrState.staminaRechargeFrame;
-	if (!changedFields[16])
+	if (!changedFields[Bits::b_death_frame])
 		state.deathFrame = plrState.deathFrame;
-	if (!changedFields[17])
+	if (!changedFields[Bits::b_attack_speed])
 		state.attackSpeed = plrState.attackSpeed;
-	if (!changedFields[18])
+	if (!changedFields[Bits::b_move_speed])
 		state.moveSpeed = plrState.moveSpeed;
-	if (!changedFields[19])
+	if (!changedFields[Bits::b_weapon_tag])
 		state.weaponTag = plrState.weaponTag;
+	if (!changedFields[Bits::b_vel])
+		state.vel = plrState.vel;
 
 
 	//physics aren't applied
