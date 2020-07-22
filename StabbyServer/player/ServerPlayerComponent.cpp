@@ -66,3 +66,27 @@ ClientCommand ServerPlayerComponent::readCommand(Time_t gameTime) {
 void ServerPlayerComponent::tickClientTime() {
 	++clientTime;
 }
+
+void ServerPlayerComponent::storeGameState(const GameState& state) {
+	prevStates.push_front(state);
+	if (prevStates.size() > 30)
+		prevStates.pop_back();
+}
+
+void ServerPlayerComponent::acknowledgeState(GameStateId id) {
+	for (auto& state : prevStates) {
+		if (state.getId() == id) {
+			state.acknowledge();
+		}
+	}
+}
+
+bool ServerPlayerComponent::getLastAcknowledged(GameState& retState) {
+	for (const auto& state : prevStates) {
+		if (state.getAcknowledged()) {
+			retState = state;
+			return true;
+		}
+	}
+	return false;
+}

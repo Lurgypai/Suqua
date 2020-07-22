@@ -1,6 +1,8 @@
 #pragma once
 #include <deque>
 
+#include "gamestate.h"
+
 #include "EntitySystem.h"
 #include "Controller.h"
 
@@ -21,10 +23,15 @@ public:
 	void bufferInput(ClientCommand c);
 	ClientCommand readCommand(Time_t gameTime);
 	void tickClientTime();
+	void storeGameState(const GameState& state);
+	void acknowledgeState(GameStateId id);
+	bool getLastAcknowledged(GameState& state);
 private:
 	Time_t latestTime;
 	Time_t clientTime;
 	std::deque<ClientCommand> commands;
+	std::deque<GameState> prevStates;
 	ClientCommand latestCommand;
+
 	EntityId id;
 };

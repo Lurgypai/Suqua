@@ -19,7 +19,7 @@ public:
 	ClientPlayerSystem(PhysicsSystem* physicsSystem_, CombatSystem* combatSystem_);
 	void update(Time_t gameTime, Time_t clientTime);
 	void update(Time_t gameTime, Time_t clientTime, const EntityId& player);
-	void repredict(EntityId playerId, NetworkId netId, const PlayerState& state, double timeDelta);
+	bool repredict(EntityId playerId, NetworkId netId, PlayerState state, const DynamicBitset& changedFields, double timeDelta);
 private:
 	PhysicsSystem* physicsSystem;
 	CombatSystem* combatSystem;

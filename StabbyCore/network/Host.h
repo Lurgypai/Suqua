@@ -57,23 +57,23 @@ private:
 template<typename Packet>
 void Host::sendPacket(ENetPeer * peer, size_t channel, Packet packet) {
 	packet.serialize();
-	enet_peer_send(peer, channel, enet_packet_create(&packet, sizeof(Packet), ENET_PACKET_FLAG_RELIABLE));
+	enet_peer_send(peer, channel, enet_packet_create(&packet, sizeof(Packet), 0));
 }
 
 template<typename Packet>
 inline void Host::sendPacket(PeerId id, size_t channel, Packet packet) {
 	packet.serialize();
-	enet_peer_send(peers[id], channel, enet_packet_create(&packet, sizeof(Packet), ENET_PACKET_FLAG_RELIABLE));
+	enet_peer_send(peers[id], channel, enet_packet_create(&packet, sizeof(Packet), 0));
 }
 
 template<typename Packet>
 inline void Host::bufferPacket(ENetPeer* peer, size_t channel, Packet packet) {
 	packet.serialize();
-	peerDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(&packet, sizeof(Packet), ENET_PACKET_FLAG_RELIABLE), peer, 0, channel });
+	peerDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(&packet, sizeof(Packet), 0), peer, 0, channel });
 }
 
 template<typename Packet>
 inline void Host::bufferPacket(PeerId id, size_t channel, Packet packet) {
 	packet.serialize();
-	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(&packet, sizeof(Packet), ENET_PACKET_FLAG_RELIABLE), nullptr, id, channel });
+	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(&packet, sizeof(Packet), 0), nullptr, id, channel });
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "Packet.h"
 #include "MarkedStream.h"
+#include "DynamicBitset.h"
 #include "../../player/PlayerStateComponent.h"
 #define STATE_KEY	"SST"	//suqua state
 
@@ -35,5 +36,6 @@ public:
 	void unserialize();
 	void readInto(MarkedStream& m, const PlayerState& prevState);
 	void readInto(MarkedStream& m);
-	void readFrom(MarkedStream& m);
+	//returns an in order list of what was modified
+	DynamicBitset readFrom(MarkedStream& m);
 };

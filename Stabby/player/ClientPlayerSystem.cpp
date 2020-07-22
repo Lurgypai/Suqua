@@ -26,7 +26,7 @@ void ClientPlayerSystem::update(Time_t gameTime, Time_t clientTime, const Entity
 	player->storePlayerState(gameTime, clientTime, controller->getController());
 }
 
-void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const PlayerState& state, double timeDelta) {
+bool ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerState state, const DynamicBitset& changedFields, double timeDelta) {
 	ClientPlayerComponent* clientPlayer = EntitySystem::GetComp<ClientPlayerComponent>(playerId);
 	auto player = players.find(netId);
 	if (player == players.end()) {
@@ -34,6 +34,7 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 	}
 	
 	LastClientTick& lastTick = players[netId];
+	bool compared = false;
 	if (state.clientTime > lastTick.clientTime) {
 		PlrContState plrContState{};
 
@@ -43,10 +44,55 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 			auto& plrState = plrContState.plrState;
 			auto& contState = plrContState.contState;
 			if (plrState.clientTime == state.clientTime) {
+				compared = true;
 				wasUpdated = true;
 
 				lastTick.gameTime = state.gameTime;
 				plrState.gameTime = state.gameTime;
+
+				//compare to bitset, and set all values that weren't changed
+				if (!changedFields[2])
+					state.state = plrState.state;
+				if (!changedFields[3])
+					state.rollFrame = plrState.rollFrame;
+				if (!changedFields[4])
+					state.activeAttack = plrState.activeAttack;
+				if (!changedFields[5])
+					state.attackFrame = plrState.attackFrame;
+				if (!changedFields[6])
+					state.health = plrState.health;
+				if (!changedFields[7])
+					state.stunFrame = plrState.stunFrame;
+				if (!changedFields[8])
+					state.healFrame = plrState.healFrame;
+				if (!changedFields[9])
+					state.healDelay = plrState.healDelay;
+				if (!changedFields[10])
+					state.facing = plrState.facing;
+				if (!changedFields[11])
+					state.spawnPoint = plrState.spawnPoint;
+				if (!changedFields[12])
+					state.attackFreezeFrame = plrState.attackFreezeFrame;
+				if (!changedFields[13])
+					state.teamId = plrState.teamId;
+				if (!changedFields[14])
+					state.stamina = plrState.stamina;
+				if (!changedFields[15])
+					state.staminaRechargeFrame = plrState.staminaRechargeFrame;
+				if (!changedFields[16])
+					state.deathFrame = plrState.deathFrame;
+				if (!changedFields[17])
+					state.attackSpeed = plrState.attackSpeed;
+				if (!changedFields[18])
+					state.moveSpeed = plrState.moveSpeed;
+				if (!changedFields[19])
+					state.weaponTag = plrState.weaponTag;
+				if (!changedFields[20])
+					state.pos = plrState.pos;
+				if (!changedFields[21])
+					state.vel = plrState.vel;
+				if (!changedFields[22])
+					state.frozen = plrState.frozen;
 
 				if (plrState != state) {
 					DebugFIO::Out("c_out.txt") << "Prediction failed, resetting at time: " << state.clientTime << '\n';
@@ -100,9 +146,7 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 					ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(id);
 					for(auto& unprocessedState : states) {
 						physicsSystem->runPhysics(timeDelta, id);
-						DebugFIO::Out("c_out.txt") << "Freeze frame before: " << player->getState().attackFreezeFrame << '\n';
 						combatSystem->runAttackCheck(timeDelta, id);
-						DebugFIO::Out("c_out.txt") << "Freeze frame after: " << player->getState().attackFreezeFrame << '\n';
 
 						Controller cont{ unprocessedState.contState };
 						controller->getController() = cont;
@@ -127,4 +171,5 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, const Pla
 	else {
 		DebugFIO::Out("c_out.txt") << "New state is too old. State time: " << state.clientTime << ", last update: " << lastTick.clientTime << ".\n";
 	}
+	return compared;
 }

@@ -321,12 +321,12 @@ int main(int argc, char* argv[]) {
 				for (int i = 0; i != updatesPerFrame; ++i) {
 					switch (game.getState())
 					{
-					case GameState::main_menu:
+					case Game::GameState::main_menu:
 						game.updateMainMenu();
 						break;
-					case GameState::pause_menu:
+					case Game::GameState::pause_menu:
 						break;
-					case GameState::online:
+					case Game::GameState::online:
 						physics.runPhysics(CLIENT_TIME_STEP);
 						game.combat.runAttackCheck(CLIENT_TIME_STEP);
 
@@ -387,7 +387,7 @@ int main(int argc, char* argv[]) {
 							DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
 						}
 						break;
-					case GameState::offline:
+					case Game::GameState::offline:
 						physics.runPhysics(CLIENT_TIME_STEP);
 						game.combat.runAttackCheck(CLIENT_TIME_STEP);
 						game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
@@ -400,7 +400,7 @@ int main(int argc, char* argv[]) {
 
 						game.mode.tickCapturePoints(game.spawns, CLIENT_TIME_STEP);
 						break;
-					case GameState::stage_editor:
+					case Game::GameState::stage_editor:
 						game.updateEditor();
 						break;
 					default:
@@ -447,8 +447,8 @@ int main(int argc, char* argv[]) {
 			const Uint8* state = SDL_GetKeyboardState(NULL);
 
 			switch (game.getState()) {
-			case GameState::offline:
-			case GameState::online:
+			case Game::GameState::offline:
+			case Game::GameState::online:
 			{
 				//players
 				if (EntitySystem::Contains<PlayerGC>()) {
@@ -474,13 +474,13 @@ int main(int argc, char* argv[]) {
 				DebugIO::setLine(7, "Stamina: " + std::to_string(state.stamina));
 				break;
 			}
-			case GameState::stage_editor:
+			case Game::GameState::stage_editor:
 				game.updateEditorCamera();
 				game.editables.updateGfx();
 				break;
-			case GameState::main_menu:
+			case Game::GameState::main_menu:
 				break;
-			case GameState::pause_menu:
+			case Game::GameState::pause_menu:
 				break;
 			}
 
@@ -734,3 +734,5 @@ player msgs
 //clear the main menu
 //load weapon menu into menu camera
 //add control for displaying it
+
+//packet times are desyncing ;D

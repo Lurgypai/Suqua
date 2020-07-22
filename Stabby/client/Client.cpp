@@ -7,12 +7,16 @@
 #include "../graphics/PlayerGC.h"
 #include "../graphics/CapturePointGC.h"
 
+#include "gamestate.h"
+
 #include "DebugIO.h"
+#include "DebugFIO.h"
 #include "Client.h"
 #include "EntitySystem.h"
 #include "EntityBaseComponent.h"
 #include "ControllerComponent.h"
 #include "MarkedStream.h"
+#include "DynamicBitset.h"
 
 Client::Client() :
 	clientTime{0}
@@ -196,21 +200,32 @@ void Client::receive(ENetEvent & e) {
 	else if (packetKey == STATE_KEY) {
 		//skip the key
 		MarkedStream m{e.packet->data + 4, e.packet->dataLength - 4};
-		while (m.hasMoreData()) {
-			StatePacket p;
-			p.readFrom(m);
-			p.unserialize();
+		GameStateId id;
+		m >> id;
+		DebugFIO::Out("c_out.txt") << "Reading from GameState: " << id << '\n';
 
-			EntityId targetId = online->getEntity(p.id);
+		bool playerAcknowledged = false;
+
+		while (m.hasMoreData()) {
+			//extract the net id (after the flag, and gamestate)
+			NetworkId targetNetId;
+			std::memcpy(&targetNetId, m.data() + m.getReadPos() + 1, sizeof(targetNetId));
+
+			EntityId targetId = online->getEntity(targetNetId);
 			if (targetId != 0) {
+				PlayerLC* playerLC = EntitySystem::GetComp<PlayerLC>(targetId);
+				StatePacket p;
+				//this overrides past data with the current state when that data wasn't sents
+				DynamicBitset changedFields = p.readFrom(m);
+
 				ClientPlayerComponent* player = EntitySystem::GetComp<ClientPlayerComponent>(targetId);
 				if (player != nullptr) {
-					clientPlayers->repredict(playerId, p.id, p.state, CLIENT_TIME_STEP);
+					playerAcknowledged = clientPlayers->repredict(playerId, p.id, p.state, changedFields, CLIENT_TIME_STEP);
 				}
 				else if (EntitySystem::Contains<OnlinePlayerLC>()) {
 					auto onlinePlayer = EntitySystem::GetComp<OnlinePlayerLC>(targetId);
 					if (onlinePlayer) {
-						onlinePlayer->interp(p.state, p.when);
+						onlinePlayer->interp(p.state, changedFields, p.when);
 						ControllerComponent* onlinePlayerController = EntitySystem::GetComp<ControllerComponent>(targetId);
 						onlinePlayerController->getController() = Controller{ p.controllerState };
 					}
@@ -220,6 +235,13 @@ void Client::receive(ENetEvent & e) {
 
 				}
 			}
+		}
+		if (playerAcknowledged) {
+			AcknowledgePacket ack;
+			OnlineComponent* onlineComp = EntitySystem::GetComp<OnlineComponent>(playerId);
+			ack.netId = onlineComp->getNetId();
+			ack.stateId = id;
+			client.sendPacket(serverId, 0, ack);
 		}
 		//send acknowledge packet
 

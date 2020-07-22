@@ -18,7 +18,6 @@ void ClientPlayerComponent::storePlayerState(Time_t gameTime, Time_t clientTime,
 
 	//player state isn't set by physics, only by the update method in playerlc. thus, the effects of physics are not set. need to add a "getState" funtcion to the player, which sets all of the player state stuff and sends it.
 	DebugFIO::Out("c_out.txt") << "stored state at time " << clientTime << ", pos: " << playerState.pos << ", vel: " << playerState.vel << '\n';
-	DebugFIO::Out("c_out.txt") << "attackFreezeFrame was: " << playerState.attackFreezeFrame << '\n';
 }
 
 bool ClientPlayerComponent::pollState(PlrContState& state) {

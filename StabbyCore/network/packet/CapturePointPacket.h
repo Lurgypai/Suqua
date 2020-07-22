@@ -5,7 +5,6 @@
 
 class CapturePointPacket {
 public:
-public:
 	CapturePointPacket() :
 		key{ CAP_KEY },
 		netId{ 0 }

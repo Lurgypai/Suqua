@@ -587,6 +587,6 @@ const Stage& Game::getStage() const {
 	return stage;
 }
 
-GameState Game::getState() {
+Game::GameState Game::getState() {
 	return gameState;
 }

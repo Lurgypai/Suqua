@@ -17,16 +17,16 @@
 #include "../graphics/camera/EditorCam.h"
 #include "../graphics/camera/PlayerCam.h"
 
-enum class GameState {
-	online,
-	offline,
-	main_menu,
-	pause_menu,
-	stage_editor
-};
-
 class Game {
 public:
+	enum class GameState {
+		online,
+		offline,
+		main_menu,
+		pause_menu,
+		stage_editor
+	};
+
 	Game();
 	void startMainMenu();
 	void startOfflineGame();
