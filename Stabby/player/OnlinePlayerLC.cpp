@@ -3,7 +3,7 @@
 #include "SDL.h"
 #include "OnlinePlayerLC.h"
 #include "PositionComponent.h"
-
+#include "DebugFIO.h"
 #include "combat.h"
 
 OnlinePlayerLC::OnlinePlayerLC(EntityId id_) :
@@ -93,6 +93,33 @@ void OnlinePlayerLC::interp(PlayerState state, const DynamicBitset& changedField
 	Vec2f minPos = { std::fminf(previousPos[0].x, previousPos[1].x), std::fminf(previousPos[0].y, previousPos[1].y) };
 	Vec2f maxPos = { std::fmaxf(previousPos[0].x, previousPos[1].x), std::fmaxf(previousPos[0].y, previousPos[1].y) };
 	positionBox = { minPos, maxPos - minPos };
+
+	/*
+	OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(id);
+	DebugFIO::Out("c_out.txt") << "State of player: " << online->getNetId();
+	DebugFIO::Out("c_out.txt") << "plrState: " << static_cast<unsigned int>(state.state) << '\n';
+	DebugFIO::Out("c_out.txt") << "rollFrame: " << state.rollFrame << '\n';
+	DebugFIO::Out("c_out.txt") << "activeAttack: " << state.activeAttack << '\n';
+	DebugFIO::Out("c_out.txt") << "attackFrame: " << state.attackFrame << '\n';
+	DebugFIO::Out("c_out.txt") << "health: " << state.health << '\n';
+	DebugFIO::Out("c_out.txt") << "stunFrame: " << state.stunFrame << '\n';
+	DebugFIO::Out("c_out.txt") << "healFrame: " << state.healFrame << '\n';
+	DebugFIO::Out("c_out.txt") << "healDelay: " << state.healDelay << '\n';
+	DebugFIO::Out("c_out.txt") << "facing: " << state.facing << '\n';
+	DebugFIO::Out("c_out.txt") << "spawnPoint: " << state.spawnPoint << '\n';
+	DebugFIO::Out("c_out.txt") << "attackFreezeFrame: " << state.attackFreezeFrame << '\n';
+	DebugFIO::Out("c_out.txt") << "teamId: " << state.teamId << '\n';
+	DebugFIO::Out("c_out.txt") << "stamina: " << state.stamina << '\n';
+	DebugFIO::Out("c_out.txt") << "staminaRechargeFrame: " << state.staminaRechargeFrame << '\n';
+	DebugFIO::Out("c_out.txt") << "deathFrame: " << state.deathFrame << '\n';
+	DebugFIO::Out("c_out.txt") << "attackSpeed: " << state.attackSpeed << '\n';
+	DebugFIO::Out("c_out.txt") << "moveSpeed: " << state.moveSpeed << '\n';
+	DebugFIO::Out("c_out.txt") << "weaponTag: " << state.weaponTag << '\n';
+	DebugFIO::Out("c_out.txt") << "pos: " << state.pos << '\n';
+	DebugFIO::Out("c_out.txt") << "vel: " << state.vel << '\n';
+	DebugFIO::Out("c_out.txt") << "frozen: " << state.frozen << '\n';
+	*/
+
 }
 
 void OnlinePlayerLC::update(Time_t gameTime) {

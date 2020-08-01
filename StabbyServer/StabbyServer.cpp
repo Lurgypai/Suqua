@@ -336,8 +336,6 @@ int main(int argv, char* argc[])
 				++lastUpdatedTime;
 
 				physics.runPhysics(CLIENT_TIME_STEP);
-				for (auto& user : users)
-					//DebugFIO::Out("s_out.txt") << "Physics to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 				combat.runAttackCheck(CLIENT_TIME_STEP);
 
 				//update all ai players
@@ -349,11 +347,35 @@ int main(int argv, char* argc[])
 				}
 
 				onlinePlayers.updatePlayers(players, CLIENT_TIME_STEP, stage, spawns);
-				for (auto& user : users)
-					//DebugFIO::Out("s_out.txt") << "Updated to pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
 
-				for (auto& user : users)
-					DebugFIO::Out("s_out.txt") << "Final state at time " << user->getServerPlayer().getClientTime() << ", pos: " << user->getPhysics().getPos() << ", vel: " << user->getPhysics().vel << '\n';
+				/*
+				DebugFIO::Out("s_out.txt") << "Current Game State: " << currGameState + 1 << '\n';
+				for (auto& user : users) {
+					DebugFIO::Out("s_out.txt") << "Player: " << user->getOnline().getNetId() << '\n';
+					PlayerState state = user->getPlayer().getState();
+					DebugFIO::Out("s_out.txt") << "plrState: " << static_cast<unsigned int>(state.state) << '\n';
+					DebugFIO::Out("s_out.txt") << "rollFrame: " << state.rollFrame << '\n';
+					DebugFIO::Out("s_out.txt") << "activeAttack: " << state.activeAttack << '\n';
+					DebugFIO::Out("s_out.txt") << "attackFrame: " << state.attackFrame << '\n';
+					DebugFIO::Out("s_out.txt") << "health: " << state.health << '\n';
+					DebugFIO::Out("s_out.txt") << "stunFrame: " << state.stunFrame << '\n';
+					DebugFIO::Out("s_out.txt") << "healFrame: " << state.healFrame << '\n';
+					DebugFIO::Out("s_out.txt") << "healDelay: " << state.healDelay << '\n';
+					DebugFIO::Out("s_out.txt") << "facing: " << state.facing << '\n';
+					DebugFIO::Out("s_out.txt") << "spawnPoint: " << state.spawnPoint << '\n';
+					DebugFIO::Out("s_out.txt") << "attackFreezeFrame: " << state.attackFreezeFrame << '\n';
+					DebugFIO::Out("s_out.txt") << "teamId: " << state.teamId << '\n';
+					DebugFIO::Out("s_out.txt") << "stamina: " << state.stamina << '\n';
+					DebugFIO::Out("s_out.txt") << "staminaRechargeFrame: " << state.staminaRechargeFrame << '\n';
+					DebugFIO::Out("s_out.txt") << "deathFrame: " << state.deathFrame << '\n';
+					DebugFIO::Out("s_out.txt") << "attackSpeed: " << state.attackSpeed << '\n';
+					DebugFIO::Out("s_out.txt") << "moveSpeed: " << state.moveSpeed << '\n';
+					DebugFIO::Out("s_out.txt") << "weaponTag: " << state.weaponTag << '\n';
+					DebugFIO::Out("s_out.txt") << "pos: " << state.pos << '\n';
+					DebugFIO::Out("s_out.txt") << "vel: " << state.vel << '\n';
+					DebugFIO::Out("s_out.txt") << "frozen: " << state.frozen << '\n';
+				}
+				*/
 
 				onlinePlayers.tickPlayerTimes();
 
@@ -422,10 +444,54 @@ int main(int argv, char* argc[])
 
 				GameStateId sentId;
 				m >> sentId;
-				StatePacket sentState;
-				sentState.readFrom(m);
-
-				DebugFIO::Out("s_out.txt") << "gameState: " << sentId << " clientTime: " << sentState.state.clientTime << " pos: " << sentState.state.pos << " vel: " << sentState.state.vel << '\n';
+				DebugFIO::Out("s_out.txt") << "sent gamestate: " << sentId << '\n';
+				while (m.hasMoreData()) {
+					StatePacket sentState;
+					DynamicBitset bits = sentState.readFrom(m);
+					DebugFIO::Out("s_out.txt") << "State of player: " << sentState.id << '\n';
+					if (bits[PlayerState::b_state])
+						DebugFIO::Out("s_out.txt") << "plrState: " << static_cast<unsigned int>(sentState.state.state) << '\n';
+					if (bits[PlayerState::b_roll_frame])
+						DebugFIO::Out("s_out.txt") << "rollFrame: " << sentState.state.rollFrame << '\n';
+					if (bits[PlayerState::b_active_attack])
+						DebugFIO::Out("s_out.txt") << "activeAttack: " << sentState.state.activeAttack << '\n';
+					if (bits[PlayerState::b_attack_frame])
+						DebugFIO::Out("s_out.txt") << "attackFrame: " << sentState.state.attackFrame << '\n';
+					if (bits[PlayerState::b_health])
+						DebugFIO::Out("s_out.txt") << "health: " << sentState.state.health << '\n';
+					if (bits[PlayerState::b_stun_frame])
+						DebugFIO::Out("s_out.txt") << "stunFrame: " << sentState.state.stunFrame << '\n';
+					if (bits[PlayerState::b_heal_frame])
+						DebugFIO::Out("s_out.txt") << "healFrame: " << sentState.state.healFrame << '\n';
+					if (bits[PlayerState::b_heal_delay])
+						DebugFIO::Out("s_out.txt") << "healDelay: " << sentState.state.healDelay << '\n';
+					if (bits[PlayerState::b_facing])
+						DebugFIO::Out("s_out.txt") << "facing: " << sentState.state.facing << '\n';
+					if (bits[PlayerState::b_spawn_point])
+						DebugFIO::Out("s_out.txt") << "spawnPoint: " << sentState.state.spawnPoint << '\n';
+					if (bits[PlayerState::b_attack_freeze_frame])
+						DebugFIO::Out("s_out.txt") << "attackFreezeFrame: " << sentState.state.attackFreezeFrame << '\n';
+					if (bits[PlayerState::b_team_id])
+						DebugFIO::Out("s_out.txt") << "teamId: " << sentState.state.teamId << '\n';
+					if (bits[PlayerState::b_stamina])
+						DebugFIO::Out("s_out.txt") << "stamina: " << sentState.state.stamina << '\n';
+					if (bits[PlayerState::b_stamina_recharge_frame])
+						DebugFIO::Out("s_out.txt") << "staminaRechargeFrame: " << sentState.state.staminaRechargeFrame << '\n';
+					if (bits[PlayerState::b_death_frame])
+						DebugFIO::Out("s_out.txt") << "deathFrame: " << sentState.state.deathFrame << '\n';
+					if (bits[PlayerState::b_attack_speed])
+						DebugFIO::Out("s_out.txt") << "attackSpeed: " << sentState.state.attackSpeed << '\n';
+					if (bits[PlayerState::b_move_speed])
+						DebugFIO::Out("s_out.txt") << "moveSpeed: " << sentState.state.moveSpeed << '\n';
+					if (bits[PlayerState::b_weapon_tag])
+						DebugFIO::Out("s_out.txt") << "weaponTag: " << sentState.state.weaponTag << '\n';
+					if (bits[PlayerState::b_pos])
+						DebugFIO::Out("s_out.txt") << "pos: " << sentState.state.pos << '\n';
+					if (bits[PlayerState::b_vel])
+						DebugFIO::Out("s_out.txt") << "vel: " << sentState.state.vel << '\n';
+					if (bits[PlayerState::b_frozen])
+						DebugFIO::Out("s_out.txt") << "frozen: " << sentState.state.frozen << '\n';
+				}
 
 				//DebugFIO::Out("s_out.txt") << "Attempting to send batched player updates.\n";
 				server.sendData(other->getConnection()->getPeer(), 2, capturePointPackets.data(), sizeof(CapturePointPacket)* capturePointPackets.size());

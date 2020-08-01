@@ -328,7 +328,8 @@ int main(int argc, char* argv[]) {
 						break;
 					case Game::GameState::online:
 						physics.runPhysics(CLIENT_TIME_STEP);
-						game.combat.runAttackCheck(CLIENT_TIME_STEP);
+						//only update the clients combat state so that we don't kill an online player
+						game.combat.runAttackCheck(CLIENT_TIME_STEP, game.getPlayerId());
 
 						game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 

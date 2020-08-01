@@ -1,4 +1,5 @@
 #include "GameState.h"
+#include <iostream>
 
 void operator<<(MarkedStream& m, GameState g) {
 	m << g.id;
@@ -20,6 +21,10 @@ void GameState::compareAndWrite(MarkedStream& m, const GameState& otherState) {
 		auto iter = otherState.states.find(pair.first);
 		if (iter != otherState.states.end()) {
 			pair.second.readInto(m, iter->second.state);
+		}
+		else {
+			//if it doesn't exist previously, send full update
+			pair.second.readInto(m);
 		}
 	}
 }

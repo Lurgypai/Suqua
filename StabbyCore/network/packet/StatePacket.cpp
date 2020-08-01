@@ -1,8 +1,6 @@
 #include "StatePacket.h"
 #include "ByteOrder.h"
 
-#include "DebugFIO.h"
-
 void StatePacket::serialize() {
 	id = s_htonll(id);
 	when = s_htonll(when);
@@ -181,7 +179,6 @@ void StatePacket::readInto(MarkedStream& m, const PlayerState& prevState) {
 		pos.x = s_htonf(state.pos.x);
 		pos.y = s_htonf(state.pos.y);
 		m << pos;
-		DebugFIO::Out("s_out.txt") << "sent pos " << state.pos << '\n';
 	}
 
 	if (state.vel == prevState.vel)
@@ -190,15 +187,12 @@ void StatePacket::readInto(MarkedStream& m, const PlayerState& prevState) {
 		vel.x = s_htonf(state.vel.x);
 		vel.y = s_htonf(state.vel.y);
 		m << vel;
-		DebugFIO::Out("s_out.txt") << "sent vel " << state.vel << '\n';
 	}
 
 	if (state.frozen == prevState.frozen)
 		m.addEmptyField();
 	else
 		m << state.frozen;
-
-	DebugFIO::Out("s_out.txt") << " partial update, pos: " << state.pos << " vel: " << state.vel << " clientTime: " << state.clientTime << '\n';
 }
 
 void StatePacket::readInto(MarkedStream& m) {
@@ -231,8 +225,6 @@ void StatePacket::readInto(MarkedStream& m) {
 	m << pos;
 	m << vel;
 	m << state.frozen;
-
-	DebugFIO::Out("s_out.txt") << "full update, pos: " << state.pos << " vel: " << state.vel << " clientTime: " << state.clientTime << '\n';
 }
 
 DynamicBitset StatePacket::readFrom(MarkedStream& m) {
