@@ -123,16 +123,14 @@ void OnlinePlayerLC::interp(PlayerState state, const DynamicBitset& changedField
 }
 
 void OnlinePlayerLC::update(Time_t gameTime) {
-	PositionComponent * position = EntitySystem::GetComp<PositionComponent>(id);
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
 	//this is how long it is between each update.
 	double delta = static_cast<double>(whens[1] - whens[0]) * GAME_TIME_STEP;
 
 	Vec2f moveDistance = (previousPos[1] - previousPos[0]) * static_cast<float>(CLIENT_TIME_STEP / delta);
-	Vec2f newPos = position->pos + moveDistance;
+	Vec2f newPos = physics->getPos() + moveDistance;
 	if (positionBox.contains(newPos))
-		position->pos = newPos;
+		physics->teleport(newPos);
 	//std::cout << "updating\n";
 }
-
-//its not moving now? I think. we'll see. you made change...

@@ -235,6 +235,11 @@ void Client::receive(ENetEvent & e) {
 
 				}
 			}
+			else {
+				//we haven't received the joining packet yet
+				playerAcknowledged = false;
+				break;
+			}
 		}
 		if (playerAcknowledged) {
 			AcknowledgePacket ack;

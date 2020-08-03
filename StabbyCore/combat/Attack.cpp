@@ -34,7 +34,7 @@ Attack::Attack(const std::string& id_, int restartDelayMax_, double frameDelay_)
 {}
 
 void Attack::setActive(int i) {
-	if (i >= 0 && i < hitboxes.size())
+	if (i >= 0 && i <= hitboxes.size())
 		active = i;
 }
 
