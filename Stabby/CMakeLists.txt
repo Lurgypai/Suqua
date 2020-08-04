@@ -12,7 +12,7 @@ file(GLOB_RECURSE header_files
 	"*.h"
 )
 
-add_executable(Stabby ${source_files} ${header_files} "graphics/NameTagGC.cpp")
+add_executable(Stabby ${source_files} ${header_files})
 
 target_include_directories(Stabby PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/../include
