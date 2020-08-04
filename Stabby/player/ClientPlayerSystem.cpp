@@ -94,6 +94,8 @@ bool ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerSta
 					state.vel = plrState.vel;
 				if (!changedFields[Bits::b_frozen])
 					state.frozen = plrState.frozen;
+				if (!changedFields[Bits::b_user_tag])
+					state.userTag = plrState.userTag;
 
 				if (plrState != state) {
 					DebugFIO::Out("c_out.txt") << "Prediction failed, resetting at time: " << state.clientTime << '\n';

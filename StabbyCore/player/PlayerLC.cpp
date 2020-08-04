@@ -270,6 +270,7 @@ void PlayerLC::setState(const PlayerState& newState) {
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 	DirectionComponent* dir = EntitySystem::GetComp<DirectionComponent>(id);
+	NameTagComponent* nameTag = EntitySystem::GetComp<NameTagComponent>(id);
 
 	state->playerState = newState;
 
@@ -289,6 +290,8 @@ void PlayerLC::setState(const PlayerState& newState) {
 	physics->teleport(newState.pos);
 	physics->vel = newState.vel;
 	physics->frozen = newState.frozen;
+
+	nameTag->nameTag = newState.userTag;
 }
 
 PlayerState PlayerLC::getState() {
@@ -296,6 +299,7 @@ PlayerState PlayerLC::getState() {
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 	DirectionComponent* dir = EntitySystem::GetComp<DirectionComponent>(id);
+	NameTagComponent* nameTag = EntitySystem::GetComp<NameTagComponent>(id);
 
 	playerState->playerState.activeAttack = combat->getAttack().getActiveId();
 	playerState->playerState.attackFrame = combat->getAttack().getCurrFrame();
@@ -313,6 +317,9 @@ PlayerState PlayerLC::getState() {
 	playerState->playerState.pos = physics->getPos();
 	playerState->playerState.vel = physics->vel;
 	playerState->playerState.frozen = physics->frozen;
+	playerState->playerState.userTag = nameTag->nameTag;
+	
+
 
 	return playerState->playerState;
 }

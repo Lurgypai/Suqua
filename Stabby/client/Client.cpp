@@ -76,7 +76,16 @@ void Client::connect(const std::string & ip, int port) {
 			client.disconnect(serverId);
 		}
 		else {
+			//successful connection
 			ping();
+
+			NameTagPacket p;
+			OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerId);
+			NameTagComponent* nameTag = EntitySystem::GetComp<NameTagComponent>(playerId);
+			p.netId = online->getNetId();
+			p.nameTag = nameTag->nameTag;
+			client.sendPacket(serverId, 0, p);
+
 			connected = true;
 		}
 	}

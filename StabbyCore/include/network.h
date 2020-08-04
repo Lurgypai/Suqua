@@ -19,3 +19,4 @@
 #include "../network/packet/WeaponChangePacket.h"
 #include "../network/packet/WelcomePacket.h"
 #include "../network/packet/AcknowledgePacket.h"
+#include "../network/packet/NameTagPacket.h"

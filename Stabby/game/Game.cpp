@@ -42,6 +42,7 @@ void Game::startMainMenu() {
 	mainMenu = menus.makeMenu();
 	auto& menu = menus.getMenu(mainMenu);
 	menu.addMenuEntry(MenuEntryType::button, "start", AABB{ {278, 305}, {100, 25} });
+	menu.addMenuEntry(MenuEntryType::text_box, "name", AABB{ {295, 241}, {100, 20} });
 	menu.addMenuEntry(MenuEntryType::text_box, "ip_address", AABB{ {295, 262}, {100, 20} });
 	menu.addMenuEntry(MenuEntryType::text_box, "port", AABB{ {295, 283}, {100, 20} });
 
@@ -137,12 +138,14 @@ void Game::startOnlineGame() {
 	settingsFile >> settings;
 	std::string stageName = settings["stage"];
 	std::string address = settings["ip"];
+	std::string name = settings["name"];
 	int port = settings["port"];
 
 	loadStage(stageName);
 
 	playerId = players.makePlayer(weapons);
 	EntitySystem::MakeComps<ClientPlayerComponent>(1, &playerId);
+	EntitySystem::GetComp<NameTagComponent>(playerId)->nameTag = name;
 	makePlayerGFX(playerId);
 
 	client.setPlayer(playerId);
@@ -245,6 +248,7 @@ void Game::loadNewPlayers() {
 		EntitySystem::GenEntities(entities.size(), entities.data());
 		EntitySystem::MakeComps<OnlinePlayerLC>(entities.size(), entities.data());
 		EntitySystem::MakeComps<OnlineComponent>(entities.size(), entities.data());
+		EntitySystem::MakeComps<NameTagComponent>(entities.size(), entities.data());
 
 		unsigned int i = 0;
 		for(auto& netId : client.getNewPlayers()) {
@@ -309,6 +313,7 @@ void Game::updateMainMenu() {
 	settingsFile >> settings;
 	std::string address = settings["ip"];
 	int port = settings["port"];
+	std::string name = settings["name"];
 	settingsFile.close();
 
 	MenuResult r{};
@@ -336,6 +341,10 @@ void Game::updateMainMenu() {
 				}
 				catch (std::invalid_argument e) {}
 			}
+			else if (r.entryTag == "name") {
+				settings["name"] = response;
+				name = response;
+			}
 		}
 		}
 	}
@@ -359,6 +368,12 @@ void Game::updateMainMenu() {
 				render->getDrawable<TextDrawable>()->text = textBox->getActiveText();
 			else
 				render->getDrawable<TextDrawable>()->text = std::to_string(port);
+		}
+		else if (textBox->getTag() == "name") {
+			if (textBox->isActive())
+				render->getDrawable<TextDrawable>()->text = textBox->getActiveText();
+			else
+				render->getDrawable<TextDrawable>()->text = name;
 		}
 	}
 }
@@ -556,8 +571,10 @@ void Game::makePlayerGFX(EntityId playerId_) {
 	EntitySystem::GetComp<RenderComponent>(playerId_)->loadDrawable<AnimatedSprite>("character", Vec2i{ 64, 64 });
 	EntitySystem::GetComp<RenderComponent>(playerId_)->getDrawable<AnimatedSprite>()->setDepth(0.0);
 	EntitySystem::GetComp<PlayerGC>(playerId_)->loadAnimations(weapons);
+	EntitySystem::GetComp<PlayerGC>(playerId_)->loadNameTag();
 
 	renderGroups[playerCamId].push_back(playerId_);
+	renderGroups[playerCamId].push_back(EntitySystem::GetComp<PlayerGC>(playerId_)->getNameTageRenderId());
 }
 
 void Game::renderAll(double gfxDelay) {

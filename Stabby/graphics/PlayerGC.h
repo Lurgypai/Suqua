@@ -25,16 +25,20 @@ public:
 
 	PlayerGC(EntityId id_ = 0);
 	void loadAnimations(const WeaponManager& weapons);
+	void loadNameTag();
 	//void spawnHead(Vec2f pos);
 
 	void updateState(double timeDelta);
 
 	EntityId getId() const;
+	EntityId getNameTageRenderId() const;
 	std::unordered_map<std::string, AnimatedSprite> attackAnimations;
 	std::string currAttackTag;
 	AnimatedSprite animSprite;
 private:
 	EntityId id;
+	//rendercomponent for the nametag
+	EntityId nameTagId;
 
 	bool shouldSpawnHead;
 	State prevState;

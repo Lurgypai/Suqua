@@ -120,6 +120,8 @@ int main(int argv, char* argc[])
 	for (auto& id : aiPlayers) {
 		id = players.makePlayer(weapons);
 		EntitySystem::MakeComps<AIPlayerComponent>(1, &id);
+		EntitySystem::GetComp<NameTagComponent>(id)->nameTag = "AI";
+
 		mode.addPlayer(id);
 		online.addOnlineComponent(id);
 		PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);
@@ -277,6 +279,17 @@ int main(int argv, char* argc[])
 						for (auto& user : users) {
 							if (user->getOnline().getNetId() == p.netId) {
 								user->getServerPlayer().acknowledgeState(p.stateId);
+							}
+						}
+					}
+					else if (key == NAMETAG_KEY) {
+						NameTagPacket p;
+						PacketUtil::readInto<NameTagPacket>(p, event.packet);
+						p.unserialize();
+
+						for (auto& user : users) {
+							if (user->getOnline().getNetId() == p.netId) {
+								user->getNameTag().nameTag = p.nameTag;
 							}
 						}
 					}
@@ -534,6 +547,7 @@ int main(int argv, char* argc[])
 			for (auto& user : users) {
 				if (toReset(user)) {
 					mode.removePlayer(user->getId());
+					user->deleteUser();
 				}
 			}
 			users.erase(std::remove_if(users.begin(), users.end(), toReset), users.end());

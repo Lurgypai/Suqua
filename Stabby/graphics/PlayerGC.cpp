@@ -5,6 +5,8 @@
 #include "PositionComponent.h"
 #include "DirectionComponent.h"
 #include "Color.h"
+#include "TextDrawable.h"
+#include "EntityBaseComponent.h"
 
 #include "../player/OnlinePlayerLC.h"
 
@@ -53,6 +55,23 @@ void PlayerGC::loadAnimations(const WeaponManager& weapons) {
 	defaultFrameDelay = animSprite_.frameDelay;
 
 	attackAnimations = weapons.cloneAnimations();
+}
+
+void PlayerGC::loadNameTag() {
+	EntitySystem::GenEntities(1, &nameTagId);
+	EntitySystem::MakeComps<RenderComponent>(1, &nameTagId);
+	RenderComponent* nameTagRender = EntitySystem::GetComp<RenderComponent>(nameTagId);
+	NameTagComponent* nameTag = EntitySystem::GetComp<NameTagComponent>(id);
+	nameTagRender->loadDrawable<TextDrawable>();
+
+
+	auto* drawable = nameTagRender->getDrawable<TextDrawable>();
+	drawable->setColor(1, 1, 1);
+	drawable->anti_alias = true;
+	drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
+	drawable->scale = { .5, .5 };
+	drawable->text = nameTag->nameTag;
+	nameTagRender->offset = {(drawable->getBoundingBox().res.x / 2), drawable->getBoundingBox().res.y + 25};
 }
 
 /*
@@ -196,8 +215,24 @@ void PlayerGC::updateState(double timeDelta) {
 
 	//after updating the frame, update wether or not to freeze on that frame
 	animationFrozen = combat->isFrozen();
+
+	PositionComponent* nameTagPos = EntitySystem::GetComp<PositionComponent>(nameTagId);
+	nameTagPos->pos = state.pos;
+	RenderComponent* nameTagRender = EntitySystem::GetComp<RenderComponent>(nameTagId);
+	auto* drawable = nameTagRender->getDrawable<TextDrawable>();
+	drawable->text = state.userTag;
+	nameTagRender->offset = { (drawable->getBoundingBox().res.x / 2), drawable->getBoundingBox().res.y + 25 };
+
+	EntityBaseComponent* base = EntitySystem::GetComp<EntityBaseComponent>(id);
+	EntityBaseComponent* nameTagRenderBase = EntitySystem::GetComp<EntityBaseComponent>(nameTagId);
+	nameTagRenderBase->isDead = base->isDead;
+
 }
 
 EntityId PlayerGC::getId() const {
 	return id;
+}
+
+EntityId PlayerGC::getNameTageRenderId() const {
+	return nameTagId;
 }

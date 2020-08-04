@@ -1,5 +1,6 @@
 
 #include "User.h"
+#include "EntityBaseComponent.h"
 
 User::User(PlayerManager* players, WeaponManager* weapons, NetworkId id_, ConnectionPtr && con_) :
 	peerId{id_},
@@ -7,6 +8,11 @@ User::User(PlayerManager* players, WeaponManager* weapons, NetworkId id_, Connec
 {
 	id = players->makePlayer(*weapons);
 	EntitySystem::MakeComps<ServerPlayerComponent>(1, &id);
+}
+
+void User::deleteUser() {
+	EntityBaseComponent* entity = EntitySystem::GetComp<EntityBaseComponent>(id);
+	entity->isDead = true;
 }
 
 EntityId User::getId() const {
@@ -51,4 +57,8 @@ OnlineComponent& User::getOnline() {
 
 ControllerComponent& User::getController() {
 	return *EntitySystem::GetComp<ControllerComponent>(id);
+}
+
+NameTagComponent& User::getNameTag() {
+	return *EntitySystem::GetComp<NameTagComponent>(id);
 }

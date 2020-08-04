@@ -67,6 +67,8 @@ void OnlinePlayerLC::interp(PlayerState state, const DynamicBitset& changedField
 		state.weaponTag = plrState.weaponTag;
 	if (!changedFields[Bits::b_vel])
 		state.vel = plrState.vel;
+	if (!changedFields[Bits::b_user_tag])
+		state.userTag = plrState.userTag;
 
 
 	//physics aren't applied

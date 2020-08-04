@@ -4,6 +4,7 @@
 #include "../network/NetworkTypes.h"
 #include <cstdint>
 #include <cstring>
+#include "NameTagComponent.h"
 #include "CharBuffer.h"
 
 enum class State : uint8_t {
@@ -41,7 +42,8 @@ struct PlayerState {
 		b_weapon_tag = 19,
 		b_pos = 20,
 		b_vel = 21,
-		b_frozen = 22
+		b_frozen = 22,
+		b_user_tag = 23
 	};
 
 	bool operator==(const PlayerState & other) {
@@ -50,7 +52,7 @@ struct PlayerState {
 			health == other.health && stunFrame == other.stunFrame && facing == other.facing &&
 			spawnPoint == other.spawnPoint && attackFreezeFrame == other.attackFreezeFrame && frozen == other.frozen &&
 			attackSpeed == other.attackSpeed && moveSpeed == other.moveSpeed && healFrame == other.healFrame && healDelay == other.healDelay && teamId == other.teamId &&
-			stamina == other.stamina && staminaRechargeFrame == other.staminaRechargeFrame && deathFrame == other.deathFrame && weaponTag == other.weaponTag;
+			stamina == other.stamina && staminaRechargeFrame == other.staminaRechargeFrame && deathFrame == other.deathFrame && weaponTag == other.weaponTag && userTag == other.userTag;
 	}
 
 
@@ -79,6 +81,7 @@ struct PlayerState {
 	double attackSpeed;
 	double moveSpeed;
 	CharBuffer<10> weaponTag;
+	CharBuffer<NameTagComponent::SIZE> userTag;
 
 	Vec2f pos;
 	Vec2f vel;

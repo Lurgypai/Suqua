@@ -193,6 +193,11 @@ void StatePacket::readInto(MarkedStream& m, const PlayerState& prevState) {
 		m.addEmptyField();
 	else
 		m << state.frozen;
+
+	if (state.userTag == prevState.userTag)
+		m.addEmptyField();
+	else
+		m << state.userTag;
 }
 
 void StatePacket::readInto(MarkedStream& m) {
@@ -225,6 +230,7 @@ void StatePacket::readInto(MarkedStream& m) {
 	m << pos;
 	m << vel;
 	m << state.frozen;
+	m << state.userTag;
 }
 
 DynamicBitset StatePacket::readFrom(MarkedStream& m) {
@@ -335,5 +341,10 @@ DynamicBitset StatePacket::readFrom(MarkedStream& m) {
 	if (m >> state.frozen) {
 		b.set(Bits::b_frozen, true);
 	}
+
+	if (m >> state.userTag) {
+		b.set(Bits::b_user_tag, true);
+	}
+
 	return b;
 }

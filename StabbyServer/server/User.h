@@ -13,6 +13,8 @@ class User {
 public:
 	User(PlayerManager* players, WeaponManager* weapons,  NetworkId id_, ConnectionPtr&& con);
 
+	void deleteUser();
+
 	EntityId getId() const;
 	PeerId getPeerId() const;
 	Connection * getConnection();
@@ -24,6 +26,7 @@ public:
 	CombatComponent & getCombat();
 	OnlineComponent& getOnline();
 	ControllerComponent& getController();
+	NameTagComponent& getNameTag();
 
 private:
 	EntityId id;
