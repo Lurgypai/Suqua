@@ -461,27 +461,25 @@ void Game::updateWeaponMenu() {
 
 
 						if (EntitySystem::Contains<PlayerLC>() && EntitySystem::Contains<PlayerGC>()) {
-							for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
-								if (!client.getConnected()) {
-									PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
-									PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(playerId);
+							if (!client.getConnected()) {
+								PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
+								PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(playerId);
 
-									player->setWeapon(response);
-								}
-								else {
-									OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerId);
-									size_t size = response.size();
+								player->setWeapon(response);
+							}
+							else {
+								OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerId);
+								size_t size = response.size();
 
-									WeaponChangePacket p;
-									p.size = size;
-									p.id = online->getNetId();
-									p.serialize();
-									char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + size));
-									memcpy(data, &p, sizeof(WeaponChangePacket));
-									memcpy(data + sizeof(WeaponChangePacket), response.data(), size);
-									client.send(sizeof(WeaponChangePacket) + size, data);
-									free(data);
-								}
+								WeaponChangePacket p;
+								p.size = size;
+								p.id = online->getNetId();
+								p.serialize();
+								char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + size));
+								memcpy(data, &p, sizeof(WeaponChangePacket));
+								memcpy(data + sizeof(WeaponChangePacket), response.data(), size);
+								client.send(sizeof(WeaponChangePacket) + size, data);
+								free(data);
 							}
 						}
 					}
