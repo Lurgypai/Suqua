@@ -24,11 +24,14 @@
 using json = nlohmann::json;
 
 Game::Game() :
+	tick{0},
 	gameState{GameState::main_menu},
 	physics{},
 	combat{},
 	clientPlayers{&physics, &combat},
-	weaponMenuOpen{false}
+	weaponMenuOpen{false},
+	client{ tick },
+	sessionGuided{false}
 {}
 
 void Game::startMainMenu() {
@@ -88,7 +91,7 @@ void Game::startMainMenu() {
 	renderGroups[menuCamId].push_back(mainMenuBG);
 }
 
-void Game::startOfflineGame() {
+void Game::startOfflineGame(bool sessionGuided_) {
 	for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
 		entity.isDead = true;
 	}
@@ -122,6 +125,32 @@ void Game::startOfflineGame() {
 	for (auto& capturePoint : stage.getSpawnables()) {
 		renderGroups[playerCamId].push_back(capturePoint);
 	}
+
+	sessionGuided = sessionGuided_;
+
+	if (sessionGuided) {
+		session.unserialize("session");
+		EntitySystem::MakeComps<ClientPlayerComponent>(1, &playerId);
+
+		client.setPlayer(playerId);
+		client.setWeaponManager(weapons);
+		client.setClientPlayerSystem(&clientPlayers);
+		client.setOnlineSystem(&online);
+		client.setMode(&mode);
+		client.setSpawns(&spawns);
+		client.setSessionSystem(&session);
+
+		SessionSystem::NetworkEvent netEvent = session.getNetworkEvents().front();
+
+		WelcomePacket packet{};
+		std::memcpy(&packet, netEvent.enetEvent.packet->data, netEvent.enetEvent.packet->dataLength);
+		packet.unserialize();
+
+		online.registerOnlineComponent(playerId, packet.netId);
+		
+
+		tick = session.getCurrTick();
+	}
 }
 
 void Game::startOnlineGame() {
@@ -154,6 +183,7 @@ void Game::startOnlineGame() {
 	client.setOnlineSystem(&online);
 	client.setMode(&mode);
 	client.setSpawns(&spawns);
+	client.setSessionSystem(&session);
 
 	client.connect(address, port);
 
@@ -604,4 +634,8 @@ const Stage& Game::getStage() const {
 
 Game::GameState Game::getState() {
 	return gameState;
+}
+
+bool Game::isSessionGuided() const {
+	return sessionGuided;
 }

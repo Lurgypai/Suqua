@@ -9,13 +9,14 @@
 #include "combat.h"
 #include "gamemode.h"
 
+#include "../game/SessionSystem.h"
 #include "../player/ClientPlayerSystem.h"
 
 #define PING_COUNT 10
 
 class Client {
 public:
-	Client();
+	Client(const Time_t& tick_);
 
 	~Client();
 
@@ -27,6 +28,8 @@ public:
 	void send(size_t size, void* data);
 
 	void service();
+	//read the network events from the current session for the current tick
+	void readSessionEvents();
 
 	void ping();
 	void recalculatePing(Time_t nextPing);
@@ -48,6 +51,7 @@ public:
 	void setWeaponManager(WeaponManager& weapons_);
 	void setClientPlayerSystem(ClientPlayerSystem* clientPlayer);
 	void setOnlineSystem(OnlineSystem* online);
+	void setSessionSystem(SessionSystem* session);
 	void setMode(DominationMode* mode);
 	void setSpawns(SpawnSystem* spawns);
 
@@ -56,14 +60,14 @@ public:
 
 	const std::vector<CapturePointPacket>& getMissingCapturePoints() const;
 	void clearMissingCapturePoints();
-	//client time
-	Time_t clientTime;
 private:
-	void receive(ENetEvent & e);
+	void receive(const ENetEvent & e);
 	//the last PING_COUT pings.
 	std::deque<Time_t> pings;
 	//average ping in local client time
 	Time_t currentPing;
+	//reference to the game's tick (client time)
+	const Time_t& tick;
 
 	PeerId serverId;
 	EntityId playerId;
@@ -79,6 +83,7 @@ private:
 	OnlineSystem* online;
 	DominationMode* mode;
 	SpawnSystem* spawns;
+	SessionSystem* session;
 
 	std::vector<NetworkId> toJoinIds;
 	std::vector<CapturePointPacket> toMakeCapturePoins;

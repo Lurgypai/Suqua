@@ -65,6 +65,8 @@ extern "C" {
 #endif
 
 using json = nlohmann::json;
+using ControllerEvent = SessionSystem::ControllerEvent;
+using NetworkEvent = SessionSystem::NetworkEvent;
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -208,7 +210,6 @@ int main(int argc, char* argv[]) {
 	/*--------------------------------------------- GAME LOOP -----------------------------------------------*/
 
 	unsigned int frame{};
-	unsigned int tick{};
 	unsigned int updatesPerFrame = 2;
 
 	double gfxDelay{ 1.0 / 60 };
@@ -232,9 +233,22 @@ int main(int argc, char* argv[]) {
 		Time_t elapsedTime_ = elapsedTime + leftover;
 		for (; elapsedTime_ >= delta; elapsedTime_ -= delta) {
 			++updates;
-			tick++;
 			game.tick++;
-			client.clientTime++;
+
+			if (game.isSessionGuided()) {
+				game.session.tick();
+				game.tick = game.session.getCurrTick();
+
+				ControllerEvent controllerEvent = game.session.getControllerEvent();
+				std::vector<NetworkEvent> netEvents = game.session.getNetworkEvents();
+
+				if (EntitySystem::Contains<ControllerComponent>() && EntitySystem::GetComp<ControllerComponent>(game.getPlayerId()) != nullptr) {
+					ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(game.getPlayerId());
+					cont->getController() = Controller{ controllerEvent.controllerState };
+				}
+
+
+			}
 
 			/*--------------------------- Handle Input ----------------------------*/
 
@@ -283,35 +297,43 @@ int main(int argc, char* argv[]) {
 				DebugIO::toggleDebug();
 
 			if (EntitySystem::Contains<ControllerComponent>() && EntitySystem::GetComp<ControllerComponent>(game.getPlayerId()) != nullptr) {
+
 				ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(game.getPlayerId());
 				auto& controller = cont->getController();
-				//reset / set scroll
-				controller.setMouseScroll(mouseScroll);
 
-				const Uint8* state = SDL_GetKeyboardState(NULL);
+				if (!game.isSessionGuided()) {
+					//reset / set scroll
+					controller.setMouseScroll(mouseScroll);
 
-				if (!DebugIO::getOpen()) {
-					//update controllers
+					const Uint8* state = SDL_GetKeyboardState(NULL);
 
-					controller.set(ControllerBits::UP, state[SDL_SCANCODE_UP]);
-					controller.set(ControllerBits::DOWN, state[SDL_SCANCODE_DOWN]);
-					controller.set(ControllerBits::LEFT, state[SDL_SCANCODE_LEFT]);
-					controller.set(ControllerBits::RIGHT, state[SDL_SCANCODE_RIGHT]);
-					controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_Z]);
-					controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_X]);
-					controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_C]);
-				}
-				else {
-					controller.off(ControllerBits::ALL);
-				}
+					if (!DebugIO::getOpen()) {
+						//update controllers
 
-				constexpr bool doAi = true;
-				if (doAi) {
-					if (EntitySystem::Contains<AIPlayerComponent>()) {
-						for (auto& ai : EntitySystem::GetPool<AIPlayerComponent>()) {
-							ai.update();
+						controller.set(ControllerBits::UP, state[SDL_SCANCODE_UP]);
+						controller.set(ControllerBits::DOWN, state[SDL_SCANCODE_DOWN]);
+						controller.set(ControllerBits::LEFT, state[SDL_SCANCODE_LEFT]);
+						controller.set(ControllerBits::RIGHT, state[SDL_SCANCODE_RIGHT]);
+						controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_Z]);
+						controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_X]);
+						controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_C]);
+					}
+					else {
+						controller.off(ControllerBits::ALL);
+					}
+					game.session.storeControllerEvent(ControllerEvent{ controller.getState() }, game.tick);
+
+					constexpr bool doAi = true;
+					if (doAi) {
+						if (EntitySystem::Contains<AIPlayerComponent>()) {
+							for (auto& ai : EntitySystem::GetPool<AIPlayerComponent>()) {
+								ai.update();
+							}
 						}
 					}
+				}
+				else {
+					//you need to read controller events, but also read enet eventss
 				}
 			}
 
@@ -333,11 +355,10 @@ int main(int argc, char* argv[]) {
 
 						game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 
-						game.clientPlayers.update(client.getTime(), client.clientTime);
+						game.clientPlayers.update(client.getTime(), game.tick);
 
 						if (client.getConnected()) {
 							OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(game.getPlayerId());
-
 
 							//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
 							client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
@@ -349,19 +370,19 @@ int main(int argc, char* argv[]) {
 									static ControllerPacket lastSent{};
 
 									ControllerPacket state{};
-									state.clientTime = client.clientTime;
+									state.clientTime = game.tick;
 									state.state = controller.getState();
 									state.when = client.getTime();
 									state.netId = online->getNetId();
 
 									lastSent.when = client.getTime();
-									lastSent.clientTime = client.clientTime;
+									lastSent.clientTime = game.tick;
 
 									//the sent state is the controller state from after the timestamped update has run
 									if (lastSent != state) {
 										lastSent = state;
 										client.send(state);
-										DebugFIO::Out("c_out.txt") << "Sent input " << static_cast<int>(state.state) << " for time " << client.clientTime << '\n';
+										DebugFIO::Out("c_out.txt") << "Sent input " << static_cast<int>(state.state) << " for time " << game.tick << '\n';
 										//std::cout << "Sending update for time: " << lastSent.when << '\n';
 									}
 								}
@@ -398,8 +419,29 @@ int main(int argc, char* argv[]) {
 								head.update(CLIENT_TIME_STEP);
 							}
 						}
+						if (!game.isSessionGuided()) {
+							game.mode.tickCapturePoints(game.spawns, CLIENT_TIME_STEP);
+						}
+						else {
+							game.clientPlayers.update(client.getTime(), game.tick);
+							client.readSessionEvents();
 
-						game.mode.tickCapturePoints(game.spawns, CLIENT_TIME_STEP);
+							if (client.isBehindServer()) {
+								std::cout << "We're behind the server, pinging our time.\n";
+								//client.ping();
+								client.resetBehindServer();
+								//the client needs to think its connected, so you'll have to store the welcome packet or smth
+							}
+
+							if (EntitySystem::Contains<OnlinePlayerLC>()) {
+								for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
+									onlinePlayer.update(client.getTime());
+								}
+							}
+
+							game.loadNewPlayers();
+							game.loadNewCapturePoints();
+						}
 						break;
 					case Game::GameState::stage_editor:
 						game.updateEditor();
@@ -702,6 +744,8 @@ int main(int argc, char* argv[]) {
 		if (doFBF)
 			canProgressFrame = false;
 	}
+
+	game.session.serialize("session");
 
 	DebugIO::stopDebug();
 	SDL_DestroyWindow(window);

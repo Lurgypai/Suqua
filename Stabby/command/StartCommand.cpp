@@ -14,7 +14,8 @@ std::string StartCommand::getTag() const {
 void StartCommand::onCommand(const std::vector<std::string>& args) {
 	if (args.size() >= 2) {
 		if (args[1] == "0") {
-			game.startOfflineGame();
+			bool doSessionGuided = args[2] == "true";
+			game.startOfflineGame(doSessionGuided);
 		}
 		else if (args[1] == "1") {
 			game.startOnlineGame();

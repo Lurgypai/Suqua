@@ -18,8 +18,10 @@
 #include "MarkedStream.h"
 #include "DynamicBitset.h"
 
-Client::Client() :
-	clientTime{0}
+using NetworkEvent = SessionSystem::NetworkEvent;
+
+Client::Client(const Time_t& tick) :
+	tick(tick)
 {
 	enet_initialize();
 	DebugIO::printLine("Starting client.");
@@ -64,6 +66,9 @@ void Client::connect(const std::string & ip, int port) {
 					handshakeComplete = true;
 
 					online->registerOnlineComponent(playerId, packet.netId);
+
+					session->storeNetworkEvent(NetworkEvent{e}, tick);
+					//test, and then load the welcome packet (and nametag packet) straight into the client in game.startOfflineGame()
 				}
 				break;
 			}
@@ -111,6 +116,22 @@ void Client::service() {
 				receive(e);
 				break;
 			}
+			session->storeNetworkEvent(NetworkEvent{e}, tick);
+		}
+	}
+}
+
+void Client::readSessionEvents() {
+	const auto& networkEvents = session->getNetworkEvents();
+	for (const auto& networkEvent : networkEvents) {
+		switch (networkEvent.enetEvent.type) {
+		case ENET_EVENT_TYPE_DISCONNECT:
+			DebugIO::printLine("Disconnected from server.");
+			connected = false;
+			break;
+		case ENET_EVENT_TYPE_RECEIVE:
+			receive(networkEvent.enetEvent);
+			break;
 		}
 	}
 }
@@ -121,7 +142,7 @@ void Client::ping() {
 	TimestampPacket p;
 	OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerId);
 	p.id = online->getNetId();
-	p.clientTime = clientTime;
+	p.clientTime = tick;
 	client.sendPacket(serverId, 0, p);
 }
 
@@ -173,6 +194,10 @@ void Client::setOnlineSystem(OnlineSystem* online_) {
 	online = online_;
 }
 
+void Client::setSessionSystem(SessionSystem* session_) {
+	session = session_;
+}
+
 void Client::setMode(DominationMode* mode_) {
 	mode = mode_;
 }
@@ -197,7 +222,7 @@ void Client::clearMissingCapturePoints() {
 	toMakeCapturePoins.clear();
 }
 
-void Client::receive(ENetEvent & e) {
+void Client::receive(const ENetEvent & e) {
 	std::string packetKey = PacketUtil::readPacketKey(e.packet);
 	if (packetKey == JOIN_KEY) {
 		JoinPacket p;
@@ -311,7 +336,7 @@ void Client::receive(ENetEvent & e) {
 		TimestampPacket p;
 		PacketUtil::readInto<TimestampPacket>(p, e.packet);
 		p.unserialize();
-		Time_t latestRtt = clientTime - p.clientTime;
+		Time_t latestRtt = tick - p.clientTime;
 		recalculatePing(latestRtt);
 		//kinda maybe synchronized
 		networkTime = p.gameTime + (((static_cast<double>(currentPing) / 2) * CLIENT_TIME_STEP) / GAME_TIME_STEP);

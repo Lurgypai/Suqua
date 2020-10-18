@@ -16,6 +16,7 @@
 #include "../graphics/PaletteManager.h"
 #include "../graphics/camera/EditorCam.h"
 #include "../graphics/camera/PlayerCam.h"
+#include "SessionSystem.h"
 
 class Game {
 public:
@@ -29,7 +30,8 @@ public:
 
 	Game();
 	void startMainMenu();
-	void startOfflineGame();
+	//sessionGuided determines if this will be autorun by a session
+	void startOfflineGame(bool sessionGuided);
 	void startOnlineGame();
 	void startStageEditor(const std::string & filePath);
 	void loadStage(const std::string& stageName);
@@ -70,11 +72,13 @@ public:
 	DominationMode mode;
 	OnlineSystem online;
 	MenuSystem menus;
+	SessionSystem session;
 
 	EntityId getPlayerId();
 	const Stage& getStage() const;
 
 	GameState getState();
+	bool isSessionGuided() const;
 private:
 
 	Stage stage;
@@ -94,6 +98,7 @@ private:
 	std::unordered_map<std::string, EntityId> weaponIcons;
 	bool weaponMenuOpen;
 	bool shouldOpenWeaponMenu;
+	bool sessionGuided;
 	EntityId weaponMenuBG;
 };
 

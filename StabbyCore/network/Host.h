@@ -62,8 +62,10 @@ void Host::sendPacket(ENetPeer * peer, size_t channel, Packet packet) {
 
 template<typename Packet>
 inline void Host::sendPacket(PeerId id, size_t channel, Packet packet) {
-	packet.serialize();
-	enet_peer_send(peers[id], channel, enet_packet_create(&packet, sizeof(Packet), 0));
+	if (peers.size() > id) {
+		packet.serialize();
+		enet_peer_send(peers[id], channel, enet_packet_create(&packet, sizeof(Packet), 0));
+	}
 }
 
 template<typename Packet>
