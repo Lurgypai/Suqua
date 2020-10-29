@@ -27,6 +27,7 @@ public:
 	void acknowledgeState(GameStateId id);
 	bool getLastAcknowledged(GameState& state);
 private:
+	bool firstInput;
 	Time_t latestTime;
 	Time_t clientTime;
 	std::deque<ClientCommand> commands;

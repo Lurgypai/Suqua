@@ -6,6 +6,7 @@
 class DebugFIO {
 public:
 	static void AddFOut(const std::string& file);
+	static std::ostream& TimeOut(const std::string& file);
 	static std::ostream& Out(const std::string& file);
 	static void RemoveFOut(const std::string& file);
 private:

@@ -114,6 +114,7 @@ int main(int argv, char* argc[])
 
 	PeerId clientPeerId = 0;
 	DebugFIO::AddFOut("s_out.txt");
+	DebugFIO::Out("s_out.txt") << "Client Time\tNetId\tControllerState\tPos\tVel\tState\tRoll Frame\tActive Attack\tAttack Frame\tHealth\tStun Frame\tFacing\tSpawnPoint\tAttack Freeze Frame\tFrozen\tAttack Speed\tMove Speed\tHeal Frame\tHeal Delay\tTeam Id\tStamina\tStamina Recharge Frame\tDeath Frame\tWeapon Tag\tUser Tag"; // make it output the player states as a tab separated thing
 
 	//generate player buffer
 	std::vector<EntityId> aiPlayers(aiPlayerCount, 0);
@@ -361,6 +362,38 @@ int main(int argv, char* argc[])
 
 				onlinePlayers.updatePlayers(players, CLIENT_TIME_STEP, stage, spawns);
 
+				for (auto& user : users) {
+					PlayerState state = user->getPlayer().getState();
+					OnlineComponent& online = user->getOnline();
+					ControllerComponent& controller = user->getController();
+					DebugFIO::Out("s_out.txt") << state.clientTime << '\t';
+					DebugFIO::Out("s_out.txt") << online.getNetId() << '\t';
+					DebugFIO::Out("s_out.txt") << static_cast<int>(controller.getController().getState()) << '\t';
+					DebugFIO::Out("s_out.txt") << state.pos << '\t';
+					DebugFIO::Out("s_out.txt") << state.vel << '\t';
+					DebugFIO::Out("s_out.txt") << static_cast<int>(state.state) << '\t';
+					DebugFIO::Out("s_out.txt") << state.rollFrame << '\t';
+					DebugFIO::Out("s_out.txt") << state.activeAttack << '\t';
+					DebugFIO::Out("s_out.txt") << state.attackFrame << '\t';
+					DebugFIO::Out("s_out.txt") << state.health << '\t';
+					DebugFIO::Out("s_out.txt") << state.stunFrame << '\t';
+					DebugFIO::Out("s_out.txt") << state.facing << '\t';
+					DebugFIO::Out("s_out.txt") << state.spawnPoint << '\t';
+					DebugFIO::Out("s_out.txt") << state.attackFreezeFrame << '\t';
+					DebugFIO::Out("s_out.txt") << state.frozen << '\t';
+					DebugFIO::Out("s_out.txt") << state.attackSpeed << '\t';
+					DebugFIO::Out("s_out.txt") << state.moveSpeed << '\t';
+					DebugFIO::Out("s_out.txt") << state.healFrame << '\t';
+					DebugFIO::Out("s_out.txt") << state.healDelay << '\t';
+					DebugFIO::Out("s_out.txt") << state.teamId << '\t';
+					DebugFIO::Out("s_out.txt") << state.stamina << '\t';
+					DebugFIO::Out("s_out.txt") << state.staminaRechargeFrame << '\t';
+					DebugFIO::Out("s_out.txt") << state.deathFrame << '\t';
+					DebugFIO::Out("s_out.txt") << state.weaponTag << '\t';
+					DebugFIO::Out("s_out.txt") << state.userTag << '\t';
+					DebugFIO::Out("s_out.txt") << '\n';
+				}
+
 				/*
 				DebugFIO::Out("s_out.txt") << "Current Game State: " << currGameState + 1 << '\n';
 				for (auto& user : users) {
@@ -457,6 +490,7 @@ int main(int argv, char* argc[])
 
 				GameStateId sentId;
 				m >> sentId;
+				/*
 				DebugFIO::Out("s_out.txt") << "sent gamestate: " << sentId << '\n';
 				while (m.hasMoreData()) {
 					StatePacket sentState;
@@ -505,6 +539,7 @@ int main(int argv, char* argc[])
 					if (bits[PlayerState::b_frozen])
 						DebugFIO::Out("s_out.txt") << "frozen: " << sentState.state.frozen << '\n';
 				}
+				*/
 
 				//DebugFIO::Out("s_out.txt") << "Attempting to send batched player updates.\n";
 				server.sendData(other->getConnection()->getPeer(), 2, capturePointPackets.data(), sizeof(CapturePointPacket)* capturePointPackets.size());
