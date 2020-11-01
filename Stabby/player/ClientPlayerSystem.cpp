@@ -44,6 +44,7 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerSta
 		while (clientPlayer->pollState(plrContState)) {
 			auto& plrState = plrContState.plrState;
 			auto& contState = plrContState.contState;
+			auto& prevContState = plrContState.prevContState;
 			if (plrState.clientTime == state.clientTime) {
 				clientWasSynchronized = true;
 				clientBehindServer = false;
@@ -140,7 +141,7 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerSta
 
 					PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
-					Controller currentController = Controller{ contState, 0 };
+					Controller currentController = Controller{ contState, prevContState };
 
 					//now reevaulate. Remove all stored states, and replace.
 					auto states = clientPlayer->readAllStates();
@@ -152,7 +153,7 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerSta
 						physicsSystem->runPhysics(timeDelta, id);
 						combatSystem->runAttackCheck(timeDelta, id);
 
-						Controller cont{ unprocessedState.contState, 0 };
+						Controller cont{ unprocessedState.contState, unprocessedState.prevContState };
 						controller->getController() = cont;
 						player->update(timeDelta);
 

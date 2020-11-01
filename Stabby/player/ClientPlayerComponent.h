@@ -7,6 +7,7 @@
 struct PlrContState {
 	PlayerState plrState;
 	unsigned char contState;
+	unsigned char prevContState;
 };
 
 class ClientPlayerComponent {

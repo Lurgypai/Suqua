@@ -14,7 +14,7 @@ void ClientPlayerComponent::storePlayerState(Time_t gameTime, Time_t clientTime,
 	PlayerState playerState = EntitySystem::GetComp<PlayerLC>(id)->getState();
 	playerState.gameTime = gameTime;
 	playerState.clientTime = clientTime;
-	states.emplace_back(PlrContState{ playerState, controller.getState() });
+	states.emplace_back(PlrContState{ playerState, controller.getState(), controller.getPrevState() });
 
 	//player state isn't set by physics, only by the update method in playerlc. thus, the effects of physics are not set. need to add a "getState" funtcion to the player, which sets all of the player state stuff and sends it.
 	DebugFIO::Out("c_out.txt") << "stored state at time " << clientTime << ", pos: " << playerState.pos << ", vel: " << playerState.vel << '\n';
