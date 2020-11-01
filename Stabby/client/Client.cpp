@@ -166,6 +166,10 @@ Time_t Client::getTime() {
 	return networkTime;
 }
 
+Time_t Client::getLastServerTick() const {
+	return lastServerTick;
+}
+
 void Client::progressTime(Time_t delta) {
 	networkTime += delta;
 }
@@ -254,14 +258,17 @@ void Client::receive(const ENetEvent & e) {
 
 				ClientPlayerComponent* player = EntitySystem::GetComp<ClientPlayerComponent>(targetId);
 				if (player != nullptr) {
-					playerAcknowledged = clientPlayers->repredict(playerId, p.id, p.state, changedFields, CLIENT_TIME_STEP);
+					clientPlayers->repredict(playerId, p.id, p.state, changedFields, CLIENT_TIME_STEP);
+					lastServerTick = p.state.clientTime;
+					playerAcknowledged = clientPlayers->getClientWasSynchronized();
+					behindServer = clientPlayers->getClientBehindServer();
 				}
 				else if (EntitySystem::Contains<OnlinePlayerLC>()) {
 					auto onlinePlayer = EntitySystem::GetComp<OnlinePlayerLC>(targetId);
 					if (onlinePlayer) {
 						onlinePlayer->interp(p.state, changedFields, p.when);
 						ControllerComponent* onlinePlayerController = EntitySystem::GetComp<ControllerComponent>(targetId);
-						onlinePlayerController->getController() = Controller{ p.controllerState };
+						onlinePlayerController->getController() = Controller{ p.controllerState, p.prevControllerState };
 					}
 					else {
 						DebugIO::printLine("Unable to find player " + std::to_string(p.id) + ". Did they disconnect?");

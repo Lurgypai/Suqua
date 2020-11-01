@@ -44,10 +44,6 @@ protected:
 	double climbDistance;
 	bool rollBuffered;
 
-	bool prevButton1;
-	bool prevButton2;
-	bool prevButton3;
-
 	float rollVel;
 	float storedVel;
 	int rollFrameMax;

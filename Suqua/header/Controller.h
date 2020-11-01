@@ -18,15 +18,18 @@ enum ControllerBits : std::uint8_t {
 class Controller {
 public:
 	Controller();
-	Controller(unsigned char state_);
+	Controller(unsigned char state_, unsigned char prevState_);
 	bool operator[](unsigned char ctrl_bits) const;
+	bool toggled(unsigned char ctrl_bits) const;
 	void on(unsigned char ctrl_bits);
 	void off(unsigned char ctrl_bits);
 	void set(unsigned char ctrl_bits, bool newState);
 	void setMouseScroll(int mouse_scroll_);
 	int getMouseScroll();
 	unsigned char getState() const;
+	unsigned char getPrevState() const;
 private:
 	unsigned char state;
+	unsigned char prevState;
 	int mouseScroll;
 };

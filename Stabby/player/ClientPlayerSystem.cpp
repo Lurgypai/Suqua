@@ -26,7 +26,7 @@ void ClientPlayerSystem::update(Time_t gameTime, Time_t clientTime, const Entity
 	player->storePlayerState(gameTime, clientTime, controller->getController());
 }
 
-bool ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerState state, const DynamicBitset& changedFields, double timeDelta) {
+void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerState state, const DynamicBitset& changedFields, double timeDelta) {
 	ClientPlayerComponent* clientPlayer = EntitySystem::GetComp<ClientPlayerComponent>(playerId);
 	auto player = players.find(netId);
 	if (player == players.end()) {
@@ -34,18 +34,19 @@ bool ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerSta
 	}
 	
 	LastClientTick& lastTick = players[netId];
-	bool compared = false;
+	clientWasSynchronized = false;
 	if (state.clientTime > lastTick.clientTime) {
 		PlrContState plrContState{};
 
 		std::ostream& out = DebugFIO::Out("c_out.txt");
-		bool wasUpdated = false;
+		clientBehindServer = true;
+
 		while (clientPlayer->pollState(plrContState)) {
 			auto& plrState = plrContState.plrState;
 			auto& contState = plrContState.contState;
 			if (plrState.clientTime == state.clientTime) {
-				compared = true;
-				wasUpdated = true;
+				clientWasSynchronized = true;
+				clientBehindServer = false;
 
 				lastTick.gameTime = state.gameTime;
 				plrState.gameTime = state.gameTime;
@@ -139,7 +140,7 @@ bool ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerSta
 
 					PhysicsComponent * physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
-					Controller currentController = Controller{ contState };
+					Controller currentController = Controller{ contState, 0 };
 
 					//now reevaulate. Remove all stored states, and replace.
 					auto states = clientPlayer->readAllStates();
@@ -151,7 +152,7 @@ bool ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerSta
 						physicsSystem->runPhysics(timeDelta, id);
 						combatSystem->runAttackCheck(timeDelta, id);
 
-						Controller cont{ unprocessedState.contState };
+						Controller cont{ unprocessedState.contState, 0 };
 						controller->getController() = cont;
 						player->update(timeDelta);
 
@@ -167,12 +168,20 @@ bool ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerSta
 				break;
 			}
 		}
-		if (!wasUpdated) {
-			DebugFIO::Out("c_out.txt") << "Client wasn't resynced. lastTick: " << lastTick.clientTime << ", clientTime from server: " << state.clientTime << ".\n";
+		if (clientBehindServer) {
+			DebugFIO::Out("c_out.txt") << "Client wasn't resynced, behind the server. lastTick: " << lastTick.clientTime << ", clientTime from server: " << state.clientTime << ".\n";
 		}
 	}
 	else {
 		DebugFIO::Out("c_out.txt") << "New state is too old. State time: " << state.clientTime << ", last update: " << lastTick.clientTime << ".\n";
 	}
-	return compared;
 }
+
+bool ClientPlayerSystem::getClientWasSynchronized() const {
+	return clientWasSynchronized;
+}
+
+bool ClientPlayerSystem::getClientBehindServer() const {
+	return clientBehindServer;
+}
+

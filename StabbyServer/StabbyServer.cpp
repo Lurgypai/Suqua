@@ -204,7 +204,7 @@ int main(int argv, char* argc[])
 						for (auto& user : users) {
 							ServerPlayerComponent& player = user->getServerPlayer();
 							if (user->getOnline().getNetId() == cont.netId) {
-								ClientCommand comm{ Controller{ cont.state }, cont.clientTime, cont.when };
+								ClientCommand comm{ Controller{ cont.state, cont.prevState }, cont.clientTime, cont.when };
 								player.bufferInput(comm);
 							}
 						}
@@ -462,6 +462,7 @@ int main(int argv, char* argc[])
 					state.when = gameTime;
 					state.id = online->getNetId();
 					state.controllerState = controller->getController().getState();
+					state.prevControllerState = controller->getController().getPrevState();
 					currentState.addPlayerState(state);
 				}
 			}

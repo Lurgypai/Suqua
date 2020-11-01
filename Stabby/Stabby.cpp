@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
 
 				if (EntitySystem::Contains<ControllerComponent>() && EntitySystem::GetComp<ControllerComponent>(game.getPlayerId()) != nullptr) {
 					ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(game.getPlayerId());
-					cont->getController() = Controller{ controllerEvent.controllerState };
+					cont->getController() = Controller{ controllerEvent.controllerState, controllerEvent.prevControllerState };
 				}
 
 
@@ -321,7 +321,7 @@ int main(int argc, char* argv[]) {
 					else {
 						controller.off(ControllerBits::ALL);
 					}
-					game.session.storeControllerEvent(ControllerEvent{ controller.getState() }, game.tick);
+					game.session.storeControllerEvent(ControllerEvent{ controller.getState(), controller.getPrevState() }, game.tick);
 
 					constexpr bool doAi = true;
 					if (doAi) {
@@ -372,6 +372,7 @@ int main(int argc, char* argv[]) {
 									ControllerPacket state{};
 									state.clientTime = game.tick;
 									state.state = controller.getState();
+									state.prevState = controller.getPrevState();
 									state.when = client.getTime();
 									state.netId = online->getNetId();
 
@@ -392,6 +393,8 @@ int main(int argc, char* argv[]) {
 
 							if (client.isBehindServer()) {
 								std::cout << "We're behind the server, pinging our time.\n";
+								//bump the client forward?
+								game.tick = client.getLastServerTick();
 								client.ping();
 								client.resetBehindServer();
 							}

@@ -20,9 +20,10 @@ public:
 	//game time when the packet was sent
 	Time_t when;
 	enet_uint8 state;
+	enet_uint8 prevState;
 
 	bool operator!=(const ControllerPacket & other) {
-		return netId != other.netId || clientTime != other.clientTime || when != other.when || state != other.state;
+		return netId != other.netId || clientTime != other.clientTime || when != other.when || state != other.state || prevState != other.prevState;
 	}
 
 	// Inherited via Packet

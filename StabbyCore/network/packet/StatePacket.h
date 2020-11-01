@@ -30,6 +30,7 @@ public:
 
 	//used for client side graphical prediction
 	unsigned char controllerState;
+	unsigned char prevControllerState;
 
 	// Inherited via Packet
 	void serialize();

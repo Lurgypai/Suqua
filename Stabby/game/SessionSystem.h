@@ -7,6 +7,7 @@ class SessionSystem {
 public:
 	struct ControllerEvent {
 		unsigned char controllerState;
+		unsigned char prevControllerState;
 	};
 
 	struct NetworkEvent {

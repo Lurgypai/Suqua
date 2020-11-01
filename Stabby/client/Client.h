@@ -41,6 +41,7 @@ public:
 
 	//the GameTime synchronized across all clients and the server
 	Time_t getTime();
+	Time_t getLastServerTick() const;
 	void progressTime(Time_t delta);
 
 	void setPlayer(EntityId id_);
@@ -66,6 +67,8 @@ private:
 	std::deque<Time_t> pings;
 	//average ping in local client time
 	Time_t currentPing;
+	//last client time tick received from teh server
+	Time_t lastServerTick;
 	//reference to the game's tick (client time)
 	const Time_t& tick;
 

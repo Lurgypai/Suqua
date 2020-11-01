@@ -11,8 +11,6 @@
 PlayerLC::PlayerLC(EntityId id_) :
 	id{id_},
 	jumpSpeed{ 120 },
-	prevButton2{false},
-	prevButton3{ false },
 	isBeingHit{false},
 	rollVel{150},
 	storedVel{0},
@@ -79,7 +77,7 @@ void PlayerLC::update(double timeDelta) {
 
 	bool attackToggledDown{ false };
 	bool currButton2 = controller[ControllerBits::BUTTON_2];
-	if (prevButton2 != currButton2) {
+	if (controller.toggled(ControllerBits::BUTTON_2)) {
 		if (currButton2) {
 			attackToggledDown = true;
 			if (state.state == State::attacking) {
@@ -98,7 +96,7 @@ void PlayerLC::update(double timeDelta) {
 				vel.x = 0;
 
 				bool currButton3 = controller[ControllerBits::BUTTON_3];
-				if (prevButton3 != currButton3) {
+				if (controller.toggled(ControllerBits::BUTTON_3)) {
 					if (currButton3) {
 						rollBuffered = true;
 					}
@@ -159,7 +157,7 @@ void PlayerLC::update(double timeDelta) {
 				state.state = State::free;
 
 			bool currButton3 = controller[ControllerBits::BUTTON_3];
-			if (prevButton3 != currButton3) {
+			if (controller.toggled(ControllerBits::BUTTON_3)) {
 				if (currButton3) {
 					if (combat->stamina >= rollCost) {
 						state.state = State::rolling;
@@ -236,10 +234,6 @@ void PlayerLC::update(double timeDelta) {
 
 	state.activeAttack = attack.getActiveId();
 	state.attackFrame = attack.getCurrFrame();
-
-	prevButton1 = controller[ControllerBits::BUTTON_1];
-	prevButton2 = controller[ControllerBits::BUTTON_2];
-	prevButton3 = controller[ControllerBits::BUTTON_3];
 }
 
 PhysicsComponent * PlayerLC::getPhysics() {
@@ -408,7 +402,7 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 	//try to start rolling
 	if (state.state != State::attacking) {
 		bool currButton3 = controller[ControllerBits::BUTTON_3];
-		if ((prevButton3 != currButton3 && currButton3 || rollBuffered)) {
+		if ((controller.toggled(ControllerBits::BUTTON_3) && currButton3) || rollBuffered) {
 			rollBuffered = false;
 			if (combat->stamina >= rollCost) {
 				state.state = State::rolling;
