@@ -114,7 +114,8 @@ int main(int argv, char* argc[])
 
 	PeerId clientPeerId = 0;
 	DebugFIO::AddFOut("s_out.txt");
-	DebugFIO::Out("s_out.txt") << "Client Time\tNetId\tControllerState\tPos\tVel\tState\tRoll Frame\tActive Attack\tAttack Frame\tHealth\tStun Frame\tFacing\tSpawnPoint\tAttack Freeze Frame\tFrozen\tAttack Speed\tMove Speed\tHeal Frame\tHeal Delay\tTeam Id\tStamina\tStamina Recharge Frame\tDeath Frame\tWeapon Tag\tUser Tag"; // make it output the player states as a tab separated thing
+	DebugFIO::AddFOut("plr_log_s.txt");
+	DebugFIO::Out("plr_log_s.txt") << "Client Time\tNetId\tControllerState\tPrev Controller State\tPos\tVel\tState\tRoll Frame\tActive Attack\tAttack Frame\tHealth\tStun Frame\tFacing\tSpawnPoint\tAttack Freeze Frame\tFrozen\tAttack Speed\tMove Speed\tHeal Frame\tHeal Delay\tTeam Id\tStamina\tStamina Recharge Frame\tDeath Frame\tWeapon Tag\tUser Tag"; // make it output the player states as a tab separated thing
 
 	//generate player buffer
 	std::vector<EntityId> aiPlayers(aiPlayerCount, 0);
@@ -205,6 +206,7 @@ int main(int argv, char* argc[])
 							ServerPlayerComponent& player = user->getServerPlayer();
 							if (user->getOnline().getNetId() == cont.netId) {
 								ClientCommand comm{ Controller{ cont.state, cont.prevState }, cont.clientTime, cont.when };
+								DebugFIO::Out("s_out.txt") << "Received and storing input " << static_cast<int>(cont.state) << ", " << static_cast<int>(cont.prevState) << " for time " << cont.clientTime << '\n';
 								player.bufferInput(comm);
 							}
 						}
@@ -217,6 +219,14 @@ int main(int argv, char* argc[])
 						time.gameTime = gameTime;
 						time.serverTime = currentTick;
 						server.bufferPacket<TimestampPacket>(event.peer, 0, time);
+						for (auto& user : users) {
+							if (user->getOnline().getNetId() == time.id) {
+								if (!user->getServerPlayer().getTimeIsSet()) {
+									user->getServerPlayer().setTime(time.clientTime);
+								}
+								break;
+							}
+						}
 					}
 					else if (key == WEAPON_KEY) {
 						WeaponChangePacket p{};
@@ -366,32 +376,33 @@ int main(int argv, char* argc[])
 					PlayerState state = user->getPlayer().getState();
 					OnlineComponent& online = user->getOnline();
 					ControllerComponent& controller = user->getController();
-					DebugFIO::Out("s_out.txt") << state.clientTime << '\t';
-					DebugFIO::Out("s_out.txt") << online.getNetId() << '\t';
-					DebugFIO::Out("s_out.txt") << static_cast<int>(controller.getController().getState()) << '\t';
-					DebugFIO::Out("s_out.txt") << state.pos << '\t';
-					DebugFIO::Out("s_out.txt") << state.vel << '\t';
-					DebugFIO::Out("s_out.txt") << static_cast<int>(state.state) << '\t';
-					DebugFIO::Out("s_out.txt") << state.rollFrame << '\t';
-					DebugFIO::Out("s_out.txt") << state.activeAttack << '\t';
-					DebugFIO::Out("s_out.txt") << state.attackFrame << '\t';
-					DebugFIO::Out("s_out.txt") << state.health << '\t';
-					DebugFIO::Out("s_out.txt") << state.stunFrame << '\t';
-					DebugFIO::Out("s_out.txt") << state.facing << '\t';
-					DebugFIO::Out("s_out.txt") << state.spawnPoint << '\t';
-					DebugFIO::Out("s_out.txt") << state.attackFreezeFrame << '\t';
-					DebugFIO::Out("s_out.txt") << state.frozen << '\t';
-					DebugFIO::Out("s_out.txt") << state.attackSpeed << '\t';
-					DebugFIO::Out("s_out.txt") << state.moveSpeed << '\t';
-					DebugFIO::Out("s_out.txt") << state.healFrame << '\t';
-					DebugFIO::Out("s_out.txt") << state.healDelay << '\t';
-					DebugFIO::Out("s_out.txt") << state.teamId << '\t';
-					DebugFIO::Out("s_out.txt") << state.stamina << '\t';
-					DebugFIO::Out("s_out.txt") << state.staminaRechargeFrame << '\t';
-					DebugFIO::Out("s_out.txt") << state.deathFrame << '\t';
-					DebugFIO::Out("s_out.txt") << state.weaponTag << '\t';
-					DebugFIO::Out("s_out.txt") << state.userTag << '\t';
-					DebugFIO::Out("s_out.txt") << '\n';
+					DebugFIO::Out("plr_log_s.txt") << state.clientTime << '\t';
+					DebugFIO::Out("plr_log_s.txt") << online.getNetId() << '\t';
+					DebugFIO::Out("plr_log_s.txt") << static_cast<int>(controller.getController().getState()) << '\t';
+					DebugFIO::Out("plr_log_s.txt") << static_cast<int>(controller.getController().getPrevState()) << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.pos << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.vel << '\t';
+					DebugFIO::Out("plr_log_s.txt") << static_cast<int>(state.state) << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.rollFrame << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.activeAttack << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.attackFrame << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.health << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.stunFrame << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.facing << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.spawnPoint << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.attackFreezeFrame << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.frozen << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.attackSpeed << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.moveSpeed << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.healFrame << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.healDelay << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.teamId << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.stamina << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.staminaRechargeFrame << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.deathFrame << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.weaponTag << '\t';
+					DebugFIO::Out("plr_log_s.txt") << state.userTag << '\t';
+					DebugFIO::Out("plr_log_s.txt") << '\n';
 				}
 
 				/*

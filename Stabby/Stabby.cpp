@@ -109,6 +109,9 @@ int main(int argc, char* argv[]) {
 
 	DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
 	DebugFIO::AddFOut("c_out.txt");
+	DebugFIO::AddFOut("plr_log.txt");
+	DebugFIO::Out("plr_log.txt") << "Client Time\tNetId\tControllerState\tPrev Controller State\tPos\tVel\tState\tRoll Frame\tActive Attack\tAttack Frame\tHealth\tStun Frame\tFacing\tSpawnPoint\tAttack Freeze Frame\tFrozen\tAttack Speed\tMove Speed\tHeal Frame\tHeal Delay\tTeam Id\tStamina\tStamina Recharge Frame\tDeath Frame\tWeapon Tag\tUser Tag"; // make it output the player states as a tab separated thing
+
 
 	int debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowWidth, windowHeight }, .5 });
 	game.loadCameras(viewWidth, viewHeight);
@@ -376,14 +379,12 @@ int main(int argc, char* argv[]) {
 									state.when = client.getTime();
 									state.netId = online->getNetId();
 
-									lastSent.when = client.getTime();
-									lastSent.clientTime = game.tick;
-
 									//the sent state is the controller state from after the timestamped update has run
-									if (lastSent != state) {
+									//only compare the current buttons being pressed, not the previous state, to only send toggled controller states
+									if (lastSent.state != state.state || lastSent.prevState != state.prevState) {
 										lastSent = state;
 										client.send(state);
-										DebugFIO::Out("c_out.txt") << "Sent input " << static_cast<int>(state.state) << " for time " << game.tick << '\n';
+										DebugFIO::Out("c_out.txt") << "Sent input " << static_cast<int>(state.state)  << ", " << static_cast<int>(state.prevState) << " for time " << game.tick << '\n';
 										//std::cout << "Sending update for time: " << lastSent.when << '\n';
 									}
 								}

@@ -26,8 +26,11 @@ public:
 	void storeGameState(const GameState& state);
 	void acknowledgeState(GameStateId id);
 	bool getLastAcknowledged(GameState& state);
+
+	bool getTimeIsSet() const;
+	void setTime(Time_t clientTime_);
 private:
-	bool firstInput;
+	bool timeIsSet;
 	Time_t latestTime;
 	Time_t clientTime;
 	std::deque<ClientCommand> commands;

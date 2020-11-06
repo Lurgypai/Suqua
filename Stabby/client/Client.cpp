@@ -91,6 +91,15 @@ void Client::connect(const std::string & ip, int port) {
 			p.nameTag = nameTag->nameTag;
 			client.sendPacket(serverId, 0, p);
 
+			ControllerPacket contPacket;
+			ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(playerId);
+			contPacket.clientTime = tick;
+			contPacket.netId = online->getNetId();
+			contPacket.prevState = 0;
+			contPacket.state = 0;
+			contPacket.when = networkTime;
+			client.sendPacket(serverId, 0, contPacket);
+
 			connected = true;
 		}
 	}

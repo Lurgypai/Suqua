@@ -4,6 +4,12 @@
 
 Controller::Controller() : state{ 0 }, prevState{0}, mouseScroll{ 0 } {}
 
+Controller::Controller(const Controller& other) :
+	state{other.state},
+	prevState{other.prevState},
+	mouseScroll{other.mouseScroll}
+{}
+
 Controller::Controller(unsigned char state_, unsigned char prevState_) :
 	prevState{prevState_},
 	state{state_},
@@ -34,6 +40,11 @@ void Controller::set(unsigned char ctrl_bits, bool newState) {
 		state |= ctrl_bits;
 	else
 		state &= ~(ctrl_bits);
+}
+
+void Controller::setState(unsigned char newState) {
+	prevState = state;
+	state = newState;
 }
 
 void Controller::setMouseScroll(int mouse_scroll_) {
