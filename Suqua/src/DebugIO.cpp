@@ -153,6 +153,10 @@ bool DebugIO::getOpen() {
 	return isOpen;
 }
 
+std::string DebugIO::getInput() {
+	return console.front();
+}
+
 CommandManager & DebugIO::getCommandManager() {
 	return command_manager;
 }

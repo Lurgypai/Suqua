@@ -2,6 +2,7 @@
 #include "IDrawable.h"
 #include "AABB.h"
 #include "FontData.h"
+#include "Color.h"
 
 class TextDrawable : public IDrawable {
 public:
@@ -13,15 +14,11 @@ public:
 
 	virtual IDrawable* clone() override;
 
-	void setColor(float r, float g, float b);
-
 	const AABB& getBoundingBox();
 
 	FontData font;
 	std::string text;
-	float r;
-	float g;
-	float b;
+	Color color;
 	Vec2f scale;
 	int anti_alias;
 private:

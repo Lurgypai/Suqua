@@ -18,7 +18,6 @@ public:
 	Vec2f getRes() const;
 	void respawn(const Vec2f & spawnPos);
 	bool shouldRespawn();
-	void shouldRespawn(bool newShouldRespawn);
 	void kill();
 	//kill and make them select a spawn point immediately
 	void chooseSpawn();

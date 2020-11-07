@@ -24,6 +24,7 @@ public:
 	static void drawDebugInfo();
 	static void stopDebug();
 	static bool getOpen();
+	static std::string getInput();
 	static CommandManager& getCommandManager();
 private:
 	static CommandManager command_manager;

@@ -399,4 +399,12 @@ void Client::receive(const ENetEvent & e) {
 
 		DebugIO::printLine(std::string{ message.message });
 	}
+	else if (packetKey == DELAY_KEY) {
+		ClientDelayedPacket delayedPacket{};
+		PacketUtil::readInto<ClientDelayedPacket>(delayedPacket, e.packet);
+		delayedPacket.unserialize();
+
+		std::cout << "We've received a \"delayed\" packet.\n";
+		behindServer = true;
+	}
 }

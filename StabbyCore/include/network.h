@@ -20,3 +20,5 @@
 #include "../network/packet/WelcomePacket.h"
 #include "../network/packet/AcknowledgePacket.h"
 #include "../network/packet/NameTagPacket.h"
+#include "../network/packet/ClientDelayedPacket.h"
+#include "../network/packet/CommandPacket.h"

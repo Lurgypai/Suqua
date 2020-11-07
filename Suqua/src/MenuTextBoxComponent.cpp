@@ -32,7 +32,11 @@ void MenuTextBoxComponent::update(Vec2f mousePos, bool toggled_) {
 }
 
 void MenuTextBoxComponent::input(const std::string& input) {
-	textBuffer += input;
+	if(textBuffer.size() != charLimit)
+		textBuffer += input;
+	if (textBuffer.size() > charLimit) {
+		textBuffer = textBuffer.substr(0, charLimit);
+	}
 }
 
 void MenuTextBoxComponent::backspace() {
@@ -46,6 +50,10 @@ void MenuTextBoxComponent::enterText() {
 	textBuffer.clear();
 	active = false;
 	textWasEntered = true;
+}
+
+void MenuTextBoxComponent::setCharLimit(unsigned int charLimit_) {
+	charLimit = charLimit_;
 }
 
 bool MenuTextBoxComponent::isActive() {

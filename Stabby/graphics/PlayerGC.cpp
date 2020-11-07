@@ -66,7 +66,7 @@ void PlayerGC::loadNameTag() {
 
 
 	auto* drawable = nameTagRender->getDrawable<TextDrawable>();
-	drawable->setColor(1, 1, 1);
+	drawable->color = { 1.0, 1.0, 1.0, 1.0 };
 	drawable->anti_alias = true;
 	drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
 	drawable->scale = { .5, .5 };

@@ -73,7 +73,7 @@ void Game::startMainMenu() {
 
 		render->loadDrawable<TextDrawable>();
 		auto* drawable = render->getDrawable<TextDrawable>();
-		drawable->setColor(1, 1, 1);
+		drawable->color = { 1, 1, 1, 1 };
 		drawable->anti_alias = true;
 		drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
 		drawable->scale = {.5, .5};
@@ -542,6 +542,9 @@ void Game::loadWeaponMenu() {
 	auto& weaponMenu_ = menus.getMenu(weaponMenu);
 	weaponMenu_.addMenuEntry(MenuEntryType::text_box, "search_bar", AABB{ {222, 71}, {182, 18} });
 	weaponMenu_.addMenuEntry(MenuEntryType::grid, "weapon_grid", AABB{ {218, 87}, {190, 190} });
+	MenuTextBoxComponent* weaponMenuTextBox = EntitySystem::GetComp<MenuTextBoxComponent>(weaponMenu_.getMenuEntry("search_bar"));
+	weaponMenuTextBox->setCharLimit(21);
+
 	MenuGridComponent* weaponMenuGrid = EntitySystem::GetComp<MenuGridComponent>(weaponMenu_.getMenuEntry("weapon_grid"));
 	weaponMenuGrid->buttonRes = { 32, 32 };
 	weaponMenuGrid->margins = { 5, 5 };
@@ -573,7 +576,7 @@ void Game::loadWeaponMenu() {
 
 		render->loadDrawable<TextDrawable>();
 		auto* drawable = render->getDrawable<TextDrawable>();
-		drawable->setColor(1, 1, 1);
+		drawable->color = { 1.0, 1.0, 1.0, 1.0 };
 		drawable->anti_alias = true;
 		drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
 		drawable->scale = { .5, .5 };

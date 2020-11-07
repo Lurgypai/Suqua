@@ -50,6 +50,7 @@
 #include "command/TeamChangeCommand.h"
 #include "command/HealthCommand.h"
 #include "command/FrameByFrameCommand.h"
+#include "command/StaminaCommand.h"
 #include "graphics/PlayerGC.h"
 #include "graphics/CapturePointGC.h"
 #include "graphics/HeadParticleLC.h"
@@ -144,6 +145,7 @@ int main(int argc, char* argv[]) {
 	//DebugIO::getCommandManager().registerCommand<SpawnZombieCommand>();
 	DebugIO::getCommandManager().registerCommand<KillCommand>();
 	DebugIO::getCommandManager().registerCommand<WeaponCommand>(game);
+	DebugIO::getCommandManager().registerCommand<StaminaCommand>(game);
 	DebugIO::getCommandManager().registerCommand<VelocityCommand>();
 	DebugIO::getCommandManager().registerCommand<TeleportCommand>();
 	DebugIO::getCommandManager().registerCommand<SpawnPlayerCommand>(SpawnPlayerCommand{ &game });
@@ -285,6 +287,11 @@ int main(int argc, char* argv[]) {
 					}
 					else if (e.key.keysym.sym == SDLK_RETURN) {
 						DebugIO::enterInput();
+						if (client.getConnected()) {
+							CommandPacket commandPacket{};
+							commandPacket.command = DebugIO::getInput().substr(0, commandPacket.command.size());
+							client.send<CommandPacket>(commandPacket);
+						}
 						game.menus.enterTextAllMenus();
 					}
 					else if (e.key.keysym.sym == SDLK_l)
@@ -393,9 +400,9 @@ int main(int argc, char* argv[]) {
 							client.service();
 
 							if (client.isBehindServer()) {
-								std::cout << "We're behind the server, pinging our time.\n";
-								//bump the client forward?
-								game.tick = client.getLastServerTick();
+								std::cout << "We're behind the server, pinging our time and skipping a tick.\n";
+								//bump the client forward
+								game.tick = client.getLastServerTick() + 1;
 								client.ping();
 								client.resetBehindServer();
 							}
@@ -431,10 +438,9 @@ int main(int argc, char* argv[]) {
 							client.readSessionEvents();
 
 							if (client.isBehindServer()) {
-								std::cout << "We're behind the server, pinging our time.\n";
+								std::cout << "We're behind the server, pinging our time and skipping a tick.\n";
 								//client.ping();
 								client.resetBehindServer();
-								//the client needs to think its connected, so you'll have to store the welcome packet or smth
 							}
 
 							if (EntitySystem::Contains<OnlinePlayerLC>()) {

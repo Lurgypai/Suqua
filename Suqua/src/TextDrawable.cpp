@@ -4,9 +4,7 @@
 TextDrawable::TextDrawable() :
 	font{},
 	text{},
-	r{},
-	g{},
-	b{},
+	color{},
 	scale{ 1.0, 1.0 },
 	anti_alias{ false }
 {}
@@ -22,7 +20,7 @@ IDrawable* TextDrawable::clone() {
 void TextDrawable::draw() {
 	GLRenderer::SetDefShader(TextShader);
 	GLRenderer::bindCurrShader();
-	GLRenderer::GetDefaultShader(TextShader).uniform3f("color", r, g, b);
+	GLRenderer::GetDefaultShader(TextShader).uniform3f("color", color.r, color.g, color.b);
 	GLRenderer::GetDefaultShader(TextShader).uniform1i("anti_alias", anti_alias);
 
 	Vec2f displayOffset = boundingBox.pos;
@@ -37,19 +35,13 @@ void TextDrawable::draw() {
 			Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) },	//objres
 			{0.0f, 0.0f},	//origin
 			scale,	//scale
-			0.0f	//angle
+			0.0f,	//angle
 			-1.0f	//depth
 		};
 		GLRenderer::DrawImage(data, "test_font");
 		pos.x += glyph.advance * scale.x;
 	}
 	pos.x = displayOffset.x;
-}
-
-void TextDrawable::setColor(float r_, float g_, float b_) {
-	r = r_;
-	g = g_;
-	b = b_;
 }
 
 const AABB& TextDrawable::getBoundingBox() {

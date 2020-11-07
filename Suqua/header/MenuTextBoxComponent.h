@@ -13,6 +13,7 @@ public:
 	void input(const std::string& input);
 	void backspace();
 	void enterText();
+	void setCharLimit(unsigned int charLimit_);
 
 	bool isActive();
 	bool pollActivated();
@@ -32,4 +33,5 @@ private:
 	bool active;
 	bool activated;
 	bool textWasEntered;
+	unsigned int charLimit;
 };
