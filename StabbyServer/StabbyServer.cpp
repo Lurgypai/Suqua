@@ -211,7 +211,7 @@ int main(int argv, char* argc[])
 								player.bufferInput(comm);
 								if (cont.clientTime < player.getClientTime()) {
 									ClientDelayedPacket delayPacket{};
-									server.bufferPacket(event.peer, 0, delayPacket);
+									server.sendPacket(event.peer, 0, delayPacket);
 								}
 							}
 						}
