@@ -270,7 +270,8 @@ void Client::receive(const ENetEvent & e) {
 					clientPlayers->repredict(playerId, p.id, p.state, changedFields, CLIENT_TIME_STEP);
 					lastServerTick = p.state.clientTime;
 					playerAcknowledged = clientPlayers->getClientWasSynchronized();
-					behindServer = clientPlayers->getClientBehindServer();
+					if(!behindServer)
+						behindServer = clientPlayers->getClientBehindServer();
 				}
 				else if (EntitySystem::Contains<OnlinePlayerLC>()) {
 					auto onlinePlayer = EntitySystem::GetComp<OnlinePlayerLC>(targetId);
