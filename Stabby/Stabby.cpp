@@ -402,7 +402,7 @@ int main(int argc, char* argv[]) {
 							if (client.isBehindServer()) {
 								std::cout << "We're behind the server, pinging our time and skipping a tick.\n";
 								//bump the client forward
-								game.tick = client.getLastServerTick() + 1;
+								game.tick = client.getLastServerTick();
 								client.ping();
 								client.resetBehindServer();
 							}
