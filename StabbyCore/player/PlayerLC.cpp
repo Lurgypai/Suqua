@@ -278,6 +278,7 @@ void PlayerLC::setState(const PlayerState& newState) {
 	combat->staminaRechargeFrame = newState.staminaRechargeFrame;
 	combat->freezeFrame = newState.attackFreezeFrame;
 	combat->setAttack(newState.weaponTag);
+	combat->invulnerable = newState.invulnerable;
 
 	dir->dir = newState.facing;
 	
@@ -305,6 +306,7 @@ PlayerState PlayerLC::getState() {
 	playerState->playerState.staminaRechargeFrame = combat->staminaRechargeFrame;
 	playerState->playerState.attackFreezeFrame = combat->freezeFrame;
 	playerState->playerState.weaponTag = combat->getAttack().getId();
+	playerState->playerState.invulnerable = combat->invulnerable;
 
 	playerState->playerState.facing = dir->dir;
 

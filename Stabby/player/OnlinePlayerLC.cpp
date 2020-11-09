@@ -73,6 +73,8 @@ void OnlinePlayerLC::interp(PlayerState state, const DynamicBitset& changedField
 
 	//physics aren't applied
 	state.frozen = true;
+	//and we're always invulnerable
+	state.invulnerable = true;
 
 	//if we respawned, don't interpolate (if we were out of bounds and respawned, interpolating doesn't immediately move inbounds, causing desync)
 	if (wasDead && state.state == State::free) {

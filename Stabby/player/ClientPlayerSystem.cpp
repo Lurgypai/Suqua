@@ -98,6 +98,8 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerSta
 					state.frozen = plrState.frozen;
 				if (!changedFields[Bits::b_user_tag])
 					state.userTag = plrState.userTag;
+				if (!changedFields[Bits::b_invulnerable])
+					state.invulnerable = plrState.invulnerable;
 
 				if (plrState != state) {
 					DebugFIO::Out("c_out.txt") << "Prediction failed, resetting at time: " << state.clientTime << '\n';
@@ -133,6 +135,8 @@ void ClientPlayerSystem::repredict(EntityId playerId, NetworkId netId, PlayerSta
 						out << "staminaRechargeFrame: " << plrState.staminaRechargeFrame << ", " << state.staminaRechargeFrame << '\n';
 					if(state.weaponTag != plrState.weaponTag)
 						out << "weaponTag: " << plrState.weaponTag << ", " << state.weaponTag << '\n';
+					if (state.invulnerable != plrState.invulnerable)
+						out << "invulnerable: " << plrState.invulnerable << ", " << state.invulnerable << '\n';
 
 					auto id = lastTick.player;
 					PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);

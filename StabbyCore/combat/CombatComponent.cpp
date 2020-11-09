@@ -155,9 +155,10 @@ void CombatComponent::updateStun() {
 }
 
 void CombatComponent::damage(unsigned int i) {
-	if (!invulnerable)
+	if (!invulnerable) {
 		health -= i;
-	onDamage(i);
+		onDamage(i);
+	}
 }
 
 void CombatComponent::heal(unsigned int i) {

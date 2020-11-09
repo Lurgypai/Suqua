@@ -43,7 +43,8 @@ struct PlayerState {
 		b_pos = 20,
 		b_vel = 21,
 		b_frozen = 22,
-		b_user_tag = 23
+		b_user_tag = 23,
+		b_invulnerable = 24
 	};
 
 	bool operator==(const PlayerState & other) {
@@ -52,7 +53,8 @@ struct PlayerState {
 			health == other.health && stunFrame == other.stunFrame && facing == other.facing &&
 			spawnPoint == other.spawnPoint && attackFreezeFrame == other.attackFreezeFrame && frozen == other.frozen &&
 			attackSpeed == other.attackSpeed && moveSpeed == other.moveSpeed && healFrame == other.healFrame && healDelay == other.healDelay && teamId == other.teamId &&
-			stamina == other.stamina && staminaRechargeFrame == other.staminaRechargeFrame && deathFrame == other.deathFrame && weaponTag == other.weaponTag && userTag == other.userTag;
+			stamina == other.stamina && staminaRechargeFrame == other.staminaRechargeFrame && deathFrame == other.deathFrame && weaponTag == other.weaponTag && userTag == other.userTag &&
+			invulnerable == other.invulnerable;
 	}
 
 
@@ -82,6 +84,7 @@ struct PlayerState {
 	double moveSpeed;
 	CharBuffer<10> weaponTag;
 	CharBuffer<NameTagComponent::SIZE> userTag;
+	bool invulnerable;
 
 	Vec2f pos;
 	Vec2f vel;

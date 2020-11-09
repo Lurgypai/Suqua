@@ -277,7 +277,8 @@ void Client::receive(const ENetEvent & e) {
 					if (onlinePlayer) {
 						onlinePlayer->interp(p.state, changedFields, p.when);
 						ControllerComponent* onlinePlayerController = EntitySystem::GetComp<ControllerComponent>(targetId);
-						onlinePlayerController->getController() = Controller{ p.controllerState, p.prevControllerState };
+						//don't store previous controller state, maybe fix bug causing double attack
+						onlinePlayerController->getController() = Controller{ p.controllerState, p.controllerState };
 					}
 					else {
 						DebugIO::printLine("Unable to find player " + std::to_string(p.id) + ". Did they disconnect?");

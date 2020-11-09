@@ -65,6 +65,7 @@ void StatePacket::readInto(MarkedStream& m, const PlayerState& prevState) {
 	m << s_htonll(id);
 	m << s_htonll(when);
 	m << controllerState;
+	m << prevControllerState;
 
 	if (state.gameTime == prevState.gameTime)
 		m.addEmptyField();
@@ -198,6 +199,11 @@ void StatePacket::readInto(MarkedStream& m, const PlayerState& prevState) {
 		m.addEmptyField();
 	else
 		m << state.userTag;
+
+	if (state.invulnerable == prevState.invulnerable)
+		m.addEmptyField();
+	else
+		m << state.invulnerable;
 }
 
 void StatePacket::readInto(MarkedStream& m) {
@@ -206,6 +212,7 @@ void StatePacket::readInto(MarkedStream& m) {
 	m << id;
 	m << when;
 	m << controllerState;
+	m << prevControllerState;
 
 	m << state.gameTime;
 	m << state.clientTime;
@@ -231,6 +238,7 @@ void StatePacket::readInto(MarkedStream& m) {
 	m << vel;
 	m << state.frozen;
 	m << state.userTag;
+	m << state.invulnerable;
 }
 
 DynamicBitset StatePacket::readFrom(MarkedStream& m) {
@@ -239,6 +247,7 @@ DynamicBitset StatePacket::readFrom(MarkedStream& m) {
 	m >> when;
 	when = s_ntohll(when);
 	m >> controllerState;
+	m >> prevControllerState;
 
 	DynamicBitset b;
 	b.resize(23); // number of fields in PlayerState;
@@ -344,6 +353,10 @@ DynamicBitset StatePacket::readFrom(MarkedStream& m) {
 
 	if (m >> state.userTag) {
 		b.set(Bits::b_user_tag, true);
+	}
+
+	if (m >> state.invulnerable) {
+		b.set(Bits::b_invulnerable, true);
 	}
 
 	return b;
