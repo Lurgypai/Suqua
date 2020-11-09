@@ -360,8 +360,8 @@ int main(int argc, char* argv[]) {
 						break;
 					case Game::GameState::online:
 						physics.runPhysics(CLIENT_TIME_STEP);
-						//only update the clients combat state so that we don't kill an online player
-						game.combat.runAttackCheck(CLIENT_TIME_STEP, game.getPlayerId());
+						//only update the clients combat state so that we don't kill an online player? but this also moves their hitboxes :/
+						game.combat.runAttackCheck(CLIENT_TIME_STEP);
 
 						game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 

@@ -15,11 +15,12 @@ public:
 	void update(Time_t gameTime);
 private:
 	//the current and two previous positions. We are moving between the two previous positions.
-	Vec2f previousPos[3];
+	Vec2f previousPos[2];
 
 	//stores a box created by the earliest previous positions, the onlineplayers position can't be updated outside of this.
 	AABB positionBox;
 	//when the current and two previous positions arrived.
-	Time_t whens[3];
+	Time_t whens[2];
+	bool wasDead;
 	EntityId id;
 };

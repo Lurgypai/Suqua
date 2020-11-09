@@ -14,7 +14,7 @@ void CombatSystem::runAttackCheck(double timeDelta) {
 
 			for (CombatComponent& defender : EntitySystem::GetPool<CombatComponent>()) {
 				attackCheck(attacker, defender);
-				if (defender.isStunned())
+				if (attacker.getId() != defender.getId() && defender.isStunned())
 					stunnedDefenders.push_back(defender.getId());
 			}
 		}
@@ -37,7 +37,7 @@ void CombatSystem::runAttackCheck(double timeDelta, EntityId id) {
 				updateState(attacker, timeDelta);
 				for (CombatComponent& defender : EntitySystem::GetPool<CombatComponent>()) {
 					attackCheck(attacker, defender);
-					if (defender.isStunned())
+					if (attacker.getId() != defender.getId() && defender.isStunned())
 						stunnedDefenders.push_back(defender.getId());
 				}
 			}

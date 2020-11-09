@@ -8,8 +8,9 @@
 
 OnlinePlayerLC::OnlinePlayerLC(EntityId id_) :
 	id{ id_ },
-	previousPos{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} },
-	whens{}
+	previousPos{ {0.0f, 0.0f}, {0.0f, 0.0f} },
+	whens{},
+	wasDead{false}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<PlayerLC>() || EntitySystem::GetComp<PlayerLC>(id) == nullptr) {
@@ -70,21 +71,25 @@ void OnlinePlayerLC::interp(PlayerState state, const DynamicBitset& changedField
 	if (!changedFields[Bits::b_user_tag])
 		state.userTag = plrState.userTag;
 
-
 	//physics aren't applied
 	state.frozen = true;
 
-
-	previousPos[0] = previousPos[1];
-	previousPos[1] = previousPos[2];
-	//if we received a new position, update the furthest previousPos to it
-	if (changedFields[20]) {
-		previousPos[2] = state.pos;
+	//if we respawned, don't interpolate (if we were out of bounds and respawned, interpolating doesn't immediately move inbounds, causing desync)
+	if (wasDead && state.state == State::free) {
+		previousPos[0] = state.pos;
+		previousPos[1] = state.pos;
+	}
+	else {
+		//change to only move between previous and current
+		previousPos[0] = previousPos[1];
+		//if we received a new position, update the furthest previousPos to it
+		if (changedFields[20]) {
+			previousPos[1] = state.pos;
+		}
 	}
 
 	whens[0] = whens[1];
-	whens[1] = whens[2];
-	whens[2] = when;
+	whens[1] = when;
 
 	state.pos = previousPos[0];
 	player->setState(state);
@@ -95,6 +100,8 @@ void OnlinePlayerLC::interp(PlayerState state, const DynamicBitset& changedField
 	Vec2f minPos = { std::fminf(previousPos[0].x, previousPos[1].x), std::fminf(previousPos[0].y, previousPos[1].y) };
 	Vec2f maxPos = { std::fmaxf(previousPos[0].x, previousPos[1].x), std::fmaxf(previousPos[0].y, previousPos[1].y) };
 	positionBox = { minPos, maxPos - minPos };
+
+	wasDead = state.state == State::dead;
 
 	/*
 	OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(id);
