@@ -2,7 +2,7 @@
     "restartDelay": 50,
     "hitboxes": [
         {
-            "width": 18,
+            "width": 21,
             "height": 5,
             "offset_x": 14,
             "offset_y": -10,
@@ -11,8 +11,8 @@
             "ending": 20,
             "stats":
             {
-                "staminaCost": 30,
-                "damage": 25,
+                "staminaCost": 50,
+                "damage": 38,
                 "stun": 12,
                 "critChance": 0.0,
                 "critMultiplier": 0.0,

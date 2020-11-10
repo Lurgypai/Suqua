@@ -16,12 +16,12 @@ PlayerLC::PlayerLC(EntityId id_) :
 	storedVel{0},
 	rollFrameMax{54},
 	deathFrameMax{1200},
-	healFrameMax{60},
+	healFrameMax{75},
 	healDelayMax{120},
 	horizontalAccel{10.0},
 	stepDistance{70},
 	climbDistance{35},
-	rollCost{125},
+	rollCost{200},
 	rollBuffered{false}
 {
 	//do not default construct
@@ -448,7 +448,7 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 		}
 		if (controller[ControllerBits::UP]) {
 			if (comp->grounded) {
-				vel.y = -jumpSpeed;
+				vel.y = -jumpSpeed * state.moveSpeed;
 			}
 		}
 		//otherwise do
