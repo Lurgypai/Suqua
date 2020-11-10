@@ -71,6 +71,7 @@ public:
 	unsigned int teamId;
 	unsigned int stunFrame;
 	bool invulnerable;
+	bool ignoreDamage;
 	std::vector<Hurtbox> hurtboxes;
 private:
 	void updateStun();

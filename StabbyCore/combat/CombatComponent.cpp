@@ -13,6 +13,7 @@ CombatComponent::CombatComponent(EntityId id_) :
 	stunFrame{ 0 },
 	teamId{ 0 },
 	stamina{ 0 },
+	ignoreDamage{false},
 	staminaMax{ 500 },
 	staminaRechargeFrame{ 0 },
 	staminaRechargeMax{ 80 },
@@ -41,6 +42,7 @@ CombatComponent::CombatComponent(const CombatComponent& other) :
 	teamId{other.teamId},
 	stamina{other.stamina},
 	staminaMax{other.staminaMax},
+	ignoreDamage{other.ignoreDamage},
 	staminaRechargeFrame{other.staminaRechargeFrame},
 	staminaRechargeMax{other.staminaRechargeMax},
 	freezeFrame{other.freezeFrame},
@@ -155,7 +157,7 @@ void CombatComponent::updateStun() {
 }
 
 void CombatComponent::damage(unsigned int i) {
-	if (!invulnerable) {
+	if (!invulnerable && !ignoreDamage) {
 		health -= i;
 		onDamage(i);
 	}

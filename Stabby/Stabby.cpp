@@ -468,7 +468,7 @@ int main(int argc, char* argv[]) {
 
 		leftover = elapsedTime_;
 
-		double ups = updates / ((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()));
+		double ups = updates / (static_cast<double>(elapsedTime - leftover) / SDL_GetPerformanceFrequency());
 		DebugIO::setLine(0, "UPS: " + std::to_string(int(round(ups))));
 
 		//gfx

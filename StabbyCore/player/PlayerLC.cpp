@@ -21,7 +21,7 @@ PlayerLC::PlayerLC(EntityId id_) :
 	horizontalAccel{10.0},
 	stepDistance{70},
 	climbDistance{35},
-	rollCost{240},
+	rollCost{125},
 	rollBuffered{false}
 {
 	//do not default construct
