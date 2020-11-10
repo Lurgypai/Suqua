@@ -1,9 +1,10 @@
 
 #include "Host.h"
 
-Host::Host() :
+Host::Host(size_t channelCount_) :
 	host{NULL},
-	channelCount{0}
+	channelCount{channelCount_},
+	channelIncrementer{0}
 {}
 
 Host::~Host() {
@@ -46,27 +47,23 @@ bool Host::createServer(int port, size_t peerCount, size_t channels, enet_uint32
 	return host != NULL;
 }
 
-void Host::sendData(ENetPeer * peer, enet_uint8 channel, void * data, size_t dataSize) {
-	enet_peer_send(peer, channel, enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE));
+void Host::sendData(PeerId id, void* data, size_t dataSize) {
+	enet_peer_send(peers[id], (channelIncrementer++) % channelCount, enet_packet_create(data, dataSize, 0));
 }
 
-void Host::sendData(PeerId id, enet_uint8 channel, void * data, size_t dataSize) {
-	enet_peer_send(peers[id], channel, enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE));
+void Host::sendDataByChannel(PeerId id, enet_uint8 channel, void * data, size_t dataSize) {
+	enet_peer_send(peers[id], channel, enet_packet_create(data, dataSize, 0));
 }
 
-void Host::bufferData(ENetPeer* peer, enet_uint8 channel, void* data, size_t dataSize) {
-	peerDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE), peer, 0, channel });
+void Host::bufferData(PeerId id, void* data, size_t dataSize) {
+	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, 0), id, (channelIncrementer++) % channelCount });
 }
 
-void Host::bufferData(PeerId id, enet_uint8 channel, void* data, size_t dataSize) {
-	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE), nullptr, id, channel });
+void Host::bufferDataToChannel(PeerId id, enet_uint8 channel, void* data, size_t dataSize) {
+	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, 0), id, channel });
 }
 
 void Host::sendBuffered() {
-	for (auto& packet : peerDestinedPackets) {
-		enet_peer_send(packet.peer, packet.channel, packet.packet);
-	}
-	peerDestinedPackets.clear();
 	for (auto& packet : idDestinedPackets) {
 		enet_peer_send(peers[packet.id], packet.channel, packet.packet);
 	}

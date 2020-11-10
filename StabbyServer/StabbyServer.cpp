@@ -70,7 +70,7 @@ int main(int argv, char* argc[])
 	Stage stage{stageName, spawns};
 
 	Host server;
-	if (!server.createServer(port, 32, 3)) {
+	if (!server.createServer(port, 32, CHANNEL_COUNT)) {
 		std::cout << "Oops, no server! Perhaps one is already running on this port?\n";
 		return -1;
 	}
@@ -155,7 +155,7 @@ int main(int argv, char* argc[])
 				WelcomePacket welcomePacket;
 				welcomePacket.currentTick = gameTime;
 				welcomePacket.netId = clientNetId;
-				server.sendPacket<WelcomePacket>(event.peer, 0, welcomePacket);
+				server.sendPacket<WelcomePacket>(clientPeerId, welcomePacket);
 
 				//notify all online players of a new players join
 				for (auto& user : users) {
@@ -163,7 +163,7 @@ int main(int argv, char* argc[])
 						//tell them about us
 						JoinPacket join{};
 						join.joinerId = clientNetId;
-						server.sendPacket<JoinPacket>(user->getConnection()->getPeer(), 0, join);
+						server.sendPacket<JoinPacket>(user->getPeerId(), join);
 					}
 				}
 				//fill us in about all players
@@ -175,7 +175,7 @@ int main(int argv, char* argc[])
 						//tell us about them
 						JoinPacket us{};
 						us.joinerId = online->getNetId();
-						server.sendPacket(event.peer, 0, us);
+						server.sendPacket(clientPeerId, us);
 					}
 				}
 
@@ -211,7 +211,7 @@ int main(int argv, char* argc[])
 								player.bufferInput(comm);
 								if (cont.clientTime < player.getClientTime()) {
 									ClientDelayedPacket delayPacket{};
-									server.sendPacket(event.peer, 0, delayPacket);
+									server.sendPacket(user->getPeerId(), delayPacket);
 								}
 							}
 						}
@@ -221,14 +221,15 @@ int main(int argv, char* argc[])
 						PacketUtil::readInto<TimestampPacket>(time, event.packet);
 						time.unserialize();
 
-						time.gameTime = gameTime;
-						time.serverTime = currentTick;
-						server.bufferPacket<TimestampPacket>(event.peer, 0, time);
 						for (auto& user : users) {
 							if (user->getOnline().getNetId() == time.id) {
 								if (!user->getServerPlayer().getTimeIsSet()) {
 									user->getServerPlayer().setTime(time.clientTime);
 								}
+
+								time.gameTime = gameTime;
+								time.serverTime = currentTick;
+								server.bufferPacket<TimestampPacket>(user->getPeerId(), time);
 								break;
 							}
 						}
@@ -251,7 +252,7 @@ int main(int argv, char* argc[])
 								char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + attackId.size()));
 								memcpy(data, &ret, sizeof(WeaponChangePacket));
 								memcpy(data + sizeof(WeaponChangePacket), attackId.data(), p.size);
-								server.sendData(user->getConnection()->getPeer(), 0, data, sizeof(WeaponChangePacket) + attackId.size());
+								server.sendData(user->getPeerId(), data, sizeof(WeaponChangePacket) + attackId.size());
 								free(data);
 
 								if (user->getOnline().getNetId() == p.id) {
@@ -268,7 +269,7 @@ int main(int argv, char* argc[])
 									char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + attackId.size()));
 									memcpy(data, &ret, sizeof(WeaponChangePacket));
 									memcpy(data + sizeof(WeaponChangePacket), attackId.data(), p.size);
-									server.sendData(user->getConnection()->getPeer(), 0, data, sizeof(WeaponChangePacket) + attackId.size());
+									server.sendData(user->getPeerId(), data, sizeof(WeaponChangePacket) + attackId.size());
 									free(data);
 								}
 							}
@@ -283,7 +284,7 @@ int main(int argv, char* argc[])
 							if (user->getOnline().getNetId() == p.id) {
 								user->getCombat().teamId = p.targetTeamId;
 
-								server.bufferPacket(event.peer, 0, p);
+								server.bufferPacket(user->getPeerId(), p);
 							}
 						}
 					}
@@ -335,7 +336,7 @@ int main(int argv, char* argc[])
 
 				for (auto& user : users) {
 					if (user->getPeerId() != disconnectPeerId) {
-						server.sendPacket<QuitPacket>(user->getConnection()->getPeer(), 0, q);
+						server.sendPacket<QuitPacket>(user->getPeerId(), q);
 					}
 				}
 			}
@@ -448,7 +449,7 @@ int main(int argv, char* argc[])
 					std::string text = "Game over, team " + std::to_string(mode.getWinningTeam()) + " has won.";
 					strcpy(message.message, text.data());
 					for (auto& user : users) {
-						server.sendPacket(user->getConnection()->getPeer(), 0, message);
+						server.sendPacket(user->getPeerId(), message);
 					}
 				}
 				wasRestarting = mode.isRestarting();
@@ -503,7 +504,7 @@ int main(int argv, char* argc[])
 				data.resize(m.size() + 4);
 				std::memcpy(data.data(), "SST", 4);
 				std::memcpy(data.data() + 4, m.data(), m.size());
-				server.sendData(other->getConnection()->getPeer(), 1, data.data(), data.size());
+				server.sendData(other->getPeerId(), data.data(), data.size());
 
 				GameStateId sentId;
 				m >> sentId;
@@ -559,7 +560,7 @@ int main(int argv, char* argc[])
 				*/
 
 				//DebugFIO::Out("s_out.txt") << "Attempting to send batched player updates.\n";
-				server.sendData(other->getConnection()->getPeer(), 2, capturePointPackets.data(), sizeof(CapturePointPacket)* capturePointPackets.size());
+				server.sendData(other->getPeerId(), capturePointPackets.data(), sizeof(CapturePointPacket)* capturePointPackets.size());
 			}
 
 
@@ -582,7 +583,7 @@ int main(int argv, char* argc[])
 					//tell everyone else
 					for (auto& other : users) {
 						if(other->getPeerId() != user->getPeerId())
-							server.sendPacket<QuitPacket>(other->getPeerId(), 0, q);
+							server.sendPacket<QuitPacket>(other->getPeerId(), q);
 					}
 					server.resetConnection(user->getPeerId());
 				}

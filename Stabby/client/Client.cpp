@@ -25,7 +25,7 @@ Client::Client(const Time_t& tick) :
 {
 	enet_initialize();
 	DebugIO::printLine("Starting client.");
-	if (!client.createClient(1, 3)) {
+	if (!client.createClient(1, 5)) {
 		DebugIO::printLine("Error while trying to create client.");
 		return;
 	}
@@ -38,7 +38,7 @@ Client::~Client() {
 
 void Client::connect(const std::string & ip, int port) {
 	if (!connected) {
-		serverId = client.connect(ip, port, 3);
+		serverId = client.connect(ip, port, CHANNEL_COUNT);
 
 		ENetEvent e;
 		if (client.service(&e, 5000) > 0 && e.type == ENET_EVENT_TYPE_CONNECT) {
@@ -89,7 +89,7 @@ void Client::connect(const std::string & ip, int port) {
 			NameTagComponent* nameTag = EntitySystem::GetComp<NameTagComponent>(playerId);
 			p.netId = online->getNetId();
 			p.nameTag = nameTag->nameTag;
-			client.sendPacket(serverId, 0, p);
+			client.sendPacket(serverId, p);
 
 			ControllerPacket contPacket;
 			ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(playerId);
@@ -98,7 +98,7 @@ void Client::connect(const std::string & ip, int port) {
 			contPacket.prevState = 0;
 			contPacket.state = 0;
 			contPacket.when = networkTime;
-			client.sendPacket(serverId, 0, contPacket);
+			client.sendPacket(serverId, contPacket);
 
 			connected = true;
 		}
@@ -109,7 +109,7 @@ void Client::connect(const std::string & ip, int port) {
 }
 
 void Client::send(size_t size, void* data) {
-	client.sendData(serverId, 0, data, size);
+	client.sendData(serverId, data, size);
 }
 
 void Client::service() {
@@ -152,7 +152,7 @@ void Client::ping() {
 	OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerId);
 	p.id = online->getNetId();
 	p.clientTime = tick;
-	client.sendPacket(serverId, 0, p);
+	client.sendPacket(serverId, p);
 }
 
 void Client::recalculatePing(Time_t nextPing) {
@@ -297,7 +297,7 @@ void Client::receive(const ENetEvent & e) {
 			OnlineComponent* onlineComp = EntitySystem::GetComp<OnlineComponent>(playerId);
 			ack.netId = onlineComp->getNetId();
 			ack.stateId = id;
-			client.sendPacket(serverId, 0, ack);
+			client.sendPacket(serverId, ack);
 		}
 		//send acknowledge packet
 

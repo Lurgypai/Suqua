@@ -94,5 +94,5 @@ private:
 
 template<typename Packet>
 inline void Client::send(Packet p) {
-	client.sendPacket<Packet>(serverId, 0, p);
+	client.sendPacket<Packet>(serverId, p);
 }
