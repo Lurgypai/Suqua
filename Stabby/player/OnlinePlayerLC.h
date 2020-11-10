@@ -22,7 +22,7 @@ private:
 	//when the current and two previous positions arrived.
 	Time_t whens[2];
 	//last time used
-	Time_t lastClientTime;
+	Time_t lastGameTime;
 	bool wasDead;
 	EntityId id;
 };

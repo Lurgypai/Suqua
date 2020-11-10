@@ -90,7 +90,7 @@ int main(int argv, char* argc[])
 	Time_t lastUpdatedTime{ 0 };
 
 	std::vector<ControllerPacket> ctrls;
-	std::list<UserPtr> users;
+	std::unordered_map<PeerId, UserPtr> users;
 
 	PhysicsSystem physics{};
 	physics.runPhysics(CLIENT_TIME_STEP);
@@ -144,34 +144,34 @@ int main(int argv, char* argc[])
 				std::cout << "Connection received.\n";
 				clientPeerId = server.addPeer(event.peer);
 
-				users.emplace_back(std::make_unique<User>(User{&players, &weapons, clientPeerId, std::make_unique<Connection>(*event.peer, clientPeerId, currentTick) }));
-				users.back()->getPlayer().chooseSpawn();
-				online.addOnlineComponent(users.back()->getId());
+				users.emplace(clientPeerId, std::make_unique<User>(User{&players, &weapons, clientPeerId, std::make_unique<Connection>(*event.peer, clientPeerId, currentTick) }));
+				auto& newUser = users[clientPeerId];
+				newUser->getPlayer().chooseSpawn();
+				online.addOnlineComponent(newUser->getId());
 
-				NetworkId clientNetId = users.back()->getOnline().getNetId();
+				NetworkId newClientNetId = newUser->getOnline().getNetId();
 
-				mode.addPlayer(users.back()->getId());
+				mode.addPlayer(newUser->getId());
 
 				WelcomePacket welcomePacket;
 				welcomePacket.currentTick = gameTime;
-				welcomePacket.netId = clientNetId;
+				welcomePacket.netId = newClientNetId;
 				server.sendPacket<WelcomePacket>(clientPeerId, welcomePacket);
 
 				//notify all online players of a new players join
-				for (auto& user : users) {
-					if (user->getPeerId() != clientPeerId) {
+				for (auto& pair : users) {
+					if (pair.first != clientPeerId) {
 						//tell them about us
 						JoinPacket join{};
-						join.joinerId = clientNetId;
-						server.sendPacket<JoinPacket>(user->getPeerId(), join);
+						join.joinerId = newClientNetId;
+						server.sendPacket<JoinPacket>(pair.second->getPeerId(), join);
 					}
 				}
 				//fill us in about all players
-
 				MarkedStream m;
 				for (auto& playerLC : EntitySystem::GetPool<PlayerLC>()) {
 					OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerLC.getId());
-					if (online->getNetId() != clientNetId) {
+					if (online->getNetId() != newClientNetId) {
 						//tell us about them
 						JoinPacket us{};
 						us.joinerId = online->getNetId();
@@ -187,14 +187,10 @@ int main(int argv, char* argc[])
 				}
 				else {
 					PeerId senderId = *static_cast<NetworkId*>(event.peer->data);
-					User* sender = nullptr;
-					for (auto& user : users) {
-						if (user->getPeerId() == senderId)
-							sender = user.get();
-					}
+					User* sender = users[senderId].get();
 
 					if (sender == nullptr)
-						std::cout << "Sender was nullptr.\n";
+						std::cout << "Sender was not found.\n";
 					sender->getConnection()->setLastPacket(currentTick);
 
 					std::string key = PacketUtil::readPacketKey(event.packet);
@@ -203,17 +199,12 @@ int main(int argv, char* argc[])
 						std::memcpy(&cont, event.packet->data, event.packet->dataLength);
 						cont.unserialize();
 
-						for (auto& user : users) {
-							ServerPlayerComponent& player = user->getServerPlayer();
-							if (user->getOnline().getNetId() == cont.netId) {
-								ClientCommand comm{ Controller{ cont.state, cont.prevState }, cont.clientTime, cont.when };
-								DebugFIO::Out("s_out.txt") << "Received and storing input " << static_cast<int>(cont.state) << ", " << static_cast<int>(cont.prevState) << " for time " << cont.clientTime << '\n';
-								player.bufferInput(comm);
-								if (cont.clientTime < player.getClientTime()) {
-									ClientDelayedPacket delayPacket{};
-									server.sendPacket(user->getPeerId(), delayPacket);
-								}
-							}
+						ClientCommand comm{ Controller{ cont.state, cont.prevState }, cont.clientTime, cont.when };
+						DebugFIO::Out("s_out.txt") << "Received and storing input " << static_cast<int>(cont.state) << ", " << static_cast<int>(cont.prevState) << " for time " << cont.clientTime << '\n';
+						sender->getServerPlayer().bufferInput(comm);
+						if (cont.clientTime < sender->getServerPlayer().getClientTime()) {
+							ClientDelayedPacket delayPacket{};
+							server.sendPacket(senderId, delayPacket);
 						}
 					}
 					else if (key == TIME_KEY) {
@@ -221,18 +212,14 @@ int main(int argv, char* argc[])
 						PacketUtil::readInto<TimestampPacket>(time, event.packet);
 						time.unserialize();
 
-						for (auto& user : users) {
-							if (user->getOnline().getNetId() == time.id) {
-								if (!user->getServerPlayer().getTimeIsSet()) {
-									user->getServerPlayer().setTime(time.clientTime);
-								}
-
-								time.gameTime = gameTime;
-								time.serverTime = currentTick;
-								server.bufferPacket<TimestampPacket>(user->getPeerId(), time);
-								break;
-							}
+						if (!sender->getServerPlayer().getTimeIsSet()) {
+							sender->getServerPlayer().setTime(time.clientTime);
 						}
+
+						time.gameTime = gameTime;
+						time.serverTime = currentTick;
+						server.bufferPacket<TimestampPacket>(sender->getPeerId(), time);
+						break;
 					}
 					else if (key == WEAPON_KEY) {
 						WeaponChangePacket p{};
@@ -242,9 +229,12 @@ int main(int argv, char* argc[])
 						attackId.resize(p.size);
 
 						std::memcpy(attackId.data(), (event.packet->data) + sizeof(WeaponChangePacket), p.size);
-						bool hasWeapon = weapons.hasWeapon(attackId);
-						for (auto& user : users) {
-							if (hasWeapon) {
+
+						//if we have the weapon, set it and tell everyone
+						if (weapons.hasWeapon(attackId)) {
+							sender->getCombat().setAttack(attackId);
+
+							for (auto& pair : users) {
 								WeaponChangePacket ret;
 								ret.size = attackId.size();
 								ret.id = p.id;
@@ -252,63 +242,45 @@ int main(int argv, char* argc[])
 								char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + attackId.size()));
 								memcpy(data, &ret, sizeof(WeaponChangePacket));
 								memcpy(data + sizeof(WeaponChangePacket), attackId.data(), p.size);
-								server.sendData(user->getPeerId(), data, sizeof(WeaponChangePacket) + attackId.size());
+								server.sendData(pair.first, data, sizeof(WeaponChangePacket) + attackId.size());
 								free(data);
-
-								if (user->getOnline().getNetId() == p.id) {
-									user->getCombat().setAttack(attackId);
-								}
 							}
-							else {
-								if (user->getOnline().getNetId() == p.id) {
-									attackId = user->getCombat().getAttack().getId();
-									WeaponChangePacket ret;
-									ret.size = attackId.size();
-									ret.id = p.id;
-									ret.serialize();
-									char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + attackId.size()));
-									memcpy(data, &ret, sizeof(WeaponChangePacket));
-									memcpy(data + sizeof(WeaponChangePacket), attackId.data(), p.size);
-									server.sendData(user->getPeerId(), data, sizeof(WeaponChangePacket) + attackId.size());
-									free(data);
-								}
-							}
+						}
+						//otherwise, tell the sender that we dont' have it
+						else {
+							attackId = sender->getCombat().getAttack().getId();
+							WeaponChangePacket ret;
+							ret.size = attackId.size();
+							ret.id = p.id;
+							ret.serialize();
+							char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + attackId.size()));
+							memcpy(data, &ret, sizeof(WeaponChangePacket));
+							memcpy(data + sizeof(WeaponChangePacket), attackId.data(), p.size);
+							server.sendData(senderId, data, sizeof(WeaponChangePacket) + attackId.size());
+							free(data);
 						}
 					}
 					else if (key == TEAM_KEY) {
 						TeamChangePacket p;
 						PacketUtil::readInto<TeamChangePacket>(p, event.packet);
 						p.unserialize();
+						server.bufferPacket(senderId, p);
 
-						for (auto& user : users) {
-							if (user->getOnline().getNetId() == p.id) {
-								user->getCombat().teamId = p.targetTeamId;
-
-								server.bufferPacket(user->getPeerId(), p);
-							}
-						}
+						sender->getCombat().teamId = p.targetTeamId;
 					}
 					else if (key == ACK_KEY) {
 						AcknowledgePacket p;
 						PacketUtil::readInto<AcknowledgePacket>(p, event.packet);
 						p.unserialize();
 
-						for (auto& user : users) {
-							if (user->getOnline().getNetId() == p.netId) {
-								user->getServerPlayer().acknowledgeState(p.stateId);
-							}
-						}
+						sender->getServerPlayer().acknowledgeState(p.stateId);
 					}
 					else if (key == NAMETAG_KEY) {
 						NameTagPacket p;
 						PacketUtil::readInto<NameTagPacket>(p, event.packet);
 						p.unserialize();
 
-						for (auto& user : users) {
-							if (user->getOnline().getNetId() == p.netId) {
-								user->getNameTag().nameTag = p.nameTag;
-							}
-						}
+						sender->getNameTag().nameTag = p.nameTag;
 					}
 
 				}
@@ -321,23 +293,22 @@ int main(int argv, char* argc[])
 
 				bool foundUser;
 
-				for (auto& user : users) {
-					if (user->getPeerId() == disconnectPeerId) {
-						foundUser = true;
-						std::cout << "Player " << user->getPeerId() << ", " << user->getOnline().getNetId() << " disconnected.\n";
-						q.id = user->getOnline().getNetId();
-						user->getConnection()->setShouldReset(true);
+				if (users.find(disconnectPeerId) != users.end()) {
+
+					auto& disconnectedUser = users[disconnectPeerId];
+
+					std::cout << "Player " << disconnectPeerId << ", " << disconnectedUser->getOnline().getNetId() << " disconnected.\n";
+					q.id = disconnectedUser->getOnline().getNetId();
+					disconnectedUser->getConnection()->setShouldReset(true);
+
+					for (auto& pair : users) {
+						if (pair.first != disconnectPeerId) {
+							server.sendPacket<QuitPacket>(pair.first, q);
+						}
 					}
 				}
-
-				if (!foundUser) {
+				else {
 					throw std::exception{};
-				}
-
-				for (auto& user : users) {
-					if (user->getPeerId() != disconnectPeerId) {
-						server.sendPacket<QuitPacket>(user->getPeerId(), q);
-					}
 				}
 			}
 			break;
@@ -372,16 +343,16 @@ int main(int argv, char* argc[])
 				if (EntitySystem::Contains<AIPlayerComponent>()) {
 					for (auto& aiPlayer : EntitySystem::GetPool<AIPlayerComponent>()) {
 						aiPlayer.update();
-							players.update(aiPlayer.getId(), lastUpdatedTime, stage, spawns);
+						players.update(aiPlayer.getId(), CLIENT_TIME_STEP, stage, spawns);
 					}
 				}
 
 				onlinePlayers.updatePlayers(players, CLIENT_TIME_STEP, stage, spawns);
 
-				for (auto& user : users) {
-					PlayerState state = user->getPlayer().getState();
-					OnlineComponent& online = user->getOnline();
-					ControllerComponent& controller = user->getController();
+				for (auto& pair : users) {
+					PlayerState state = pair.second->getPlayer().getState();
+					OnlineComponent& online = pair.second->getOnline();
+					ControllerComponent& controller = pair.second->getController();
 					DebugFIO::Out("plr_log_s.txt") << state.clientTime << '\t';
 					DebugFIO::Out("plr_log_s.txt") << online.getNetId() << '\t';
 					DebugFIO::Out("plr_log_s.txt") << static_cast<int>(controller.getController().getState()) << '\t';
@@ -448,8 +419,8 @@ int main(int argv, char* argc[])
 					MessagePacket message{};
 					std::string text = "Game over, team " + std::to_string(mode.getWinningTeam()) + " has won.";
 					strcpy(message.message, text.data());
-					for (auto& user : users) {
-						server.sendPacket(user->getPeerId(), message);
+					for (auto& pair : users) {
+						server.sendPacket(pair.first, message);
 					}
 				}
 				wasRestarting = mode.isRestarting();
@@ -476,6 +447,7 @@ int main(int argv, char* argc[])
 					OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(player.getId());
 					ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(player.getId());
 					state.state = player.getState();
+					state.state.gameTime = gameTime;
 					state.when = gameTime;
 					state.id = online->getNetId();
 					state.controllerState = controller->getController().getState();
@@ -484,10 +456,10 @@ int main(int argv, char* argc[])
 				}
 			}
 
-			for (auto& other : users) {
+			for (auto& pair : users) {
 				//send the contiguous state block
 				//server.sendData(other->getConnection()->getPeer(), 1, states.data(), sizeof(StatePacket) * states.size());
-				ServerPlayerComponent& serverPlayer = other->getServerPlayer();
+				ServerPlayerComponent& serverPlayer = pair.second->getServerPlayer();
 				GameState lastAcknowledged{0};
 				MarkedStream m;
 				
@@ -504,7 +476,7 @@ int main(int argv, char* argc[])
 				data.resize(m.size() + 4);
 				std::memcpy(data.data(), "SST", 4);
 				std::memcpy(data.data() + 4, m.data(), m.size());
-				server.sendData(other->getPeerId(), data.data(), data.size());
+				server.sendData(pair.first, data.data(), data.size());
 
 				GameStateId sentId;
 				m >> sentId;
@@ -560,7 +532,7 @@ int main(int argv, char* argc[])
 				*/
 
 				//DebugFIO::Out("s_out.txt") << "Attempting to send batched player updates.\n";
-				server.sendData(other->getPeerId(), capturePointPackets.data(), sizeof(CapturePointPacket)* capturePointPackets.size());
+				server.sendData(pair.first, capturePointPackets.data(), sizeof(CapturePointPacket)* capturePointPackets.size());
 			}
 
 
@@ -574,36 +546,36 @@ int main(int argv, char* argc[])
 
 			//handle quitting
 			QuitPacket q;
-			for (auto& user : users) {
-				Connection * con = user->getConnection();
+			for (auto& pair : users) {
+				Connection * con = pair.second->getConnection();
 				if (static_cast<double>(currentTick - con->getLastPacket()) * SERVER_TIME_STEP > forceDisconnectDelay) {
-					std::cout << "Forcing removal of player " << user->getPeerId() << ", " << user->getOnline().getNetId() << ".\n";
+					std::cout << "Forcing removal of player " << pair.first << ", " << pair.second->getOnline().getNetId() << ".\n";
 					con->setShouldReset(true);
-					q.id = user->getOnline().getNetId();
+					q.id = pair.second->getOnline().getNetId();
 					//tell everyone else
-					for (auto& other : users) {
-						if(other->getPeerId() != user->getPeerId())
-							server.sendPacket<QuitPacket>(other->getPeerId(), q);
+					for (auto& otherPair : users) {
+						if(otherPair.first != pair.first)
+							server.sendPacket<QuitPacket>(otherPair.first, q);
 					}
-					server.resetConnection(user->getPeerId());
+					server.resetConnection(pair.first);
 				}
 				else if (static_cast<double>(currentTick - con->getLastPacket()) * SERVER_TIME_STEP > disconnectDelay) {
-					std::cout << "Attempting to disconnect player " << user->getPeerId() << ", " << user->getOnline().getNetId() << ", no packets received recently.\n";
-					server.disconnect(user->getPeerId());
+					std::cout << "Attempting to disconnect player " << pair.first << ", " << pair.second->getOnline().getNetId() << ", no packets received recently.\n";
+					server.disconnect(pair.first);
 				}
 			}
 
 			//remove all resets
-			auto toReset = [](const UserPtr& user) {
-				return user->getConnection()->shouldReset();
-			};
-			for (auto& user : users) {
-				if (toReset(user)) {
-					mode.removePlayer(user->getId());
-					user->deleteUser();
+			for (auto iter = users.begin(); iter != users.end();) {
+				if (iter->second->getConnection()->shouldReset()) {
+					mode.removePlayer(iter->second->getId());
+					iter->second->deleteUser();
+					iter = users.erase(iter);
+				}
+				else {
+					++iter;
 				}
 			}
-			users.erase(std::remove_if(users.begin(), users.end(), toReset), users.end());
 		}
 	}
 

@@ -25,7 +25,7 @@ Client::Client(const Time_t& tick) :
 {
 	enet_initialize();
 	DebugIO::printLine("Starting client.");
-	if (!client.createClient(1, 5)) {
+	if (!client.createClient(1, CHANNEL_COUNT)) {
 		DebugIO::printLine("Error while trying to create client.");
 		return;
 	}

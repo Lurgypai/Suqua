@@ -11,7 +11,7 @@ OnlinePlayerLC::OnlinePlayerLC(EntityId id_) :
 	previousPos{ {0.0f, 0.0f}, {0.0f, 0.0f} },
 	whens{},
 	wasDead{false},
-	lastClientTime{0}
+	lastGameTime{0}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<PlayerLC>() || EntitySystem::GetComp<PlayerLC>(id) == nullptr) {
@@ -26,7 +26,7 @@ EntityId OnlinePlayerLC::getId() const {
 
 void OnlinePlayerLC::interp(PlayerState state, const DynamicBitset& changedFields, Time_t when) {
 
-	if (state.clientTime > lastClientTime) {
+	if (state.gameTime > lastGameTime) {
 		PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);
 		const auto& plrState = player->getState();
 
