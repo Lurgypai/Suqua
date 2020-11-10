@@ -328,6 +328,7 @@ void PlayerLC::respawn(const Vec2f & spawnPos) {
 
 	combat->health = 100;
 	combat->stunFrame = 0;
+	combat->stamina = combat->staminaMax;
 
 	state.state = State::free;
 	state.activeAttack = 0;

@@ -85,7 +85,7 @@ void CombatComponent::updateHurtboxes() {
 }
 
 void CombatComponent::updateStamina() {
-	if (staminaRechargeFrame < staminaRechargeMax) {
+	if (staminaRechargeFrame < staminaRechargeMax && attack->getActiveId() == 0) {
 		++staminaRechargeFrame;
 	}
 	else if (staminaRechargeFrame == staminaRechargeMax) {

@@ -67,6 +67,7 @@ public:
 	CombatStats stats;
 	int health;
 	uint32_t stamina;
+	uint32_t staminaMax;
 	uint32_t staminaRechargeFrame;
 	uint32_t freezeFrame;
 	unsigned int teamId;
@@ -95,7 +96,6 @@ private:
 	//Index is the EntityId, bool is wether they've been hit
 	DynamicBitset hitEntities;
 
-	uint32_t staminaMax;
 	uint32_t staminaRechargeMax;
 	uint32_t freezeFrameMax;
 	Attack* attack;

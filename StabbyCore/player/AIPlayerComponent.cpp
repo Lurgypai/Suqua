@@ -98,7 +98,8 @@ void AIPlayerComponent::update() {
 						}
 					}
 				}
-				targetPos = targetPoint->getZone().center();
+				float xOffset = randFloat(0, targetPoint->getZone().res.x);
+				targetPos = { targetPoint->getZone().pos.x + xOffset, targetPoint->getZone().center().y };
 			}
 			break;
 		}
