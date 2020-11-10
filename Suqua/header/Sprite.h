@@ -32,8 +32,8 @@ public:
 
 	virtual void draw() override;
 	virtual IDrawable* clone() override;
-protected:
 	std::string texture_tag;
+protected:
 	ImgData data;
 	int channels;
 };

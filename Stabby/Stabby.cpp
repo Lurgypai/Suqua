@@ -55,6 +55,7 @@
 #include "graphics/CapturePointGC.h"
 #include "graphics/HeadParticleLC.h"
 #include "player/OnlinePlayerLC.h"
+#include "graphics/StatBarComponent.h"
 
 #include "nlohmann/json.hpp"
 
@@ -498,7 +499,7 @@ int main(int argc, char* argv[]) {
 		leftover = elapsedTime_;
 
 		double ups = updates / (static_cast<double>(elapsedTime - leftover) / SDL_GetPerformanceFrequency());
-		DebugIO::setLine(0, "UPS: " + std::to_string(int(round(ups))));
+		//DebugIO::setLine(0, "UPS: " + std::to_string(int(round(ups))));
 
 		//gfx
 
@@ -516,7 +517,7 @@ int main(int argc, char* argv[]) {
 			frame++;
 			double fps = 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency());
 
-			DebugIO::setLine(1, "FPS: " + std::to_string(int(round(fps))));
+			//DebugIO::setLine(1, "FPS: " + std::to_string(int(round(fps))));
 			//std::cout << 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency()) << std::endl;
 			currentGfx = now;
 
@@ -548,12 +549,7 @@ int main(int argc, char* argv[]) {
 
 				game.updatePlayerCamera();
 				game.updateWeaponMenu();
-
-				PlayerLC* player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
-
-				auto state = player->getState();
-				DebugIO::setLine(6, "Health:  " + std::to_string(state.health));
-				DebugIO::setLine(7, "Stamina: " + std::to_string(state.stamina));
+				game.updateInGameUI();
 				break;
 			}
 			case Game::GameState::stage_editor:

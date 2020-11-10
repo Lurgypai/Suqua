@@ -37,6 +37,7 @@ public:
 	void loadStage(const std::string& stageName);
 	void loadCameras(int viewWidth, int viewHeight);
 	void loadTextures();
+	void loadInGameUI();
 	
 	void updatePlayerCamera();
 	void loadNewPlayers();
@@ -48,6 +49,7 @@ public:
 
 	void updateMainMenu();
 	void updateWeaponMenu();
+	void updateInGameUI();
 
 	void loadWeaponMenu();
 	void openWeaponMenu();
@@ -80,6 +82,12 @@ public:
 	GameState getState();
 	bool isSessionGuided() const;
 private:
+	struct IGUI {
+		EntityId healthBar;
+		EntityId staminaBar;
+		EntityId icon;
+		EntityId bg;
+	} inGameUI;
 
 	Stage stage;
 	EntityId playerId;
@@ -90,6 +98,7 @@ private:
 	int debugCamId;
 	int editorCamId;
 	int menuCamId;
+	int iGUICamId;
 
 	EditorCam editorCam;
 

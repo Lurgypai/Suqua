@@ -15,7 +15,7 @@ FontData DebugIO::font{};
 std::vector<std::string> DebugIO::lines = std::vector<std::string>{};
 std::deque<std::string> DebugIO::console = std::deque<std::string>{};
 bool DebugIO::isOpen = false;
-Vec2i DebugIO::displayOffset{ 8, 36 };
+Vec2i DebugIO::displayOffset{ 8, 350 };
 Vec2i DebugIO::consoleOffset{8, 1000};
 int DebugIO::lineSpacing{ 36 };
 std::string DebugIO::inputText{};

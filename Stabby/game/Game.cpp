@@ -18,7 +18,9 @@
 #include "../player/ClientPlayerComponent.h"
 #include "../player/OnlinePlayerLC.h"
 #include "../graphics/camera/PlayerCam.h"
-
+#include "../graphics/StatBarComponent.h"
+#include "../graphics/HealthReader.h"
+#include "../graphics/StaminaReader.h"
 #include "Game.h"
 
 using json = nlohmann::json;
@@ -151,6 +153,8 @@ void Game::startOfflineGame(bool sessionGuided_) {
 
 		tick = session.getCurrTick();
 	}
+
+	loadInGameUI();
 }
 
 void Game::startOnlineGame() {
@@ -192,6 +196,8 @@ void Game::startOnlineGame() {
 	for (auto& stageAsset : stage.getRenderables()) {
 		renderGroups[playerCamId].push_back(stageAsset);
 	}
+
+	loadInGameUI();
 }
 
 void Game::startStageEditor(const std::string & filePath) {
@@ -226,6 +232,7 @@ void Game::loadCameras(int viewWidth, int viewHeight) {
 	playerCamId = GLRenderer::addCamera(playerCam);
 	editorCamId = GLRenderer::addCamera(editorCamera);
 	menuCamId = GLRenderer::addCamera(menuCamera);
+	iGUICamId = GLRenderer::addCamera(menuCamera);
 
 	editorCam = EditorCam{ editorCamId };
 }
@@ -240,6 +247,7 @@ void Game::loadTextures() {
 	//menus
 	GLRenderer::LoadTexture("images/temp_main_menu.png", "main_menu");
 	GLRenderer::LoadTexture("images/weapon_gui.png", "weapon_menu");
+	GLRenderer::LoadTexture("images/igui.png", "in_game_gui");
 	
 	//player
 	GLRenderer::LoadTexture("images/stabbyman.png", "character");
@@ -263,6 +271,43 @@ void Game::loadTextures() {
 			GLRenderer::LoadTexture(file.path().string(), "weapon::" + id);
 		}
 	}
+}
+
+void Game::loadInGameUI() {
+	EntitySystem::GenEntities(1, &inGameUI.healthBar);
+	EntitySystem::GenEntities(1, &inGameUI.staminaBar);
+	EntitySystem::GenEntities(1, &inGameUI.bg);
+	EntitySystem::GenEntities(1, &inGameUI.icon);
+
+	EntitySystem::MakeComps<StatBarComponent>(1, &inGameUI.healthBar);
+	StatBarComponent* healthBar = EntitySystem::GetComp<StatBarComponent>(inGameUI.healthBar);
+	healthBar->setTarget(playerId);
+	healthBar->setStatReader<HealthReader>();
+	healthBar->fullSize = AABB{ {42, 9}, {100, 5} };
+
+	EntitySystem::MakeComps<StatBarComponent>(1, &inGameUI.staminaBar);
+	StatBarComponent* staminaBar = EntitySystem::GetComp<StatBarComponent>(inGameUI.staminaBar);
+	staminaBar->setTarget(playerId);
+	staminaBar->setStatReader<StaminaReader>();
+	staminaBar->fullSize = AABB{ {42, 18}, {80, 3} };
+
+	EntitySystem::MakeComps<RenderComponent>(1, &inGameUI.bg);
+	RenderComponent* bg = EntitySystem::GetComp<RenderComponent>(inGameUI.bg);
+	bg->loadDrawable<Sprite>("in_game_gui");
+	bg->getDrawable<Sprite>()->setDepth(-0.5);
+
+	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
+
+	EntitySystem::MakeComps<RenderComponent>(1, &inGameUI.icon);
+	RenderComponent* icon = EntitySystem::GetComp<RenderComponent>(inGameUI.icon);
+	icon->loadDrawable<Sprite>("weapon::" + combat->getAttack().getId() + "_icon");
+	EntitySystem::GetComp<PositionComponent>(inGameUI.icon)->pos = { 7,6 };
+	icon->getDrawable<Sprite>()->setDepth(-0.6);
+
+	renderGroups[iGUICamId].push_back(inGameUI.healthBar);
+	renderGroups[iGUICamId].push_back(inGameUI.staminaBar);
+	renderGroups[iGUICamId].push_back(inGameUI.bg);
+	renderGroups[iGUICamId].push_back(inGameUI.icon);
 }
 
 void Game::updatePlayerCamera() {
@@ -534,6 +579,17 @@ void Game::updateWeaponMenu() {
 				}
 			}
 		}
+	}
+}
+
+void Game::updateInGameUI() {
+	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
+	RenderComponent* iconRender = EntitySystem::GetComp<RenderComponent>(inGameUI.icon);
+	Sprite* icon = iconRender->getDrawable<Sprite>();
+	icon->texture_tag = "weapon::" + combat->getAttack().getId() + "_icon";
+
+	for (auto& statBar : EntitySystem::GetPool<StatBarComponent>()) {
+		statBar.update();
 	}
 }
 

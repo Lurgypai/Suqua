@@ -15,6 +15,7 @@ public:
 	virtual IDrawable* clone() override;
 
 	Color c;
+	bool filled;
 	float depth;
 	AABB shape;
 };
