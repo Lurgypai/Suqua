@@ -1,0 +1,24 @@
+{
+    "restartDelay": 50,
+    "hitboxes": [
+        {
+            "width": 18,
+            "height": 5,
+            "offset_x": 14,
+            "offset_y": -10,
+            "startup": 24,
+            "active": 12,
+            "ending": 20,
+            "stats":
+            {
+                "staminaCost": 30,
+                "damage": 25,
+                "stun": 12,
+                "critChance": 0.0,
+                "critMultiplier": 0.0,
+                "vampirismChance": 0.0,
+                "vampirismMultiplier": 0.0
+            }
+        }
+    ]
+}

@@ -89,8 +89,37 @@ void MessageCallback(GLenum source,
 int main(int argc, char* argv[]) {
 
 	std::ifstream settingsFile{ "settings.json" };
+
+	if (!settingsFile.good()) {
+		settingsFile.close();
+		std::ofstream settingOut{ "settings.json" };
+		if (settingOut.good()) {
+			settingOut << "{\n";
+			settingOut << "    \"window_width\": 1920,\n";
+			settingOut << "    \"window_height\" : 1080,\n";
+			settingOut << "    \"stage\" : \"stage0\",\n";
+			settingOut << "    \"ip\" : \"206.189.161.67\",\n";
+			settingOut << "    \"port\" : 25565,\n";
+			settingOut << "    \"name\" : \"Phil\"\n";
+			settingOut << "}";
+			settingOut.close();
+		}
+		else {
+			throw std::exception{};
+		}
+	}
+
+	settingsFile.open("settings.json");
+
 	json settings{};
 	settingsFile >> settings;
+
+	if (!settings.contains("window_height")) {
+		settings["window_height"] = 1080;
+	}
+	if (!settings.contains("window_width")) {
+		settings["window_width"] = 1920;
+	}
 	const int windowWidth = settings["window_width"];
 	const int windowHeight = settings["window_height"];
 
