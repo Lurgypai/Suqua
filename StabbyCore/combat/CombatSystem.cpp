@@ -23,6 +23,8 @@ void CombatSystem::runAttackCheck(double timeDelta) {
 			defender->attack->cancelAttack();
 		}
 	}
+
+	rangeChecks.clear();
 }
 
 void CombatSystem::runAttackCheck(double timeDelta, EntityId id) {
@@ -58,6 +60,8 @@ void CombatSystem::runAttackCheck(double timeDelta, EntityId id) {
 			defender->attack->cancelAttack();
 		}
 	}
+
+	rangeChecks.clear();
 }
 
 void CombatSystem::updateState(CombatComponent& attacker, double timeDelta) {
@@ -86,34 +90,36 @@ void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defen
 	EntityId defenderId = defender.getId();
 
 	if (attackerId != defenderId) {
-		if(defender.isAlive()) {
+		if (defender.isAlive()) {
 			if (attacker.teamId != 0 && defender.teamId != 0 && attacker.teamId != defender.teamId) {
-				bool attackChanged = attacker.attack->pollAttackChange();
-				if (attackChanged) {
-					attacker.clearHitEntities();
-					uint32_t staminaCost = attacker.getStaminaCost();
-					if (staminaCost < attacker.stamina)
-						attacker.useStamina(staminaCost);
-					else
-						attacker.useStamina(attacker.stamina);
-				}
-				if (attackChanged || !attacker.hasHitEntity(defenderId)) {
-					auto* activeHitbox = attacker.getActiveHitbox();
-					if (activeHitbox != nullptr) {
-						const AABB& hit = activeHitbox->hit;
-						if (hit.intersects(defender.getBoundingBox())) {
-							auto hurtboxes = defender.hurtboxes;
-							for (auto& hurtbox : hurtboxes) {
-								if (hurtbox.box.intersects(hit)) {
-									defender.damage(attacker.rollDamage());
-									defender.stun(attacker.getStun() + attacker.getAttack().getCurrRemainingFrames());
-									defender.lastAttacker = attackerId;
-									attacker.onAttackLand();
+				if (isInRange(attackerId, defenderId)) {
+					bool attackChanged = attacker.attack->pollAttackChange();
+					if (attackChanged) {
+						attacker.clearHitEntities();
+						uint32_t staminaCost = attacker.getStaminaCost();
+						if (staminaCost < attacker.stamina)
+							attacker.useStamina(staminaCost);
+						else
+							attacker.useStamina(attacker.stamina);
+					}
+					if (attackChanged || !attacker.hasHitEntity(defenderId)) {
+						auto* activeHitbox = attacker.getActiveHitbox();
+						if (activeHitbox != nullptr) {
+							const AABB& hit = activeHitbox->hit;
+							if (hit.intersects(defender.getBoundingBox())) {
+								auto hurtboxes = defender.hurtboxes;
+								for (auto& hurtbox : hurtboxes) {
+									if (hurtbox.box.intersects(hit)) {
+										defender.damage(attacker.rollDamage());
+										defender.stun(attacker.getStun() + attacker.getAttack().getCurrRemainingFrames());
+										defender.lastAttacker = attackerId;
+										attacker.onAttackLand();
 
-									attacker.addHitEntity(defenderId);
+										attacker.addHitEntity(defenderId);
 
-									attacker.freeze();
-									defender.freeze();
+										attacker.freeze();
+										defender.freeze();
+									}
 								}
 							}
 						}
@@ -122,4 +128,21 @@ void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defen
 			}
 		}
 	}
+}
+
+bool CombatSystem::isInRange(EntityId attackerId, EntityId defenderId) {
+	EntityId greaterId = std::max(attackerId, defenderId);
+	EntityId lesserId = std::min(attackerId, defenderId);
+	if (rangeChecks.find(greaterId) != rangeChecks.end()) {
+		if (rangeChecks[greaterId].find(lesserId) != rangeChecks[greaterId].end()) {
+			return rangeChecks[greaterId][lesserId];
+		}
+	}
+
+	PhysicsComponent* greaterPhysics = EntitySystem::GetComp<PhysicsComponent>(greaterId);
+	PhysicsComponent* lesserPhysics = EntitySystem::GetComp<PhysicsComponent>(lesserId);
+
+	bool inRange = greaterPhysics->getPos().distance(lesserPhysics->getPos()) < MIN_ATTACK_DISTANCE;
+	rangeChecks[greaterId][lesserId] = inRange;
+	return inRange;
 }

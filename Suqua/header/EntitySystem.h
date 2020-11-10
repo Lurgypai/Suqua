@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include "PoolMap.h"
 
-using EntityId = unsigned int;
+using EntityId = uint64_t;
 
 //you may need to alter the inner workings of makeComps, and how components are stored
 //but make sure that the implementation can change without changinging the interface
@@ -15,10 +15,10 @@ public:
 	static T* GetComp(EntityId id);
 
 	template<typename T>
-	static void MakeComps(unsigned int size, unsigned int* first);
+	static void MakeComps(unsigned int size, EntityId* first);
 
-	static void GenEntities(unsigned int num, unsigned int* idStore);
-	static void FreeEntities(unsigned int num, unsigned int * idStore);
+	static void GenEntities(unsigned int num, EntityId* idStore);
+	static void FreeEntities(unsigned int num, EntityId * idStore);
 	static void FreeDeadEntities();
 	
 	template<typename T>
@@ -46,7 +46,7 @@ inline T * EntitySystem::GetComp(EntityId id) {
 
 //TODO 
 template<typename T>
-inline void EntitySystem::MakeComps(unsigned int size, unsigned int * first) {
+inline void EntitySystem::MakeComps(unsigned int size, EntityId * first) {
 	for (int i = 0; i != size; i++) {
 		if(first[i] > 0)
 			ComponentMaps.add<T>(first[i] - 1, first[i]);

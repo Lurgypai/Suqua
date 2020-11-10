@@ -41,6 +41,7 @@ public:
 	bool isStunned();
 	bool isAlive();
 	bool isFrozen();
+	bool isNear(const CombatComponent& other);
 
 	void damage(unsigned int i);
 	void heal(unsigned int i);

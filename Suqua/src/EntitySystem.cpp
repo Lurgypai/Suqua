@@ -4,14 +4,14 @@
 EntityId EntitySystem::entityIncrem{0};
 PoolMap EntitySystem::ComponentMaps{};
 
-void EntitySystem::GenEntities(unsigned int num, unsigned int * idStore) {
+void EntitySystem::GenEntities(unsigned int num, EntityId * idStore) {
 	for (int i = 0; i != num; i++) {
 		idStore[i] = ++entityIncrem;
 		ComponentMaps.add<EntityBaseComponent>(idStore[i] - 1, idStore[i]);
 	}
 }
 
-void EntitySystem::FreeEntities(unsigned int num, unsigned int * idStore) {
+void EntitySystem::FreeEntities(unsigned int num, EntityId * idStore) {
 	for (int i = 0; i != num; i++) {
 		for (auto & pool : ComponentMaps) {
 			pool->free(idStore[i] - 1);
