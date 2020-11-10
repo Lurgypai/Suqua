@@ -75,7 +75,7 @@ void OnlinePlayerLC::interp(PlayerState state, const DynamicBitset& changedField
 	state.frozen = true;
 	//and we ignore damage
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
-	combat->ignoreDamage;
+	combat->ignoreDamage = true;
 
 	//if we respawned, don't interpolate (if we were out of bounds and respawned, interpolating doesn't immediately move inbounds, causing desync)
 	if (wasDead && state.state == State::free) {
