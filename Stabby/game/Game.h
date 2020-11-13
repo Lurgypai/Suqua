@@ -16,6 +16,7 @@
 #include "../graphics/PaletteManager.h"
 #include "../graphics/camera/EditorCam.h"
 #include "../graphics/camera/PlayerCam.h"
+#include "../player/ClientSpawnSystem.h"
 #include "SessionSystem.h"
 
 class Game {
@@ -71,6 +72,7 @@ public:
 	ClientPlayerSystem clientPlayers;
 	PaletteManager palettes;
 	SpawnSystem spawns;
+	ClientSpawnSystem clientSpawner;
 	DominationMode mode;
 	OnlineSystem online;
 	MenuSystem menus;

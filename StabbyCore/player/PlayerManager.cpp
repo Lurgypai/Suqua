@@ -36,27 +36,4 @@ void PlayerManager::update(EntityId playerId, double timeDelta, const Stage& sta
 
 void PlayerManager::updatePlayer(double timeDelta, PlayerLC& player, const Stage& stage, SpawnSystem& spawns) {
 	player.update(timeDelta);
-
-	if (player.shouldRespawn()) {
-		RespawnComponent* respawn = EntitySystem::GetComp<RespawnComponent>(player.getId());
-		switch (respawn->getState())
-		{
-		case none:
-		case unselected:
-			respawn->loadSpawnList(spawns);
-			break;
-		case selecting:
-			respawn->updateSpawnList(spawns);
-			respawn->searchForSpawn();
-			break;
-		case selected: {
-			SpawnComponent* spawnZone = EntitySystem::GetComp<SpawnComponent>(respawn->getCurrentSpawn());
-			player.respawn(spawnZone->findSpawnPos());
-			respawn->reset();
-		}
-			break;
-		default:
-			break;
-		}
-	}
 }

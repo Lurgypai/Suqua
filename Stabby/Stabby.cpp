@@ -395,6 +395,8 @@ int main(int argc, char* argv[]) {
 
 						game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 
+						game.clientSpawner.updateAllPlayerSpawns();
+
 						game.clientPlayers.update(client.getTime(), game.tick);
 
 						if (client.getConnected()) {
@@ -454,6 +456,7 @@ int main(int argc, char* argv[]) {
 						physics.runPhysics(CLIENT_TIME_STEP);
 						game.combat.runAttackCheck(CLIENT_TIME_STEP);
 						game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
+						game.clientSpawner.updateAllPlayerSpawns();
 						if (EntitySystem::Contains<HeadParticleLC>()) {
 							Pool<HeadParticleLC>& heads = EntitySystem::GetPool<HeadParticleLC>();
 							for (auto& head : heads) {

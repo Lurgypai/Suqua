@@ -27,7 +27,7 @@ void RespawnComponent::loadSpawnList(SpawnSystem& spawns) {
 			spawnList.insert(spawn.getId());
 		}
 	}
-	//crash here when it takes too long for the spawns to load. THey need to be loaded first mate.
+
 	if (!spawnList.empty()) {
 		selection = spawnList.begin();
 		currentSpawnZone = *selection;

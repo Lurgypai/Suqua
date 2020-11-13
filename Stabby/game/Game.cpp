@@ -34,7 +34,9 @@ Game::Game() :
 	weaponMenuOpen{false},
 	client{ tick },
 	sessionGuided{false}
-{}
+{
+	clientSpawner.setClient(&client);
+}
 
 void Game::startMainMenu() {
 	if (EntitySystem::Contains<EntityBaseComponent>()) {

@@ -22,3 +22,4 @@
 #include "../network/packet/NameTagPacket.h"
 #include "../network/packet/ClientDelayedPacket.h"
 #include "../network/packet/CommandPacket.h"
+#include "../network/packet/RespawnRequestPacket.h"
