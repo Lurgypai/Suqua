@@ -397,6 +397,8 @@ int main(int argc, char* argv[]) {
 
 						game.clientSpawner.updateAllPlayerSpawns();
 
+						game.respawner.updateAll();
+
 						game.clientPlayers.update(client.getTime(), game.tick);
 
 						if (client.getConnected()) {

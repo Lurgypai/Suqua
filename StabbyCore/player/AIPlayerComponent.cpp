@@ -1,7 +1,7 @@
 #include "../player/AIPlayerComponent.h"
+#include "../player/spawn/RespawnComponent.h"
 #include "../combat/CombatComponent.h"
 #include "../gamemode/CapturePointComponent.h"
-#include "../player/spawn/RespawnComponent.h"
 #include "ControllerComponent.h"
 #include "RandomUtil.h"
 
@@ -13,7 +13,6 @@ AIPlayerComponent::AIPlayerComponent(EntityId id_) :
 	currZone{},
 	targetZone{},
 	timer{0},
-	findSpawn{true},
 	state{AIPlayerComponent::State::defend}
 {
 	if (id != 0) {
@@ -45,8 +44,6 @@ void AIPlayerComponent::update() {
 	Vec2f ourPos = ourPhysics->getPos() + Vec2f{0, -1};
 	Vec2f targetPos{};
 	if (!playerComp->shouldRespawn()) {
-		findSpawn = true;
-
 		switch (state) {
 		case State::defend:
 		{
@@ -212,25 +209,24 @@ void AIPlayerComponent::update() {
 	else {
 		controller->getController().set(ControllerBits::ALL, false);
 		RespawnComponent* respawner = EntitySystem::GetComp<RespawnComponent>(id);
-		if (findSpawn) {
-			const auto& spawns = respawner->getSpawnList();
-			if (!respawner->getSpawnList().empty()) {
-				int spawn = randInt(0, spawns.size() - 1);
-				auto iter = spawns.begin();
-				for (int i = 0; i != spawn; ++i) {
-					++iter;
-				}
-				targetId = *iter;
-				findSpawn = false;
+
+		EntityId spawnId{0};
+		bool foundSpawn = false;
+
+		const auto& spawns = respawner->getSpawnList();
+		if (!respawner->getSpawnList().empty()) {
+			int spawn = randInt(0, spawns.size() - 1);
+			auto iter = spawns.begin();
+			for (int i = 0; i != spawn; ++i) {
+				++iter;
 			}
+			spawnId = *iter;
+			foundSpawn = true;
 		}
-		else {
-			if (respawner->getCurrentSpawn() != targetId) {
-				controller->getController().set(ControllerBits::LEFT, timer % 4);
-			}
-			else {
-				controller->getController().set(ControllerBits::BUTTON_2, true);
-			}
+
+		if (foundSpawn) {
+			SpawnComponent* spawnComp = EntitySystem::GetComp<SpawnComponent>(spawnId);
+			playerComp->respawn(spawnComp->findSpawnPos());
 		}
 	}
 }

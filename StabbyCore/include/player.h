@@ -8,5 +8,6 @@
 #include "../player/NameTagComponent.h"
 
 #include "../player/spawn/RespawnComponent.h"
+#include "../player/spawn/RespawnSystem.h"
 #include "../player/spawn/SpawnComponent.h"
 #include "../player/spawn/SpawnSystem.h"

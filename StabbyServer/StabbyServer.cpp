@@ -102,6 +102,7 @@ int main(int argv, char* argc[])
 	DominationMode mode{};
 	OnlineSystem online{};
 	GameStateId currGameState{ 0 };
+	RespawnSystem respawner{&spawns};
 
 	std::unordered_map<EntityId, PlayerState> prevPlayerStates;
 	mode.load(&spawns, 2, 1, 144000);
@@ -282,6 +283,17 @@ int main(int argv, char* argc[])
 
 						sender->getNameTag().nameTag = p.nameTag;
 					}
+					else if (key == RES_KEY) {
+						RespawnRequestPacket p;
+						PacketUtil::readInto<RespawnRequestPacket>(p, event.packet);
+						p.unserialize();
+
+						EntityId spawnZone = online.getEntity(p.targetRespawnComp);
+						SpawnComponent* spawnComp = EntitySystem::GetComp<SpawnComponent>(spawnZone);
+						if (sender->getPlayer().getState().state == State::dead) {
+							sender->getPlayer().respawn(spawnComp->findSpawnPos());
+						}
+					}
 
 				}
 				break;
@@ -348,6 +360,7 @@ int main(int argv, char* argc[])
 				}
 
 				onlinePlayers.updatePlayers(players, CLIENT_TIME_STEP, stage, spawns);
+				respawner.updateAll();
 
 				for (auto& pair : users) {
 					PlayerState state = pair.second->getPlayer().getState();

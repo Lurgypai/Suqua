@@ -33,7 +33,8 @@ Game::Game() :
 	clientPlayers{&physics, &combat},
 	weaponMenuOpen{false},
 	client{ tick },
-	sessionGuided{false}
+	sessionGuided{false},
+	respawner{&spawns}
 {
 	clientSpawner.setClient(&client);
 }

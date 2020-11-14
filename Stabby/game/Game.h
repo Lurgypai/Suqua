@@ -77,6 +77,7 @@ public:
 	OnlineSystem online;
 	MenuSystem menus;
 	SessionSystem session;
+	RespawnSystem respawner;
 
 	EntityId getPlayerId();
 	const Stage& getStage() const;

@@ -19,15 +19,16 @@ RespawnState RespawnComponent::getState() const {
 	return state;
 }
 
-void RespawnComponent::loadSpawnList(SpawnSystem& spawns) {
-	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
-	spawnList.clear();
-	for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
-		if (spawn.getTeamId() == combat->teamId) {
-			spawnList.insert(spawn.getId());
+void RespawnComponent::beginSelecting() {
+	if (state != selecting) {
+		CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+		spawnList.clear();
+		for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
+			if (spawn.getTeamId() == combat->teamId) {
+				spawnList.insert(spawn.getId());
+			}
 		}
 	}
-
 	if (!spawnList.empty()) {
 		selection = spawnList.begin();
 		currentSpawnZone = *selection;
@@ -35,6 +36,18 @@ void RespawnComponent::loadSpawnList(SpawnSystem& spawns) {
 	}
 	else {
 		state = none;
+	}
+}
+
+void RespawnComponent::loadSpawnList(SpawnSystem& spawns) {
+	if (state != selecting) {
+		CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+		spawnList.clear();
+		for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
+			if (spawn.getTeamId() == combat->teamId) {
+				spawnList.insert(spawn.getId());
+			}
+		}
 	}
 }
 

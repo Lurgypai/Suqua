@@ -1,5 +1,6 @@
 #include "ClientSpawnSystem.h"
 #include "player.h"
+#include "network.h"
 
 void ClientSpawnSystem::updatePlayerSpawn(EntityId player) {
 	PlayerLC* playerComp = EntitySystem::GetComp<PlayerLC>(player);
@@ -9,7 +10,7 @@ void ClientSpawnSystem::updatePlayerSpawn(EntityId player) {
 		{
 		case none:
 		case unselected:
-			respawn->loadSpawnList(*spawns);
+			respawn->beginSelecting();
 			break;
 		case selecting:
 			respawn->updateSpawnList(*spawns);
@@ -22,12 +23,21 @@ void ClientSpawnSystem::updatePlayerSpawn(EntityId player) {
 				respawn->reset();
 			}
 			else {
-
+				RespawnRequestPacket respawnRequest;
+				OnlineComponent* respawnOnline = EntitySystem::GetComp<OnlineComponent>(respawn->getCurrentSpawn());
+				respawnRequest.targetRespawnComp = respawnOnline->getNetId();
+				client->send(respawnRequest);
 			}
 		}
 					 break;
 		default:
 			break;
+		}
+	}
+	else {
+		if (client->getConnected()) {
+			RespawnComponent* respawn = EntitySystem::GetComp<RespawnComponent>(player);
+			respawn->reset();
 		}
 	}
 }
