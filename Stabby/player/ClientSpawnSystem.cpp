@@ -26,7 +26,8 @@ void ClientSpawnSystem::updatePlayerSpawn(EntityId player) {
 				RespawnRequestPacket respawnRequest;
 				OnlineComponent* respawnOnline = EntitySystem::GetComp<OnlineComponent>(respawn->getCurrentSpawn());
 				respawnRequest.targetRespawnComp = respawnOnline->getNetId();
-				client->send(respawnRequest);
+				client->buffer(respawnRequest);
+				respawn->reset();
 			}
 		}
 					 break;

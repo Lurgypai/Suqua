@@ -23,9 +23,13 @@ public:
 	void connect(const std::string & ip, int port);
 
 	template<typename Packet>
+	void buffer(Packet p);
+
+	template<typename Packet>
 	void send(Packet p);
 
 	void send(size_t size, void* data);
+	void sendBuffered();
 
 	void service();
 	//read the network events from the current session for the current tick
@@ -91,6 +95,11 @@ private:
 	std::vector<NetworkId> toJoinIds;
 	std::vector<CapturePointPacket> toMakeCapturePoins;
 };
+
+template<typename Packet>
+inline void Client::buffer(Packet p) {
+	client.bufferPacket(serverId, p);
+}
 
 template<typename Packet>
 inline void Client::send(Packet p) {

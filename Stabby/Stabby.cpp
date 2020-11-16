@@ -422,11 +422,15 @@ int main(int argc, char* argv[]) {
 
 									//the sent state is the controller state from after the timestamped update has run
 									//only compare the current buttons being pressed, not the previous state, to only send toggled controller states
-									if (lastSent.state != state.state || lastSent.prevState != state.prevState) {
+									if (lastSent.state != state.state) {
+										PlayerLC* player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
 										lastSent = state;
-										client.send(state);
-										DebugFIO::Out("c_out.txt") << "Sent input " << static_cast<int>(state.state)  << ", " << static_cast<int>(state.prevState) << " for time " << game.tick << '\n';
-										//std::cout << "Sending update for time: " << lastSent.when << '\n';
+
+										if (player->getState().state != State::dead) {
+											client.send(state);
+											DebugFIO::Out("c_out.txt") << "Sent input " << static_cast<int>(state.state) << ", " << static_cast<int>(state.prevState) << " for time " << game.tick << '\n';
+											//std::cout << "Sending update for time: " << lastSent.when << '\n';
+										}
 									}
 								}
 							}
@@ -452,6 +456,8 @@ int main(int argc, char* argv[]) {
 
 							DebugIO::setLine(3, "NetId: " + std::to_string(online->getNetId()));
 							DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
+
+							client.sendBuffered();
 						}
 						break;
 					case Game::GameState::offline:

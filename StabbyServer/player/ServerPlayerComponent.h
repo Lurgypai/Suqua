@@ -29,6 +29,7 @@ public:
 
 	bool getTimeIsSet() const;
 	void setTime(Time_t clientTime_);
+
 private:
 	bool timeIsSet;
 	Time_t latestTime;

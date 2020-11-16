@@ -112,6 +112,10 @@ void Client::send(size_t size, void* data) {
 	client.sendData(serverId, data, size);
 }
 
+void Client::sendBuffered() {
+	client.sendBuffered();
+}
+
 void Client::service() {
 	if (connected) {
 		ENetEvent e;
