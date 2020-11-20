@@ -158,7 +158,7 @@ void ParticleSystem::updateAndDraw(unsigned int camera) {
 		glDrawArrays(GL_POINTS, 0, tail - head);
 	}
 
-	DebugIO::setLine(3, "Particles: " + std::to_string(particleCount));
+	//DebugIO::setLine(3, "Particles: " + std::to_string(particleCount));
 }
 
 ComputeShader & ParticleSystem::getShader(PartitionID id) {
