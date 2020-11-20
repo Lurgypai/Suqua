@@ -23,10 +23,10 @@ void CapturePointComponent::tickCapturePoint(double timeDelta) {
 	unsigned int prevPlayerTeam = 0;
 	if (EntitySystem::Contains<PlayerLC>()) {
 		for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
-			PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(player.getId());
-			if (zone.contains(physics->getPos())) {
-				CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(player.getId());
-				if (combat->isAlive()) {
+			CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(player.getId());
+			if (combat->isAlive()) {
+				PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(player.getId());
+				if (zone.intersects(physics->getCollider())) {
 					players.push_back(player.getId());
 					if (prevPlayerTeam != 0 && prevPlayerTeam != combat->teamId) {
 						multipleTeams = true;

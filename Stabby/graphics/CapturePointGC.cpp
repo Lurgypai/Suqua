@@ -12,24 +12,7 @@ CapturePointGC::CapturePointGC(EntityId id_) :
 	currTick{0},
 	colorSwapDelay{ 0.75 },
 	currColor{}
-{
-	if (id != 0) {
-		if (!EntitySystem::Contains<RenderComponent>() || EntitySystem::GetComp<RenderComponent>(id) == nullptr) {
-			EntitySystem::MakeComps<RenderComponent>(1, &id);
-			PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
-			RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
-			CapturePointComponent* capture = EntitySystem::GetComp<CapturePointComponent>(id);
-
-			pos->pos = capture->getZone().pos;
-			render->loadDrawable<RectDrawable>();
-			render->getDrawable<RectDrawable>()->shape = capture->getZone();
-
-			currColor = teamColors[capture->getState().currTeamId];
-
-			render->getDrawable<RectDrawable>()->c = currColor;
-		}
-	}
-}
+{}
 
 EntityId CapturePointGC::getId() const {
 	return id;
@@ -65,8 +48,10 @@ void CapturePointGC::update(double timeDelta) {
 		break;
 	}
 
-	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
-	render->getDrawable<RectDrawable>()->c = currColor;
+	const auto& zone = capture->getZone();
+
+	Particle p1{ currColor, {zone.center().x, zone.pos.y + zone.res.y}, -90, 0.1f, 100, 0 };
+	GLRenderer::SpawnParticles("cap_zone", 1, p1, 0.0f, 0.2f, 0, {zone.res.x / 2, 0.0f });
 }
 
 const std::array<Color, 3> CapturePointGC::teamColors{ Color{0.5, 0.5, 0.5, 1.0}, Color{1.0, 0.0, 0.0, 1.0}, Color{0.0, 0.0, 1.0, 1.0} };

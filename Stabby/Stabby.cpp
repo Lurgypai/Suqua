@@ -148,9 +148,9 @@ int main(int argc, char* argv[]) {
 	game.loadCameras(viewWidth, viewHeight);
 
 	PartitionID blood = GLRenderer::GenParticleType("blood", 1, { "particles/blood.vert" });
-	PartitionID wavy = GLRenderer::GenParticleType("wavy", 1, { "particles/wavy.vert" });
-	PartitionID test = GLRenderer::GenParticleType("test", 4, { "particles/test.vert" });
-	PartitionID floating = GLRenderer::GenParticleType("float", 1, { "particles/float.vert" });
+	//PartitionID wavy = GLRenderer::GenParticleType("wavy", 2, { "particles/wavy.vert" });s
+	//PartitionID test = GLRenderer::GenParticleType("test", 4, { "particles/test.vert" });
+	PartitionID floating = GLRenderer::GenParticleType("cap_zone", 1, { "particles/cap_zone.vert" });
 
 	int colorShader;
 	GLRenderer::LoadShaders({ {"shaders/color.vert", "shaders/color.frag"} }, &colorShader);
@@ -757,7 +757,6 @@ int main(int argc, char* argv[]) {
 			GLRenderer::DrawOverScreen(redOutlineBuffer.getTexture(0).id, viewWidth, viewHeight);
 			GLRenderer::GetShaderRef(outlineShader).uniform3f("color", 0.0, 0.0, 1.0);
 			GLRenderer::DrawOverScreen(blueOutlineBuffer.getTexture(0).id, viewWidth, viewHeight);
-			
 
 			//palettes, for later
 			//pongBuffer.bind();

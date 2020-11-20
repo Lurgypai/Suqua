@@ -51,7 +51,6 @@ ClientCommand ServerPlayerComponent::readCommand(Time_t gameTime) {
 		}
 	}
 	DebugFIO::Out("s_out.txt") << "Latest command is " << static_cast<int>(latestCommand.controllerState.getState()) << ", " << static_cast<int>(latestCommand.controllerState.getPrevState()) << " labelled as " << latestCommand.clientTime << " for time " << clientTime << '\n';
-	DebugFIO::Out("s_out.txt") << '\n';
 
 	PlayerStateComponent* stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
 	stateComp->playerState.gameTime = gameTime;
@@ -60,6 +59,7 @@ ClientCommand ServerPlayerComponent::readCommand(Time_t gameTime) {
 	ControllerComponent* controller = EntitySystem::GetComp<ControllerComponent>(id);
 	controller->getController().setState(latestCommand.controllerState.getState());
 	DebugFIO::Out("s_out.txt") << "Final controller state used is " << static_cast<int>(controller->getController().getState()) << ", " << static_cast<int>(controller->getController().getPrevState()) << '\n';
+	DebugFIO::Out("s_out.txt") << '\n';
 
 	//DebugFIO::Out("s_out.txt") << "Used command: " << static_cast<int>(latestCommand.controllerState.getState()) << " for time " << clientTime << '\n';
 	//return the command with a time equal to or less than (the most recent thats not after) the current time

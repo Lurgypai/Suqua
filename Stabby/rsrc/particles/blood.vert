@@ -11,6 +11,7 @@ layout( local_size_x = 1000) in;
 
 struct Particle
 {
+    vec4 color;
 	vec2 pos;
     float angle;
     float vel;

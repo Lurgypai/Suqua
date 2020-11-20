@@ -4,6 +4,7 @@
 #include "DebugIO.h"
 #include "GLRenderer.h"
 #include "RandomUtil.h"
+#include <iostream>
 
 ParticleSystem::ParticleSystem() :
 	ParticleDataBuffer{ 0 },
@@ -48,7 +49,7 @@ void ParticleSystem::spawnParticles(PartitionID id, unsigned int count, Particle
 	tail += count;
 	int end = tail % size;
 
-	if (end < start) {
+	if (end < start && end != 0) {
 		for (int i = start; i != size; ++i) {
 			particles[i + offset] = base;
 			auto & p = particles[i + offset];
@@ -82,10 +83,10 @@ void ParticleSystem::spawnParticles(PartitionID id, unsigned int count, Particle
 		}
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ParticleDataBuffer);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * (start + offset), sizeof(Particle) * (size - start), &particles[start + offset]);
-		glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, sizeof(Particle) * end, &particles[offset]);
-	}
-	else if (end > start) {
-		for (int i = start; i != end; ++i) {
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * offset, sizeof(Particle) * end, &particles[offset]);
+	} //if they're equal, the end might have wrapped around. So just check if head and tail aren't equal 
+	else if (head != tail) {
+		for (int i = start; i != start + count; ++i) {
 			particles[i + offset] = base;
 			auto & p = particles[i + offset];
 
@@ -99,9 +100,12 @@ void ParticleSystem::spawnParticles(PartitionID id, unsigned int count, Particle
 				p.pos.x += randFloat(-posModulation.x, posModulation.x);
 			if (posModulation.y != 0.0f)
 				p.pos.y += randFloat(-posModulation.y, posModulation.y);
+
+			//std::cout << p.pos.x << ", " << p.pos.y << ", " << p.vel << ", " << p.angle << '\n';
+			
 		}
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ParticleDataBuffer);
-		glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * (start + offset), sizeof(Particle) * (end - start), &particles[start + offset]);
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * (start + offset), sizeof(Particle) * (count), &particles[start + offset]);
 	}
 }
 
@@ -121,22 +125,24 @@ void ParticleSystem::updateAndDraw(unsigned int camera) {
 	unsigned int particleCount{0};
 	for (auto& partition : partitions) {
 		auto & head = partition.head;
-		auto & tail = partition.tail;
-		auto size = partition.size;
-		auto offset = partition.offset;
+		const auto & tail = partition.tail;
+		const auto& size = partition.size;
+		const auto& offset = partition.offset;
 
 		int i = head % size;
-		while (particles[i + offset].death < time && head < tail) {
-			head++;
-			i = head % size;
-		}
 
 		particleCount += tail - head;
 
 		partition.comp.use();
 		glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ParticleDataBuffer, offset * sizeof(Particle), size * sizeof(Particle));
+		auto workGroups = size / WORK_GROUP_SIZE;
+		glDispatchCompute(workGroups, 1, 1);
 
-		glDispatchCompute(size / WORK_GROUP_SIZE, 1, 1);
+		//clear dead after updating
+		while (particles[i + offset].death < time && head < tail) {
+			head++;
+			i = head % size;
+		}
 
 		const Shader& particleShader = GLRenderer::GetDefaultShader(ParticleShader);
 
@@ -152,7 +158,7 @@ void ParticleSystem::updateAndDraw(unsigned int camera) {
 		glDrawArrays(GL_POINTS, 0, tail - head);
 	}
 
-	//DebugIO::setLine(3, "Particles: " + std::to_string(particleCount));
+	DebugIO::setLine(3, "Particles: " + std::to_string(particleCount));
 }
 
 ComputeShader & ParticleSystem::getShader(PartitionID id) {
