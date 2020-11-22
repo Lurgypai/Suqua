@@ -55,6 +55,10 @@ public:
 	void loadWeaponMenu();
 	void openWeaponMenu();
 
+	void loadRespawnMenu();
+	void openRespawnMenu();
+	void updateRespawnMenu();
+
 	void renderAll(double gfxDelay);
 
 	const PlayerCam& getPlayerCam() const;
@@ -102,6 +106,7 @@ private:
 	int editorCamId;
 	int menuCamId;
 	int iGUICamId;
+	int respawnMenuCamId;
 
 	EditorCam editorCam;
 
@@ -112,6 +117,12 @@ private:
 	bool shouldOpenWeaponMenu;
 	bool sessionGuided;
 	EntityId weaponMenuBG;
+
+	struct RespwanMenu {
+		EntityId rightArrow;
+		EntityId leftArrow;
+		bool open;
+	} respawnMenu;
 };
 
 /*

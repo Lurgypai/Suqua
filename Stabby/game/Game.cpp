@@ -103,6 +103,7 @@ void Game::startOfflineGame(bool sessionGuided_) {
 	renderGroups.clear();
 	menus.getMenu(mainMenu).clear();
 	loadWeaponMenu();
+	loadRespawnMenu();
 	editables.isEnabled = false;
 	
 	std::ifstream settingsFile{ "settings.json" };
@@ -167,6 +168,7 @@ void Game::startOnlineGame() {
 	renderGroups.clear();
 	menus.getMenu(mainMenu).clear();
 	loadWeaponMenu();
+	loadRespawnMenu();
 	editables.isEnabled = false;
 
 	std::ifstream settingsFile{ "settings.json" };
@@ -236,6 +238,7 @@ void Game::loadCameras(int viewWidth, int viewHeight) {
 	editorCamId = GLRenderer::addCamera(editorCamera);
 	menuCamId = GLRenderer::addCamera(menuCamera);
 	iGUICamId = GLRenderer::addCamera(menuCamera);
+	respawnMenuCamId = GLRenderer::addCamera(menuCamera);
 
 	editorCam = EditorCam{ editorCamId };
 }
@@ -251,6 +254,7 @@ void Game::loadTextures() {
 	GLRenderer::LoadTexture("images/temp_main_menu.png", "main_menu");
 	GLRenderer::LoadTexture("images/weapon_gui.png", "weapon_menu");
 	GLRenderer::LoadTexture("images/igui.png", "in_game_gui");
+	GLRenderer::LoadTexture("images/respawn_arrow.png", "respawn_arrow");
 	
 	//player
 	GLRenderer::LoadTexture("images/stabbyman.png", "character");
@@ -286,13 +290,13 @@ void Game::loadInGameUI() {
 	StatBarComponent* healthBar = EntitySystem::GetComp<StatBarComponent>(inGameUI.healthBar);
 	healthBar->setTarget(playerId);
 	healthBar->setStatReader<HealthReader>();
-	healthBar->fullSize = AABB{ {42, 9}, {100, 5} };
+	healthBar->fullSize = AABB{ {109, 9}, {100, 5} };
 
 	EntitySystem::MakeComps<StatBarComponent>(1, &inGameUI.staminaBar);
 	StatBarComponent* staminaBar = EntitySystem::GetComp<StatBarComponent>(inGameUI.staminaBar);
 	staminaBar->setTarget(playerId);
 	staminaBar->setStatReader<StaminaReader>();
-	staminaBar->fullSize = AABB{ {42, 18}, {80, 3} };
+	staminaBar->fullSize = AABB{ {109, 18}, {80, 3} };
 
 	EntitySystem::MakeComps<RenderComponent>(1, &inGameUI.bg);
 	RenderComponent* bg = EntitySystem::GetComp<RenderComponent>(inGameUI.bg);
@@ -654,6 +658,77 @@ void Game::openWeaponMenu() {
 
 	for (auto& pair : weaponIcons) {
 		renderGroups[menuCamId].push_back(pair.second);
+	}
+}
+
+void Game::loadRespawnMenu() {
+	respawnMenu.open = false;
+	EntitySystem::GenEntities(1, &respawnMenu.leftArrow);
+	EntitySystem::GenEntities(1, &respawnMenu.rightArrow);
+
+	EntitySystem::MakeComps<RenderComponent>(1, &respawnMenu.leftArrow);
+	EntitySystem::MakeComps<RenderComponent>(1, &respawnMenu.rightArrow);
+
+	RenderComponent* leftArrowRender = EntitySystem::GetComp<RenderComponent>(respawnMenu.leftArrow);
+	RenderComponent* rightArrowRender = EntitySystem::GetComp<RenderComponent>(respawnMenu.rightArrow);
+
+	leftArrowRender->loadDrawable<AnimatedSprite>("respawn_arrow", Vec2i{-11, 20});
+	rightArrowRender->loadDrawable<AnimatedSprite>("respawn_arrow", Vec2i{ 11, 20 });
+	leftArrowRender->getDrawable<AnimatedSprite>()->setDepth(-0.3);
+	rightArrowRender->getDrawable<AnimatedSprite>()->setDepth(-0.3);
+	leftArrowRender->getDrawable<AnimatedSprite>()->addAnimation(0, 0, 1);
+	rightArrowRender->getDrawable<AnimatedSprite>()->addAnimation(0, 0, 1);
+	leftArrowRender->getDrawable<AnimatedSprite>()->setAnimation(0);
+	rightArrowRender->getDrawable<AnimatedSprite>()->setAnimation(0);
+
+	EntitySystem::GetComp<PositionComponent>(respawnMenu.leftArrow)->pos = {300, 170};
+	EntitySystem::GetComp<PositionComponent>(respawnMenu.rightArrow)->pos = {340, 170};
+}
+
+void Game::openRespawnMenu() {
+	renderGroups[respawnMenuCamId].clear();
+	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
+	int spawnCount = 0;
+	for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
+		if (spawn.getTeamId() == combat->teamId) {
+			++spawnCount;
+			//as soon as we know there are enough spawns to open the menu
+			if (spawnCount > 1) break;
+		}
+	}
+	if (spawnCount > 1 && renderGroups[respawnMenuCamId].empty()) {
+		renderGroups[respawnMenuCamId].push_back(respawnMenu.leftArrow);
+		renderGroups[respawnMenuCamId].push_back(respawnMenu.rightArrow);
+		respawnMenu.open = true;
+	}
+}
+
+void Game::updateRespawnMenu() {
+	PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
+	if (player->shouldRespawn()) {
+		if (!respawnMenu.open) {
+			openRespawnMenu();
+		}
+	}
+	else {
+		if (respawnMenu.open) {
+			respawnMenu.open = false;
+			renderGroups[respawnMenuCamId].clear();
+		}
+	}
+
+	ControllerComponent* playerCont = EntitySystem::GetComp<ControllerComponent>(playerId);
+	if (playerCont->getController()[ControllerBits::LEFT]) {
+		EntitySystem::GetComp<RenderComponent>(respawnMenu.leftArrow)->getDrawable<AnimatedSprite>()->setFrame(1);
+	}
+	else {
+		EntitySystem::GetComp<RenderComponent>(respawnMenu.leftArrow)->getDrawable<AnimatedSprite>()->setFrame(0);
+	}
+	if (playerCont->getController()[ControllerBits::RIGHT]) {
+		EntitySystem::GetComp<RenderComponent>(respawnMenu.rightArrow)->getDrawable<AnimatedSprite>()->setFrame(1);
+	}
+	else {
+		EntitySystem::GetComp<RenderComponent>(respawnMenu.rightArrow)->getDrawable<AnimatedSprite>()->setFrame(0);
 	}
 }
 

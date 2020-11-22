@@ -401,6 +401,8 @@ int main(int argc, char* argv[]) {
 
 						game.clientPlayers.update(client.getTime(), game.tick);
 
+						game.updateRespawnMenu();
+
 						if (client.getConnected()) {
 							OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(game.getPlayerId());
 
@@ -465,6 +467,7 @@ int main(int argc, char* argv[]) {
 						game.combat.runAttackCheck(CLIENT_TIME_STEP);
 						game.players.updateAll(CLIENT_TIME_STEP, game.getStage(), game.spawns);
 						game.clientSpawner.updateAllPlayerSpawns();
+						game.updateRespawnMenu();
 						if (EntitySystem::Contains<HeadParticleLC>()) {
 							Pool<HeadParticleLC>& heads = EntitySystem::GetPool<HeadParticleLC>();
 							for (auto& head : heads) {

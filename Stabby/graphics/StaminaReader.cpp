@@ -12,7 +12,11 @@ StaminaReader::StaminaReader(EntityId target_) :
 float StaminaReader::getRatio() {
 	PlayerLC* player = EntitySystem::GetComp<PlayerLC>(target);
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(target);
-	return static_cast<float>(player->getState().stamina) / combat->staminaMax;
+	float stamina = static_cast<float>(player->getState().stamina);
+	if (stamina >= 0)
+		return stamina / combat->staminaMax;
+	else
+		return 0;
 }
 
 StatReader* StaminaReader::clone() {

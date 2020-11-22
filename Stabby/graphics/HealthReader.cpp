@@ -12,7 +12,11 @@ HealthReader::~HealthReader()
 float HealthReader::getRatio() {
 	PlayerLC* player = EntitySystem::GetComp<PlayerLC>(target);
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(target);
-	return static_cast<float>(player->getState().health) / combat->stats.maxHealth;
+	float health = static_cast<float>(player->getState().health);
+	if (health >= 0)
+		return health / combat->stats.maxHealth;
+	else
+		return 0;
 }
 
 StatReader* HealthReader::clone() {
