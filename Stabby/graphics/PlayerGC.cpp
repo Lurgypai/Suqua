@@ -71,6 +71,7 @@ void PlayerGC::loadNameTag() {
 	drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
 	drawable->scale = { .5, .5 };
 	drawable->text = nameTag->nameTag;
+	drawable->depth = -0.2;
 	nameTagRender->offset = {(drawable->getBoundingBox().res.x / 2), drawable->getBoundingBox().res.y + 25};
 }
 

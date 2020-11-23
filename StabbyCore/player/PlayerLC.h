@@ -21,6 +21,7 @@ public:
 	void kill();
 	//kill and make them select a spawn point immediately
 	void chooseSpawn();
+	float getRespawnProgress();
 
 	EntityId getId() const;
 

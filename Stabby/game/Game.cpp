@@ -662,15 +662,18 @@ void Game::openWeaponMenu() {
 }
 
 void Game::loadRespawnMenu() {
-	respawnMenu.open = false;
+	respawnMenu.arrowOpen = false;
 	EntitySystem::GenEntities(1, &respawnMenu.leftArrow);
 	EntitySystem::GenEntities(1, &respawnMenu.rightArrow);
+	EntitySystem::GenEntities(1, &respawnMenu.counter);
 
 	EntitySystem::MakeComps<RenderComponent>(1, &respawnMenu.leftArrow);
 	EntitySystem::MakeComps<RenderComponent>(1, &respawnMenu.rightArrow);
+	EntitySystem::MakeComps<RenderComponent>(1, &respawnMenu.counter);
 
 	RenderComponent* leftArrowRender = EntitySystem::GetComp<RenderComponent>(respawnMenu.leftArrow);
 	RenderComponent* rightArrowRender = EntitySystem::GetComp<RenderComponent>(respawnMenu.rightArrow);
+	RenderComponent* counterRender = EntitySystem::GetComp<RenderComponent>(respawnMenu.counter);
 
 	leftArrowRender->loadDrawable<AnimatedSprite>("respawn_arrow", Vec2i{-11, 20});
 	rightArrowRender->loadDrawable<AnimatedSprite>("respawn_arrow", Vec2i{ 11, 20 });
@@ -683,6 +686,12 @@ void Game::loadRespawnMenu() {
 
 	EntitySystem::GetComp<PositionComponent>(respawnMenu.leftArrow)->pos = {300, 170};
 	EntitySystem::GetComp<PositionComponent>(respawnMenu.rightArrow)->pos = {340, 170};
+
+	counterRender->loadDrawable<TextDrawable>();
+	TextDrawable* text = counterRender->getDrawable<TextDrawable>();
+	text->depth = -0.5;
+	text->color = {1.0, 1.0, 1.0, 1.0};
+	text->font.loadDataFile("suqua/fonts/consolas.fnt");
 }
 
 void Game::openRespawnMenu() {
@@ -699,20 +708,37 @@ void Game::openRespawnMenu() {
 	if (spawnCount > 1 && renderGroups[respawnMenuCamId].empty()) {
 		renderGroups[respawnMenuCamId].push_back(respawnMenu.leftArrow);
 		renderGroups[respawnMenuCamId].push_back(respawnMenu.rightArrow);
-		respawnMenu.open = true;
+		respawnMenu.arrowOpen = true;
 	}
 }
 
 void Game::updateRespawnMenu() {
 	PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
+
+	if (player->getState().state == State::dead && !player->shouldRespawn()) {
+		if (!respawnMenu.counterVisible) {
+			respawnMenu.counterVisible = true;
+			renderGroups[respawnMenuCamId].push_back(respawnMenu.counter);
+			respawnMenu.counterVal = 10;
+		}
+		TextDrawable* text = EntitySystem::GetComp<RenderComponent>(respawnMenu.counter)->getDrawable<TextDrawable>();
+		text->text = std::to_string(static_cast<int>(std::ceil(respawnMenu.counterVal * (1.0f - player->getRespawnProgress()))));
+		const auto& box = text->getBoundingBox();
+		EntitySystem::GetComp<PositionComponent>(respawnMenu.counter)->pos = { 320 - (box.res.x/2), 180-(box.res.y/2) };
+	}
+	else {
+		respawnMenu.counterVisible = false;
+		EntitySystem::GetComp<RenderComponent>(respawnMenu.counter)->getDrawable<TextDrawable>()->text = "";
+	}
+
 	if (player->shouldRespawn()) {
-		if (!respawnMenu.open) {
+		if (!respawnMenu.arrowOpen) {
 			openRespawnMenu();
 		}
 	}
 	else {
-		if (respawnMenu.open) {
-			respawnMenu.open = false;
+		if (respawnMenu.arrowOpen) {
+			respawnMenu.arrowOpen = false;
 			renderGroups[respawnMenuCamId].clear();
 		}
 	}

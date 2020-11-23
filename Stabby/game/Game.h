@@ -121,7 +121,11 @@ private:
 	struct RespwanMenu {
 		EntityId rightArrow;
 		EntityId leftArrow;
-		bool open;
+		EntityId counter;
+		bool arrowOpen;
+		bool counterVisible;
+
+		float counterVal;
 	} respawnMenu;
 };
 

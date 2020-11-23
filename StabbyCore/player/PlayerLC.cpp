@@ -377,6 +377,16 @@ void PlayerLC::chooseSpawn() {
 	}
 }
 
+float PlayerLC::getRespawnProgress()
+{
+	PlayerState plrState = getState();
+	float deathFrame = static_cast<float>(plrState.deathFrame);
+	if (deathFrame >= 0)
+		return deathFrame / deathFrameMax;
+	else
+		return 0;
+}
+
 EntityId PlayerLC::getId() const {
 	return id;
 }

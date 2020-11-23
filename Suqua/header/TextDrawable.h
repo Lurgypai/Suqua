@@ -20,6 +20,7 @@ public:
 	std::string text;
 	Color color;
 	Vec2f scale;
+	float depth;
 	int anti_alias;
 private:
 	AABB boundingBox;
