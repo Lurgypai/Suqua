@@ -2,9 +2,9 @@
 
 struct ImgData {
 	Vec2f objPos;
-	Vec2f imgRes;
-	Vec2f imgOffset;
-	Vec2f objRes;
+	Vec2i imgRes;
+	Vec2i imgOffset;
+	Vec2i objRes;
 	Vec2f origin;
 	Vec2f scale;
 	float angle;

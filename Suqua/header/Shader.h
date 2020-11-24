@@ -19,4 +19,5 @@ struct Shader {
 	void uniform4f(std::string val, float arg0, float arg1, float arg2, float arg3) const;
 
 	void uniform1i(std::string val, int arg0) const;
+	void uniform2i(std::string val, int arg0, int arg1) const;
 };

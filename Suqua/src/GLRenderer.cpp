@@ -73,7 +73,7 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 	textureAtlas = std::make_unique<Framebuffer>();
 	unsigned int textureAtlasTex;
 	textureAtlas->bind();
-	textureAtlasTex = textureAtlas->addTexture2D(8000, 8000, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
+	textureAtlasTex = textureAtlas->addTexture2D(6000, 6000, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
 	textureAtlas->finalizeFramebuffer();
 	Framebuffer::unbind();
 }
@@ -125,7 +125,7 @@ void GLRenderer::LoadTexture(const std::string& filePath, const std::string& tag
 
 	shaders[DefaultShaders[ImageShader]].use();
 	shaders[DefaultShaders[ImageShader]].uniform2f("camPos", 0, 0);
-	shaders[DefaultShaders[ImageShader]].uniform2f("camRes", atlasRes.x, atlasRes.y);
+	shaders[DefaultShaders[ImageShader]].uniform2i("camRes", atlasRes.x, atlasRes.y);
 	shaders[DefaultShaders[ImageShader]].uniform2f("zoom", 1.0, 1.0);
 	shaders[DefaultShaders[ImageShader]].uniform1i("flip_vertically", false);
 
@@ -171,7 +171,7 @@ void GLRenderer::DrawTextureAtlas() {
 
 	shaders[DefaultShaders[ImageShader]].use();
 	shaders[DefaultShaders[ImageShader]].uniform2f("camPos", 0, 0);
-	shaders[DefaultShaders[ImageShader]].uniform2f("camRes", atlasRes.x, atlasRes.y);
+	shaders[DefaultShaders[ImageShader]].uniform2i("camRes", atlasRes.x, atlasRes.y);
 	shaders[DefaultShaders[ImageShader]].uniform2f("zoom", 1.0, 1.0);
 	shaders[DefaultShaders[ImageShader]].uniform1i("flip_vertically", true);
 
@@ -210,7 +210,7 @@ void GLRenderer::DrawImage(ImgData data, const std::string& tag) {
 	Camera& cam = cameras[currentCam];
 	currentShader->use();
 	currentShader->uniform2f("camPos", cam.pos.x, cam.pos.y);
-	currentShader->uniform2f("camRes", cam.res.x, cam.res.y);
+	currentShader->uniform2i("camRes", cam.res.x, cam.res.y);
 	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
 	currentShader->uniform1i("flip_vertically", true);
 
@@ -344,7 +344,7 @@ void GLRenderer::DrawPrimitive(const Primitive& p) {
 
 	currentShader->use();
 	currentShader->uniform2f("camPos", cam.pos.x, cam.pos.y);
-	currentShader->uniform2f("camRes", cam.res.x, cam.res.y);
+	currentShader->uniform2i("camRes", cam.res.x, cam.res.y);
 	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
 	currentShader->uniform1f("depth", p.depth);
 	currentShader->uniform4f("Color", p.color.r, p.color.g, p.color.b, p.color.a);
@@ -373,7 +373,7 @@ void GLRenderer::DrawFilledPrimitive(const Primitive& p) {
 
 	currentShader->use();
 	currentShader->uniform2f("camPos", cam.pos.x, cam.pos.y);
-	currentShader->uniform2f("camRes", cam.res.x, cam.res.y);
+	currentShader->uniform2i("camRes", cam.res.x, cam.res.y);
 	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
 	currentShader->uniform1f("depth", p.depth);
 	currentShader->uniform4f("Color", p.color.r, p.color.g, p.color.b, p.color.a);

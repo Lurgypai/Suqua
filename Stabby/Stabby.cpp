@@ -51,6 +51,7 @@
 #include "command/HealthCommand.h"
 #include "command/FrameByFrameCommand.h"
 #include "command/StaminaCommand.h"
+#include "command/FacingCommand.h"
 #include "graphics/PlayerGC.h"
 #include "graphics/CapturePointGC.h"
 #include "graphics/HeadParticleLC.h"
@@ -177,6 +178,7 @@ int main(int argc, char* argv[]) {
 	DebugIO::getCommandManager().registerCommand<WeaponCommand>(game);
 	DebugIO::getCommandManager().registerCommand<StaminaCommand>(game);
 	DebugIO::getCommandManager().registerCommand<VelocityCommand>();
+	DebugIO::getCommandManager().registerCommand<FacingCommand>();
 	DebugIO::getCommandManager().registerCommand<TeleportCommand>();
 	DebugIO::getCommandManager().registerCommand<SpawnPlayerCommand>(SpawnPlayerCommand{ &game });
 	DebugIO::getCommandManager().registerCommand<TeamChangeCommand>(TeamChangeCommand{ &game.client });
@@ -324,9 +326,9 @@ int main(int argc, char* argv[]) {
 						}
 						game.menus.enterTextAllMenus();
 					}
-					else if (e.key.keysym.sym == SDLK_l)
+					else if (e.key.keysym.sym == SDLK_l && !DebugIO::getOpen())
 						canProgressFrame = true;
-					else if (e.key.keysym.sym == SDLK_k) {
+					else if (e.key.keysym.sym == SDLK_k && !DebugIO::getOpen()) {
 						canProgressFrame = true;
 						doFBF = false;
 					}
@@ -518,18 +520,19 @@ int main(int argc, char* argv[]) {
 		//gfx
 
 		bool updateGFX{ false };
-		if (!doFBF) {
+		if (!doFBF) { // comment out the marked lines to restore the fbf that lets the bug happen
 			if (lockFPS)
 				updateGFX = static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency() >= gfxDelay;
 			else
 				updateGFX = true;
-		}
-		else {
-			updateGFX = canProgressFrame;
-		}
+		} //marked
+		else { //marked
+			updateGFX = true; //marked
+		} //marked
 		if (updateGFX) {
 			frame++;
 			double fps = 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency());
+
 
 			//DebugIO::setLine(1, "FPS: " + std::to_string(int(round(fps))));
 			//std::cout << 1.0 / (static_cast<double>(now - currentGfx) / SDL_GetPerformanceFrequency()) << std::endl;
@@ -543,37 +546,43 @@ int main(int argc, char* argv[]) {
 			//update camera
 			const Uint8* state = SDL_GetKeyboardState(NULL);
 
-			switch (game.getState()) {
-			case Game::GameState::offline:
-			case Game::GameState::online:
-			{
-				//players
-				if (EntitySystem::Contains<PlayerGC>()) {
-					for (auto& comp : EntitySystem::GetPool<PlayerGC>()) {
-						comp.updateState(gfxDelay);
-					}
-				}
+			bool update = true;
+			if (doFBF)
+				update = canProgressFrame;
 
-				//capture points
-				if (EntitySystem::Contains<CapturePointGC>()) {
-					for (auto& comp : EntitySystem::GetPool<CapturePointGC>()) {
-						comp.update(gfxDelay);
+			if (update) {
+				switch (game.getState()) {
+				case Game::GameState::offline:
+				case Game::GameState::online:
+				{
+					//players
+					if (EntitySystem::Contains<PlayerGC>()) {
+						for (auto& comp : EntitySystem::GetPool<PlayerGC>()) {
+							comp.updateState(gfxDelay);
+						}
 					}
-				}
 
-				game.updatePlayerCamera();
-				game.updateWeaponMenu();
-				game.updateInGameUI();
-				break;
-			}
-			case Game::GameState::stage_editor:
-				game.updateEditorCamera();
-				game.editables.updateGfx();
-				break;
-			case Game::GameState::main_menu:
-				break;
-			case Game::GameState::pause_menu:
-				break;
+					//capture points
+					if (EntitySystem::Contains<CapturePointGC>()) {
+						for (auto& comp : EntitySystem::GetPool<CapturePointGC>()) {
+							comp.update(gfxDelay);
+						}
+					}
+
+					game.updatePlayerCamera();
+					game.updateWeaponMenu();
+					game.updateInGameUI();
+					break;
+				}
+				case Game::GameState::stage_editor:
+					game.updateEditorCamera();
+					game.editables.updateGfx();
+					break;
+				case Game::GameState::main_menu:
+					break;
+				case Game::GameState::pause_menu:
+					break;
+				}
 			}
 
 
@@ -721,12 +730,13 @@ int main(int argc, char* argv[]) {
 
 			pingBuffer.bind();
 
+			
 			//particles
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, occlusionMap.getTexture(0).id);
 			const auto& playerCam = game.getPlayerCam();
 			GLRenderer::getComputeShader("blood").use();
-			GLRenderer::getComputeShader("blood").uniform2f("camPos", playerCam.pos.x, playerCam.pos.y);
+			GLRenderer::getComputeShader("blood").uniform2i("camPos", playerCam.pos.x, playerCam.pos.y);
 			GLRenderer::getComputeShader("blood").uniform1f("zoom", playerCam.camScale);
 			GLRenderer::setCamera(1); //hackish fix, player camera
 			GLRenderer::UpdateAndDrawParticles();
@@ -751,6 +761,7 @@ int main(int argc, char* argv[]) {
 					}
 				}
 			}
+			
 			
 
 			
@@ -828,4 +839,4 @@ player msgs
 //load weapon menu into menu camera
 //add control for displaying it
 
-//packet times are desyncing ;D
+//remove the offset from the vertex shader to re-enable the rounding bug

@@ -166,3 +166,7 @@ void Shader::uniform4f(std::string var, float arg0, float arg1, float arg2, floa
 void Shader::uniform1i(std::string val, int arg0) const {
 	glUniform1i(glGetUniformLocation(id, val.c_str()), arg0);
 }
+
+void Shader::uniform2i(std::string val, int arg0, int arg1) const {
+	glUniform2i(glGetUniformLocation(id, val.c_str()), arg0, arg1);
+}

@@ -14,7 +14,7 @@ void VelocityCommand::onCommand(const std::vector<std::string>& args) {
 
 		for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
 			PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(player.getId());
-			physics->accelerate({ x, y });
+			physics->vel = {x, y};
 		}
 	}
 	else {

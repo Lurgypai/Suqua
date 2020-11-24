@@ -3,7 +3,7 @@
 float width = 640.0;
 float height = 360.0;
 
-uniform vec2 camPos;
+uniform ivec2 camPos;
 uniform float zoom;
 
 layout(binding = 0) uniform sampler2D Image;

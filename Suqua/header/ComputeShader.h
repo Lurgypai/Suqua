@@ -13,6 +13,7 @@ struct ComputeShader {
 
 	void uniform2f(const std::string & var, float x, float y);
 	void uniform1f(const std::string & var, float x);
+	void uniform2i(const std::string& var, int x, int y);
 
 	void use() const;
 };

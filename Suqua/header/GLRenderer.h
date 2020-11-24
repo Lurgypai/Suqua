@@ -24,7 +24,7 @@
 //add converter to point, test with player lc, use to test colliders.
 struct Camera {
 	Vec2f pos;
-	Vec2f res;
+	Vec2i res;
 	float camScale;
 
 	void move(Vec2f move) {
@@ -33,7 +33,7 @@ struct Camera {
 	}
 
 	void center(Vec2f center) {
-		pos = { center.x - ((res.x / camScale) / 2), center.y - ((res.y / camScale) / 2) };
+		pos = { center.x - ((static_cast<float>(res.x) / camScale) / 2), center.y - ((static_cast<float>(res.y) / camScale) / 2)};
 	}
 
 	Vec2f center() {
@@ -45,7 +45,7 @@ struct Camera {
 		camScale += scale;
 		if (camScale < .1)
 			camScale = .1;
-		pos = { center.x - (res.x / (2 * camScale)), center.y - (res.y / (2 * camScale)) };
+		pos = { center.x - (static_cast<float>(res.x) / (2 * camScale)), center.y - (static_cast<float>(res.y) / (2 * camScale))};
 	}
 
 	void setZoom(float scale) {
@@ -53,7 +53,7 @@ struct Camera {
 		camScale = scale;
 		if (camScale < .1)
 			camScale = .1;
-		pos = { center.x - (res.x / (2 * camScale)), center.y - (res.y / (2 * camScale)) };
+		pos = { center.x - (static_cast<float>(res.x) / (2 * camScale)), center.y - (static_cast<float>(res.y) / (2 * camScale)) };
 	}
 
 	bool inView(Vec2f pos_) {

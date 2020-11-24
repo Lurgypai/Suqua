@@ -1,6 +1,6 @@
 #version 450 core
 
-uniform vec2 camPos;
+uniform ivec2 camPos;
 uniform float zoom;
 
 layout(binding = 0) uniform sampler2D Image;

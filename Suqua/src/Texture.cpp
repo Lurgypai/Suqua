@@ -12,7 +12,6 @@ Texture createTexture2D(int width, int height, GLenum colorIn, GLenum colorOut, 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, colorOut, width, height, 0, colorIn, GL_UNSIGNED_BYTE, src);
-	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	texture.dimensions = GL_TEXTURE_2D;

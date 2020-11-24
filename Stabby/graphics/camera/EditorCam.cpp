@@ -12,7 +12,7 @@ EditorCam::EditorCam(int id_) :
 	id{id_}
 {
 	Camera& cam = GLRenderer::getCamera(id);
-	staticBox.res = { cam.res.x - 50, cam.res.y - 50 };
+	staticBox.res = Vec2f{ static_cast<float>(cam.res.x) - 50, static_cast<float>(cam.res.y) - 50 };
 	staticBox.center(cam.center());
 }
 

@@ -148,7 +148,7 @@ void ParticleSystem::updateAndDraw(unsigned int camera) {
 
 		particleShader.use();
 		particleShader.uniform2f("camPos", cam.pos.x, cam.pos.y);
-		particleShader.uniform2f("camRes", cam.res.x, cam.res.y);
+		particleShader.uniform2i("camRes", cam.res.x, cam.res.y);
 		particleShader.uniform2f("zoom", cam.camScale, cam.camScale);
 
 		int start = head % size;

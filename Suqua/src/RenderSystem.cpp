@@ -1,4 +1,5 @@
 #include "RenderSystem.h"
+#include "AnimatedSprite.h"
 
 void RenderSystem::drawAll() {
 	if (EntitySystem::Contains<RenderComponent>()) {

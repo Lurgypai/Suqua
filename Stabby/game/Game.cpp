@@ -615,7 +615,7 @@ void Game::loadWeaponMenu() {
 	EntitySystem::MakeComps<RenderComponent>(1, &weaponMenuBG);
 	RenderComponent* weaponMenuRender = EntitySystem::GetComp<RenderComponent>(weaponMenuBG);
 	weaponMenuRender->loadDrawable<Sprite>("weapon_menu");
-	weaponMenuRender->getDrawable<Sprite>()->setDepth(-0.5);
+	weaponMenuRender->getDrawable<Sprite>()->setDepth(-0.7);
 	EntitySystem::GetComp<PositionComponent>(weaponMenuBG)->pos = { 0, 0 };
 
 	for (auto& weapon : tags) {
@@ -640,6 +640,7 @@ void Game::loadWeaponMenu() {
 		drawable->anti_alias = true;
 		drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
 		drawable->scale = { .5, .5 };
+		drawable->depth = -0.8;
 	}
 }
 
