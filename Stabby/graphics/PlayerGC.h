@@ -46,4 +46,6 @@ private:
 	int prevAttack;
 	double defaultFrameDelay;
 	bool animationFrozen;
+	int prevStunFrame;
+	bool wasStunned;
 };

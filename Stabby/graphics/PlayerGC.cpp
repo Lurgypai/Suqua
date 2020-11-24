@@ -17,7 +17,9 @@ PlayerGC::PlayerGC(EntityId id_) :
 	prevAttack{ 0 },
 	attackAnimations{},
 	currAttackTag{},
-	animationFrozen{false}
+	animationFrozen{ false },
+	prevStunFrame{0},
+	wasStunned{false}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<RenderComponent>() || EntitySystem::GetComp<RenderComponent>(id) == nullptr) {
@@ -199,10 +201,6 @@ void PlayerGC::updateState(double timeDelta) {
 				sprite.forward(timeDelta);
 		}
 
-		prevXVel = state.vel.x;
-		prevAttack = state.activeAttack;
-		prevState = plrState;
-
 		//put this at the end so we don't modify the RenderComponent pool and screw up the sprite reference
 
 		if (shouldSpawnHead && plrState == State::dead) {
@@ -212,7 +210,30 @@ void PlayerGC::updateState(double timeDelta) {
 			Particle p1{ Color{1, 1, 1, 1}, spawnPos, -90, 1.5f, 100, 0 };
 			GLRenderer::SpawnParticles("blood", 50, p1, 180.0f, 1.0f, 0.0f, { 2.0f, 2.0f });
 		}
+
+		prevXVel = state.vel.x;
+		prevAttack = state.activeAttack;
+		prevState = plrState;
 	}
+
+	if (state.state == State::stunned) {
+		if (!wasStunned || state.stunFrame > prevStunFrame) {
+			PhysicsComponent* otherPlayer = EntitySystem::GetComp<PhysicsComponent>(combat->getLastAttacker());
+			CombatComponent* otherCombat = EntitySystem::GetComp<CombatComponent>(combat->getLastAttacker());
+			if (otherPlayer) {
+				auto spawnPos = state.pos + Vec2f{ 0, -10 };
+				float dir = otherPlayer->getPos().x < state.pos.x;
+				dir = dir * 2 - 1;
+
+				Particle p1{ Color{1, 1, 1, 1}, spawnPos, -90 + (45 * dir), 1.8f, 100, 0 };
+				GLRenderer::SpawnParticles("blood", 20, p1, 15.0f, 1.0f, 0.0f, { 2.0f, 2.0f });
+			}
+		}
+	}
+
+	prevStunFrame = state.stunFrame;
+	wasStunned = state.state == State::stunned;
+
 
 	//after updating the frame, update wether or not to freeze on that frame
 	animationFrozen = combat->isFrozen();
