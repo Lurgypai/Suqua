@@ -218,11 +218,6 @@ void Game::startStageEditor(const std::string & filePath) {
 	gameState = GameState::stage_editor;
 
 	renderGroups[editorCamId].push_back(editables.getStageImage());
-	if (EntitySystem::Contains<EditableStageComponent>()) {
-		for (auto& editableStageComponent : EntitySystem::GetPool<EditableStageComponent>()) {
-			renderGroups[editorCamId].push_back(editableStageComponent.getId());
-		}
-	}
 }
 
 void Game::loadStage(const std::string& stageName) {
@@ -385,6 +380,7 @@ void Game::updateEditorCamera() {
 
 void Game::updateEditor() {
 	editables.updateLogic(editorCamId);
+	addNewEditables();
 }
 
 void Game::updateMainMenu() {
@@ -756,6 +752,13 @@ void Game::updateRespawnMenu() {
 	else {
 		EntitySystem::GetComp<RenderComponent>(respawnMenu.rightArrow)->getDrawable<AnimatedSprite>()->setFrame(0);
 	}
+}
+
+void Game::addNewEditables() {
+	for (const auto& id : editables.getNewEditables()) {
+		renderGroups[editorCamId].push_back(id);
+	}
+	editables.clearNewEditables();
 }
 
 void Game::makePlayerGFX(EntityId playerId_) {

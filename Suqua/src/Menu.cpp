@@ -117,8 +117,10 @@ void Menu::updateMenuEntries(int camId) {
 void Menu::input(const std::string& text) {
 	for (auto& textBoxId : text_boxes) {
 		MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(textBoxId);
-		if (textBox->isActive()) {
-			textBox->input(text);
+		if (textBox) {
+			if (textBox->isActive()) {
+				textBox->input(text);
+			}
 		}
 	}
 }

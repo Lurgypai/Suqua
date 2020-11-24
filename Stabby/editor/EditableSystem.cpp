@@ -64,6 +64,14 @@ void EditableSystem::updateLogic(int camId) {
 	prevButton2 = currButton2;
 }
 
+const std::list<EntityId>& EditableSystem::getNewEditables() const {
+	return toGenEditables;
+}
+
+void EditableSystem::clearNewEditables() {
+	toGenEditables.clear();
+}
+
 void EditableSystem::updateGfx() {
 	if (EntitySystem::Contains<EditableColliderGC>()) {
 		for (auto& editable : EntitySystem::GetPool<EditableColliderGC>()) {
@@ -74,11 +82,13 @@ void EditableSystem::updateGfx() {
 
 void EditableSystem::loadStageImage(const std::string& stage_) {
 
-	std::string stage = Stage::folder + '/' + stage_ + ".png";
+	std::string stage = "stage::" + stage_;
 	EntitySystem::GenEntities(1, &bgImage);
 	EntitySystem::MakeComps<RenderComponent>(1, &bgImage);
 	EntitySystem::GetComp<RenderComponent>(bgImage)->loadDrawable<Sprite>(stage);
-	Vec2f res = EntitySystem::GetComp<RenderComponent>(bgImage)->getDrawable<Sprite>()->getImgRes();
+	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(bgImage);
+	const auto& res = render->getDrawable<Sprite>()->getImgRes();
+	render->getDrawable<Sprite>()->setDepth(0.5);
 	EntitySystem::GetComp<PositionComponent>(bgImage)->pos = { -res.x / 2, -res.y };
 }
 
@@ -144,6 +154,8 @@ EntityId EditableSystem::makeEditable(Vec2f pos, Vec2f res, StageElement type, b
 	editable->defaultSpawn = defaultSpawn_;
 
 	EntitySystem::MakeComps<EditableColliderGC>(1, &id);
+
+	toGenEditables.push_back(id);
 
 	return id;
 }

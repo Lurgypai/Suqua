@@ -59,6 +59,8 @@ public:
 	void openRespawnMenu();
 	void updateRespawnMenu();
 
+	void addNewEditables();
+
 	void renderAll(double gfxDelay);
 
 	const PlayerCam& getPlayerCam() const;
