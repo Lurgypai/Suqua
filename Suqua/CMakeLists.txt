@@ -8,7 +8,7 @@ file(GLOB source_files
 	"header/*.h"
 )
 
-add_library(Suqua ${source_files} "src/glad.c")
+add_library(Suqua ${source_files} "src/glad.c" )
 
 target_include_directories(Suqua PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/header)
 target_include_directories(Suqua PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)

@@ -57,6 +57,7 @@
 #include "graphics/HeadParticleLC.h"
 #include "player/OnlinePlayerLC.h"
 #include "graphics/StatBarComponent.h"
+#include "sounds/PlayerSFX.h"
 
 #include "nlohmann/json.hpp"
 
@@ -188,6 +189,7 @@ int main(int argc, char* argv[]) {
 
 	/*--------------------------------------------- Load more Assets --------------------------------------------------*/
 	game.loadTextures();
+	game.loadSounds();
 	game.weapons.loadAttacks("attacks/hit");
 	game.weapons.loadAnimations("attacks/asset");
 
@@ -562,6 +564,13 @@ int main(int argc, char* argv[]) {
 						}
 					}
 
+					//players
+					if (EntitySystem::Contains<PlayerSFX>()) {
+						for (auto& comp : EntitySystem::GetPool<PlayerSFX>()) {
+							comp.update();
+						}
+					}
+
 					//capture points
 					if (EntitySystem::Contains<CapturePointGC>()) {
 						for (auto& comp : EntitySystem::GetPool<CapturePointGC>()) {
@@ -588,6 +597,7 @@ int main(int argc, char* argv[]) {
 
 
 			game.renderAll(gfxDelay);
+			game.playAll();
 
 			/*
 			GLRenderer::setCamera(1);
@@ -838,5 +848,3 @@ player msgs
 //clear the main menu
 //load weapon menu into menu camera
 //add control for displaying it
-
-//remove the offset from the vertex shader to re-enable the rounding bug

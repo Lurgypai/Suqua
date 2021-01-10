@@ -32,11 +32,12 @@ void main() {
 	int id = abs((gl_VertexID % 6) - 3);
     
 	vec2 pos = vec2(id % 2, id / 2);
-	vec2 imgPos = pos * 2 - 1;
+    vec2 h = vec2(0.5);
+	vec2 imgPos = pos - h;
 	
-	//move -1, 1 to surround origin
+	//move -0.5, 0.5 to surround origin
 	imgPos *= sign(dat.objRes);
-    imgPos = (imgPos + 1) / 2;
+    imgPos += h;
     
     imgPos *= abs(dat.objRes);
 	imgPos += dat.imgOffset;

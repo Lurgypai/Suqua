@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 3.8)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(SDL2 REQUIRED)
+find_package(SDL2_MIXER REQUIRED)
 
 file(GLOB_RECURSE source_files
 	"*.cpp"
@@ -20,7 +21,7 @@ target_include_directories(Stabby PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/../StabbyCore/include
 )
 
-target_link_libraries(Stabby ${SDL2_LIBRARIES} StabbyCore enet)
+target_link_libraries(Stabby ${SDL2_LIBRARIES} ${SDL2_MIXER_LIBRARIES} StabbyCore enet)
 
 add_custom_command(
     TARGET Stabby POST_BUILD

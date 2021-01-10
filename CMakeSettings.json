@@ -15,6 +15,11 @@
           "name": "SDL2_DIR",
           "value": "${projectDir}/windows-sdl2",
           "type": "PATH"
+        },
+        {
+          "name": "SDL2_MIXER_DIR",
+          "value": "${projectDir}/windows-sdl2_mixer",
+          "type": "PATH"
         }
       ]
     }

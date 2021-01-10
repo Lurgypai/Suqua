@@ -5,6 +5,7 @@
 
 #include "RenderSystem.h"
 #include "MenuSystem.h"
+#include "SoundSystem.h"
 
 #include "player.h"
 #include "gamemode.h"
@@ -38,6 +39,7 @@ public:
 	void loadStage(const std::string& stageName);
 	void loadCameras(int viewWidth, int viewHeight);
 	void loadTextures();
+	void loadSounds();
 	void loadInGameUI();
 	
 	void updatePlayerCamera();
@@ -62,12 +64,14 @@ public:
 	void addNewEditables();
 
 	void renderAll(double gfxDelay);
+	void playAll();
 
 	const PlayerCam& getPlayerCam() const;
 
 	//client side time
 	Time_t tick;
 	RenderSystem render;
+	SoundSystem sound;
 	Client client;
 	PhysicsSystem physics;
 	CombatSystem combat;

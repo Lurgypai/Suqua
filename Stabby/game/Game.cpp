@@ -21,6 +21,8 @@
 #include "../graphics/StatBarComponent.h"
 #include "../graphics/HealthReader.h"
 #include "../graphics/StaminaReader.h"
+#include "../sounds/PlayerSFX.h"
+
 #include "Game.h"
 
 using json = nlohmann::json;
@@ -273,6 +275,10 @@ void Game::loadTextures() {
 			GLRenderer::LoadTexture(file.path().string(), "weapon::" + id);
 		}
 	}
+}
+
+void Game::loadSounds() {
+	sound.loadSound("sounds/player/hurt.wav", "player.hurt1");
 }
 
 void Game::loadInGameUI() {
@@ -769,6 +775,8 @@ void Game::makePlayerGFX(EntityId playerId_) {
 	EntitySystem::GetComp<PlayerGC>(playerId_)->loadAnimations(weapons);
 	EntitySystem::GetComp<PlayerGC>(playerId_)->loadNameTag();
 
+	EntitySystem::MakeComps<PlayerSFX>(1, &playerId_);
+
 	renderGroups[playerCamId].push_back(playerId_);
 	renderGroups[playerCamId].push_back(EntitySystem::GetComp<PlayerGC>(playerId_)->getNameTageRenderId());
 }
@@ -786,6 +794,10 @@ void Game::renderAll(double gfxDelay) {
 			}
 		}
 	}
+}
+
+void Game::playAll() {
+	sound.playTriggeredSounds();
 }
 
 const PlayerCam& Game::getPlayerCam() const {
