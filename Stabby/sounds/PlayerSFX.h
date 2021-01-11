@@ -9,6 +9,6 @@ public:
 
 	void update();
 private:
-	State prevState;
+	int32_t prevHealth;
 	EntityId id;
 };

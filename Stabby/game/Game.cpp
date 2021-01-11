@@ -278,6 +278,10 @@ void Game::loadTextures() {
 }
 
 void Game::loadSounds() {
+	sound.setTargetCam(&GLRenderer::getCamera(playerCamId));
+	sound.setMaxVolume(128 / 2);
+	sound.setMaxProximity(300);
+
 	sound.loadSound("sounds/player/hurt.wav", "player.hurt1");
 }
 

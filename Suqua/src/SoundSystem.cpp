@@ -4,7 +4,9 @@
 #include "EntitySystem.h"
 #include "SoundComponent.h"
 
-SoundSystem::SoundSystem() {
+SoundSystem::SoundSystem(Camera* targetCam_) :
+	targetCam{targetCam_}
+{
 	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
 }
 
@@ -24,7 +26,36 @@ void SoundSystem::playTriggeredSounds() {
 	if (EntitySystem::Contains<SoundComponent>()) {
 		for (auto& sound : EntitySystem::GetPool<SoundComponent>()) {
 			while (!sound.triggered.empty()) {
-				playSound(sound.triggered.front());
+				const auto& triggered = sound.triggered.front();
+				if (triggered.positional) {
+					if (targetCam != nullptr) {
+						auto camCenter = targetCam->center();
+						float distance = camCenter.distance(triggered.pos);
+						float ratio = 1.0f - distance / maxProximity;
+						if (ratio > 0) {
+							Mix_Volume(-1, maxVolume * ratio);
+							float horizDistance = triggered.pos.x - camCenter.x;
+							float horizRatio = (std::abs(horizDistance) / maxProximity) * 0.5 + 0.5;
+							if (horizDistance < 0) {
+								float left = horizRatio * maxVolume;
+								Mix_SetPanning(MIX_CHANNEL_POST, left, maxVolume - left);
+							}
+							else {
+								float right = horizRatio * maxVolume;
+								Mix_SetPanning(MIX_CHANNEL_POST, maxVolume - right, right);
+							}
+						}
+						else {
+							Mix_Volume(-1, 0);
+						}
+					}
+				}
+				else {
+					Mix_Volume(-1, maxVolume);
+					Mix_SetPanning(-1, 128, 128);
+				}
+
+				playSound(triggered.tag);
 				sound.triggered.pop_front();
 			}
 		}
@@ -45,4 +76,16 @@ void SoundSystem::pauseMusic() {
 
 void SoundSystem::resumeMusic() {
 	Mix_ResumeMusic();
+}
+
+void SoundSystem::setTargetCam(Camera* targetCam_) {
+	targetCam = targetCam_;
+}
+
+void SoundSystem::setMaxVolume(int volume) {
+	maxVolume = volume;
+}
+
+void SoundSystem::setMaxProximity(float distance) {
+	maxProximity = distance;
 }

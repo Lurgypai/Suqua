@@ -1,5 +1,6 @@
 #include "PlayerSFX.h"
 #include "SoundComponent.h"
+#include "../player/PlayerLC.h"
 
 PlayerSFX::PlayerSFX(EntityId id_) :
 	id{id_}
@@ -17,13 +18,14 @@ EntityId PlayerSFX::getId() const {
 
 void PlayerSFX::update() {
 	if (EntitySystem::Contains<PlayerStateComponent>()) {
-		PlayerStateComponent* state = EntitySystem::GetComp<PlayerStateComponent>(id);
-		auto currState = state->playerState.state;
-		if (currState == State::stunned && currState != prevState) {
+		PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);
+		const PlayerState& state = player->getState();
+		auto currHealth = state.health;
+		if (currHealth < prevHealth) {
 			SoundComponent* sounds = EntitySystem::GetComp<SoundComponent>(id);
-			//sounds->triggerSound("player.hurt1");
+			sounds->triggerSound("player.hurt1", state.pos);
 		}
 
-		prevState = currState;
+		prevHealth = currHealth;
 	}
 }
