@@ -203,10 +203,12 @@ int main(int argv, char* argc[])
 						ClientCommand comm{ Controller{ cont.state, cont.prevState }, cont.clientTime, cont.when };
 						DebugFIO::Out("s_out.txt") << "Received and storing input " << static_cast<int>(cont.state) << ", " << static_cast<int>(cont.prevState) << " for time " << cont.clientTime << '\n';
 						sender->getServerPlayer().bufferInput(comm);
-						if (cont.clientTime < sender->getServerPlayer().getClientTime()) {
-							ClientDelayedPacket delayPacket{};
-							server.sendPacket(senderId, delayPacket);
-						}
+						
+						//delayed packet sending, ignore for now
+						//if (cont.clientTime < sender->getServerPlayer().getClientTime()) {
+						//	ClientDelayedPacket delayPacket{};
+						//	server.sendPacket(senderId, delayPacket);
+						//}
 					}
 					else if (key == TIME_KEY) {
 						TimestampPacket time{};

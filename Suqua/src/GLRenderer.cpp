@@ -103,9 +103,10 @@ void GLRenderer::LoadTexture(const std::string& filePath, const std::string& tag
 	Texture t = createTexture2D(w, h, GL_RGBA, GL_RGBA, imgData);
 
 	Vec2f atlasRes = textureAtlas->getTexture(0).res;
-	if (textureAtlasPos.x + w > atlasRes.x) {
+	if (textureAtlasPos.x + w> atlasRes.x) {
 		textureAtlasPos.x = 0;
-		textureAtlasPos.y += textureAtlasDropdown;
+		//pixel of buffer space
+		textureAtlasPos.y += textureAtlasDropdown + 1;
 		textureAtlasDropdown = 0;
 	}
 
@@ -149,7 +150,8 @@ void GLRenderer::LoadTexture(const std::string& filePath, const std::string& tag
 
 	textures.emplace(tag, AtlasTextureData{ tag, textureAtlasPos, Vec2i{w, h} });
 
-	textureAtlasPos.x += w;
+	//pixel of buffer space
+	textureAtlasPos.x += w + 1;
 }
 
 AtlasTextureData GLRenderer::GetTextureData(const std::string& tag) {
