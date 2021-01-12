@@ -8,6 +8,7 @@ SoundSystem::SoundSystem(Camera* targetCam_) :
 	targetCam{targetCam_}
 {
 	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+	//Mix_AllocateChannels(10);
 }
 
 SoundSystem::~SoundSystem() {
@@ -39,23 +40,22 @@ void SoundSystem::playTriggeredSounds() {
 							if (horizDistance < 0) {
 								float left = horizRatio * maxVolume;
 								Mix_SetPanning(MIX_CHANNEL_POST, left, maxVolume - left);
+								playSound(triggered.tag);
 							}
 							else {
 								float right = horizRatio * maxVolume;
 								Mix_SetPanning(MIX_CHANNEL_POST, maxVolume - right, right);
+								playSound(triggered.tag);
 							}
-						}
-						else {
-							Mix_Volume(-1, 0);
 						}
 					}
 				}
 				else {
 					Mix_Volume(-1, maxVolume);
 					Mix_SetPanning(-1, 128, 128);
+					playSound(triggered.tag);
 				}
 
-				playSound(triggered.tag);
 				sound.triggered.pop_front();
 			}
 		}

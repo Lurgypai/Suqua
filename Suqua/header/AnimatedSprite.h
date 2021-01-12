@@ -10,7 +10,7 @@ public:
 		int columns_ = 8, float frameDelay = (4.0 / 60));
 	void forward(double timeDelta);
 	void backward(double timeDelta);
-	int getFrame();
+	int getFrame() const;
 	void setFrame(int frame);
 	void addAnimation(int id, int beginFrame, int endFrame);
 	void setAnimation(int id);

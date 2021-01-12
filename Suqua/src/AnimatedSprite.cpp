@@ -49,7 +49,7 @@ void AnimatedSprite::backward(double timeDelta) {
 
 }
 
-int AnimatedSprite::getFrame() {
+int AnimatedSprite::getFrame() const {
 	return currentFrame;
 }
 

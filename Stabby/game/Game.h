@@ -41,11 +41,14 @@ public:
 	void loadTextures();
 	void loadSounds();
 	void loadInGameUI();
+
+	void addRenderGroup(const std::string& tag, int camId);
 	
 	void updatePlayerCamera();
 	void loadNewPlayers();
 	void loadNewCapturePoints();
 	void makePlayerGFX(EntityId playerId_);
+	void hideEnemyNametags();
 
 	void updateEditorCamera();
 	void updateEditor();
@@ -105,10 +108,17 @@ private:
 		EntityId bg;
 	} inGameUI;
 
+	//refine renergroups
+	struct RenderGroup {
+		std::string tag;
+		int camId;
+		std::vector<EntityId> entities;
+	};
+
 	Stage stage;
 	EntityId playerId;
 	GameState gameState;
-	std::unordered_map<int, std::vector<EntityId>> renderGroups;
+	std::unordered_map<std::string, RenderGroup> renderGroups;
 
 	int playerCamId;
 	int debugCamId;

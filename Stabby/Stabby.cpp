@@ -366,6 +366,7 @@ int main(int argc, char* argv[]) {
 						controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_Z]);
 						controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_X]);
 						controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_C]);
+						controller.set(ControllerBits::BUTTON_4, state[SDL_SCANCODE_SPACE]);
 					}
 					else {
 						controller.off(ControllerBits::ALL);
@@ -586,6 +587,7 @@ int main(int argc, char* argv[]) {
 					game.updatePlayerCamera();
 					game.updateWeaponMenu();
 					game.updateInGameUI();
+					game.hideEnemyNametags();
 					game.renderPlayArea();
 					break;
 				}

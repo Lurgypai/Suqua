@@ -125,13 +125,17 @@ void AIPlayerComponent::update() {
 
 		if (targetId) {
 			if (ourPos.distance(targetPos) < 10) {
+				if (currZone.typeTag == "climb") {
+					if (timer % 2)
+						controller->getController().set(ControllerBits::BUTTON_4, true);
+				}
 				if (timer % 2)
 					controller->getController().set(ControllerBits::BUTTON_2, true);
 			}
 		}
 
 		//only travel if far enough away
-		if (std::abs(targetPos.x - ourPos.x) > 10) {
+		if (ourPos.distance(targetPos) > 10) {
 			if (currPath.size() > 1) {
 				auto iter = currPath.begin();
 				NavZone nextZone = navMesh.getZone(*(++iter));
@@ -148,14 +152,26 @@ void AIPlayerComponent::update() {
 					if (nextPoint.x < ourPos.x) {
 						controller->getController().set(ControllerBits::LEFT, true);
 						if (ourPos.x - nextRight < 4 && nextBottom < currZone.area.pos.y + currZone.area.res.y) {
-							controller->getController().set(ControllerBits::UP, true);
+							if (nextZone.typeTag == "walk") {
+								controller->getController().set(ControllerBits::BUTTON_4, true);
+							}
+							else if (nextZone.typeTag == "climb") {
+								controller->getController().set(ControllerBits::BUTTON_4, true);
+								controller->getController().set(ControllerBits::UP, true);
+							}
 						}
 					}
 					//right
 					else if (nextPoint.x > ourPos.x) {
 						controller->getController().set(ControllerBits::RIGHT, true);
 						if (nextLeft - ourPos.x < 4 && nextBottom < currZone.area.pos.y + currZone.area.res.y) {
-							controller->getController().set(ControllerBits::UP, true);
+							if (nextZone.typeTag == "walk") {
+								controller->getController().set(ControllerBits::BUTTON_4, true);
+							}
+							else if (nextZone.typeTag == "climb") {
+								controller->getController().set(ControllerBits::BUTTON_4, true);
+								controller->getController().set(ControllerBits::UP, true);
+							}
 						}
 					}
 				}

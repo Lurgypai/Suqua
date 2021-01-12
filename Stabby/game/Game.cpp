@@ -46,7 +46,6 @@ void Game::startMainMenu() {
 		for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
 			entity.isDead = true;
 		}
-		renderGroups.clear();
 	}
 
 	mainMenu = menus.makeMenu();
@@ -68,7 +67,7 @@ void Game::startMainMenu() {
 		drawable->c = { 1.0, 1.0, 1.0, 1.0 };
 		drawable->depth = 0.0;
 
-		renderGroups[menuCamId].push_back(button);
+		renderGroups["main_menu"].entities.push_back(button);
 	}
 	
 	
@@ -85,7 +84,7 @@ void Game::startMainMenu() {
 		drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
 		drawable->scale = {.5, .5};
 
-		renderGroups[menuCamId].push_back(textBox);
+		renderGroups["main_menu"].entities.push_back(textBox);
 	}
 	
 
@@ -95,14 +94,13 @@ void Game::startMainMenu() {
 	RenderComponent* mainMenuRender = EntitySystem::GetComp<RenderComponent>(mainMenuBG);
 	mainMenuRender->loadDrawable<Sprite>("main_menu");
 	EntitySystem::GetComp<PositionComponent>(mainMenuBG)->pos = { 0 , 0 };
-	renderGroups[menuCamId].push_back(mainMenuBG);
+	renderGroups["main_menu"].entities.push_back(mainMenuBG);
 }
 
 void Game::startOfflineGame(bool sessionGuided_) {
 	for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
 		entity.isDead = true;
 	}
-	renderGroups.clear();
 	menus.getMenu(mainMenu).clear();
 	loadWeaponMenu();
 	loadRespawnMenu();
@@ -128,10 +126,10 @@ void Game::startOfflineGame(bool sessionGuided_) {
 	gameState = GameState::offline;
 
 	for (auto& stageAsset : stage.getRenderables()) {
-		renderGroups[playerCamId].push_back(stageAsset);
+		renderGroups["gameplay"].entities.push_back(stageAsset);
 	}
 	for (auto& capturePoint : stage.getSpawnables()) {
-		renderGroups[playerCamId].push_back(capturePoint);
+		renderGroups["gameplay"].entities.push_back(capturePoint);
 	}
 
 	sessionGuided = sessionGuided_;
@@ -167,7 +165,6 @@ void Game::startOnlineGame() {
 	for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
 		entity.isDead = true;
 	}
-	renderGroups.clear();
 	menus.getMenu(mainMenu).clear();
 	loadWeaponMenu();
 	loadRespawnMenu();
@@ -201,7 +198,7 @@ void Game::startOnlineGame() {
 	gameState = GameState::online;
 
 	for (auto& stageAsset : stage.getRenderables()) {
-		renderGroups[playerCamId].push_back(stageAsset);
+		renderGroups["gameplay"].entities.push_back(stageAsset);
 	}
 
 	loadInGameUI();
@@ -219,7 +216,7 @@ void Game::startStageEditor(const std::string & filePath) {
 
 	gameState = GameState::stage_editor;
 
-	renderGroups[editorCamId].push_back(editables.getStageImage());
+	renderGroups["editor"].entities.push_back(editables.getStageImage());
 }
 
 void Game::loadStage(const std::string& stageName) {
@@ -238,6 +235,13 @@ void Game::loadCameras(int viewWidth, int viewHeight) {
 	respawnMenuCamId = GLRenderer::addCamera(menuCamera);
 
 	editorCam = EditorCam{ editorCamId };
+
+	addRenderGroup("main_menu", menuCamId);
+	addRenderGroup("editor", editorCamId);
+	addRenderGroup("gameplay", playerCamId);
+	addRenderGroup("name_tags", playerCamId);
+	addRenderGroup("i_gui", iGUICamId);
+	addRenderGroup("respawn_menu", respawnMenuCamId);
 }
 
 void Game::loadTextures() {
@@ -283,6 +287,12 @@ void Game::loadSounds() {
 	sound.setMaxProximity(300);
 
 	sound.loadSound("sounds/player/hurt.wav", "player.hurt1");
+	sound.loadSound("sounds/player/step.wav", "player.step1");
+	sound.loadSound("sounds/player/land.wav", "player.land1");
+	sound.loadSound("sounds/player/roll.wav", "player.roll1");
+	sound.loadSound("sounds/player/swing.wav", "player.swing1");
+	sound.loadSound("sounds/player/death.wav", "player.death1");
+	sound.loadSound("sounds/player/jump.wav", "player.jump1");
 }
 
 void Game::loadInGameUI() {
@@ -316,10 +326,14 @@ void Game::loadInGameUI() {
 	EntitySystem::GetComp<PositionComponent>(inGameUI.icon)->pos = { 7,6 };
 	icon->getDrawable<Sprite>()->setDepth(-0.6);
 
-	renderGroups[iGUICamId].push_back(inGameUI.healthBar);
-	renderGroups[iGUICamId].push_back(inGameUI.staminaBar);
-	renderGroups[iGUICamId].push_back(inGameUI.bg);
-	renderGroups[iGUICamId].push_back(inGameUI.icon);
+	renderGroups["i_gui"].entities.push_back(inGameUI.healthBar);
+	renderGroups["i_gui"].entities.push_back(inGameUI.staminaBar);
+	renderGroups["i_gui"].entities.push_back(inGameUI.bg);
+	renderGroups["i_gui"].entities.push_back(inGameUI.icon);
+}
+
+void Game::addRenderGroup(const std::string& tag, int camId) {
+	renderGroups[tag] = { tag, camId, {} };
 }
 
 void Game::updatePlayerCamera() {
@@ -371,7 +385,7 @@ void Game::loadNewCapturePoints() {
 
 				EntitySystem::MakeComps<CapturePointGC>(1, &id);
 
-				renderGroups[playerCamId].push_back(id);
+				renderGroups["gameplay"].entities.push_back(id);
 
 				online.registerOnlineComponent(id, packet.netId);
 			}
@@ -481,7 +495,7 @@ void Game::updateWeaponMenu() {
 	else {
 		shouldOpenWeaponMenu = true;
 		weaponMenuOpen = false;
-		renderGroups[menuCamId].clear();
+		renderGroups["main_menu"].entities.clear();
 	}
 
 	//when the menu is open, update
@@ -546,7 +560,7 @@ void Game::updateWeaponMenu() {
 					if (weapons.hasWeapon(response)) {
 						//close the menu
 						weaponMenuOpen = false;
-						renderGroups[menuCamId].clear();
+						renderGroups["main_menu"].entities.clear();
 
 
 						if (EntitySystem::Contains<PlayerLC>() && EntitySystem::Contains<PlayerGC>()) {
@@ -655,16 +669,16 @@ void Game::loadWeaponMenu() {
 }
 
 void Game::openWeaponMenu() {
-	renderGroups[menuCamId].clear();
-	renderGroups[menuCamId].push_back(weaponMenuBG);
+	renderGroups["main_menu"].entities.clear();
+	renderGroups["main_menu"].entities.push_back(weaponMenuBG);
 
 	Menu& menu = menus.getMenu(weaponMenu);
 	for (auto& text : menu.getTextBoxes()) {
-		renderGroups[menuCamId].push_back(text);
+		renderGroups["main_menu"].entities.push_back(text);
 	}
 
 	for (auto& pair : weaponIcons) {
-		renderGroups[menuCamId].push_back(pair.second);
+		renderGroups["main_menu"].entities.push_back(pair.second);
 	}
 }
 
@@ -702,7 +716,7 @@ void Game::loadRespawnMenu() {
 }
 
 void Game::openRespawnMenu() {
-	renderGroups[respawnMenuCamId].clear();
+	renderGroups["respawn_menu"].entities.clear();
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
 	int spawnCount = 0;
 	for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
@@ -712,9 +726,9 @@ void Game::openRespawnMenu() {
 			if (spawnCount > 1) break;
 		}
 	}
-	if (spawnCount > 1 && renderGroups[respawnMenuCamId].empty()) {
-		renderGroups[respawnMenuCamId].push_back(respawnMenu.leftArrow);
-		renderGroups[respawnMenuCamId].push_back(respawnMenu.rightArrow);
+	if (spawnCount > 1 && renderGroups["respawn_menu"].entities.empty()) {
+		renderGroups["respawn_menu"].entities.push_back(respawnMenu.leftArrow);
+		renderGroups["respawn_menu"].entities.push_back(respawnMenu.rightArrow);
 		respawnMenu.arrowOpen = true;
 	}
 }
@@ -725,7 +739,7 @@ void Game::updateRespawnMenu() {
 	if (player->getState().state == State::dead && !player->shouldRespawn()) {
 		if (!respawnMenu.counterVisible) {
 			respawnMenu.counterVisible = true;
-			renderGroups[respawnMenuCamId].push_back(respawnMenu.counter);
+			renderGroups["respawn_menu"].entities.push_back(respawnMenu.counter);
 			respawnMenu.counterVal = 10;
 		}
 		TextDrawable* text = EntitySystem::GetComp<RenderComponent>(respawnMenu.counter)->getDrawable<TextDrawable>();
@@ -746,7 +760,7 @@ void Game::updateRespawnMenu() {
 	else {
 		if (respawnMenu.arrowOpen) {
 			respawnMenu.arrowOpen = false;
-			renderGroups[respawnMenuCamId].clear();
+			renderGroups["respawn_menu"].entities.clear();
 		}
 	}
 
@@ -767,7 +781,7 @@ void Game::updateRespawnMenu() {
 
 void Game::addNewEditables() {
 	for (const auto& id : editables.getNewEditables()) {
-		renderGroups[editorCamId].push_back(id);
+		renderGroups["editor"].entities.push_back(id);
 	}
 	editables.clearNewEditables();
 }
@@ -777,18 +791,30 @@ void Game::makePlayerGFX(EntityId playerId_) {
 	EntitySystem::GetComp<RenderComponent>(playerId_)->loadDrawable<AnimatedSprite>("character", Vec2i{ 64, 64 });
 	EntitySystem::GetComp<RenderComponent>(playerId_)->getDrawable<AnimatedSprite>()->setDepth(0.0);
 	EntitySystem::GetComp<PlayerGC>(playerId_)->loadAnimations(weapons);
+
 	EntitySystem::GetComp<PlayerGC>(playerId_)->loadNameTag();
 
 	EntitySystem::MakeComps<PlayerSFX>(1, &playerId_);
 
-	renderGroups[playerCamId].push_back(playerId_);
-	renderGroups[playerCamId].push_back(EntitySystem::GetComp<PlayerGC>(playerId_)->getNameTageRenderId());
+	renderGroups["gameplay"].entities.push_back(playerId_);
+	renderGroups["gameplay"].entities.push_back(EntitySystem::GetComp<PlayerGC>(playerId_)->getNameTageRenderId());
+}
+
+void Game::hideEnemyNametags() {
+	CombatComponent* ourCombat = EntitySystem::GetComp<CombatComponent>(playerId);
+	for (auto& combat : EntitySystem::GetPool<CombatComponent>()) {
+		if (combat.teamId != ourCombat->teamId) {
+			PlayerGC* otherPlayer = EntitySystem::GetComp<PlayerGC>(combat.getId());
+			RenderComponent* otherNameTag = EntitySystem::GetComp<RenderComponent>(otherPlayer->getNameTageRenderId());
+			otherNameTag->getDrawable<TextDrawable>()->text = "";
+		}
+	}
 }
 
 void Game::renderAll() {
 	for (auto& pair : renderGroups) {
-		GLRenderer::setCamera(pair.first);
-		for (auto& entity : pair.second) {
+		GLRenderer::setCamera(pair.second.camId);
+		for (auto& entity : pair.second.entities) {
 			RenderComponent* comp = EntitySystem::GetComp<RenderComponent>(entity);
 			if (comp) {
 				render.draw(*comp);
@@ -805,10 +831,10 @@ void Game::playAll() {
 }
 
 void Game::renderUI() {
-	const int ids[] = {iGUICamId, respawnMenuCamId, menuCamId};
+	const std::string ids[] = {"i_gui", "respawn_menu", "main_menu"};
 	for (auto& id : ids) {
-		GLRenderer::setCamera(id);
-		for (auto& entity : renderGroups[id]) {
+		GLRenderer::setCamera(renderGroups[id].camId);
+		for (auto& entity : renderGroups[id].entities) {
 			RenderComponent* comp = EntitySystem::GetComp<RenderComponent>(entity);
 			if (comp) {
 				render.draw(*comp);
@@ -821,10 +847,10 @@ void Game::renderUI() {
 }
 
 void Game::renderPlayArea() {
-	const int ids[] = { playerCamId };
+	const std::string ids[] = { "gameplay" };
 	for (auto& id : ids) {
-		GLRenderer::setCamera(id);
-		for (auto& entity : renderGroups[id]) {
+		GLRenderer::setCamera(renderGroups[id].camId);
+		for (auto& entity : renderGroups[id].entities) {
 			RenderComponent* comp = EntitySystem::GetComp<RenderComponent>(entity);
 			if (comp) {
 				render.draw(*comp);

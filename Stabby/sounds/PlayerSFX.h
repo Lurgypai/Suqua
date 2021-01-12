@@ -9,6 +9,10 @@ public:
 
 	void update();
 private:
+	bool prevGrounded;
+	bool prevRolling;
+	unsigned int prevAttack;
+	unsigned int prevFrame;
 	int32_t prevHealth;
 	EntityId id;
 };

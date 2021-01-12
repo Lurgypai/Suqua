@@ -191,6 +191,10 @@ void PlayerLC::update(double timeDelta) {
 				state.state = State::free;
 				break;
 			}
+			else if (controller[ControllerBits::BUTTON_4]) {
+				state.state = State::free;
+				break;
+			}
 
 			Vec2f dir{ 0, 0 };
 			if (controller[ControllerBits::LEFT]) {
@@ -457,7 +461,7 @@ void PlayerLC::free(const Controller & controller, bool attackToggledDown_) {
 		if (controller[ControllerBits::RIGHT]) {
 			++dir;
 		}
-		if (controller[ControllerBits::UP]) {
+		if (controller[ControllerBits::BUTTON_4]) {
 			if (comp->grounded) {
 				vel.y = -jumpSpeed * state.moveSpeed;
 			}
