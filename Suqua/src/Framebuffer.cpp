@@ -25,7 +25,7 @@ size_t Framebuffer::addTexture2D(int width, int height, GLenum colorIn, GLenum c
 	return textures.size() - 1;
 }
 
-Texture Framebuffer::getTexture(unsigned int i) {
+Texture Framebuffer::getTexture(unsigned int i) const {
 	return textures[i];
 }
 

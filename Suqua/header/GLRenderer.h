@@ -36,7 +36,7 @@ struct Camera {
 		pos = { center.x - ((static_cast<float>(res.x) / camScale) / 2), center.y - ((static_cast<float>(res.y) / camScale) / 2)};
 	}
 
-	Vec2f center() {
+	Vec2f center() const {
 		return { pos.x + (res.x / (2 * camScale)), pos.y + (res.y / (2 * camScale)) };
 	}
 
@@ -56,14 +56,14 @@ struct Camera {
 		pos = { center.x - (static_cast<float>(res.x) / (2 * camScale)), center.y - (static_cast<float>(res.y) / (2 * camScale)) };
 	}
 
-	bool inView(Vec2f pos_) {
+	bool inView(Vec2f pos_) const {
 		return (pos_.x > pos.x &&
 			pos_.y > pos.y &&
 			pos_.x < pos.x + res.x &&
 			pos_.y < pos.y + res.y);
 	}
 
-	bool inView(Vec2f pos_, Vec2f res_) {
+	bool inView(Vec2f pos_, Vec2f res_) const {
 		return !(pos_.x > pos.x + res.x &&
 			pos_.y > pos.y + res.y &&
 			pos_.x + res_.x < pos.x &&
@@ -143,6 +143,7 @@ public:
 	static void SpawnParticles(const std::string & tag, unsigned int count, const Particle& base, float angleModulation = 0, float velModulation = 0, int lifeModulation = 0, Vec2f posModulation = { 0, 0 });
 	static void UpdateAndDrawParticles();
 	static ComputeShader & getComputeShader(const std::string & tag);
+	static void BindTextureAtlas(unsigned int attachment_loc);
 
 	static bool ReadErrors();
 

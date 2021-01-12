@@ -12,7 +12,7 @@ public:
 	//Returns where the texture is located in the framebuffer.
 	size_t addTexture2D(int width, int height, GLenum colorIn, GLenum colorOut, unsigned char* src, GLenum location);
 
-	Texture getTexture(unsigned int i);
+	Texture getTexture(unsigned int i) const;
 
 	void makeDepthBuffer(int width, int height);
 

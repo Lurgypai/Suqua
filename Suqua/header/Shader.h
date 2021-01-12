@@ -20,4 +20,7 @@ struct Shader {
 
 	void uniform1i(std::string val, int arg0) const;
 	void uniform2i(std::string val, int arg0, int arg1) const;
+
+
+	void uniform1ui(std::string val, unsigned int arg0) const;
 };

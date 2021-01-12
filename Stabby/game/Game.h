@@ -63,8 +63,11 @@ public:
 
 	void addNewEditables();
 
-	void renderAll(double gfxDelay);
+	void renderAll();
 	void playAll();
+
+	void renderUI();
+	void renderPlayArea();
 
 	const PlayerCam& getPlayerCam() const;
 

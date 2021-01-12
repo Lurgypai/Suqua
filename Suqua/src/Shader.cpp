@@ -170,3 +170,7 @@ void Shader::uniform1i(std::string val, int arg0) const {
 void Shader::uniform2i(std::string val, int arg0, int arg1) const {
 	glUniform2i(glGetUniformLocation(id, val.c_str()), arg0, arg1);
 }
+
+void Shader::uniform1ui(std::string val, unsigned int arg0) const {
+	glUniform1ui(glGetUniformLocation(id, val.c_str()), arg0);
+}

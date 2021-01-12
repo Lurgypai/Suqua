@@ -785,7 +785,7 @@ void Game::makePlayerGFX(EntityId playerId_) {
 	renderGroups[playerCamId].push_back(EntitySystem::GetComp<PlayerGC>(playerId_)->getNameTageRenderId());
 }
 
-void Game::renderAll(double gfxDelay) {
+void Game::renderAll() {
 	for (auto& pair : renderGroups) {
 		GLRenderer::setCamera(pair.first);
 		for (auto& entity : pair.second) {
@@ -802,6 +802,38 @@ void Game::renderAll(double gfxDelay) {
 
 void Game::playAll() {
 	sound.playTriggeredSounds();
+}
+
+void Game::renderUI() {
+	const int ids[] = {iGUICamId, respawnMenuCamId, menuCamId};
+	for (auto& id : ids) {
+		GLRenderer::setCamera(id);
+		for (auto& entity : renderGroups[id]) {
+			RenderComponent* comp = EntitySystem::GetComp<RenderComponent>(entity);
+			if (comp) {
+				render.draw(*comp);
+			}
+			else {
+				//remove it
+			}
+		}
+	}
+}
+
+void Game::renderPlayArea() {
+	const int ids[] = { playerCamId };
+	for (auto& id : ids) {
+		GLRenderer::setCamera(id);
+		for (auto& entity : renderGroups[id]) {
+			RenderComponent* comp = EntitySystem::GetComp<RenderComponent>(entity);
+			if (comp) {
+				render.draw(*comp);
+			}
+			else {
+				//remove it
+			}
+		}
+	}
 }
 
 const PlayerCam& Game::getPlayerCam() const {

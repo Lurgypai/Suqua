@@ -155,7 +155,7 @@ void GLRenderer::LoadTexture(const std::string& filePath, const std::string& tag
 }
 
 AtlasTextureData GLRenderer::GetTextureData(const std::string& tag) {
-	return textures[tag];
+	return textures.at(tag);
 }
 
 void GLRenderer::DrawTextureAtlas() {
@@ -444,6 +444,11 @@ void GLRenderer::UpdateAndDrawParticles() {
 
 ComputeShader & GLRenderer::getComputeShader(const std::string & tag) {
 	return particleSystem.getShader(tag);
+}
+
+void GLRenderer::BindTextureAtlas(unsigned int attachment_loc) {
+	glActiveTexture(attachment_loc);
+	glBindTexture(GL_TEXTURE_2D, textureAtlas->getTexture(0).id);
 }
 
 bool GLRenderer::ReadErrors() {

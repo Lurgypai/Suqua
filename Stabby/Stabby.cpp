@@ -20,6 +20,7 @@
 #include "DebugIO.h"
 #include "EntitySystem.h"
 #include "GLRenderer.h"
+#include "GLLightSystem.h"
 #include "PhysicsSystem.h"
 #include "RenderSystem.h"
 #include "RenderComponent.h"
@@ -139,6 +140,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	GLRenderer::Init(window, { windowWidth, windowHeight }, { viewWidth, viewHeight });
+	GLLightSystem lights{};
+	GLLightSource playerLight{ 350 };
 
 	DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
 	DebugFIO::AddFOut("c_out.txt");
@@ -160,7 +163,9 @@ int main(int argc, char* argv[]) {
 	int outlineShader;
 	GLRenderer::LoadShaders({ {"shaders/outline.vert", "shaders/outline.frag"} }, &outlineShader);
 	GLRenderer::GetShaderRef(outlineShader).uniform2f("viewRes", viewWidth, viewHeight);
-	Sprite colors{ "images/palettes/test.png" };
+	int shadowShader;
+	GLRenderer::LoadShaders({ {"suqua/shaders/basic.vert", "suqua/shaders/shadow.frag"} }, &shadowShader);
+	//Sprite colors{ "images/palettes/test.png" };
 
 	glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(MessageCallback, 0);
@@ -195,7 +200,7 @@ int main(int argc, char* argv[]) {
 
 	game.climbables.updateClimbables();
 
-	game.startMainMenu ();
+	game.startMainMenu();
 
 	/*--------------------------------------------- PostProcessing -------------------------------------------------*/
 	Framebuffer screenBuffer{};
@@ -581,22 +586,19 @@ int main(int argc, char* argv[]) {
 					game.updatePlayerCamera();
 					game.updateWeaponMenu();
 					game.updateInGameUI();
+					game.renderPlayArea();
 					break;
 				}
 				case Game::GameState::stage_editor:
 					game.updateEditorCamera();
 					game.editables.updateGfx();
-					break;
 				case Game::GameState::main_menu:
-					break;
 				case Game::GameState::pause_menu:
+					game.renderAll();
 					break;
 				}
 			}
 
-
-
-			game.renderAll(gfxDelay);
 			game.playAll();
 
 			/*
@@ -794,12 +796,58 @@ int main(int argc, char* argv[]) {
 
 			//finished ping-ponging, draw to screen
 
-			Framebuffer::unbind();
-			GLRenderer::SetDefShader(FullscreenShader);
-			GLRenderer::bindCurrShader();
-			GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//shadows
+			if (EntitySystem::Contains<PlayerLC>() && EntitySystem::GetComp<PlayerLC>(game.getPlayerId())) {
+				auto player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
+				if (player->getState().state != State::dead) {
+					playerLight.pos = EntitySystem::GetComp<PlayerLC>(game.getPlayerId())->getState().pos;
+				}
+				else {
+					playerLight.pos = playerCam.center();
+				}
+				lights.castRays(playerLight, playerCam, occlusionMap.getTexture(0).id);
 
-			GLRenderer::DrawOverScreen(pingBuffer.getTexture(0).id);
+				//draw into pong
+				pongBuffer.bind();
+				GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				glViewport(0, 0, playerCam.res.x, playerCam.res.y);
+				GLRenderer::GetShaderRef(shadowShader).use();
+				GLRenderer::GetShaderRef(shadowShader).uniform2f("camPos", playerCam.pos.x, playerCam.pos.y);
+				GLRenderer::GetShaderRef(shadowShader).uniform2f("camRes", playerCam.res.x, playerCam.res.y);
+				GLRenderer::GetShaderRef(shadowShader).uniform2f("lightPos", playerLight.pos.x, playerLight.pos.y);
+				GLRenderer::GetShaderRef(shadowShader).uniform1ui("radius", playerLight.getRadius());
+				GLRenderer::GetShaderRef(shadowShader).uniform1ui("rayCount", playerLight.getRayCount());
+				GLRenderer::GetShaderRef(shadowShader).uniform1ui("tick", game.tick);
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_1D, playerLight.getTextureId());
+
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, pingBuffer.getTexture(0).id);
+
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+				game.renderUI();
+
+				//draw from pong to screen
+				Framebuffer::unbind();
+				GLRenderer::SetDefShader(FullscreenShader);
+				GLRenderer::bindCurrShader();
+				GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				GLRenderer::DrawOverScreen(pongBuffer.getTexture(0).id);
+			}
+			else {
+				Framebuffer::unbind();
+				GLRenderer::SetDefShader(FullscreenShader);
+				GLRenderer::bindCurrShader();
+				GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				GLRenderer::DrawOverScreen(pingBuffer.getTexture(0).id);
+			}
+
+
+
 			GLRenderer::setCamera(debugCamId);
 			DebugIO::drawLines();
 
