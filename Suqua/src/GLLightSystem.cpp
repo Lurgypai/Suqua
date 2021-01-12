@@ -1,4 +1,4 @@
-#include "..\header\GLLightSystem.h"
+#include "GLLightSystem.h"
 
 GLLightSystem::GLLightSystem() :
 	raycaster{ "suqua/shaders/light_ray_cast.vert", "suqua/shaders/light_ray_cast.frag" }

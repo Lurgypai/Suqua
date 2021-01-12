@@ -1,4 +1,4 @@
-#include "..\header\GLLightSource.h"
+#include "GLLightSource.h"
 #include "glad/glad.h"
 
 GLLightSource::GLLightSource(unsigned int radius_) :
