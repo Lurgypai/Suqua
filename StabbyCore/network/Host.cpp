@@ -48,19 +48,19 @@ bool Host::createServer(int port, size_t peerCount, size_t channels, enet_uint32
 }
 
 void Host::sendData(PeerId id, void* data, size_t dataSize) {
-	enet_peer_send(peers[id], (channelIncrementer++) % channelCount, enet_packet_create(data, dataSize, 0));
+	enet_peer_send(peers[id], (channelIncrementer++) % channelCount, enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE));
 }
 
 void Host::sendDataByChannel(PeerId id, enet_uint8 channel, void * data, size_t dataSize) {
-	enet_peer_send(peers[id], channel, enet_packet_create(data, dataSize, 0));
+	enet_peer_send(peers[id], channel, enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE));
 }
 
 void Host::bufferData(PeerId id, void* data, size_t dataSize) {
-	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, 0), id, (channelIncrementer++) % channelCount });
+	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE), id, (channelIncrementer++) % channelCount });
 }
 
 void Host::bufferDataToChannel(PeerId id, enet_uint8 channel, void* data, size_t dataSize) {
-	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, 0), id, channel });
+	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data, dataSize, ENET_PACKET_FLAG_RELIABLE), id, channel });
 }
 
 void Host::sendBuffered() {

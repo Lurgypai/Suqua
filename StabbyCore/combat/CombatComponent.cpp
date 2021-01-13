@@ -50,7 +50,9 @@ CombatComponent::CombatComponent(const CombatComponent& other) :
 	attacks{AttackMap},
 	attack{nullptr},
 	health{other.health},
-	lastAttacker{other.lastAttacker}
+	lastAttacker{other.lastAttacker},
+	hurtboxes{other.hurtboxes},
+	hitEntities{other.hitEntities}
 {
 	attack = &attacks[other.attack->getId()];
 }

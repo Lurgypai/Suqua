@@ -119,7 +119,7 @@ void Game::startOfflineGame(bool sessionGuided_) {
 
 	EntitySystem::GetComp<PlayerLC>(playerId)->chooseSpawn();
 
-	mode.load(&spawns, 2, 1, 100000);
+	mode.load(&spawns, 2, 1, 1000);
 
 	auto spawnables = stage.getSpawnables();
 	EntitySystem::MakeComps<CapturePointGC>(spawnables.size(), spawnables.data());
@@ -345,6 +345,8 @@ void Game::loadInGameUI() {
 	team1Bar->getStatReader<TeamPointsReader>().targetMode = &mode;
 	team1Bar->getStatReader<TeamPointsReader>().targetTeamId = 1;
 	team1Bar->fullSize = AABB{ {210, 347}, {100, 5} };
+	team1Bar->c = { 1.0, 0.0, 0.0, 1.0 };
+	team1Bar->fadeIn = true;
 
 	EntitySystem::MakeComps<StatBarComponent>(1, &inGameUI.team2Bar);
 	StatBarComponent* team2Bar = EntitySystem::GetComp<StatBarComponent>(inGameUI.team2Bar);
@@ -353,6 +355,8 @@ void Game::loadInGameUI() {
 	team2Bar->getStatReader<TeamPointsReader>().targetTeamId = 2;
 	team2Bar->flipped = true;
 	team2Bar->fullSize = AABB{ {330, 347}, {100, 5} };
+	team2Bar->c = { 0.0, 0.0, 1.0, 1.0 };
+	team2Bar->fadeIn = true;
 
 	renderGroups["i_gui"].entities.push_back(inGameUI.team1Bar);
 	renderGroups["i_gui"].entities.push_back(inGameUI.team2Bar);

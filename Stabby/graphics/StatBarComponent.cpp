@@ -5,7 +5,9 @@
 
 StatBarComponent::StatBarComponent(EntityId id_) :
 	id{id_},
-	flipped{false}
+	flipped{false},
+	c{1.0, 1.0, 1.0, 1.0},
+	fadeIn{false}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
@@ -21,7 +23,9 @@ StatBarComponent::StatBarComponent(EntityId id_) :
 StatBarComponent::StatBarComponent(const StatBarComponent& other) :
 	id{ other.id },
 	flipped{other.flipped},
-	statReader{}
+	statReader{},
+	c{ other.c},
+	fadeIn{other.fadeIn}
 {
 	if (other.statReader) {
 		statReader = StatReaderPtr{ other.statReader->clone() };
@@ -51,6 +55,13 @@ void StatBarComponent::update() {
 	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
 	RectDrawable* rect = render->getDrawable<RectDrawable>();
 	rect->shape = getCurrBarSize();
+	if (!fadeIn) {
+		rect->c = c;
+	}
+	else {
+		float ratio = statReader->getRatio();
+		rect->c = { 1.0f - (1.0f - c.r) * ratio, 1.0f - (1.0f - c.g) * ratio, 1.0f - (1.0f - c.b) * ratio, c.a };
+	}
 
 	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
 	pos->pos = rect->shape.pos;

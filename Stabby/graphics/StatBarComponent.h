@@ -1,6 +1,7 @@
 #pragma once
 #include "EntitySystem.h"
 #include "AABB.h"
+#include "Color.h"
 #include <memory>
 
 class StatReader {
@@ -39,6 +40,8 @@ public:
 
 	AABB fullSize;
 	bool flipped;
+	bool fadeIn;
+	Color c;
 private:
 	StatReaderPtr statReader;
 	EntityId target;
