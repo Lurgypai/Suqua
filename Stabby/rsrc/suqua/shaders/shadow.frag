@@ -5,7 +5,7 @@ in vec2 TexCoord;
 out vec4 color;
 
 layout(binding = 0) uniform sampler1D lightingStrip;
-layout(binding = 1) uniform sampler2D Image;
+layout(binding = 1) uniform sampler2D CurrShadowMap;
 
 uniform vec2 camPos;
 uniform vec2 camRes;
@@ -21,9 +21,13 @@ float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
+vec3 maxVec3(vec3 first, vec3 second) {
+    return vec3(max(first.r, second.r), max(first.g, second.g), max(first.b, second.b));
+}
+
 void main() {
 	
-    vec2 screenPos = lightPos - camPos;
+	vec2 screenPos = vec2(lightPos.x - camPos.x, camRes.y - (lightPos.y - camPos.y));
     
 	float dis = distance(gl_FragCoord.xy, screenPos);
 	float light;
@@ -56,9 +60,8 @@ void main() {
 		light = 0;
 	}
 	
-    vec4 imageColor = texture(Image, TexCoord);
     
     light = float(int(light * bands)) / bands;
     
-	color = vec4(imageColor.rgb * light, 1.0);
+	color = vec4(maxVec3(vec3(light), texture(CurrShadowMap, TexCoord).rgb), 1.0);
 }

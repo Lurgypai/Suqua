@@ -20,14 +20,15 @@ void main() {
 	float angle = radians(360 * (gl_FragCoord.x / float(rayCount)));
 	vec2 slope = vec2(cos(angle), sin(angle));
 	
-	vec2 pos = lightPos;
-	
-	while (distance(lightPos, pos) < radius) {
+	vec2 screenPos = vec2(lightPos.x - camPos.x, camRes.y - (lightPos.y - camPos.y));
+	vec2 pos = screenPos;
+    
+	while (distance(pos, screenPos) < radius) {
 		pos += slope;
-		vec4 mapColor = texelFetch(OccludeMap, ivec2(pos - camPos), 0);
+		vec4 mapColor = texelFetch(OccludeMap, ivec2(pos), 0);
 		
         if(mapColor.xyz == 1.0) {
-            color = vec3(float(distance(lightPos, pos)) / float(radius));
+            color = vec3(float(distance(screenPos, pos)) / float(radius));
             break;
         }
 	}

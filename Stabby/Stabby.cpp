@@ -140,8 +140,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	GLRenderer::Init(window, { windowWidth, windowHeight }, { viewWidth, viewHeight });
-	GLLightSystem lights{};
+	GLLightSystem lights{viewWidth, viewHeight};
 	GLLightSource playerLight{ 350 };
+	GLLightSource test{ 500 };
+	test.pos = { 0, -200 };
 
 	DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
 	DebugFIO::AddFOut("c_out.txt");
@@ -801,34 +803,11 @@ int main(int argc, char* argv[]) {
 
 			//shadows
 			if (EntitySystem::Contains<PlayerLC>() && EntitySystem::GetComp<PlayerLC>(game.getPlayerId())) {
-				auto player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
-				if (player->getState().state != State::dead) {
-					playerLight.pos = EntitySystem::GetComp<PlayerLC>(game.getPlayerId())->getState().pos;
-				}
-				else {
-					playerLight.pos = playerCam.center();
-				}
+				playerLight.pos = playerCam.center();
 				lights.castRays(playerLight, playerCam, occlusionMap.getTexture(0).id);
-
-				//draw into pong
-				pongBuffer.bind();
-				GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				glViewport(0, 0, playerCam.res.x, playerCam.res.y);
-				GLRenderer::GetShaderRef(shadowShader).use();
-				GLRenderer::GetShaderRef(shadowShader).uniform2f("camPos", playerCam.pos.x, playerCam.pos.y);
-				GLRenderer::GetShaderRef(shadowShader).uniform2f("camRes", playerCam.res.x, playerCam.res.y);
-				GLRenderer::GetShaderRef(shadowShader).uniform2f("lightPos", playerLight.pos.x, playerLight.pos.y);
-				GLRenderer::GetShaderRef(shadowShader).uniform1ui("radius", playerLight.getRadius());
-				GLRenderer::GetShaderRef(shadowShader).uniform1ui("rayCount", playerLight.getRayCount());
-				GLRenderer::GetShaderRef(shadowShader).uniform1ui("tick", game.tick);
-
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_1D, playerLight.getTextureId());
-
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, pingBuffer.getTexture(0).id);
-
-				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+				lights.clearShadowMaps();
+				lights.makeShadows(playerLight, playerCam, game.tick);
+				lights.applyShadows(pingBuffer.getTexture(0).id, &pongBuffer);
 
 				game.renderUI();
 

@@ -56,6 +56,9 @@ void PlayerSFX::update() {
 			if (!state.activeAttack && ((animSprite->getFrame() == 3 && prevFrame != 3) || (animSprite->getFrame() == 11 && prevFrame != 11))) {
 				sounds->triggerSound("player.step1", state.pos);
 			}
+			if (animSprite->getFrame() == 33 && prevFrame != 33) {
+				sounds->triggerSound("player.land1", state.pos);
+			}
 		}
 		else {
 			if (prevGrounded && state.vel.y < 0) {
@@ -69,10 +72,6 @@ void PlayerSFX::update() {
 			}
 		}
 		prevGrounded = physics->grounded;
-
-		if (animSprite->getFrame() == 33 &&  prevFrame != 33) {
-			sounds->triggerSound("player.land1", state.pos);
-		}
 
 		prevFrame = animSprite->getFrame();
 	}
