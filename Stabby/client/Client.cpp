@@ -68,6 +68,8 @@ void Client::connect(const std::string & ip, int port) {
 					online->registerOnlineComponent(playerId, packet.netId);
 
 					session->storeNetworkEvent(NetworkEvent{e}, tick);
+					mode->loadData(packet.teamCount, packet.capPoints, packet.winningPoints);
+					mode->loadTeams();
 					//test, and then load the welcome packet (and nametag packet) straight into the client in game.startOfflineGame()
 				}
 				break;
@@ -395,6 +397,18 @@ void Client::receive(const ENetEvent & e) {
 			else {
 				toMakeCapturePoins.push_back(packet);
 			}
+		}
+	}
+	else if (packetKey == TPP_KEY) {
+		std::vector<TeamPointsPacket> teamPointsPackets;
+		size_t size = e.packet->dataLength / sizeof(TeamPointsPacket);
+		teamPointsPackets.resize(size);
+
+		PacketUtil::readInto<TeamPointsPacket>(teamPointsPackets.data(), e.packet, size);
+
+		for (auto& packet : teamPointsPackets) {
+			packet.unserialize();
+			mode->setPoints(packet.teamId, packet.points);
 		}
 	}
 	else if (packetKey == MESSAGE_KEY) {

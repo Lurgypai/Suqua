@@ -22,6 +22,7 @@
 #include "../graphics/HealthReader.h"
 #include "../graphics/StaminaReader.h"
 #include "../sounds/PlayerSFX.h"
+#include "../graphics/TeamPointsReader.h"
 
 #include "Game.h"
 
@@ -118,7 +119,7 @@ void Game::startOfflineGame(bool sessionGuided_) {
 
 	EntitySystem::GetComp<PlayerLC>(playerId)->chooseSpawn();
 
-	mode.load(&spawns, 2, 1, 200000);
+	mode.load(&spawns, 2, 1, 100000);
 
 	auto spawnables = stage.getSpawnables();
 	EntitySystem::MakeComps<CapturePointGC>(spawnables.size(), spawnables.data());
@@ -290,7 +291,9 @@ void Game::loadSounds() {
 	sound.loadSound("sounds/player/step.wav", "player.step1");
 	sound.loadSound("sounds/player/land.wav", "player.land1");
 	sound.loadSound("sounds/player/roll.wav", "player.roll1");
+	sound.loadSound("sounds/player/roll2.wav", "player.roll2");
 	sound.loadSound("sounds/player/swing.wav", "player.swing1");
+	sound.loadSound("sounds/player/swing2.wav", "player.swing2");
 	sound.loadSound("sounds/player/death.wav", "player.death1");
 	sound.loadSound("sounds/player/jump.wav", "player.jump1");
 }
@@ -300,6 +303,8 @@ void Game::loadInGameUI() {
 	EntitySystem::GenEntities(1, &inGameUI.staminaBar);
 	EntitySystem::GenEntities(1, &inGameUI.bg);
 	EntitySystem::GenEntities(1, &inGameUI.icon);
+	EntitySystem::GenEntities(1, &inGameUI.team1Bar);
+	EntitySystem::GenEntities(1, &inGameUI.team2Bar);
 
 	EntitySystem::MakeComps<StatBarComponent>(1, &inGameUI.healthBar);
 	StatBarComponent* healthBar = EntitySystem::GetComp<StatBarComponent>(inGameUI.healthBar);
@@ -330,6 +335,39 @@ void Game::loadInGameUI() {
 	renderGroups["i_gui"].entities.push_back(inGameUI.staminaBar);
 	renderGroups["i_gui"].entities.push_back(inGameUI.bg);
 	renderGroups["i_gui"].entities.push_back(inGameUI.icon);
+
+	EntitySystem::MakeComps<StatBarComponent>(1, &inGameUI.team1Bar);
+	EntitySystem::MakeComps<StatBarComponent>(1, &inGameUI.team2Bar);
+
+	EntitySystem::MakeComps<StatBarComponent>(1, &inGameUI.team1Bar);
+	StatBarComponent* team1Bar = EntitySystem::GetComp<StatBarComponent>(inGameUI.team1Bar);
+	team1Bar->setStatReader<TeamPointsReader>();
+	team1Bar->getStatReader<TeamPointsReader>().targetMode = &mode;
+	team1Bar->getStatReader<TeamPointsReader>().targetTeamId = 1;
+	team1Bar->fullSize = AABB{ {210, 347}, {100, 5} };
+
+	EntitySystem::MakeComps<StatBarComponent>(1, &inGameUI.team2Bar);
+	StatBarComponent* team2Bar = EntitySystem::GetComp<StatBarComponent>(inGameUI.team2Bar);
+	team2Bar->setStatReader<TeamPointsReader>();
+	team2Bar->getStatReader<TeamPointsReader>().targetMode = &mode;
+	team2Bar->getStatReader<TeamPointsReader>().targetTeamId = 2;
+	team2Bar->flipped = true;
+	team2Bar->fullSize = AABB{ {330, 347}, {100, 5} };
+
+	renderGroups["i_gui"].entities.push_back(inGameUI.team1Bar);
+	renderGroups["i_gui"].entities.push_back(inGameUI.team2Bar);
+
+	EntitySystem::GenEntities(1, &winningTeamText);
+	EntitySystem::MakeComps<RenderComponent>(1, &winningTeamText);
+	RenderComponent* winningText = EntitySystem::GetComp<RenderComponent>(winningTeamText);
+	winningText->loadDrawable<TextDrawable>();
+	TextDrawable* text = winningText->getDrawable<TextDrawable>();
+	text->depth = -0.5;
+	text->color = { 1.0, 1.0, 1.0, 1.0 };
+	text->font.loadDataFile("suqua/fonts/consolas.fnt");
+	text->text = "";
+
+	renderGroups.at("i_gui").entities.emplace_back(winningTeamText);
 }
 
 void Game::addRenderGroup(const std::string& tag, int camId) {
@@ -617,6 +655,17 @@ void Game::updateInGameUI() {
 
 	for (auto& statBar : EntitySystem::GetPool<StatBarComponent>()) {
 		statBar.update();
+	}
+
+	RenderComponent* winningText = EntitySystem::GetComp<RenderComponent>(winningTeamText);
+	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(winningTeamText);
+	TextDrawable* textDrawable = winningText->getDrawable<TextDrawable>();
+	if (mode.getWinner()) {
+		textDrawable->text = "Team " + std::to_string(mode.getWinner()) + " has won!";
+		pos->pos = (Vec2f{ 640, 360 } - textDrawable->getBoundingBox().res).scale(0.5);
+	}
+	else {
+		textDrawable->text = "";
 	}
 }
 

@@ -105,7 +105,7 @@ int main(int argv, char* argc[])
 	RespawnSystem respawner{&spawns};
 
 	std::unordered_map<EntityId, PlayerState> prevPlayerStates;
-	mode.load(&spawns, 2, 1, 144000);
+	mode.load(&spawns, settings["teams"], settings["pointsPerCap"], settings["winningPoints"]);
 
 	for (auto& capturePoint : EntitySystem::GetPool<CapturePointComponent>()) {
 		online.addOnlineComponent(capturePoint.getId());
@@ -157,6 +157,9 @@ int main(int argv, char* argc[])
 				WelcomePacket welcomePacket;
 				welcomePacket.currentTick = gameTime;
 				welcomePacket.netId = newClientNetId;
+				welcomePacket.teamCount = mode.getTeamCount();
+				welcomePacket.capPoints = mode.getPointsPerCap();
+				welcomePacket.winningPoints = mode.getWinningPoints();
 				server.sendPacket<WelcomePacket>(clientPeerId, welcomePacket);
 
 				//notify all online players of a new players join
@@ -429,6 +432,8 @@ int main(int argv, char* argc[])
 				onlinePlayers.tickPlayerTimes();
 
 				mode.tickCapturePoints(spawns, CLIENT_TIME_STEP);
+				mode.tickRestart(&spawns);
+
 				static bool wasRestarting = false;
 				if (!wasRestarting && mode.isRestarting()) {
 					MessagePacket message{};
@@ -453,6 +458,17 @@ int main(int argv, char* argc[])
 				packet.zone = capturePoint.getZone();
 				packet.serialize();
 				capturePointPackets.emplace_back(std::move(packet));
+			}
+
+			std::vector<TeamPointsPacket> teamPointsPackets;
+			auto teamPointsPacketSize = mode.getTeams().size();
+			teamPointsPackets.reserve(teamPointsPacketSize);
+			TeamPointsPacket teamPointsPacket{};
+			for (const auto& pair : mode.getTeams()) {
+				teamPointsPacket.teamId = pair.second.teamId;
+				teamPointsPacket.points = pair.second.points;
+				teamPointsPacket.serialize();
+				teamPointsPackets.push_back(teamPointsPacket);
 			}
 
 			StatePacket state;
@@ -548,6 +564,9 @@ int main(int argv, char* argc[])
 
 				//DebugFIO::Out("s_out.txt") << "Attempting to send batched player updates.\n";
 				server.sendData(pair.first, capturePointPackets.data(), sizeof(CapturePointPacket)* capturePointPackets.size());
+				server.sendData(pair.first, teamPointsPackets.data(), sizeof(TeamPointsPacket) * teamPointsPackets.size());
+
+
 			}
 
 

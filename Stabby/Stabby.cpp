@@ -486,6 +486,7 @@ int main(int argc, char* argv[]) {
 						}
 						if (!game.isSessionGuided()) {
 							game.mode.tickCapturePoints(game.spawns, CLIENT_TIME_STEP);
+							game.mode.tickRestart(&game.spawns);
 						}
 						else {
 							game.clientPlayers.update(client.getTime(), game.tick);

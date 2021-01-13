@@ -106,6 +106,8 @@ private:
 		EntityId staminaBar;
 		EntityId icon;
 		EntityId bg;
+		EntityId team1Bar;
+		EntityId team2Bar;
 	} inGameUI;
 
 	//refine renergroups
@@ -136,6 +138,7 @@ private:
 	bool shouldOpenWeaponMenu;
 	bool sessionGuided;
 	EntityId weaponMenuBG;
+	EntityId winningTeamText;
 
 	struct RespwanMenu {
 		EntityId rightArrow;

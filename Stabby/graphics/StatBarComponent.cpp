@@ -4,7 +4,8 @@
 #include "PositionComponent.h"
 
 StatBarComponent::StatBarComponent(EntityId id_) :
-	id{id_}
+	id{id_},
+	flipped{false}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
@@ -19,6 +20,7 @@ StatBarComponent::StatBarComponent(EntityId id_) :
 
 StatBarComponent::StatBarComponent(const StatBarComponent& other) :
 	id{ other.id },
+	flipped{other.flipped},
 	statReader{}
 {
 	if (other.statReader) {
@@ -31,6 +33,7 @@ StatBarComponent::StatBarComponent(const StatBarComponent& other) :
 
 StatBarComponent& StatBarComponent::operator=(const StatBarComponent& other) {
 	id = other.id;
+	flipped = other.flipped;
 	if (other.statReader) {
 		statReader = StatReaderPtr{ other.statReader->clone() };
 	}
@@ -58,5 +61,12 @@ void StatBarComponent::setTarget(EntityId target_) {
 }
 
 AABB StatBarComponent::getCurrBarSize() const {
-	return AABB{ fullSize.pos, {fullSize.res.x * statReader->getRatio(), fullSize.res.y} };
+	if (!flipped) {
+		return AABB{ fullSize.pos, {fullSize.res.x * statReader->getRatio(), fullSize.res.y} };
+	}
+	else {
+		Vec2f corner = fullSize.pos;
+		Vec2f start = { corner.x + (fullSize.res.x * (1.0f - statReader->getRatio())), corner.y };
+		return AABB{ start, {fullSize.res.x * statReader->getRatio(), fullSize.res.y} };
+	}
 }

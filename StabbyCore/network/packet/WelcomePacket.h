@@ -15,6 +15,9 @@ public:
 	NetworkId netId;
 	//the serverside time
 	Time_t currentTick;
+	uint32_t teamCount;
+	uint32_t capPoints;
+	uint32_t winningPoints;
 
 	// Inherited via Packet
 	void serialize();

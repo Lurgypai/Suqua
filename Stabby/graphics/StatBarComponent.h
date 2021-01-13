@@ -28,6 +28,9 @@ public:
 	template<typename T>
 	void setStatReader();
 
+	template<typename T>
+	T& getStatReader();
+
 	void update();
 
 	void setTarget(EntityId target_);
@@ -35,6 +38,7 @@ public:
 	AABB getCurrBarSize() const;
 
 	AABB fullSize;
+	bool flipped;
 private:
 	StatReaderPtr statReader;
 	EntityId target;
@@ -44,4 +48,9 @@ private:
 template<typename T>
 inline void StatBarComponent::setStatReader() {
 	statReader = std::make_unique<T>(target);
+}
+
+template<typename T>
+inline T& StatBarComponent::getStatReader() {
+	return *static_cast<T*>(statReader.get());
 }

@@ -6,6 +6,8 @@
 #include "CapturePointComponent.h"
 #include "DebugIO.h"
 
+#include <iostream>
+
 void DominationMode::load(SpawnSystem* spawns, unsigned int totalTeams_, unsigned int pointsPerCap_, unsigned int winningPoints_)
 {
 	loadData(totalTeams_, pointsPerCap_, winningPoints_);
@@ -121,8 +123,11 @@ void DominationMode::tickCapturePoints(SpawnSystem& spawns, double timeDelta) {
 				bool wasCapped = capturePoint.isCaptured();
 				capturePoint.tickCapturePoint(timeDelta);
 				if (capturePoint.isCaptured()) {
-					if (capturePoint.currTeamId != 0)
+					if (capturePoint.currTeamId != 0) {
 						teams[capturePoint.currTeamId].points += pointsPerCap;
+						if (teams.at(capturePoint.currTeamId).points > winningPoints)
+							teams.at(capturePoint.currTeamId).points = winningPoints;
+;					}
 					//if we weren't capped, but now we are
 					if (!wasCapped) {
 						//propogate change to spawn
@@ -131,14 +136,14 @@ void DominationMode::tickCapturePoints(SpawnSystem& spawns, double timeDelta) {
 				}
 			}
 		}
-		//tick all the points
-		//increment current team points
-		//if any changed, propogate that change to the spawn
+	}
+}
 
+void DominationMode::tickRestart(SpawnSystem* spawns) {
+	if (restartDelay == restartDelayMax) {
 		for (auto& pair : teams) {
 			Team& team = pair.second;
 			if (team.points >= winningPoints) {
-				DebugIO::printLine("Team " + std::to_string(team.teamId) + " has won!");
 				restartDelay = 0;
 				break;
 			}
@@ -147,9 +152,13 @@ void DominationMode::tickCapturePoints(SpawnSystem& spawns, double timeDelta) {
 	else {
 		++restartDelay;
 		if (restartDelay == restartDelayMax) {
-			reset(&spawns);
+			reset(spawns);
 		}
 	}
+}
+
+bool DominationMode::restarting() {
+	return restartDelay != restartDelayMax;
 }
 
 void DominationMode::addPlayer(EntityId id) {
@@ -188,7 +197,11 @@ bool DominationMode::isRestarting() {
 	return restartDelay != restartDelayMax;
 }
 
-unsigned int DominationMode::getWinningTeam() {
+unsigned int DominationMode::getPoints(unsigned int team) const {
+	return teams.at(team).points;
+}
+
+unsigned int DominationMode::getWinningTeam() const {
 	unsigned int winningTeam = 0;
 	int highestPoints = 0;
 	for (auto& pair : teams) {
@@ -198,6 +211,37 @@ unsigned int DominationMode::getWinningTeam() {
 		}
 	}
 	return winningTeam;
+}
+
+unsigned int DominationMode::getPointsPerCap() const {
+	return pointsPerCap;
+}
+
+unsigned int DominationMode::getTeamCount() const {
+	return totalTeams;
+}
+
+unsigned int DominationMode::getWinningPoints() const {
+	return winningPoints;
+}
+
+unsigned int DominationMode::getWinner() const {
+	for (auto& pair : teams) {
+		//std::cout << "id: " << pair.first << '\n';
+		//std::cout << "points: " << pair.second.points << '\n';
+		if (pair.second.points == winningPoints) {
+			return pair.first;
+		}
+	}
+	return 0;
+}
+
+void DominationMode::setPoints(unsigned int team, unsigned int points) {
+	teams.at(team).points = points;
+}
+
+const std::unordered_map<unsigned int, Team>& DominationMode::getTeams() const {
+	return teams;
 }
 
 /*

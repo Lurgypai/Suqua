@@ -3,5 +3,8 @@
     "stage":"stage0",
     "disconnectDelay":10000.0,
     "forceDisconnectDelay":10000.0,
-    "aiPlayerCount":0
+    "aiPlayerCount":0,
+    "teams":2,
+    "pointsPerCap":1,
+    "winningPoints":144000
 }

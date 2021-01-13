@@ -23,3 +23,4 @@
 #include "../network/packet/ClientDelayedPacket.h"
 #include "../network/packet/CommandPacket.h"
 #include "../network/packet/RespawnRequestPacket.h"
+#include "../network/packet/TeamPointsPacket.h"

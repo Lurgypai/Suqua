@@ -44,6 +44,7 @@ struct Vec2 {
 	Vec2 round() const;
 	Vec2 ceil() const;
 	Vec2 floor() const;
+	Vec2 scale(const T& value) const;
 
 	Vec2 abs();
 };
@@ -176,6 +177,11 @@ inline Vec2<T> Vec2<T>::ceil() const {
 template<typename T>
 inline Vec2<T> Vec2<T>::floor() const {
 	return Vec2<T>{std::floor(x), std::floor(y)};
+}
+
+template<typename T>
+inline Vec2<T> Vec2<T>::scale(const T& value) const {
+	return Vec2<T>{x * value, y * value};
 }
 
 

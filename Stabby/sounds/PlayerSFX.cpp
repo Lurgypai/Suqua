@@ -36,12 +36,12 @@ void PlayerSFX::update() {
 		prevHealth = currHealth;
 
 		if (state.state == State::rolling && ! prevRolling) {
-			sounds->triggerSound("player.swing1", state.pos);
+			sounds->triggerSound("player.roll2", state.pos);
 		}
 		prevRolling = state.state == State::rolling;
 
 		if (state.activeAttack && state.activeAttack != prevAttack) {
-			sounds->triggerSound("player.swing1", state.pos);
+			sounds->triggerSound("player.swing2", state.pos);
 		}
 		prevAttack = state.activeAttack;
 
@@ -53,7 +53,7 @@ void PlayerSFX::update() {
 			if (!prevGrounded) {
 				sounds->triggerSound("player.land1", state.pos);
 			}
-			if (animSprite->getFrame() == 3 || animSprite->getFrame() == 11) {
+			if (!state.activeAttack && ((animSprite->getFrame() == 3 && prevFrame != 3) || (animSprite->getFrame() == 11 && prevFrame != 11))) {
 				sounds->triggerSound("player.step1", state.pos);
 			}
 		}
@@ -67,8 +67,13 @@ void PlayerSFX::update() {
 			else if (animSprite->getFrame() == 53 && prevFrame != 53) {
 				sounds->triggerSound("player.step1", state.pos);
 			}
-			prevFrame = animSprite->getFrame();
 		}
 		prevGrounded = physics->grounded;
+
+		if (animSprite->getFrame() == 33 &&  prevFrame != 33) {
+			sounds->triggerSound("player.land1", state.pos);
+		}
+
+		prevFrame = animSprite->getFrame();
 	}
 }
