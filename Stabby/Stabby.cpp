@@ -448,6 +448,7 @@ int main(int argc, char* argv[]) {
 									}
 								}
 							}
+							client.ping();
 
 							client.service();
 

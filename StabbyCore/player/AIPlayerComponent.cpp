@@ -13,7 +13,8 @@ AIPlayerComponent::AIPlayerComponent(EntityId id_) :
 	currZone{},
 	targetZone{},
 	timer{0},
-	state{AIPlayerComponent::State::defend}
+	state{AIPlayerComponent::State::capture},
+	posTargeted{false}
 {
 	if (id != 0) {
 		if (!meshGenerated) {
@@ -47,61 +48,93 @@ void AIPlayerComponent::update() {
 		switch (state) {
 		case State::defend:
 		{
-			targetId = 0;
-			bool attackingPlayer = false;
-			for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
-				CombatComponent* otherCombat = EntitySystem::GetComp<CombatComponent>(player.getId());
-				if (otherCombat->isAlive()) {
-					PhysicsComponent* otherPhysics = EntitySystem::GetComp<PhysicsComponent>(player.getId());
-					if (otherCombat->teamId != ourCombat->teamId) {
-						if (otherPhysics->getPos().distance(ourPos) < 100) {
-							targetPos = otherPhysics->getPos();
-							targetId = player.getId();
-							attackingPlayer = true;
-						}
+			if (!posTargeted) {
+				std::vector<CapturePointComponent*> cappedPoints;
+				for (auto& cp : EntitySystem::GetPool<CapturePointComponent>()) {
+					if (cp.getState().currTeamId == ourCombat->teamId) {
+						cappedPoints.push_back(&cp);
+					}
+				}
+				if (!cappedPoints.empty()) {
+					unsigned int spawn = randInt(0, cappedPoints.size() - 1);
+
+					float xOffset = randFloat(0, cappedPoints[spawn]->getZone().res.x);
+					targetPos = cappedPoints[spawn]->getZone().center() + Vec2f{ xOffset, 0 };
+					targetZone = *navMesh.getZone(targetPos);
+					targetId = cappedPoints[spawn]->getId();
+
+					posTargeted = true;
+				}
+				else {
+					chooseNewState();
+				}
+			}
+			else {
+				if (ourPos.distance(targetPos) < 10) {
+					if (timer % (15 * 120) == 0) {
+						chooseNewState();
 					}
 				}
 			}
+			break;
+		}
 
-			if (!attackingPlayer) {
-				//find the closest capture point
-				float minDistance = -1;
-				CapturePointComponent* targetPoint = nullptr;
-				for (auto& capturePoint : EntitySystem::GetPool<CapturePointComponent>()) {
-					SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(capturePoint.getId());
-					if (!spawn->isDefault()) {
-						if (capturePoint.getState().currTeamId != ourCombat->teamId) {
-							float distance = ourPos.distance(capturePoint.getZone().center());
-							if (minDistance == -1 || distance < minDistance) {
-								minDistance = distance;
-								targetPoint = &capturePoint;
-							}
-						}
+		case State::capture:
+		{
+			if (!posTargeted) {
+				std::vector<CapturePointComponent*> uncappedPoints;
+				for (auto& cp : EntitySystem::GetPool<CapturePointComponent>()) {
+					if (cp.getState().currTeamId != ourCombat->teamId) {
+						uncappedPoints.push_back(&cp);
 					}
 				}
-				//we have them all already
-				if (!targetPoint) {
-					minDistance = -1;
-					for (auto& capturePoint : EntitySystem::GetPool<CapturePointComponent>()) {
-						SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(capturePoint.getId());
-						if (!spawn->isDefault()) {
-							if (capturePoint.getState().currTeamId == ourCombat->teamId) {
-								float distance = ourPos.distance(capturePoint.getZone().center());
-								if (minDistance == -1 || distance < minDistance) {
-									minDistance = distance;
-									targetPoint = &capturePoint;
-								}
-							}
-						}
+				if (!uncappedPoints.empty()) {
+					unsigned int spawn = randInt(0, uncappedPoints.size() - 1);
+
+					float xOffset = randFloat(0, uncappedPoints[spawn]->getZone().res.x);
+					targetPos = uncappedPoints[spawn]->getZone().center() + Vec2f{xOffset, 0};
+					targetZone = *navMesh.getZone(targetPos);
+					targetId = uncappedPoints[spawn]->getId();
+
+					posTargeted = true;
+				}
+				else {
+					chooseNewState();
+				}
+			}
+			else {
+				if (ourPos.distance(targetPos) < 10) {
+					CapturePointComponent* cp = EntitySystem::GetComp<CapturePointComponent>(targetId);
+					if (cp->getState().currTeamId == ourCombat->teamId) {
+						chooseNewState();
 					}
 				}
-				float xOffset = randFloat(0, targetPoint->getZone().res.x);
-				targetPos = { targetPoint->getZone().pos.x + xOffset, targetPoint->getZone().center().y };
+			}
+			break;
+		}
+		case State::wander:
+		{
+			if (!posTargeted) {
+				targetZone = std::next(std::begin(navMesh.getZones()), randInt(0, navMesh.getZones().size() - 1))->second;
+				float xOffset = randFloat(0, targetZone.area.res.x);
+				targetPos = targetZone.area.center() + Vec2f{xOffset, 0};
+				targetId = 0;
+
+				posTargeted = true;
+			}
+			else {
+				if (ourPos.distance(targetPos) < 10) {
+					if (timer % (15 * 120) == 0) {
+						chooseNewState();
+					}
+				}
 			}
 			break;
 		}
 		}
+		//add rule for entering combat from the other states here
 
+		//calculate path to target position
 		if (!targetZone.area.contains(targetPos)) {
 			const NavZone* targetZonePtr = navMesh.getZone(targetPos);
 			if (!targetZonePtr)
@@ -111,34 +144,39 @@ void AIPlayerComponent::update() {
 				currPath = navMesh.getPath(currZone.id, targetZone.id);
 		}
 
+		//update path based on our position
 		if (!currZone.area.contains(ourPos.round())) {
-			const NavZone* zonePtr = navMesh.getZone(ourPos);
-			if (!zonePtr)
-				return;
-			currZone = *zonePtr;
-			if (currZone.id != 0 && targetZone.id != 0)
-				currPath = navMesh.getPath(currZone.id, targetZone.id);
+			bool recalc = false;
+			if (!currPath.empty()) {
+				currPath.next();
+				const NavZone& nextZone = navMesh.getZone(currPath.getCurrZoneId());
+				if (nextZone.area.contains(ourPos)) {
+					currZone = nextZone;
+				}
+				else {
+					recalc = true;
+				}
+			}
+			else {
+				recalc = true;
+			}
 
+			if(recalc) {
+				const NavZone* zonePtr = navMesh.getZone(ourPos);
+				if (!zonePtr)
+					return;
+				currZone = *zonePtr;
+				if (currZone.id != 0 && targetZone.id != 0)
+					currPath = navMesh.getPath(currZone.id, targetZone.id);
+			}
 		}
 
 		controller->getController().off(ControllerBits::ALL);
 
-		if (targetId) {
-			if (ourPos.distance(targetPos) < 10) {
-				if (currZone.typeTag == "climb") {
-					if (timer % 2)
-						controller->getController().set(ControllerBits::BUTTON_4, true);
-				}
-				if (timer % 2)
-					controller->getController().set(ControllerBits::BUTTON_2, true);
-			}
-		}
-
 		//only travel if far enough away
 		if (ourPos.distance(targetPos) > 10) {
-			if (currPath.size() > 1) {
-				auto iter = currPath.begin();
-				NavZone nextZone = navMesh.getZone(*(++iter));
+			if (!currPath.finished()) {
+				NavZone nextZone = navMesh.getZone(currPath.getNextZoneId());
 				Vec2f nextPoint = nextZone.area.center();
 
 
@@ -249,7 +287,7 @@ void AIPlayerComponent::update() {
 
 
 
-const std::list<unsigned int>& AIPlayerComponent::getCurrentPath() const
+const NavPath& AIPlayerComponent::getCurrentPath() const
 {
 	return currPath;
 }
@@ -264,6 +302,11 @@ const NavZone& AIPlayerComponent::getTargetZone() const {
 
 const ClimbableNavMesh& AIPlayerComponent::getNavMesh() {
 	return navMesh;
+}
+
+void AIPlayerComponent::chooseNewState() {
+
+
 }
 
 ClimbableNavMesh AIPlayerComponent::navMesh{ 30, 4, 10 };

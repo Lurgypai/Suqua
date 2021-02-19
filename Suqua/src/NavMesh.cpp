@@ -2,6 +2,7 @@
 #include "EntitySystem.h"
 #include "PhysicsComponent.h"
 #include "NavNode.h"
+#include "NavZone.h"
 
 #include <unordered_set>
 #include <algorithm>
@@ -135,7 +136,7 @@ void NavMesh::addPhysicsMesh() {
 	}
 }
 
-const NavZone& NavMesh::getZone(unsigned int id) const {
+const NavZone& NavMesh::getZone(NavZoneId id) const {
 	auto iter = zones.find(id);
 	if (iter == zones.end())
 		throw std::exception();
@@ -143,7 +144,7 @@ const NavZone& NavMesh::getZone(unsigned int id) const {
 		return iter->second;
 }
 
-const std::unordered_map<unsigned int, NavZone> NavMesh::getZones() const {
+const std::unordered_map<NavZoneId, NavZone> NavMesh::getZones() const {
 	return zones;
 }
 
@@ -175,12 +176,9 @@ const NavZone* NavMesh::getZone(Vec2f pos) const {
 	return nullptr;
 }
 
-std::list<unsigned int> NavMesh::getPath(unsigned int startZoneId, unsigned int endZoneId) {
-	if (startZoneId == endZoneId)
-		return {};
-
+NavPath NavMesh::getPath(NavZoneId startZoneId, NavZoneId endZoneId) {
 	std::list<NavNode> nodes;
-	std::unordered_map<unsigned int, NavNode> finishedNodes;
+	std::unordered_map<NavZoneId, NavNode> finishedNodes;
 	for (auto& pair : zones) {
 		if (pair.first != startZoneId) {
 			nodes.emplace_back(NavNode{ pair.first, 0, -1 });
@@ -226,15 +224,17 @@ std::list<unsigned int> NavMesh::getPath(unsigned int startZoneId, unsigned int 
 	}
 
 	auto currId = endZoneId;
-	std::list<unsigned int> ret{};
+	std::list<NavZoneId> path{};
 	while (currId != startZoneId) {
-		ret.push_front(currId);
+		path.push_front(currId);
 		auto iter = finishedNodes.find(currId);
 		if (iter != finishedNodes.end())
 			currId = finishedNodes[currId].fromid;
 		else
 			throw std::exception{};
 	}
-	ret.push_front(currId);
-	return ret;
+	path.push_front(currId);
+	return NavPath{path};
 }
+
+//return type

@@ -1,22 +1,25 @@
 #pragma once
 #include "Vec2.h"
+#include "NavTypes.h"
 #include "NavZone.h"
+#include "NavPath.h"
 #include <vector>
 #include <list>
 #include <unordered_map>
+
 class NavMesh {
 public:
 	NavMesh(float zoneHeight_, float ignoreGapSize_);
 	void addPhysicsMesh();
-	std::list<unsigned int> getPath(unsigned int startZoneId, unsigned int endZoneId);
-	const NavZone& getZone(unsigned int id) const;
+	NavPath getPath(NavZoneId startNavZoneId, NavZoneId endNavZoneId);
+	const NavZone& getZone(NavZoneId id) const;
 	const NavZone* getZone(Vec2f pos) const;
-	const std::unordered_map<unsigned int, NavZone> getZones() const;
+	const std::unordered_map<NavZoneId, NavZone> getZones() const;
 protected:
 	unsigned int zoneId;
 	//the height of each generated zone
 	float zoneHeight;
 	//the smallest gap that can be ignored (walked across)
 	float ignoreGapSize;
-	std::unordered_map<unsigned int, NavZone> zones;
+	std::unordered_map<NavZoneId, NavZone> zones;
 };

@@ -7,25 +7,30 @@ public:
 	EntityId getId() const;
 
 	enum class State {
+		capture,
 		defend,
-		attack
+		wander,
+		combat
 	};
 
 	void update();
-	const std::list<unsigned int>& getCurrentPath() const;
+	const NavPath& getCurrentPath() const;
 	const NavZone& getCurrZone() const;
 	const NavZone& getTargetZone() const;
 
 	static const ClimbableNavMesh& getNavMesh();
 
 private:
+	void chooseNewState();
+
 	EntityId id;
 	EntityId targetId;
 	unsigned int timer;
 	State state;
 	NavZone currZone;
 	NavZone targetZone;
-	std::list<unsigned int> currPath;
+	NavPath currPath;
+	bool posTargeted;
 
 	static bool meshGenerated;
 	static ClimbableNavMesh navMesh;
