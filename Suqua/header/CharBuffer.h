@@ -83,7 +83,7 @@ inline CharBuffer<Size>& CharBuffer<Size>::operator=(const std::string& s)
 			++i;
 		}
 		//clean up remaining space
-		if (i != Size) {
+		if (i != Size) {s
 			for (auto j = i; j != Size; ++j) {
 				_data[j] = '\0';
 			}
@@ -97,7 +97,11 @@ inline CharBuffer<Size>& CharBuffer<Size>::operator=(const std::string& s)
 
 template<size_t Size>
 inline bool CharBuffer<Size>::operator==(const CharBuffer<Size>& other) const {
-	return _data == other._data;
+	for (auto i = 0; i != Size; ++i) {
+		if (_data[i] != other._data[i])
+			return false;
+	}
+	return true;
 }
 
 template<size_t Size>
@@ -113,6 +117,7 @@ inline CharBuffer<Size>::operator std::string() const {
 	size_t i = 0;
 	while (i != Size && _data[i] != '\0') {
 		ret += _data[i];
+		++i;
 	}
 	return ret;
 }
