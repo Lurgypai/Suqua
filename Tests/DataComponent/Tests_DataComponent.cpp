@@ -134,8 +134,8 @@ int main() {
 
 	auto prevState = dataComp.data();
 
-	dataComp.set(1, 100);
-	dataComp.set(3, 500);
+	dataComp.set<uint32_t>(1, 100);
+	dataComp.set<uint64_t>(3, 500);
 
 
 	dataComp.serializeForNetwork(stream, prevState);

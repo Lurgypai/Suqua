@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include "ByteStream.h"
+#include "ByteOrder.h"
 
 class DataComponent {
 public:
@@ -11,7 +12,7 @@ public:
 	public:
 		using DataValue = std::variant<char, uint32_t, int32_t, uint64_t, int64_t, double, std::string>;
 
-		enum DataType {
+		enum class DataType : char {
 			NONE,
 			BYTE,
 			UINT_32,
@@ -44,7 +45,7 @@ public:
 		constexpr DataType getDataType();
 	};
 
-	using DataId = unsigned long long;
+	using DataId = uint32_t;
 
 	DataComponent() = default;
 	DataComponent(const DataComponent& other) = default;

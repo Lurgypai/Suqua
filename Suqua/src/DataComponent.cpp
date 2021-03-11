@@ -52,13 +52,63 @@ void DataComponent::unserialize(ByteStream& stream) {
 }
 
 void DataComponent::Data::write(ByteStream& s) {
-	s << type;
-	s << value;
+	s << static_cast<char>(type);
+	switch (type)
+	{
+	case DataComponent::Data::DataType::BYTE:
+		s << get<char>();
+		break;
+	case DataComponent::Data::DataType::UINT_32:
+		s << get<uint32_t>();
+		break;
+	case DataComponent::Data::DataType::INT_32:
+		s << get<int32_t>();
+		break;
+	case DataComponent::Data::DataType::UINT_64:
+		s << get<uint64_t>();
+		break;
+	case DataComponent::Data::DataType::INT_64:
+		s << get<int64_t>();
+		break;
+	case DataComponent::Data::DataType::DOUBLE:
+		s << get<double>();
+		break;
+	case DataComponent::Data::DataType::STRING:
+		s << get<std::string>();
+		break;
+	default:
+		break;
+	}
 }
 
 inline void DataComponent::Data::read(ByteStream& s) {
 	s >> type;
-	s >> value;
+	switch (type)
+	{
+	case DataComponent::Data::DataType::BYTE:
+		s >> get<char>();
+		break;
+	case DataComponent::Data::DataType::UINT_32:
+		s >> get<uint32_t>();
+		break;
+	case DataComponent::Data::DataType::INT_32:
+		s >> get<int32_t>();
+		break;
+	case DataComponent::Data::DataType::UINT_64:
+		s >> get<uint64_t>();
+		break;
+	case DataComponent::Data::DataType::INT_64:
+		s >> get<int64_t>();
+		break;
+	case DataComponent::Data::DataType::DOUBLE:
+		s >> get<double>();
+		break;
+	case DataComponent::Data::DataType::STRING:
+		s >> get<std::string>();
+		break;
+	default:
+		break;
+	}
 }
 
 const std::map<DataComponent::DataId, DataComponent::Data>& DataComponent::data() {
