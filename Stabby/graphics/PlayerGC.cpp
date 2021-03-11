@@ -72,7 +72,7 @@ void PlayerGC::loadNameTag() {
 	drawable->anti_alias = true;
 	drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
 	drawable->scale = { .5, .5 };
-	drawable->text = nameTag->nameTag;
+	drawable->text = nameTag->nameTag.str();
 	drawable->depth = -0.2;
 	nameTagRender->offset = {(drawable->getBoundingBox().res.x / 2), drawable->getBoundingBox().res.y + 25};
 }
@@ -130,7 +130,7 @@ void PlayerGC::updateState(double timeDelta) {
 		if (plrState == State::attacking) {
 			if (prevState != State::attacking) {
 				if (state.weaponTag != currAttackTag) {
-					currAttackTag = state.weaponTag;
+					currAttackTag = state.weaponTag.str();
 				}
 				render->setDrawable<AnimatedSprite>(attackAnimations[currAttackTag]);
 			}
@@ -242,7 +242,7 @@ void PlayerGC::updateState(double timeDelta) {
 	nameTagPos->pos = state.pos;
 	RenderComponent* nameTagRender = EntitySystem::GetComp<RenderComponent>(nameTagId);
 	auto* drawable = nameTagRender->getDrawable<TextDrawable>();
-	drawable->text = state.userTag;
+	drawable->text = state.userTag.str();
 	nameTagRender->offset = { (drawable->getBoundingBox().res.x / 2), drawable->getBoundingBox().res.y + 25 };
 
 	EntityBaseComponent* base = EntitySystem::GetComp<EntityBaseComponent>(id);

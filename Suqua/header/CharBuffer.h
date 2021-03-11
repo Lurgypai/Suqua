@@ -11,12 +11,16 @@ public:
 	CharBuffer();
 	CharBuffer(const CharBuffer& other);
 	CharBuffer(const std::string& s);
+	template<size_t InSize>
+	constexpr explicit CharBuffer(const char (&input)[InSize]);
+
 	CharBuffer& operator=(const CharBuffer& other);
 	CharBuffer& operator=(const std::string& s);
 	bool operator==(const CharBuffer& other) const;
 	bool operator!=(const CharBuffer& other) const;
-	operator std::string() const;
 	char& operator[](size_t pos);
+
+	std::string str() const;
 
 	const char* data() const;
 	const size_t size();
@@ -65,6 +69,21 @@ inline CharBuffer<Size>::CharBuffer(const std::string& s) :
 }
 
 template<size_t Size>
+template<size_t InSize>
+inline constexpr CharBuffer<Size>::CharBuffer<Size>(const char (&input)[InSize]) :
+	_data{}
+{
+	if (InSize > Size)
+		throw std::out_of_range{""};
+
+	constexpr size_t copy_size = Size > InSize ? InSize : Size;
+
+	for (auto i = 0; i != copy_size; ++i) {
+		_data[i] = input[i];
+	}
+}
+
+template<size_t Size>
 inline CharBuffer<Size>& CharBuffer<Size>::operator=(const CharBuffer<Size>& other) {
 	for (auto i = 0; i != Size; ++i) {
 		_data[i] = other._data[i];
@@ -83,7 +102,7 @@ inline CharBuffer<Size>& CharBuffer<Size>::operator=(const std::string& s)
 			++i;
 		}
 		//clean up remaining space
-		if (i != Size) {s
+		if (i != Size) {
 			for (auto j = i; j != Size; ++j) {
 				_data[j] = '\0';
 			}
@@ -111,7 +130,7 @@ inline bool CharBuffer<Size>::operator!=(const CharBuffer<Size>& other) const
 }
 
 template<size_t Size>
-inline CharBuffer<Size>::operator std::string() const {
+inline std::string CharBuffer<Size>::str() const {
 	std::string ret{};
 	ret.reserve(Size);
 	size_t i = 0;
@@ -139,5 +158,5 @@ inline char& CharBuffer<Size>::operator[](size_t pos) {
 
 template<size_t Size>
 std::ostream& operator<<(std::ostream& out, const CharBuffer<Size>& buffer) {
-	return (out << std::string{ buffer });
+	return (out << buffer.str());
 }

@@ -18,6 +18,9 @@ int main() {
 		std::cout << "Threw.\n";
 	}
 
+	constexpr CharBuffer<5> a{ "t" };
+
+	std::cout << a << '\n';
 
 	return 0;
 }
