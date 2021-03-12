@@ -27,7 +27,7 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 		if (!data->get<bool>(FROZEN)) {
 			//accelerate downwards, gravity
 			if (!data->get<bool>(WEIGHTLESS))
-				comp->accelerate({ 0, data->get<float>(WEIGHT) });
+				comp->accelerate({ 0, data->get<float>(WEIGHT) * static_cast<float>(timeDelta) });
 
 			data->get<bool>(GROUNDED) = false;
 			Vec2f currPos = dataPos;

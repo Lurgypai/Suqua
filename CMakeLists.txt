@@ -13,7 +13,7 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
   ${CMAKE_CURRENT_SOURCE_DIR}/cxx_flag_overrides.cmake)
 
 
-project ("StabbyOrganized")
+project ("Stabby")
 
 # Include sub-projects.
 add_subdirectory ("Suqua")
@@ -26,3 +26,4 @@ add_subdirectory ("Tests/CharBuffer")
 add_subdirectory ("Tests/DataComponent")
 add_subdirectory ("Tests/ByteStream")
 add_subdirectory ("Tests/ByteOrder")
+add_subdirectory ("Tests/Box3")

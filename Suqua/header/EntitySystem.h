@@ -18,7 +18,7 @@ public:
 	static void MakeComps(unsigned int size, EntityId* first);
 
 	static void GenEntities(unsigned int num, EntityId* idStore);
-	static void FreeEntities(unsigned int num, EntityId * idStore);
+	static void FreeEntities(unsigned int num, const EntityId * idStore);
 	static void FreeDeadEntities();
 	
 	template<typename T>

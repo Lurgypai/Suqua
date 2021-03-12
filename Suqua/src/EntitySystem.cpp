@@ -11,7 +11,7 @@ void EntitySystem::GenEntities(unsigned int num, EntityId * idStore) {
 	}
 }
 
-void EntitySystem::FreeEntities(unsigned int num, EntityId * idStore) {
+void EntitySystem::FreeEntities(unsigned int num, const EntityId * idStore) {
 	for (int i = 0; i != num; i++) {
 		for (auto & pool : ComponentMaps) {
 			pool->free(idStore[i] - 1);
