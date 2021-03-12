@@ -2,6 +2,7 @@
 #include "DebugIO.h"
 #include "EntitySystem.h"
 #include "player.h"
+#include "NetworkDataComponent.h"
 
 std::string VelocityCommand::getTag() const {
 	return "velocity";
@@ -13,8 +14,9 @@ void VelocityCommand::onCommand(const std::vector<std::string>& args) {
 		float y = std::stof(args[2]);
 
 		for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
-			PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(player.getId());
-			physics->vel = {x, y};
+			NetworkDataComponent* data = EntitySystem::GetComp<NetworkDataComponent>(player.getId());
+			data->get<float>(XVEL) = x;
+			data->get<float>(YVEL) = y;
 		}
 	}
 	else {

@@ -1,12 +1,16 @@
 #include "../player/AIPlayerComponent.h"
 #include "../player/spawn/RespawnComponent.h"
 #include "../combat/CombatComponent.h"
+#include "../combat/CombatData.h"
 #include "../gamemode/CapturePointComponent.h"
 #include "ControllerComponent.h"
 #include "RandomUtil.h"
+#include "NetworkDataComponent.h"
 
 
 #include <iostream>
+
+using NDC = NetworkDataComponent;
 
 AIPlayerComponent::AIPlayerComponent(EntityId id_) :
 	id{ id_ },
@@ -41,6 +45,7 @@ void AIPlayerComponent::update() {
 	CombatComponent* ourCombat = EntitySystem::GetComp<CombatComponent>(id);
 	PhysicsComponent* ourPhysics = EntitySystem::GetComp<PhysicsComponent>(id);
 	PlayerLC* playerComp = EntitySystem::GetComp<PlayerLC>(id);
+	NDC* data = EntitySystem::GetComp<NDC>(id);
 
 	Vec2f ourPos = ourPhysics->getPos() + Vec2f{0, -1};
 	Vec2f targetPos{};
@@ -51,7 +56,7 @@ void AIPlayerComponent::update() {
 			if (!posTargeted) {
 				std::vector<CapturePointComponent*> cappedPoints;
 				for (auto& cp : EntitySystem::GetPool<CapturePointComponent>()) {
-					if (cp.getState().currTeamId == ourCombat->teamId) {
+					if (cp.getState().currTeamId == data->get<uint32_t>(TEAM_ID)) {
 						cappedPoints.push_back(&cp);
 					}
 				}
@@ -84,7 +89,7 @@ void AIPlayerComponent::update() {
 			if (!posTargeted) {
 				std::vector<CapturePointComponent*> uncappedPoints;
 				for (auto& cp : EntitySystem::GetPool<CapturePointComponent>()) {
-					if (cp.getState().currTeamId != ourCombat->teamId) {
+					if (cp.getState().currTeamId != data->get<uint32_t>(TEAM_ID)) {
 						uncappedPoints.push_back(&cp);
 					}
 				}
@@ -105,7 +110,7 @@ void AIPlayerComponent::update() {
 			else {
 				if (ourPos.distance(targetPos) < 10) {
 					CapturePointComponent* cp = EntitySystem::GetComp<CapturePointComponent>(targetId);
-					if (cp->getState().currTeamId == ourCombat->teamId) {
+					if (cp->getState().currTeamId == data->get<uint32_t>(TEAM_ID)) {
 						chooseNewState();
 					}
 				}

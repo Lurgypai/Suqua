@@ -1,11 +1,13 @@
 #pragma once
 #include "AABB.h"
 #include "PhysicsSystem.h"
+#include "PhysicsData.h"
 
 class PhysicsComponent {
 	friend class PhysicsSystem;
 
 public:
+
 	PhysicsComponent(EntityId id_ = 0, AABB collider = AABB{ {0, 0}, {0, 0} }, float weight = 0, Vec2f vel = {0, 0}, bool collideable_ = false);
 	EntityId getId() const;
 	
@@ -27,12 +29,6 @@ public:
 	Vec2f getRes() const;
 	void setRes(Vec2f res_);
 
-	float weight;
-	Vec2f vel;
-	bool grounded;
-	bool frozen;
-	bool weightless;
-	bool collideable;
 protected:
 	AABB collider;
 	EntityId id;

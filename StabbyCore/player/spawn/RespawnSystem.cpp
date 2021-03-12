@@ -11,7 +11,7 @@ void RespawnSystem::updateAll() {
 		for (auto& respawn : EntitySystem::GetPool<RespawnComponent>()) {
 			PlayerLC* player = EntitySystem::GetComp<PlayerLC>(respawn.getId());
 			if (player->shouldRespawn()) {
-				respawn.loadSpawnList(*spawns);
+				respawn.loadSpawnList();
 			}
 		}
 	}

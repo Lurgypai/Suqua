@@ -1,8 +1,10 @@
 #include "SpawnPlayerCommand.h"
 #include "EntitySystem.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
 #include "../graphics/PlayerGC.h"
 #include "player.h"
+#include "PositionData.h"
+#include "combat.h"
 
 SpawnPlayerCommand::SpawnPlayerCommand(Game* game_) :
 	game{game_}
@@ -21,9 +23,11 @@ void SpawnPlayerCommand::onCommand(const std::vector<std::string>& args) {
 
 			game->makePlayerGFX(playerId);
 
-			EntitySystem::GetComp<CombatComponent>(playerId)->teamId = 2;
+			NetworkDataComponent* data = EntitySystem::GetComp<NetworkDataComponent>(playerId);
+			data->get<float>(X) = pos.x;
+			data->get<float>(Y) = pos.y;
 
-			EntitySystem::GetComp<PositionComponent>(playerId)->pos = pos;
+			data->get<uint32_t>(TEAM_ID) = 2;
 
 			EntitySystem::MakeComps<AIPlayerComponent>(1, &playerId);
 		}

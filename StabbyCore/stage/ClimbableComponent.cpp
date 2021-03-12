@@ -1,12 +1,12 @@
 #include "ClimbableComponent.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
 
 ClimbableComponent::ClimbableComponent(EntityId id_) :
 	id{id_}
 {
 	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
+		if (!EntitySystem::Contains<NetworkDataComponent>() || EntitySystem::GetComp<NetworkDataComponent>(id) == nullptr) {
+			EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
 		}
 	}
 }

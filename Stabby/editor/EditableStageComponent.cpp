@@ -3,10 +3,13 @@
 #include "GLRenderer.h"
 #include "SDL.h"
 #include "EntityBaseComponent.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
+#include "PositionData.h"
 
 #include <iostream>
 #include <cmath>
+
+using NDC = NetworkDataComponent;
 
 EditableStageComponent::EditableStageComponent(EntityId id_) :
 	id{id_},
@@ -18,8 +21,8 @@ EditableStageComponent::EditableStageComponent(EntityId id_) :
 	defaultSpawn{true}
 {
 	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
+		if (!EntitySystem::Contains<NDC>() || EntitySystem::GetComp<NDC>(id) == nullptr) {
+			EntitySystem::MakeComps<NDC>(1, &id);
 		}
 	}
 }
@@ -200,7 +203,9 @@ void EditableStageComponent::update(int camId) {
 	collider.pos = Vec2f{std::round(collider.pos.x), std::roundf(collider.pos.y) };
 	collider.res = Vec2f{ std::roundf(collider.res.x), std::roundf(collider.res.y) };
 
-	EntitySystem::GetComp<PositionComponent>(id)->pos = collider.pos;
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->get<float>(X) = collider.pos.x;
+	data->get<float>(Y) = collider.pos.y;
 }
 
 bool EditableStageComponent::isDefaultSpawn() {

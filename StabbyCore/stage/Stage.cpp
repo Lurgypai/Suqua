@@ -3,10 +3,13 @@
 
 #include "Stage.h"
 #include "RenderComponent.h"
-#include "PositionComponent.h"
 #include "ClimbableComponent.h"
 #include "PhysicsComponent.h"
+#include "NetworkDataComponent.h"
 #include "../player/spawn/SpawnComponent.h"
+#include "PositionData.h"
+
+using NDC = NetworkDataComponent;
 
 const std::string Stage::folder{"stage"};
 
@@ -45,25 +48,31 @@ Stage::Stage(const std::string& stage, SpawnSystem & spawns) :
 			
 			switch (type)
 			{
-			case StageElement::collideable:
+			case StageElement::collideable: {
 				EntityId id;
 				EntitySystem::GenEntities(1, &id);
 				EntitySystem::MakeComps<PhysicsComponent>(1, &id);
-				EntitySystem::GetComp<PhysicsComponent>(id)->collideable = true;
-				EntitySystem::GetComp<PhysicsComponent>(id)->weightless = true;
+				NDC* data = EntitySystem::GetComp<NetworkDataComponent>(id);
+				data->set(COLLIDEABLE, true);
+				data->set(FROZEN, true);
 				EntitySystem::GetComp<PhysicsComponent>(id)->setRes(collider.res);
-				EntitySystem::GetComp<PositionComponent>(id)->pos = collider.pos;
+				data->set(X, collider.pos.x);
+				data->set(Y, collider.pos.y);
 				collideables.push_back(id);
 				break;
-			case StageElement::climbable:
+			}
+			case StageElement::climbable: {
 				EntityId ladder;
 				EntitySystem::GenEntities(1, &ladder);
 				EntitySystem::MakeComps<ClimbableComponent>(1, &ladder);
 				EntitySystem::GetComp<ClimbableComponent>(ladder)->collider = collider;
-				EntitySystem::GetComp<PositionComponent>(ladder)->pos = collider.pos;
+				NDC* data = EntitySystem::GetComp<NetworkDataComponent>(ladder);
+				data->set(X, collider.pos.x);
+				data->set(Y, collider.pos.y);
 
 				climbables.push_back(ladder);
 				break;
+			}
 			case StageElement::spawnable:
 				spawnBoxes.emplace_back(SpawnBox{ collider, defaultSpawn });
 			default:

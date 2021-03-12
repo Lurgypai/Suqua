@@ -1,6 +1,5 @@
 #pragma once
 #include "EntitySystem.h"
-#include "../player/PlayerStateComponent.h"
 
 class PlayerSFX {
 public:

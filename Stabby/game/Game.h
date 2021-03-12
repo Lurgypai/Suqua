@@ -11,9 +11,7 @@
 #include "gamemode.h"
 #include "network.h"
 
-#include "../client/Client.h"
 #include "../editor/EditableSystem.h"
-#include "../player/ClientPlayerSystem.h"
 #include "../graphics/PaletteManager.h"
 #include "../graphics/camera/EditorCam.h"
 #include "../graphics/camera/PlayerCam.h"
@@ -45,8 +43,6 @@ public:
 	void addRenderGroup(const std::string& tag, int camId);
 	
 	void updatePlayerCamera();
-	void loadNewPlayers();
-	void loadNewCapturePoints();
 	void makePlayerGFX(EntityId playerId_);
 	void hideEnemyNametags();
 
@@ -78,14 +74,12 @@ public:
 	Time_t tick;
 	RenderSystem render;
 	SoundSystem sound;
-	Client client;
 	PhysicsSystem physics;
 	CombatSystem combat;
 	WeaponManager weapons;
 	ClimbableSystem climbables;
 	EditableSystem editables;
 	PlayerManager players;
-	ClientPlayerSystem clientPlayers;
 	PaletteManager palettes;
 	SpawnSystem spawns;
 	ClientSpawnSystem clientSpawner;

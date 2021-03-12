@@ -1,7 +1,6 @@
 
 #include "CapturePointGC.h"
 #include "RenderComponent.h"
-#include "PositionComponent.h"
 #include "RectDrawable.h"
 
 #include "gamemode.h"

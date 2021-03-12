@@ -1,7 +1,6 @@
 
 #include "HeadParticleLC.h"
 #include "RenderComponent.h"
-#include "PositionComponent.h"
 
 HeadParticleLC::HeadParticleLC(EntityId id_) :
 	id{id_},
@@ -18,7 +17,6 @@ void HeadParticleLC::update(double delta) {
 		EntitySystem::FreeComps<HeadParticleLC>(1, &id);
 		EntitySystem::FreeComps<PhysicsComponent>(1, &id);
 		EntitySystem::FreeComps<RenderComponent>(1, &id);
-		EntitySystem::FreeComps<PositionComponent>(1, &id);
 	}
 }
 

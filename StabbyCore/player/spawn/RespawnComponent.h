@@ -16,7 +16,7 @@ public:
 
 	RespawnState getState() const;
 	void beginSelecting();
-	void loadSpawnList(SpawnSystem& spawns);
+	void loadSpawnList();
 	void updateSpawnList(SpawnSystem& spawns);
 	void searchForSpawn();
 	EntityId getCurrentSpawn();

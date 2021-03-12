@@ -1,33 +1,37 @@
 #include "RandomUtil.h"
-
+#include "NetworkDataComponent.h"
+#include "DirectionData.h"
 #include "CombatComponent.h"
-#include "DirectionComponent.h"
-#include "PositionComponent.h"
+#include "CombatData.h"
 #include <iostream>
+
+using NDC = NetworkDataComponent;
 
 //stop rebuilding
 CombatComponent::CombatComponent(EntityId id_) :
 	id{ id_ },
-	invulnerable{ false },
 	stats{},
-	stunFrame{ 0 },
-	teamId{ 0 },
-	stamina{ 0 },
 	ignoreDamage{false},
 	staminaMax{ 700 },
-	staminaRechargeFrame{ 0 },
 	staminaRechargeMax{ 95 },
-	freezeFrame{0},
 	freezeFrameMax{ 17 },
 	attacks{AttackMap},
 	attack{nullptr}
 {
 	if (id != 0) {
-		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
-			EntitySystem::MakeComps<DirectionComponent>(1, &id);
-			DirectionComponent * direction = EntitySystem::GetComp<DirectionComponent>(id);
-			direction->dir = -1;
+		if (!EntitySystem::Contains<NDC>() || EntitySystem::GetComp<NDC>(id) == nullptr) {
+			EntitySystem::MakeComps<NDC>(1, &id);
 		}
+
+		NDC* data = EntitySystem::GetComp<NDC>(id);
+		data->set<int32_t>(DIR, -1);
+		data->set<bool>(INVULNERABLE, false);
+		data->set<int32_t>(HEALTH, 0);
+		data->set<uint32_t>(STUN_FRAME, 0);
+		data->set<uint32_t>(TEAM_ID, 0);
+		data->set<uint32_t>(STAMINA_RECHARGE_FRAME, 0);
+		data->set<uint32_t>(FREEZE_FRAME, 0);
+		data->set<uint32_t>(STAMINA, 0);
 	}
 
 	//set default attack
@@ -36,25 +40,23 @@ CombatComponent::CombatComponent(EntityId id_) :
 
 CombatComponent::CombatComponent(const CombatComponent& other) :
 	id{other.id},
-	invulnerable{other.invulnerable},
 	stats{other.stats},
-	stunFrame{other.stunFrame},
-	teamId{other.teamId},
-	stamina{other.stamina},
 	staminaMax{other.staminaMax},
 	ignoreDamage{other.ignoreDamage},
-	staminaRechargeFrame{other.staminaRechargeFrame},
 	staminaRechargeMax{other.staminaRechargeMax},
-	freezeFrame{other.freezeFrame},
 	freezeFrameMax{other.freezeFrameMax},
 	attacks{AttackMap},
 	attack{nullptr},
-	health{other.health},
 	lastAttacker{other.lastAttacker},
 	hurtboxes{other.hurtboxes},
 	hitEntities{other.hitEntities}
 {
-	attack = &attacks[other.attack->getId()];
+	if (id != 0) {
+		attack = &attacks[other.attack->getId()];
+		NDC* data = EntitySystem::GetComp<NDC>(id);
+		NDC* otherData = EntitySystem::GetComp<NDC>(other.getId());
+		*data = *otherData;
+	}
 }
 
 EntityId CombatComponent::getId() const {
@@ -87,6 +89,9 @@ void CombatComponent::updateHurtboxes() {
 }
 
 void CombatComponent::updateStamina() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	auto& staminaRechargeFrame = data->get<uint32_t>(STAMINA_RECHARGE_FRAME);
+	auto& stamina = data->get<uint32_t>(STAMINA);
 	if (staminaRechargeFrame < staminaRechargeMax && attack->getActiveId() == 0) {
 		++staminaRechargeFrame;
 	}
@@ -98,8 +103,10 @@ void CombatComponent::updateStamina() {
 }
 
 void CombatComponent::updateFreezeFrame() {
-	if (freezeFrame < freezeFrameMax)
-		++freezeFrame;
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+
+	if (data->get<uint32_t>(FREEZE_FRAME) < freezeFrameMax)
+		++data->get<uint32_t>(FREEZE_FRAME);
 }
 
 void CombatComponent::onAttackLand()
@@ -140,18 +147,23 @@ unsigned int CombatComponent::getStaminaCost() {
 }
 
 bool CombatComponent::isStunned() {
-	return stunFrame != 0;
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return data->get<uint32_t>(STUN_FRAME) != 0;
 }
 
 bool CombatComponent::isAlive() {
-	return health > 0;
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return data->get<int32_t>(HEALTH) > 0;
 }
 
 bool CombatComponent::isFrozen() {
-	return freezeFrame != freezeFrameMax;
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return data->get<uint32_t>(FREEZE_FRAME) != freezeFrameMax;
 }
 
 void CombatComponent::updateStun() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	auto& stunFrame = data->get<uint32_t>(STUN_FRAME);
 	if (stunFrame > 0)
 		--stunFrame;
 	else
@@ -159,13 +171,16 @@ void CombatComponent::updateStun() {
 }
 
 void CombatComponent::damage(unsigned int i) {
-	if (!invulnerable && !ignoreDamage) {
-		health -= i;
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	if (!data->get<bool>(INVULNERABLE) && !ignoreDamage) {
+		data->get<int32_t>(HEALTH) -= i;
 		onDamage(i);
 	}
 }
 
 void CombatComponent::heal(unsigned int i) {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	auto& health = data->get<int32_t>(HEALTH);
 	health += i;
 	if (health > stats.maxHealth)
 		health = stats.maxHealth;
@@ -173,18 +188,22 @@ void CombatComponent::heal(unsigned int i) {
 }
 
 void CombatComponent::stun(unsigned int i) {
-	if(!invulnerable)
-		stunFrame = i;
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+
+	if(!data->get<bool>(INVULNERABLE))
+		data->get<uint32_t>(STUN_FRAME) = i;
 	onStun(i);
 }
 
 void CombatComponent::freeze() {
-	freezeFrame = 0;
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->get<uint32_t>(STUN_FRAME) = 0;
 }
 
 bool CombatComponent::startAttacking() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
 	if (attack->canStartAttacking()) {
-		if (stamina > 0) {
+		if (data->get<uint32_t>(STAMINA) > 0) {
 			attack->startAttacking();
 			useStamina(attack->getHitbox(1)->stats.staminaCost);
 			return true;
@@ -194,11 +213,12 @@ bool CombatComponent::startAttacking() {
 }
 
 bool CombatComponent::bufferNextAttack() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
 	if (!attack->getNextIsBuffered()) {
 		int currAttack = attack->getActiveId();
 		auto nextHitbox = attack->getHitbox(currAttack + 1);
 		if (nextHitbox) {
-			if (stamina > 0) {
+			if (data->get<uint32_t>(STAMINA) > 0) {
 				attack->bufferNext();
 				useStamina(nextHitbox->stats.staminaCost);
 				return true;
@@ -213,8 +233,10 @@ bool CombatComponent::hasHitEntity(const EntityId& target) {
 }
 
 void CombatComponent::useStamina(uint32_t amount) {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	auto& stamina = data->get<uint32_t>(STAMINA);
 	stamina -= amount < stamina ? amount : stamina;
-	staminaRechargeFrame = 0;
+	data->get<uint32_t>(STAMINA_RECHARGE_FRAME) = 0;
 }
 
 void CombatComponent::setActiveHitbox(int i) {

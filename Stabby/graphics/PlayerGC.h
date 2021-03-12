@@ -4,6 +4,7 @@
 #include "AnimatedSprite.h"
 #include "RenderComponent.h"
 #include "IDrawable.h"
+#include "NetworkDataComponent.h"
 
 #include "../combat/WeaponManager.h"
 #include "../combat/AttackTag.h"
@@ -41,7 +42,7 @@ private:
 	EntityId nameTagId;
 
 	bool shouldSpawnHead;
-	State prevState;
+	PlayerLC::State prevState;
 	float prevXVel;
 	int prevAttack;
 	double defaultFrameDelay;

@@ -4,13 +4,23 @@
 #include "Controller.h"
 #include "../stage/Stage.h"
 #include "PhysicsComponent.h"
-#include "PlayerStateComponent.h"
 
 #include "../combat/Attack.h"
 #include "../combat/CombatComponent.h"
 
 class PlayerLC {
 public:
+	enum class State : uint8_t {
+		free,
+		attacking,
+		rolling,
+		stunned,
+		dead,
+		climbing,
+		healing,
+		crouching
+	};
+
 	PlayerLC(EntityId id_ = 0);
 	void update(double timeDelta);
 	PhysicsComponent * getPhysics();
@@ -26,8 +36,6 @@ public:
 	EntityId getId() const;
 
 	void setWeapon(const std::string& weaponTag);
-	void setState(const PlayerState& state);
-	PlayerState getState();
 
 	const static int PLAYER_WIDTH = 4;
 	const static int PLAYER_HEIGHT = 20;

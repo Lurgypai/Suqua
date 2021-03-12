@@ -1,7 +1,10 @@
-
 #include "CapturePointComponent.h"
 #include "../player/PlayerLC.h"
 #include <DebugIO.h>
+#include "NetworkDataComponent.h"
+#include "../combat/CombatData.h"
+
+using NDC = NetworkDataComponent;
 
 //stop rebuilding
 CapturePointComponent::CapturePointComponent(EntityId id_) :
@@ -28,10 +31,12 @@ void CapturePointComponent::tickCapturePoint(double timeDelta) {
 				PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(player.getId());
 				if (zone.intersects(physics->getCollider())) {
 					players.push_back(player.getId());
-					if (prevPlayerTeam != 0 && prevPlayerTeam != combat->teamId) {
+					NDC* data = EntitySystem::GetComp<NDC>(player.getId());
+
+					if (prevPlayerTeam != 0 && prevPlayerTeam != data->get<uint32_t>(TEAM_ID)) {
 						multipleTeams = true;
 					}
-					prevPlayerTeam = combat->teamId;
+					prevPlayerTeam = data->get<uint32_t>(TEAM_ID);
 				}
 			}
 		}
@@ -42,8 +47,8 @@ void CapturePointComponent::tickCapturePoint(double timeDelta) {
 		//DebugIO::printLine(std::to_string(id) + " Idle.");
 		if (!players.empty()) {
 			if (!multipleTeams) {
-				CombatComponent* frontPlayer = EntitySystem::GetComp<CombatComponent>(players.front());
-				targetTeamid = frontPlayer->teamId;
+				NDC* data = EntitySystem::GetComp<NDC>(players.front());
+				targetTeamid = data->get<uint32_t>(TEAM_ID);
 				if (targetTeamid != currTeamId) {
 					state = capturing;
 				}
@@ -79,8 +84,8 @@ void CapturePointComponent::tickCapturePoint(double timeDelta) {
 			else {
 				//DebugIO::printLine(std::to_string(id) + " Capping point:" + std::to_string(remainingCaptureTime));
 
-				CombatComponent* frontPlayer = EntitySystem::GetComp<CombatComponent>(players.front());
-				targetTeamid = frontPlayer->teamId;
+				NDC* data = EntitySystem::GetComp<NDC>(players.front());
+				targetTeamid = data->get<uint32_t>(TEAM_ID);
 				//fix this, it grows linearly.
 				remainingCaptureTime -= players.size() * captureSpeed;
 				SpawnComponent* spawn = EntitySystem::GetComp<SpawnComponent>(id);
@@ -104,8 +109,8 @@ void CapturePointComponent::tickCapturePoint(double timeDelta) {
 			state = idle;
 		}
 		else if(!multipleTeams) {
-			CombatComponent* frontPlayer = EntitySystem::GetComp<CombatComponent>(players.front());
-			targetTeamid = frontPlayer->teamId;
+			NDC* data = EntitySystem::GetComp<NDC>(players.front());
+			targetTeamid = data->get<uint32_t>(TEAM_ID);
 			if (targetTeamid != currTeamId) {
 				state = capturing;
 			}

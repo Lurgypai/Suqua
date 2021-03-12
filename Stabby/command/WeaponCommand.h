@@ -9,5 +9,4 @@ public:
 	virtual void onCommand(const std::vector<std::string>& args) override;
 private:
 	WeaponManager* weapons;
-	Client* client;
 };

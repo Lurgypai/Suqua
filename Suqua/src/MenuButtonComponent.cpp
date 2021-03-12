@@ -1,5 +1,8 @@
 #include "MenuButtonComponent.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
+#include "PositionData.h"
+
+using NDC = NetworkDataComponent;
 
 MenuButtonComponent::MenuButtonComponent(EntityId id_) :
 	id{id_},
@@ -8,8 +11,8 @@ MenuButtonComponent::MenuButtonComponent(EntityId id_) :
 	toggled{false}
 {
 	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
+		if (!EntitySystem::Contains<NDC>() || !EntitySystem::GetComp<NDC>(id)) {
+			EntitySystem::MakeComps<NDC>(1, &id);
 		}
 	}
 }
@@ -19,8 +22,9 @@ EntityId MenuButtonComponent::getId() const {
 }
 
 void MenuButtonComponent::update(Vec2f mousePos, bool toggled_) {
-	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
-	boundingBox.pos = pos->pos;
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	Vec2f pos{ data->get<float>(X), data->get<float>(Y) };
+	boundingBox.pos = pos;
 
 	wasActive = isActive;
 	if (boundingBox.contains(mousePos) && toggled_) {

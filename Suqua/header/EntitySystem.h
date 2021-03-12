@@ -37,6 +37,8 @@ private:
 
 template<typename T>
 inline T * EntitySystem::GetComp(EntityId id) {
+	if (id == 0)
+		throw std::exception{};
 	auto & pool = ComponentMaps.get<T>();
 	if (pool.contains(id - 1))
 		return &pool[id - 1];

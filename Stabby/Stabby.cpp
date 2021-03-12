@@ -24,14 +24,15 @@
 #include "PhysicsSystem.h"
 #include "RenderSystem.h"
 #include "RenderComponent.h"
-#include "PositionComponent.h"
 #include "RandomUtil.h"
 #include "DebugFIO.h"
 #include <ControllerComponent.h>
 #include "RectDrawable.h"
 #include "TextDrawable.h"
 #include "NavMesh.h"
+#include "NetworkDataComponent.h"
 
+#include "combat.h"
 #include "stage.h"
 #include "player.h"
 
@@ -48,7 +49,6 @@
 #include "command/VelocityCommand.h"
 #include "command/TeleportCommand.h"
 #include "command/SpawnPlayerCommand.h"
-#include "command/TeamChangeCommand.h"
 #include "command/HealthCommand.h"
 #include "command/FrameByFrameCommand.h"
 #include "command/StaminaCommand.h"
@@ -56,7 +56,6 @@
 #include "graphics/PlayerGC.h"
 #include "graphics/CapturePointGC.h"
 #include "graphics/HeadParticleLC.h"
-#include "player/OnlinePlayerLC.h"
 #include "graphics/StatBarComponent.h"
 #include "sounds/PlayerSFX.h"
 
@@ -72,6 +71,7 @@ extern "C" {
 using json = nlohmann::json;
 using ControllerEvent = SessionSystem::ControllerEvent;
 using NetworkEvent = SessionSystem::NetworkEvent;
+using NDC = NetworkDataComponent;
 
 const int viewWidth = 640;
 const int viewHeight = 360;
@@ -173,7 +173,6 @@ int main(int argc, char* argv[]) {
 	//glDebugMessageCallback(MessageCallback, 0);
 
 	PhysicsSystem& physics = game.physics;
-	Client& client = game.client;
 
 	/*--------------------------------------------- Commands ---------------------------------------------------------*/
 	DebugIO::getCommandManager().registerCommand<StartCommand>(StartCommand{ game });
@@ -189,7 +188,6 @@ int main(int argc, char* argv[]) {
 	DebugIO::getCommandManager().registerCommand<FacingCommand>();
 	DebugIO::getCommandManager().registerCommand<TeleportCommand>();
 	DebugIO::getCommandManager().registerCommand<SpawnPlayerCommand>(SpawnPlayerCommand{ &game });
-	DebugIO::getCommandManager().registerCommand<TeamChangeCommand>(TeamChangeCommand{ &game.client });
 	DebugIO::getCommandManager().registerCommand<HealthCommand>();
 	bool doFBF{ false };
 	DebugIO::getCommandManager().registerCommand<FrameByFrameCommand>(doFBF);
@@ -328,11 +326,6 @@ int main(int argc, char* argv[]) {
 					}
 					else if (e.key.keysym.sym == SDLK_RETURN) {
 						DebugIO::enterInput();
-						if (client.getConnected()) {
-							CommandPacket commandPacket{};
-							commandPacket.command = DebugIO::getInput().substr(0, commandPacket.command.size());
-							client.send<CommandPacket>(commandPacket);
-						}
 						game.menus.enterTextAllMenus();
 					}
 					else if (e.key.keysym.sym == SDLK_l && !DebugIO::getOpen())
@@ -411,69 +404,7 @@ int main(int argc, char* argv[]) {
 
 						game.respawner.updateAll();
 
-						game.clientPlayers.update(client.getTime(), game.tick);
-
 						game.updateRespawnMenu();
-
-						if (client.getConnected()) {
-							OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(game.getPlayerId());
-
-							//this needs to stay correct even if the loop isn't running. Hence, this is run based off of elapsed times.
-							client.progressTime((static_cast<double>(elapsedTime) / SDL_GetPerformanceFrequency()) / GAME_TIME_STEP);
-
-							if (EntitySystem::Contains<ControllerComponent>()) {
-								ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(game.getPlayerId());
-								if (cont != nullptr) {
-									auto& controller = cont->getController();
-									static ControllerPacket lastSent{};
-
-									ControllerPacket state{};
-									state.clientTime = game.tick;
-									state.state = controller.getState();
-									state.prevState = controller.getPrevState();
-									state.when = client.getTime();
-									state.netId = online->getNetId();
-
-									//the sent state is the controller state from after the timestamped update has run
-									//only compare the current buttons being pressed, not the previous state, to only send toggled controller states
-									if (lastSent.state != state.state) {
-										PlayerLC* player = EntitySystem::GetComp<PlayerLC>(game.getPlayerId());
-										lastSent = state;
-
-										if (player->getState().state != State::dead) {
-											client.send(state);
-											DebugFIO::Out("c_out.txt") << "Sent input " << static_cast<int>(state.state) << ", " << static_cast<int>(state.prevState) << " for time " << game.tick << '\n';
-											//std::cout << "Sending update for time: " << lastSent.when << '\n';
-										}
-									}
-								}
-							}
-							client.ping();
-
-							client.service();
-
-							if (client.isBehindServer()) {
-								std::cout << "We're behind the server, pinging our time and skipping a tick.\n";
-								//bump the client forward
-								game.tick = client.getLastServerTick();
-								client.ping();
-								client.resetBehindServer();
-							}
-
-							if (EntitySystem::Contains<OnlinePlayerLC>()) {
-								for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
-									onlinePlayer.update(client.getTime());
-								}
-							}
-
-							game.loadNewPlayers();
-							game.loadNewCapturePoints();
-
-							DebugIO::setLine(3, "NetId: " + std::to_string(online->getNetId()));
-							DebugIO::setLine(4, "Ping: " + std::to_string(client.getPing()));
-
-							client.sendBuffered();
-						}
 						break;
 					case Game::GameState::offline:
 						physics.runPhysics(CLIENT_TIME_STEP);
@@ -490,25 +421,6 @@ int main(int argc, char* argv[]) {
 						if (!game.isSessionGuided()) {
 							game.mode.tickCapturePoints(game.spawns, CLIENT_TIME_STEP);
 							game.mode.tickRestart(&game.spawns);
-						}
-						else {
-							game.clientPlayers.update(client.getTime(), game.tick);
-							client.readSessionEvents();
-
-							if (client.isBehindServer()) {
-								std::cout << "We're behind the server, pinging our time and skipping a tick.\n";
-								//client.ping();
-								client.resetBehindServer();
-							}
-
-							if (EntitySystem::Contains<OnlinePlayerLC>()) {
-								for (auto& onlinePlayer : EntitySystem::GetPool<OnlinePlayerLC>()) {
-									onlinePlayer.update(client.getTime());
-								}
-							}
-
-							game.loadNewPlayers();
-							game.loadNewCapturePoints();
 						}
 						break;
 					case Game::GameState::stage_editor:
@@ -735,7 +647,8 @@ int main(int argc, char* argv[]) {
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			if (EntitySystem::Contains<PhysicsComponent>()) {
 				for (auto& physics : EntitySystem::GetPool<PhysicsComponent>()) {
-					if (physics.collideable) {
+					NDC* data = EntitySystem::GetComp<NDC>(physics.getId());
+					if (data->get<bool>(COLLIDEABLE)) {
 						const auto& collider = physics.getCollider();
 						Primitive p{ {collider.pos, {collider.pos.x + collider.res.x, collider.pos.y}, {collider.pos.x, collider.pos.y + collider.res.y}, collider.pos + collider.res}, -1.0, Color{1.0, 1.0, 1.0, 1.0} };
 						GLRenderer::DrawFilledPrimitive(p);
@@ -765,15 +678,15 @@ int main(int argc, char* argv[]) {
 			blueOutlineBuffer.bind();
 			GLRenderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			if (EntitySystem::Contains<PlayerStateComponent>()) {
-				for (auto& player : EntitySystem::GetPool<PlayerStateComponent>()) {
-					CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(player.getId());
+			if (EntitySystem::Contains<PlayerLC>()) {
+				for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
+					NDC* data = EntitySystem::GetComp<NDC>(player.getId());
 					RenderComponent* render = EntitySystem::GetComp<RenderComponent>(player.getId());
-					if (combat->teamId == 1) {
+					if (data->get<uint32_t>(TEAM_ID) == 1) {
 						redOutlineBuffer.bind();
 						game.render.draw(*render);
 					}
-					else if (combat->teamId == 2) {
+					else if (data->get<uint32_t>(TEAM_ID) == 2) {
 						blueOutlineBuffer.bind();
 						game.render.draw(*render);
 					}

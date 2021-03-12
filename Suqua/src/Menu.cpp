@@ -7,10 +7,13 @@
 #include "MenuTextBoxComponent.h"
 #include "MenuGridComponent.h"
 #include "RenderComponent.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
+#include "PositionData.h"
 #include "RectDrawable.h"
 #include "GLRenderer.h"
 #include "DebugIO.h"
+
+using NDC = NetworkDataComponent;
 
 Menu::Menu()
 {}
@@ -149,9 +152,10 @@ EntityId Menu::makeButton(const std::string& entryTag_, const AABB& boundingBox)
 	EntitySystem::MakeComps<MenuButtonComponent>(1, &id);
 
 	MenuButtonComponent* button = EntitySystem::GetComp<MenuButtonComponent>(id);
-	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
+	NDC* data = EntitySystem::GetComp<NetworkDataComponent>(id);
 
-	pos->pos = boundingBox.pos;
+	data->set<float>(X, boundingBox.pos.x);
+	data->set<float>(Y, boundingBox.pos.y);
 
 	button->boundingBox = boundingBox;
 	button->tag = entryTag_;
@@ -166,9 +170,10 @@ EntityId Menu::makeTextBox(const std::string& entryTag_, const AABB& boundingBox
 	EntitySystem::MakeComps<MenuTextBoxComponent>(1, &id);
 
 	MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(id);
-	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
+	NDC* data = EntitySystem::GetComp<NetworkDataComponent>(id);
 
-	pos->pos = boundingBox.pos;
+	data->set<float>(X, boundingBox.pos.x);
+	data->set<float>(Y, boundingBox.pos.y);
 
 	textBox->boundingBox = boundingBox;
 	textBox->tag = entryTag_;
@@ -183,9 +188,10 @@ EntityId Menu::makeGrid(const std::string& entryTag_, const AABB& boundingBox) {
 	EntitySystem::MakeComps<MenuGridComponent>(1, &id);
 
 	MenuGridComponent* grid = EntitySystem::GetComp<MenuGridComponent>(id);
-	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
+	NDC* data = EntitySystem::GetComp<NetworkDataComponent>(id);
 
-	pos->pos = boundingBox.pos;
+	data->set<float>(X, boundingBox.pos.x);
+	data->set<float>(Y, boundingBox.pos.y);
 
 	grid->boundingBox = boundingBox;
 	grid->tag = entryTag_;

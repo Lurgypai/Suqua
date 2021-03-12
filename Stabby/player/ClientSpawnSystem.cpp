@@ -17,28 +17,14 @@ void ClientSpawnSystem::updatePlayerSpawn(EntityId player) {
 			respawn->searchForSpawn();
 			break;
 		case selected: {
-			if (!client->getConnected()) {
-				SpawnComponent* spawnZone = EntitySystem::GetComp<SpawnComponent>(respawn->getCurrentSpawn());
-				playerComp->respawn(spawnZone->findSpawnPos());
-				respawn->reset();
-			}
-			else {
-				RespawnRequestPacket respawnRequest;
-				OnlineComponent* respawnOnline = EntitySystem::GetComp<OnlineComponent>(respawn->getCurrentSpawn());
-				respawnRequest.targetRespawnComp = respawnOnline->getNetId();
-				client->buffer(respawnRequest);
-				respawn->reset();
-			}
+			SpawnComponent* spawnZone = EntitySystem::GetComp<SpawnComponent>(respawn->getCurrentSpawn());
+			playerComp->respawn(spawnZone->findSpawnPos());
+			respawn->reset();
+			
 		}
-					 break;
+			break;
 		default:
 			break;
-		}
-	}
-	else {
-		if (client->getConnected()) {
-			RespawnComponent* respawn = EntitySystem::GetComp<RespawnComponent>(player);
-			respawn->reset();
 		}
 	}
 }
@@ -47,10 +33,6 @@ void ClientSpawnSystem::updateAllPlayerSpawns() {
 	for (auto& player : EntitySystem::GetPool<PlayerLC>()) {
 		updatePlayerSpawn(player.getId());
 	}
-}
-
-void ClientSpawnSystem::setClient(Client* client_) {
-	client = client_;
 }
 
 void ClientSpawnSystem::setSpawns(SpawnSystem* spawns_) {

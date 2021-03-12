@@ -1,6 +1,10 @@
 #include "RespawnComponent.h"
 #include "../../combat/CombatComponent.h"
 #include "ControllerComponent.h"
+#include "NetworkDataComponent.h"
+#include "../../combat/CombatData.h"
+
+using NDC = NetworkDataComponent;
 
 RespawnComponent::RespawnComponent(EntityId id_) :
 	id{id_},
@@ -20,15 +24,7 @@ RespawnState RespawnComponent::getState() const {
 }
 
 void RespawnComponent::beginSelecting() {
-	if (state != selecting) {
-		CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
-		spawnList.clear();
-		for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
-			if (spawn.getTeamId() == combat->teamId) {
-				spawnList.insert(spawn.getId());
-			}
-		}
-	}
+	loadSpawnList();
 	if (!spawnList.empty()) {
 		selection = spawnList.begin();
 		currentSpawnZone = *selection;
@@ -39,12 +35,12 @@ void RespawnComponent::beginSelecting() {
 	}
 }
 
-void RespawnComponent::loadSpawnList(SpawnSystem& spawns) {
+void RespawnComponent::loadSpawnList() {
 	if (state != selecting) {
-		CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+		NDC* data = EntitySystem::GetComp<NDC>(id);
 		spawnList.clear();
 		for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
-			if (spawn.getTeamId() == combat->teamId) {
+			if (spawn.getTeamId() == data->get<uint32_t>(TEAM_ID)) {
 				spawnList.insert(spawn.getId());
 			}
 		}
@@ -52,12 +48,12 @@ void RespawnComponent::loadSpawnList(SpawnSystem& spawns) {
 }
 
 void RespawnComponent::updateSpawnList(SpawnSystem& spawns) {
-	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+	NDC* data = EntitySystem::GetComp<NDC>(id);
 	std::set<EntityId> currentSpawns{};
 	bool foundCurrentSelection = false;
 
 	for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
-		if (spawn.getTeamId() == combat->teamId) {
+		if (spawn.getTeamId() == data->get<uint32_t>(TEAM_ID)) {
 			currentSpawns.insert(spawn.getId());
 			if (spawn.getId() == currentSpawnZone)
 				foundCurrentSelection = true;

@@ -5,3 +5,4 @@
 #include "../combat/CombatComponent.h"
 #include "../combat/CombatSystem.h"
 #include "../combat/WeaponManager.h"
+#include "../combat/CombatData.h"

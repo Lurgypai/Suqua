@@ -1,6 +1,9 @@
 #include "PhysicsSystem.h"
 #include "PhysicsComponent.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
+#include "PositionData.h"
+
+using NDC = NetworkDataComponent;
 
 PhysicsSystem::PhysicsSystem() {}
 
@@ -15,24 +18,26 @@ void PhysicsSystem::runPhysics(double timeDelta) {
 void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 	if (EntitySystem::Contains<PhysicsComponent>()) {
 		PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(entity);
-		PositionComponent * position = EntitySystem::GetComp<PositionComponent>(entity);
+		NDC * data = EntitySystem::GetComp<NDC>(entity);
+		Vec2f dataPos{ data->get<float>(X), data->get<float>(Y) };
 
 		//refresh to make sure we're in the right place
-		comp->collider.pos = position->pos;
+		comp->collider.pos = dataPos;
 
-		if (!comp->frozen) {
+		if (!data->get<bool>(FROZEN)) {
 			//accelerate downwards, gravity
-			if (!comp->weightless)
-				comp->accelerate({ 0, comp->weight });
+			if (!data->get<bool>(WEIGHTLESS))
+				comp->accelerate({ 0, data->get<float>(WEIGHT) });
 
-			comp->grounded = false;
-			Vec2f currPos = position->pos;
-			Vec2f& vel = comp->vel;
+			data->get<bool>(GROUNDED) = false;
+			Vec2f currPos = dataPos;
+			Vec2f vel{ data->get<float>(XVEL), data->get<float>(YVEL) };
 			Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
 
 			//handle collisions with the stage
 			for (auto& physicsComp : EntitySystem::GetPool<PhysicsComponent>()) {
-				if (physicsComp.id != comp->id && physicsComp.collideable) {
+				NDC* otherData = EntitySystem::GetComp<NDC>(physicsComp.getId());
+				if (physicsComp.id != comp->id && otherData->get<bool>(COLLIDEABLE)) {
 					auto& collider = physicsComp.getCollider();
 					Vec2f res = comp->getRes();
 					//place we are updating too
@@ -79,7 +84,7 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 						//vertical collision
 						else if (overlap.x == 0.0f && overlap.y != 0.0f) {
 							if (vel.y > 0)
-								comp->grounded = true;
+								data->get<bool>(GROUNDED) = true;
 							vel.y = 0.0f;
 						}
 						//corner collision
@@ -91,19 +96,22 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 								overlap.x = 0;
 								//and stop moving allong the y axis
 								vel.y = 0;
-								comp->grounded = true;
+								data->get<bool>(GROUNDED) = true;
 							}
 							else {
 								overlap.y = 0;
 								vel.x = 0;
 							}
 						}
+						data->get<float>(XVEL) = vel.x;
+						data->get<float>(YVEL) = vel.y;
 						newPos -= overlap;
 					}
 				}
 			}
 			currPos = newPos;
-			position->pos = currPos;
+			data->get<float>(X) = currPos.x;
+			data->get<float>(Y) = currPos.y;
 			comp->collider.pos = currPos;
 		}
 	}

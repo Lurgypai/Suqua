@@ -5,18 +5,17 @@
 #include "ControllerComponent.h"
 #include "RectDrawable.h"
 #include "TextDrawable.h"
-#include "PositionComponent.h"
 #include "GLRenderer.h"
 #include "DebugIO.h"
 #include "MenuButtonComponent.h"
 #include "MenuTextBoxComponent.h"
 #include "MenuGridComponent.h"
+#include "NetworkDataComponent.h"
+#include "PositionData.h"
 
 #include "nlohmann/json.hpp"
 #include "../graphics/PlayerGC.h"
 #include "../graphics/CapturePointGC.h"
-#include "../player/ClientPlayerComponent.h"
-#include "../player/OnlinePlayerLC.h"
 #include "../graphics/camera/PlayerCam.h"
 #include "../graphics/StatBarComponent.h"
 #include "../graphics/HealthReader.h"
@@ -24,23 +23,23 @@
 #include "../sounds/PlayerSFX.h"
 #include "../graphics/TeamPointsReader.h"
 
+#include "combat.h"
+#include "player.h"
+
 #include "Game.h"
 
 using json = nlohmann::json;
+using NDC = NetworkDataComponent;
 
 Game::Game() :
 	tick{0},
 	gameState{GameState::main_menu},
 	physics{},
 	combat{},
-	clientPlayers{&physics, &combat},
 	weaponMenuOpen{false},
-	client{ tick },
 	sessionGuided{false},
 	respawner{&spawns}
-{
-	clientSpawner.setClient(&client);
-}
+{}
 
 void Game::startMainMenu() {
 	if (EntitySystem::Contains<EntityBaseComponent>()) {
@@ -94,7 +93,10 @@ void Game::startMainMenu() {
 	EntitySystem::MakeComps<RenderComponent>(1, &mainMenuBG);
 	RenderComponent* mainMenuRender = EntitySystem::GetComp<RenderComponent>(mainMenuBG);
 	mainMenuRender->loadDrawable<Sprite>("main_menu");
-	EntitySystem::GetComp<PositionComponent>(mainMenuBG)->pos = { 0 , 0 };
+
+	NDC* data = EntitySystem::GetComp<NDC>(mainMenuBG);
+	data->set<float>(X, 0);
+	data->set<float>(Y, 0);
 	renderGroups["main_menu"].entities.push_back(mainMenuBG);
 }
 
@@ -133,76 +135,10 @@ void Game::startOfflineGame(bool sessionGuided_) {
 		renderGroups["gameplay"].entities.push_back(capturePoint);
 	}
 
-	sessionGuided = sessionGuided_;
-
-	if (sessionGuided) {
-		session.unserialize("session");
-		EntitySystem::MakeComps<ClientPlayerComponent>(1, &playerId);
-
-		client.setPlayer(playerId);
-		client.setWeaponManager(weapons);
-		client.setClientPlayerSystem(&clientPlayers);
-		client.setOnlineSystem(&online);
-		client.setMode(&mode);
-		client.setSpawns(&spawns);
-		client.setSessionSystem(&session);
-
-		SessionSystem::NetworkEvent netEvent = session.getNetworkEvents().front();
-
-		WelcomePacket packet{};
-		std::memcpy(&packet, netEvent.enetEvent.packet->data, netEvent.enetEvent.packet->dataLength);
-		packet.unserialize();
-
-		online.registerOnlineComponent(playerId, packet.netId);
-		
-
-		tick = session.getCurrTick();
-	}
-
 	loadInGameUI();
 }
 
 void Game::startOnlineGame() {
-	for (auto& entity : EntitySystem::GetPool<EntityBaseComponent>()) {
-		entity.isDead = true;
-	}
-	menus.getMenu(mainMenu).clear();
-	loadWeaponMenu();
-	loadRespawnMenu();
-	editables.isEnabled = false;
-
-	std::ifstream settingsFile{ "settings.json" };
-	json settings{};
-	settingsFile >> settings;
-	std::string stageName = settings["stage"];
-	std::string address = settings["ip"];
-	std::string name = settings["name"];
-	int port = settings["port"];
-
-	loadStage(stageName);
-
-	playerId = players.makePlayer(weapons);
-	EntitySystem::MakeComps<ClientPlayerComponent>(1, &playerId);
-	EntitySystem::GetComp<NameTagComponent>(playerId)->nameTag = name;
-	makePlayerGFX(playerId);
-
-	client.setPlayer(playerId);
-	client.setWeaponManager(weapons);
-	client.setClientPlayerSystem(&clientPlayers);
-	client.setOnlineSystem(&online);
-	client.setMode(&mode);
-	client.setSpawns(&spawns);
-	client.setSessionSystem(&session);
-
-	client.connect(address, port);
-
-	gameState = GameState::online;
-
-	for (auto& stageAsset : stage.getRenderables()) {
-		renderGroups["gameplay"].entities.push_back(stageAsset);
-	}
-
-	loadInGameUI();
 }
 
 void Game::startStageEditor(const std::string & filePath) {
@@ -328,7 +264,9 @@ void Game::loadInGameUI() {
 	EntitySystem::MakeComps<RenderComponent>(1, &inGameUI.icon);
 	RenderComponent* icon = EntitySystem::GetComp<RenderComponent>(inGameUI.icon);
 	icon->loadDrawable<Sprite>("weapon::" + combat->getAttack().getId() + "_icon");
-	EntitySystem::GetComp<PositionComponent>(inGameUI.icon)->pos = { 7,6 };
+	NDC* data = EntitySystem::GetComp<NDC>(inGameUI.icon);
+	data->set<float>(X, 7);
+	data->set<float>(Y, 6);
 	icon->getDrawable<Sprite>()->setDepth(-0.6);
 
 	renderGroups["i_gui"].entities.push_back(inGameUI.healthBar);
@@ -380,64 +318,6 @@ void Game::addRenderGroup(const std::string& tag, int camId) {
 
 void Game::updatePlayerCamera() {
 	static_cast<PlayerCam&>(GLRenderer::getCamera(playerCamId)).update(playerId);
-}
-
-void Game::loadNewPlayers() {
-	if (!client.getNewPlayers().empty()) {
-		auto size = client.getNewPlayers().size();
-
-		std::vector<EntityId> entities;
-		entities.resize(size);
-		EntitySystem::GenEntities(entities.size(), entities.data());
-		EntitySystem::MakeComps<OnlinePlayerLC>(entities.size(), entities.data());
-		EntitySystem::MakeComps<OnlineComponent>(entities.size(), entities.data());
-		EntitySystem::MakeComps<NameTagComponent>(entities.size(), entities.data());
-
-		unsigned int i = 0;
-		for(auto& netId : client.getNewPlayers()) {
-			EntityId entity = entities[i];
-			online.registerOnlineComponent(entity, netId);
-			EntitySystem::GetComp<CombatComponent>(entity)->hurtboxes.emplace_back(Hurtbox{ Vec2f{ -2, -20 }, AABB{ {0, 0}, {4, 20} } });
-			EntitySystem::GetComp<CombatComponent>(entity)->health = 100;
-			EntitySystem::GetComp<CombatComponent>(entity)->setAttack("sword");
-			EntitySystem::GetComp<CombatComponent>(entity)->stats = CombatStats{ 100, 2, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-			EntitySystem::GetComp<CombatComponent>(entity)->ignoreDamage = true;
-			PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(entity);
-			pos->pos = { 0, 0 };
-
-			makePlayerGFX(entity);
-
-			++i;
-		}
-	}
-	client.clearNewPlayers();
-}
-
-void Game::loadNewCapturePoints() {
-	for (const auto& packet : client.getMissingCapturePoints()) {
-		bool spawnWasFound = false;
-		for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
-			if (spawn.getSpawnZone() == packet.zone) {
-				EntityId id = spawn.getId();
-				spawnWasFound = true;
-				mode.createZone(id, packet.zone, packet.state.currTeamId, packet.state.totalCaptureTime, packet.state.remainingCaptureTime);
-
-				CapturePointComponent* capturePoint = EntitySystem::GetComp<CapturePointComponent>(id);
-				capturePoint->setState(packet.state);
-
-				EntitySystem::MakeComps<CapturePointGC>(1, &id);
-
-				renderGroups["gameplay"].entities.push_back(id);
-
-				online.registerOnlineComponent(id, packet.netId);
-			}
-		}
-		if (!spawnWasFound) {
-			//unable to sync with server, throw an error
-			throw std::exception{};
-		}
-	}
-	client.clearMissingCapturePoints();
 }
 
 void Game::updateEditorCamera() {
@@ -564,8 +444,9 @@ void Game::updateWeaponMenu() {
 
 					EntityId buttonImgId = weaponIcons[grid->prefix];
 					RenderComponent* render = EntitySystem::GetComp<RenderComponent>(buttonImgId);
-					PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(buttonImgId);
-					pos->pos = currButton.pos;
+					NDC* data = EntitySystem::GetComp<NDC>(buttonImgId);
+					data->get<float>(X) = currButton.pos.x;
+					data->get<float>(Y) = currButton.pos.y;
 					render->getDrawable<Sprite>()->setScale({ 1, 1 });
 				}
 			}
@@ -577,8 +458,9 @@ void Game::updateWeaponMenu() {
 
 				EntityId buttonImgId = weaponIcons[buttonTag];
 				RenderComponent* render = EntitySystem::GetComp<RenderComponent>(buttonImgId);
-				PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(buttonImgId);
-				pos->pos = currButton.pos;
+				NDC* data = EntitySystem::GetComp<NDC>(buttonImgId);
+				data->get<float>(X) = currButton.pos.x;
+				data->get<float>(Y) = currButton.pos.y;
 				render->getDrawable<Sprite>()->setScale({ 1, 1 });
 				++i;
 			}
@@ -606,26 +488,10 @@ void Game::updateWeaponMenu() {
 
 
 						if (EntitySystem::Contains<PlayerLC>() && EntitySystem::Contains<PlayerGC>()) {
-							if (!client.getConnected()) {
-								PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
-								PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(playerId);
+							PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
+							PlayerGC* graphics = EntitySystem::GetComp<PlayerGC>(playerId);
 
-								player->setWeapon(response);
-							}
-							else {
-								OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(playerId);
-								size_t size = response.size();
-
-								WeaponChangePacket p;
-								p.size = size;
-								p.id = online->getNetId();
-								p.serialize();
-								char* data = static_cast<char*>(malloc(sizeof(WeaponChangePacket) + size));
-								memcpy(data, &p, sizeof(WeaponChangePacket));
-								memcpy(data + sizeof(WeaponChangePacket), response.data(), size);
-								client.send(sizeof(WeaponChangePacket) + size, data);
-								free(data);
-							}
+							player->setWeapon(response);
 						}
 					}
 				}
@@ -662,11 +528,14 @@ void Game::updateInGameUI() {
 	}
 
 	RenderComponent* winningText = EntitySystem::GetComp<RenderComponent>(winningTeamText);
-	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(winningTeamText);
+
 	TextDrawable* textDrawable = winningText->getDrawable<TextDrawable>();
 	if (mode.getWinner()) {
 		textDrawable->text = "Team " + std::to_string(mode.getWinner()) + " has won!";
-		pos->pos = (Vec2f{ 640, 360 } - textDrawable->getBoundingBox().res).scale(0.5);
+		auto pos = (Vec2f{ 640, 360 } - textDrawable->getBoundingBox().res).scale(0.5);
+		NDC* data = EntitySystem::GetComp<NDC>(winningTeamText);
+		data->get<float>(X) = pos.x;
+		data->get<float>(Y) = pos.y;
 	}
 	else {
 		textDrawable->text = "";
@@ -693,7 +562,9 @@ void Game::loadWeaponMenu() {
 	RenderComponent* weaponMenuRender = EntitySystem::GetComp<RenderComponent>(weaponMenuBG);
 	weaponMenuRender->loadDrawable<Sprite>("weapon_menu");
 	weaponMenuRender->getDrawable<Sprite>()->setDepth(-0.7);
-	EntitySystem::GetComp<PositionComponent>(weaponMenuBG)->pos = { 0, 0 };
+	NDC* data = EntitySystem::GetComp<NDC>(weaponMenuBG);
+	data->set<float>(X, 0);
+	data->set<float>(Y, 0);
 
 	for (auto& weapon : tags) {
 		EntityId iconId;
@@ -758,8 +629,13 @@ void Game::loadRespawnMenu() {
 	leftArrowRender->getDrawable<AnimatedSprite>()->setAnimation(0);
 	rightArrowRender->getDrawable<AnimatedSprite>()->setAnimation(0);
 
-	EntitySystem::GetComp<PositionComponent>(respawnMenu.leftArrow)->pos = {300, 170};
-	EntitySystem::GetComp<PositionComponent>(respawnMenu.rightArrow)->pos = {340, 170};
+
+	NDC* data = EntitySystem::GetComp<NDC>(respawnMenu.leftArrow);
+	data->set<float>(X, 300);
+	data->set<float>(Y, 170);
+	data = EntitySystem::GetComp<NDC>(respawnMenu.rightArrow);
+	data->set<float>(X, 240);
+	data->set<float>(Y, 170);
 
 	counterRender->loadDrawable<TextDrawable>();
 	TextDrawable* text = counterRender->getDrawable<TextDrawable>();
@@ -770,10 +646,10 @@ void Game::loadRespawnMenu() {
 
 void Game::openRespawnMenu() {
 	renderGroups["respawn_menu"].entities.clear();
-	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(playerId);
+	NDC* data = EntitySystem::GetComp<NDC>(playerId);
 	int spawnCount = 0;
 	for (auto& spawn : EntitySystem::GetPool<SpawnComponent>()) {
-		if (spawn.getTeamId() == combat->teamId) {
+		if (spawn.getTeamId() == data->get<uint32_t>(TEAM_ID)) {
 			++spawnCount;
 			//as soon as we know there are enough spawns to open the menu
 			if (spawnCount > 1) break;
@@ -788,8 +664,9 @@ void Game::openRespawnMenu() {
 
 void Game::updateRespawnMenu() {
 	PlayerLC* player = EntitySystem::GetComp<PlayerLC>(playerId);
+	NDC* data = EntitySystem::GetComp<NDC>(playerId);
 
-	if (player->getState().state == State::dead && !player->shouldRespawn()) {
+	if (static_cast<PlayerLC::State>(data->get<char>(STATE)) == PlayerLC::State::dead && !player->shouldRespawn()) {
 		if (!respawnMenu.counterVisible) {
 			respawnMenu.counterVisible = true;
 			renderGroups["respawn_menu"].entities.push_back(respawnMenu.counter);
@@ -798,7 +675,9 @@ void Game::updateRespawnMenu() {
 		TextDrawable* text = EntitySystem::GetComp<RenderComponent>(respawnMenu.counter)->getDrawable<TextDrawable>();
 		text->text = std::to_string(static_cast<int>(std::ceil(respawnMenu.counterVal * (1.0f - player->getRespawnProgress()))));
 		const auto& box = text->getBoundingBox();
-		EntitySystem::GetComp<PositionComponent>(respawnMenu.counter)->pos = { 320 - (box.res.x/2), 180-(box.res.y/2) };
+		NDC * data = EntitySystem::GetComp<NDC>(respawnMenu.counter);
+		data->get<float>(X) = 320 - (box.res.x / 2);
+		data->get<float>(Y) = 180 - (box.res.y / 2);
 	}
 	else {
 		respawnMenu.counterVisible = false;
@@ -854,9 +733,10 @@ void Game::makePlayerGFX(EntityId playerId_) {
 }
 
 void Game::hideEnemyNametags() {
-	CombatComponent* ourCombat = EntitySystem::GetComp<CombatComponent>(playerId);
+	NDC* ourData = EntitySystem::GetComp<NDC>(playerId);
 	for (auto& combat : EntitySystem::GetPool<CombatComponent>()) {
-		if (combat.teamId != ourCombat->teamId) {
+		NDC* otherData = EntitySystem::GetComp<NDC>(combat.getId());
+		if (otherData->get<uint32_t>(TEAM_ID) != ourData->get<uint32_t>(TEAM_ID)) {
 			PlayerGC* otherPlayer = EntitySystem::GetComp<PlayerGC>(combat.getId());
 			RenderComponent* otherNameTag = EntitySystem::GetComp<RenderComponent>(otherPlayer->getNameTageRenderId());
 			otherNameTag->getDrawable<TextDrawable>()->text = "";

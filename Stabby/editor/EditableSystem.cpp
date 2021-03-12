@@ -6,11 +6,12 @@
 #include "SDL.h"
 #include "GLRenderer.h"
 #include "DebugIO.h"
+#include "NetworkDataComponent.h"
+#include "PositionData.h"
 #include <fstream>
 #include <iostream>
 #include <RenderComponent.h>
 #include <EntityBaseComponent.h>
-#include <PositionComponent.h>
 #include <cstring>
 
 EditableSystem::EditableSystem() :
@@ -89,7 +90,9 @@ void EditableSystem::loadStageImage(const std::string& stage_) {
 	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(bgImage);
 	const auto& res = render->getDrawable<Sprite>()->getImgRes();
 	render->getDrawable<Sprite>()->setDepth(0.5);
-	EntitySystem::GetComp<PositionComponent>(bgImage)->pos = { -res.x / 2, -res.y };
+	NetworkDataComponent* data = EntitySystem::GetComp<NetworkDataComponent>(bgImage);
+	data->get<float>(X) = -res.x / 2;
+	data->get<float>(Y) = -res.y;
 }
 
 void EditableSystem::save(const std::string& stage_) {

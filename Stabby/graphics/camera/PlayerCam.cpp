@@ -2,7 +2,8 @@
 
 #include "PlayerCam.h"
 #include "PhysicsComponent.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
+#include "PositionData.h"
 
 #include "player.h"
 
@@ -25,9 +26,9 @@ void PlayerCam::update(EntityId targetId) {
 						center(physics->center());
 					}
 					else {
-						PositionComponent* position = EntitySystem::GetComp<PositionComponent>(targetId);
-						if (position != nullptr) {
-							center(position->pos);
+						NetworkDataComponent* data = EntitySystem::GetComp<NetworkDataComponent>(targetId);
+						if (data != nullptr) {
+							center({data->get<float>(X), data->get<float>(Y)});
 						}
 					}
 				}

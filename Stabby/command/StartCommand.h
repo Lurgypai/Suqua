@@ -1,6 +1,5 @@
 #pragma once
 #include "Command.h"
-#include "../client/Client.h"
 #include "../game/Game.h"
 
 class StartCommand : public Command {

@@ -2,13 +2,14 @@
 #include "FileNotFoundException.h"
 #include <iostream>
 #include "HeadParticleLC.h"
-#include "PositionComponent.h"
-#include "DirectionComponent.h"
 #include "Color.h"
 #include "TextDrawable.h"
 #include "EntityBaseComponent.h"
+#include "DirectionData.h"
+#include "PositionData.h"
+#include "combat.h"
 
-#include "../player/OnlinePlayerLC.h"
+using NDC = NetworkDataComponent;
 
 PlayerGC::PlayerGC(EntityId id_) :
 	id{ id_ },
@@ -24,10 +25,6 @@ PlayerGC::PlayerGC(EntityId id_) :
 	if (id != 0) {
 		if (!EntitySystem::Contains<RenderComponent>() || EntitySystem::GetComp<RenderComponent>(id) == nullptr) {
 			EntitySystem::MakeComps<RenderComponent>(1, &id);
-		}
-		if (!EntitySystem::Contains<DirectionComponent>() || EntitySystem::GetComp<DirectionComponent>(id) == nullptr) {
-			EntitySystem::MakeComps<DirectionComponent>(1, &id);
-			EntitySystem::GetComp<DirectionComponent>(id)->dir = 1;
 		}
 	}
 }
@@ -63,16 +60,20 @@ void PlayerGC::loadNameTag() {
 	EntitySystem::GenEntities(1, &nameTagId);
 	EntitySystem::MakeComps<RenderComponent>(1, &nameTagId);
 	RenderComponent* nameTagRender = EntitySystem::GetComp<RenderComponent>(nameTagId);
-	NameTagComponent* nameTag = EntitySystem::GetComp<NameTagComponent>(id);
+	NDC* nameTagData = EntitySystem::GetComp<NDC>(nameTagId);
+	nameTagData->set<float>(X, 0.0f);
+	nameTagData->set<float>(Y, 0.0f);
+
 	nameTagRender->loadDrawable<TextDrawable>();
 
 
+	NDC* data = EntitySystem::GetComp<NDC>(id);
 	auto* drawable = nameTagRender->getDrawable<TextDrawable>();
 	drawable->color = { 1.0, 1.0, 1.0, 1.0 };
 	drawable->anti_alias = true;
 	drawable->font.loadDataFile("suqua/fonts/consolas.fnt");
 	drawable->scale = { .5, .5 };
-	drawable->text = nameTag->nameTag.str();
+	drawable->text = data->get<std::string>(USER_TAG);
 	drawable->depth = -0.2;
 	nameTagRender->offset = {(drawable->getBoundingBox().res.x / 2), drawable->getBoundingBox().res.y + 25};
 }
@@ -104,47 +105,34 @@ void PlayerGC::spawnHead(Vec2f pos) {
 */
 
 void PlayerGC::updateState(double timeDelta) {
-	PlayerLC* player = EntitySystem::GetComp<PlayerLC>(id);
-	PlayerState state{};
-	if (player) {
-		state = player->getState();
-	}
-	else {
-		OnlinePlayerLC* onlinePlayer = EntitySystem::GetComp<OnlinePlayerLC>(id);
-		if (onlinePlayer) {
-			PlayerStateComponent* stateComp = EntitySystem::GetComp<PlayerStateComponent>(id);
-			state = stateComp->playerState;
-		}
-		else {
-			throw std::exception{};
-		}
-	}
+	using State = PlayerLC::State;
 
 	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(id);
-	DirectionComponent* direction = EntitySystem::GetComp<DirectionComponent>(id);
 	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
+	NDC* data = EntitySystem::GetComp<NDC>(id);
 
-	State plrState = state.state;
+	State plrState = static_cast<PlayerLC::State>(data->get<char>(STATE));
+	Vec2f pos = { data->get<float>(X), data->get<float>(Y) };
 
 	if (!animationFrozen) {
 		if (plrState == State::attacking) {
 			if (prevState != State::attacking) {
-				if (state.weaponTag != currAttackTag) {
-					currAttackTag = state.weaponTag.str();
+				if (data->get<std::string>(WEAPON_TAG) != currAttackTag) {
+					currAttackTag = data->get<std::string>(WEAPON_TAG);
 				}
 				render->setDrawable<AnimatedSprite>(attackAnimations[currAttackTag]);
 			}
 			AnimatedSprite& sprite = *render->getDrawable<AnimatedSprite>();
 			int width = sprite.getObjRes().abs().x;
 			int height = sprite.getObjRes().abs().y;
-			sprite.setObjRes(Vec2i{ direction->dir * width, height });
+			sprite.setObjRes(Vec2i{ data->get<int32_t>(DIR) * width, height });
 
-			sprite.frameDelay = defaultFrameDelay / state.attackSpeed;
+			sprite.frameDelay = defaultFrameDelay / data->get<double>(ATTACK_SPEED);
 
 			sprite.looping = false;
 
-			if (state.activeAttack != prevAttack) {
-				sprite.setAnimation(state.activeAttack);
+			if (data->get<uint32_t>(ACTIVE_ATTACK) != prevAttack) {
+				sprite.setAnimation(data->get<uint32_t>(ACTIVE_ATTACK));
 			}
 			sprite.forward(timeDelta);
 		}
@@ -155,7 +143,7 @@ void PlayerGC::updateState(double timeDelta) {
 			AnimatedSprite& sprite = *render->getDrawable<AnimatedSprite>();
 			int width = sprite.getObjRes().abs().x;
 			int height = sprite.getObjRes().abs().y;
-			sprite.setObjRes(Vec2i{ direction->dir * width, height });
+			sprite.setObjRes(Vec2i{ data->get<int32_t>(DIR) * width, height });
 
 			if (prevState != plrState) {
 
@@ -183,21 +171,21 @@ void PlayerGC::updateState(double timeDelta) {
 			}
 
 			if (plrState == State::climbing) {
-				sprite.frameDelay = defaultFrameDelay / state.moveSpeed * 3;
+				sprite.frameDelay = defaultFrameDelay / data->get<double>(MOVE_SPEED) * 3;
 				sprite.looping = true;
 			}
 
 			if (plrState == State::free) {
-				sprite.frameDelay = defaultFrameDelay / state.moveSpeed;
+				sprite.frameDelay = defaultFrameDelay / data->get<double>(MOVE_SPEED);
 				sprite.looping = true;
-				if (state.vel.x == 0)
+				if (data->get<float>(XVEL) == 0)
 					sprite.setAnimation(idle);
 				else if (prevState != State::free || prevXVel == 0)
 					sprite.setAnimation(walking);
 
 			}
 
-			if (plrState != State::climbing || state.vel.x != 0 || state.vel.y != 0)
+			if (plrState != State::climbing || data->get<float>(XVEL) != 0 || data->get<float>(YVEL) != 0)
 				sprite.forward(timeDelta);
 		}
 
@@ -205,24 +193,24 @@ void PlayerGC::updateState(double timeDelta) {
 
 		if (shouldSpawnHead && plrState == State::dead) {
 			shouldSpawnHead = false;
-			Vec2f spawnPos = state.pos;
+			Vec2f spawnPos = pos;
 			spawnPos.y -= 15;
 			Particle p1{ Color{1, 1, 1, 1}, spawnPos, -90, 1.5f, 100, 0 };
 			GLRenderer::SpawnParticles("blood", 50, p1, 180.0f, 1.0f, 0.0f, { 2.0f, 2.0f });
 		}
 
-		prevXVel = state.vel.x;
-		prevAttack = state.activeAttack;
+		prevXVel = data->get<float>(XVEL);
+		prevAttack = data->get<uint32_t>(ACTIVE_ATTACK);
 		prevState = plrState;
 	}
 
-	if (state.state == State::stunned) {
-		if (!wasStunned || state.stunFrame > prevStunFrame) {
+	if (plrState == State::stunned) {
+		if (!wasStunned || data->get<uint32_t>(STUN_FRAME) > prevStunFrame) {
 			PhysicsComponent* otherPlayer = EntitySystem::GetComp<PhysicsComponent>(combat->getLastAttacker());
 			CombatComponent* otherCombat = EntitySystem::GetComp<CombatComponent>(combat->getLastAttacker());
 			if (otherPlayer) {
-				auto spawnPos = state.pos + Vec2f{ 0, -10 };
-				float dir = otherPlayer->getPos().x < state.pos.x;
+				auto spawnPos = pos + Vec2f{ 0, -10 };
+				float dir = otherPlayer->getPos().x < pos.x;
 				dir = dir * 2 - 1;
 
 				Particle p1{ Color{1, 1, 1, 1}, spawnPos, -90 + (45 * dir), 1.8f, 100, 0 };
@@ -231,18 +219,20 @@ void PlayerGC::updateState(double timeDelta) {
 		}
 	}
 
-	prevStunFrame = state.stunFrame;
-	wasStunned = state.state == State::stunned;
+	prevStunFrame = data->get<uint32_t>(STUN_FRAME);
+	wasStunned = plrState == State::stunned;
 
 
 	//after updating the frame, update wether or not to freeze on that frame
 	animationFrozen = combat->isFrozen();
 
-	PositionComponent* nameTagPos = EntitySystem::GetComp<PositionComponent>(nameTagId);
-	nameTagPos->pos = state.pos;
+	NDC* nameTagData = EntitySystem::GetComp<NDC>(nameTagId);
+	nameTagData->get<float>(X) = pos.x;
+	nameTagData->get<float>(Y) = pos.y;
+	
 	RenderComponent* nameTagRender = EntitySystem::GetComp<RenderComponent>(nameTagId);
 	auto* drawable = nameTagRender->getDrawable<TextDrawable>();
-	drawable->text = state.userTag.str();
+	drawable->text = data->get<std::string>(USER_TAG);
 	nameTagRender->offset = { (drawable->getBoundingBox().res.x / 2), drawable->getBoundingBox().res.y + 25 };
 
 	EntityBaseComponent* base = EntitySystem::GetComp<EntityBaseComponent>(id);

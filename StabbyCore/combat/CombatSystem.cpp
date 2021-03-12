@@ -1,6 +1,10 @@
 #include "CombatSystem.h"
 #include "PhysicsComponent.h"
-#include "DirectionComponent.h"
+#include "NetworkDataComponent.h"
+#include "DirectionData.h"
+#include "CombatData.h"
+
+using NDC = NetworkDataComponent;
 
 CombatSystem::CombatSystem() {}
 
@@ -69,18 +73,18 @@ void CombatSystem::updateState(CombatComponent& attacker, double timeDelta) {
 	attacker.updateFreezeFrame();
 
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(attacker.getId());
-	DirectionComponent* direction = EntitySystem::GetComp<DirectionComponent>(attacker.getId());
+	NDC* data = EntitySystem::GetComp<NDC>(attacker.getId());
 
 	if (physics != nullptr) {
 		if (!attacker.isFrozen())
-			physics->frozen = false;
+			data->get<bool>(FROZEN) = false;
 		else
-			physics->frozen = true;
+			data->get<bool>(FROZEN) = true;
 
 		if (!attacker.isFrozen()) {
 			attacker.updateStun();
 			attacker.updateStamina();
-			attacker.attack->update(timeDelta, physics->getPos(), direction->dir);
+			attacker.attack->update(timeDelta, physics->getPos(), data->get<int32_t>(DIR));
 		}
 	}
 }
@@ -89,18 +93,24 @@ void CombatSystem::attackCheck(CombatComponent& attacker, CombatComponent& defen
 	EntityId attackerId = attacker.getId();
 	EntityId defenderId = defender.getId();
 
+	NDC* attackerData = EntitySystem::GetComp<NDC>(attackerId);
+	NDC* defenderData = EntitySystem::GetComp<NDC>(defenderId);
+
+	const uint32_t& attackerTeam = attackerData->get<uint32_t>(TEAM_ID);
+	const uint32_t& defenderTeam = defenderData->get<uint32_t>(TEAM_ID);
+
 	if (attackerId != defenderId) {
 		if (defender.isAlive()) {
-			if (attacker.teamId != 0 && defender.teamId != 0 && attacker.teamId != defender.teamId) {
+			if (attackerTeam != 0 && defenderTeam != 0 && attackerTeam != defenderTeam) {
 				if (isInRange(attackerId, defenderId)) {
 					bool attackChanged = attacker.attack->pollAttackChange();
 					if (attackChanged) {
 						attacker.clearHitEntities();
 						uint32_t staminaCost = attacker.getStaminaCost();
-						if (staminaCost < attacker.stamina)
+						if (staminaCost < attackerData->get<uint32_t>(STAMINA))
 							attacker.useStamina(staminaCost);
 						else
-							attacker.useStamina(attacker.stamina);
+							attacker.useStamina(attackerData->get<uint32_t>(STAMINA));
 					}
 					if (attackChanged || !attacker.hasHitEntity(defenderId)) {
 						auto* activeHitbox = attacker.getActiveHitbox();

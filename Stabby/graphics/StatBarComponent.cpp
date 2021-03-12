@@ -1,7 +1,8 @@
 #include "StatBarComponent.h"
 #include "RenderComponent.h"
 #include "RectDrawable.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
+#include "PositionData.h"
 
 StatBarComponent::StatBarComponent(EntityId id_) :
 	id{id_},
@@ -63,8 +64,9 @@ void StatBarComponent::update() {
 		rect->c = { 1.0f - (1.0f - c.r) * ratio, 1.0f - (1.0f - c.g) * ratio, 1.0f - (1.0f - c.b) * ratio, c.a };
 	}
 
-	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
-	pos->pos = rect->shape.pos;
+	NetworkDataComponent* data = EntitySystem::GetComp<NetworkDataComponent>(id);
+	data->get<float>(X) = rect->shape.pos.x;
+	data->get<float>(Y) = rect->shape.pos.y;
 }
 
 void StatBarComponent::setTarget(EntityId target_) {

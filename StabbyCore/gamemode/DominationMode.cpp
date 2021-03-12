@@ -2,11 +2,14 @@
 #include "DominationMode.h"
 #include "../player/spawn/SpawnComponent.h"
 #include "RandomUtil.h"
-#include "PositionComponent.h"
 #include "CapturePointComponent.h"
 #include "DebugIO.h"
+#include "NetworkDataComponent.h"
+#include "../combat/CombatData.h"
 
 #include <iostream>
+
+using NDC = NetworkDataComponent;
 
 void DominationMode::load(SpawnSystem* spawns, unsigned int totalTeams_, unsigned int pointsPerCap_, unsigned int winningPoints_)
 {
@@ -162,7 +165,6 @@ bool DominationMode::restarting() {
 }
 
 void DominationMode::addPlayer(EntityId id) {
-	CombatComponent* combat = EntitySystem::GetComp<CombatComponent>(id);
 	unsigned int targetTeamId = 1;
 	int minSize = -1;
 	for (auto& pair : teams) {
@@ -171,8 +173,9 @@ void DominationMode::addPlayer(EntityId id) {
 			minSize = pair.second.players.size();
 		}
 	}
-
-	combat->teamId = targetTeamId;
+	
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->get<uint32_t>(TEAM_ID) = targetTeamId;
 	teams[targetTeamId].players.push_back(id);
 }
 

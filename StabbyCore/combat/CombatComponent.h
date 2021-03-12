@@ -65,14 +65,7 @@ public:
 	EntityId getLastAttacker();
 
 	CombatStats stats;
-	int health;
-	uint32_t stamina;
 	uint32_t staminaMax;
-	uint32_t staminaRechargeFrame;
-	uint32_t freezeFrame;
-	unsigned int teamId;
-	unsigned int stunFrame;
-	bool invulnerable;
 	bool ignoreDamage;
 	std::vector<Hurtbox> hurtboxes;
 private:

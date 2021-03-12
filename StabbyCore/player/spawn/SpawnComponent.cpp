@@ -1,7 +1,10 @@
 #include "SpawnComponent.h"
 #include "RandomUtil.h"
 #include <PhysicsComponent.h>
-#include <PositionComponent.h>
+#include <NetworkDataComponent.h>
+#include "PositionData.h"
+
+using NDC = NetworkDataComponent;
 
 SpawnComponent::SpawnComponent(EntityId id_) :
 	id{id_}
@@ -20,9 +23,10 @@ void SpawnComponent::generateSpawns() {
 			spawnPos.y = spawnZone.pos.y + spawnZone.res.y;
 			bool spawnable{ false };
 			for (auto& physics : EntitySystem::GetPool<PhysicsComponent>()) {
-				if (physics.collideable) {
+				NDC* data = EntitySystem::GetComp<NDC>(physics.getId());
+				if (data->get<bool>(COLLIDEABLE)) {
 					const AABB& collider = physics.getCollider();
-					const Vec2f& colliderPos = EntitySystem::GetComp<PositionComponent>(physics.getId())->pos;
+					Vec2f colliderPos{data->get<float>(X), data->get<float>(Y)};
 					if (spawnPos.x > colliderPos.x && spawnPos.x < colliderPos.x + collider.res.x) {
 						if (!spawnable || (colliderPos.y < spawnPos.y && colliderPos.y > spawnZone.pos.y)) {
 							spawnPos.y = colliderPos.y;
