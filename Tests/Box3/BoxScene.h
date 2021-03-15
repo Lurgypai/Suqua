@@ -1,18 +1,20 @@
 #include "Scene.h"
 #include "PhysicsSystem.h"
+#include "InputDevice.h"
 
 class BoxScene : public Scene {
 public:
-	BoxScene(SceneId id_);
-
+	BoxScene(SceneId id_, char flags_, InputDeviceId input_);
 	// Inherited via Scene
 	virtual void load() override;
-	virtual void prePhysicsStep(double physics_step) override;
-	virtual void physicsStep(double physics_step) override;
-	virtual void postPhysicsStep(double physics_step) override;
-	virtual void preRenderStep(RenderSystem& render) override;
-	virtual void renderStep(RenderSystem& render) override;
-	virtual void postRenderStep(RenderSystem& render) override;
+	virtual void prePhysicsStep(Game& game) override;
+	virtual void physicsStep(Game& game) override;
+	virtual void postPhysicsStep(Game& game) override;
+	virtual void preRenderStep(Game& game) override;
+	virtual void renderStep(Game& game) override;
+	virtual void postRenderStep(Game& game) override;
+	virtual void unload() override;
 private:
 	PhysicsSystem physics;
+	InputDeviceId input;
 };

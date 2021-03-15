@@ -4,6 +4,6 @@
 
 class RenderSystem {
 public:
-	void drawAll();
-	void draw(RenderComponent& render);
+	void drawAll() const;
+	void draw(RenderComponent& render) const;
 };

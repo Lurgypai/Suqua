@@ -20,3 +20,10 @@ target_include_directories(Box3 PUBLIC
 )
 
 target_link_libraries(Box3 ${SDL2_LIBRARIES} Suqua)
+
+add_custom_command(
+    TARGET Box3 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/rsrc/
+        $<TARGET_FILE_DIR:Box3>
+)

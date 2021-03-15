@@ -9,39 +9,120 @@ Game::Game(double physics_step, double render_step) :
 
 Game::~Game() {}
 
+InputDevice& Game::getInputDevice(InputDeviceId id) {
+	return *inputDevices.at(id);
+}
+
+void Game::setSceneFlags(SceneId id, Scene::FlagType flags_, bool value) {
+	Scene* scene;
+	for (auto&& s : scenes) {
+		if (s->getId() == id)
+			scene = s.get();
+	}
+	//scene not found
+	if (!scene)
+		throw std::exception{};
+
+	if (!value)
+		scene->flags &= ~flags_;
+	else
+		scene->flags |= flags_;
+}
+
+void Game::toggleSceneFlags(SceneId id, Scene::FlagType flags_) {
+	Scene* scene;
+	for (auto&& s : scenes) {
+		if (s->getId() == id)
+			scene = s.get();
+	}
+	//scene not found
+	if (!scene)
+		throw std::exception{};
+
+	scene->flags ^= flags_;
+}
+
+void Game::sceneOn(SceneId id) {
+	Scene* scene;
+	for (auto&& s : scenes) {
+		if (s->getId() == id)
+			scene = s.get();
+	}
+
+	//scene not found
+	if (!scene)
+		throw std::exception{};
+
+	scene->flags = Scene::all;
+}
+
+void Game::sceneOff(SceneId id) {
+	Scene* scene;
+	for (auto&& s : scenes) {
+		if (s->getId() == id)
+			scene = s.get();
+	}
+
+	//scene not found
+	if (!scene)
+		throw std::exception{};
+
+	scene->flags = Scene::none;
+}
+
+void Game::inputStep() {
+	for (auto&& scene : scenes) {
+		if (scene->flags & Scene::Flag::input) {
+			scene->applyInputs(*this);
+		}
+	}
+}
+
 void Game::prePhysicsStep() {
 	for (auto&& scene : scenes) {
-		scene->prePhysicsStep(PHYSICS_STEP);
+		if (scene->flags & Scene::Flag::physics) {
+			scene->prePhysicsStep(*this);
+		}
 	}
 }
 
 void Game::physicsStep() {
 	for (auto&& scene : scenes) {
-		scene->physicsStep(PHYSICS_STEP);
+		if (scene->flags & Scene::Flag::physics) {
+			scene->physicsStep(*this);
+		}
 	}
 }
 
 void Game::postPhysicsStep() {
 	for (auto&& scene : scenes) {
-		scene->postPhysicsStep(PHYSICS_STEP);
+		if (scene->flags & Scene::Flag::physics) {
+			scene->postPhysicsStep(*this);
+		}
 	}
 }
 
 void Game::preRenderStep() {
 	for (auto&& scene : scenes) {
-		scene->preRenderStep(render);
+		if (scene->flags & Scene::Flag::physics) {
+			scene->preRenderStep(*this);
+		}
 	}
 }
 
 void Game::renderStep() {
 	for (auto&& scene : scenes) {
-		scene->renderStep(render);
+		if (scene->flags & Scene::Flag::physics) {
+			scene->renderStep(*this);
+		}
 	}
 }
 
 void Game::postRenderStep() {
 	for (auto&& scene : scenes) {
-		scene->postRenderStep(render);
+		if (scene->flags & Scene::Flag::physics) {
+			scene->postRenderStep(*this);
+		}
 	}
 }
 
@@ -71,6 +152,8 @@ void Game::loop() {
 		for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
 			pollSDLEvents();
 
+			inputStep();
+
 			prePhysicsStep();
 			physicsStep();
 			postPhysicsStep();
@@ -94,4 +177,12 @@ void Game::loop() {
 
 		EntitySystem::FreeDeadEntities();
 	}
+}
+
+const RenderSystem& Game::getRender() {
+	return render;
+}
+
+const EventQueue& Game::getEvents() {
+	return events;
 }

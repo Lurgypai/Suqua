@@ -5,7 +5,7 @@
 
 using NDC = NetworkDataComponent;
 
-void RenderSystem::drawAll() {
+void RenderSystem::drawAll() const {
 	if (EntitySystem::Contains<RenderComponent>()) {
 		for (auto& comp : EntitySystem::GetPool<RenderComponent>()) {
 			draw(comp);
@@ -13,7 +13,7 @@ void RenderSystem::drawAll() {
 	}
 }
 
-inline void RenderSystem::draw(RenderComponent& render) {
+inline void RenderSystem::draw(RenderComponent& render) const {
 	if (EntitySystem::Contains<RenderComponent>()) {
 		IDrawable* drawable = render.sprite.get();
 		if (drawable != nullptr) {

@@ -1,5 +1,8 @@
 #include "Scene.h"
 #include <algorithm>
+#include <iterator>
+#include "Game.h"
+#include "InputDevice.h"
 #include "EntityBaseComponent.h"
 
 std::vector<EntityId> Scene::addEntities(unsigned int count) {
@@ -18,13 +21,21 @@ void Scene::removeEntities(const std::vector<EntityId>& entities_) {
 	}
 }
 
-Scene::Scene(SceneId id_) : 
+Scene::Scene(SceneId id_, FlagType flags_) : 
 	id{id_},
-	entities{}
+	camId{0},
+	entities{},
+	flags{flags_}
 {}
 
-void Scene::unload() {
-	std::vector<EntityId> entityVec{entities.begin(), entities.end()};
+void Scene::applyInputs(Game& game) {
+	for (auto&& pair : entityInputs) {
+		game.getInputDevice(pair.second).doInput(pair.first);
+	}
+}
+
+void Scene::removeAllEntities() {
+	std::vector<EntityId> entityVec{ entities.begin(), entities.end() };
 	EntitySystem::FreeEntities(entityVec.size(), entityVec.data());
 }
 
@@ -35,7 +46,7 @@ void Scene::removeDeadEntites() {
 	}
 }
 
-void Scene::drawScene(RenderSystem& render) const {
+void Scene::drawScene(const RenderSystem& render) const {
 	GLRenderer::setCamera(camId);
 	for (auto&& entity : entities) {
 		RenderComponent* renderComp = EntitySystem::GetComp<RenderComponent>(entity);
@@ -51,4 +62,18 @@ const std::set<EntityId>& Scene::getEntities() const {
 
 CamId Scene::getCamId() const {
 	return camId;
+}
+
+SceneId Scene::getId() const {
+	return id;
+}
+
+void Scene::addEntityInputs(const EntityInputSet& inputs) {
+	std::copy(inputs.begin(), inputs.end(), std::inserter(entityInputs, entityInputs.end()));
+}
+
+void Scene::removeEntityInputs(const EntityInputSet& inputs) {
+	for (auto&& input : inputs) {
+		entityInputs.erase(input);
+	}
 }

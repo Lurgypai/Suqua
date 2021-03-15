@@ -5,9 +5,11 @@
 #include "PhysicsData.h"
 #include "PhysicsComponent.h"
 #include "PositionData.h"
-
-BoxScene::BoxScene(SceneId id_)
-	: Scene{id_}
+#include "Game.h"
+#include "ControllerComponent.h"
+BoxScene::BoxScene(SceneId id_, char flags_, InputDeviceId input_) :
+	Scene{id_, flags_},
+	input{input_}
 {}
 
 void BoxScene::load() {
@@ -21,8 +23,9 @@ void BoxScene::load() {
 	render->getDrawable<Sprite>()->setScale({3, 3});
 
 	EntitySystem::MakeComps<BoxComponent>(1, &boxId);
+	EntitySystem::MakeComps<ControllerComponent>(1, &boxId);
 	NetworkDataComponent* data = EntitySystem::GetComp<NetworkDataComponent>(boxId);
-	data->get<float>(WEIGHT) = 4000.0f;
+	data->get<float>(WEIGHT) = 10.0f;
 	data->get<bool>(COLLIDEABLE) = false;
 	data->get<float>(X) = 480 / 2;
 	data->get<float>(Y) = 640 / 2;
@@ -42,30 +45,35 @@ void BoxScene::load() {
 
 	Camera cam{ {0,0}, {1920, 1080}, 1.0 };
 	camId = GLRenderer::addCamera(cam);
+
+	addEntityInputs({ {boxId, input} });
 }
 
-void BoxScene::prePhysicsStep(double physics_step) {
+void BoxScene::prePhysicsStep(Game& game) {
 
 }
 
-void BoxScene::physicsStep(double physics_step) {
-	physics.runPhysics(physics_step);
+void BoxScene::physicsStep(Game& game) {
+	physics.runPhysics(game.PHYSICS_STEP);
 	for (auto&& box : EntitySystem::GetPool<BoxComponent>()) {
 		box.update();
 	}
 }
 
-void BoxScene::postPhysicsStep(double physics_step) {
+void BoxScene::postPhysicsStep(Game& game) {
 }
 
-void BoxScene::preRenderStep(RenderSystem& render) {
+void BoxScene::preRenderStep(Game& game) {
 }
 
-void BoxScene::renderStep(RenderSystem& render) {
+void BoxScene::renderStep(Game& game) {
 	GLRenderer::Clear();
-	drawScene(render);
+	drawScene(game.getRender());
 	GLRenderer::Swap();
 }
 
-void BoxScene::postRenderStep(RenderSystem& render) {
+void BoxScene::postRenderStep(Game& game) {
+}
+
+void BoxScene::unload() {
 }

@@ -2,6 +2,7 @@
 #include "NetworkDataComponent.h"
 #include "PhysicsComponent.h"
 #include "PositionData.h"
+#include "ControllerComponent.h"
 #include <SDL.h>
 
 #include <iostream>
@@ -23,11 +24,12 @@ EntityId BoxComponent::getId() const {
 void BoxComponent::update() {
 	NetworkDataComponent* data = EntitySystem::GetComp<NetworkDataComponent>(id);
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	Vec2i mousePos;
-	auto state = SDL_GetMouseState(&mousePos.x, &mousePos.y);
-	if (state & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-		data->get<float>(X) = mousePos.x - (physics->getCollider().res.x / 2);
-		data->get<float>(Y) = mousePos.y - (physics->getCollider().res.y / 2);
+	ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(id);
+	const Controller& controller = cont->getController();
+
+	if (controller[ControllerBits::BUTTON_11]) {
+		data->get<float>(X) = controller.pointerPos.x - (physics->getCollider().res.x / 2);
+		data->get<float>(Y) = controller.pointerPos.y - (physics->getCollider().res.y / 2);
 
 		data->get<float>(XVEL) = 0;
 		data->get<float>(YVEL) = 0;

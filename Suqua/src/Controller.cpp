@@ -10,31 +10,31 @@ Controller::Controller(const Controller& other) :
 	mouseScroll{other.mouseScroll}
 {}
 
-Controller::Controller(unsigned char state_, unsigned char prevState_) :
+Controller::Controller(ControllerState state_, ControllerState prevState_) :
 	prevState{prevState_},
 	state{state_},
 	mouseScroll{0}
 {}
 
-bool Controller::operator[](unsigned char ctrl_bits) const {
+bool Controller::operator[](ControllerState ctrl_bits) const {
 	return state & ctrl_bits;
 }
 
-bool Controller::toggled(unsigned char ctrl_bits) const {
+bool Controller::toggled(ControllerState ctrl_bits) const {
 	return (state & ctrl_bits) != (prevState & ctrl_bits);
 }
 
-void Controller::on(unsigned char ctrl_bits) {
+void Controller::on(ControllerState ctrl_bits) {
 	prevState = (prevState & ~ctrl_bits) | (state & ctrl_bits);
 	state |= ctrl_bits;
 }
 
-void Controller::off(unsigned char ctrl_bits) {
+void Controller::off(ControllerState ctrl_bits) {
 	prevState = (prevState & ~ctrl_bits) | (state & ctrl_bits);
 	state &= ~(ctrl_bits);
 }
 
-void Controller::set(unsigned char ctrl_bits, bool newState) {
+void Controller::set(ControllerState ctrl_bits, bool newState) {
 	prevState = (prevState & ~ctrl_bits) | (state & ctrl_bits);
 	if (newState)
 		state |= ctrl_bits;
@@ -42,23 +42,15 @@ void Controller::set(unsigned char ctrl_bits, bool newState) {
 		state &= ~(ctrl_bits);
 }
 
-void Controller::setState(unsigned char newState) {
+void Controller::setState(ControllerState newState) {
 	prevState = state;
 	state = newState;
 }
 
-void Controller::setMouseScroll(int mouse_scroll_) {
-	mouseScroll = mouse_scroll_;
-}
-
-int Controller::getMouseScroll() {
-	return mouseScroll;
-}
-
-unsigned char Controller::getState() const {
+ControllerState Controller::getState() const {
 	return state;
 }
 
-unsigned char Controller::getPrevState() const {
+ControllerState Controller::getPrevState() const {
 	return prevState;
 }
