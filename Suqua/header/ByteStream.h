@@ -4,7 +4,8 @@
 #include <string>
 #include "ByteOrder.h"
 
-using ByteArray = std::vector<char>;
+using Byte = char;
+using ByteArray = std::vector<Byte>;
 
 //Store bytes in network byte order
 class ByteStream {
@@ -17,11 +18,14 @@ public:
 	template<typename T>
 	bool operator>>(T& t);
 
+	void writeData(void* data, size_t len);
+
 	void setReadPos(size_t readPos_);
 
 	bool hasMoreData();
-
+	const Byte* data() const;
 	void clear();
+	size_t size() const;
 private:
 	size_t readPos;
 	ByteArray _data;

@@ -1,11 +1,25 @@
 #include "..\header\Game.h"
+#include "packet.h"
+#include "PHGameTime.h"
 
-Game::Game(double physics_step, double render_step) :
+Game::Game(double physics_step, double render_step, double server_step, FlagType flags_) :
 	PHYSICS_STEP{physics_step},
 	RENDER_STEP{render_step},
+	SERVER_STEP{server_step},
 	renderTick{0},
-	physicsTick{0}
-{}
+	physicsTick{0},
+	serverTick{0},
+	gameTick{0},
+	flags{flags_}
+{
+	if (flags & client) {
+		host.createClient(1, 10);
+		loadPacketHandler<PHGameTime>(Packet::GameTickId);
+	}
+	if (flags & server) {
+		host.createServer(25565, 10, 10);
+	}
+}
 
 Game::~Game() {}
 
@@ -145,18 +159,33 @@ void Game::loop() {
 
 	uint64_t lastGFXUpdate = SDL_GetPerformanceCounter();
 
+	uint64_t lastServerUpdate = SDL_GetPerformanceCounter();
+
 	while (true) {
+
 		uint64_t now = SDL_GetPerformanceCounter();
 		uint64_t elapsedTime = (now - lastPhysicsUpdate) + leftover;
 		lastPhysicsUpdate = now;
 		for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
 			pollSDLEvents();
 
-			inputStep();
+			if (flags & Flag::input) {
+				inputStep();
+			}
 
-			prePhysicsStep();
-			physicsStep();
-			postPhysicsStep();
+			if (flags & Flag::physics) {
+				prePhysicsStep();
+				physicsStep();
+				postPhysicsStep();
+			}
+
+			if (flags & (Flag::server | client)) {
+				host.handlePackets(*this);
+			}
+
+			if (flags & server) {
+				++gameTick;
+			}
 
 			clearSDLEvents();
 
@@ -164,14 +193,28 @@ void Game::loop() {
 		}
 		leftover = elapsedTime;
 
-		now = SDL_GetPerformanceCounter();
-		if (static_cast<double>(now - lastGFXUpdate) >= RENDER_STEP) {
-			preRenderStep();
-			renderStep();
-			postRenderStep();
-			++renderTick;
+		if (flags & Flag::server) {
+			now = SDL_GetPerformanceCounter();
+			if (static_cast<double>(now - lastServerUpdate) >= SERVER_STEP) {
+				ByteStream stream;
+				stream << Packet::GameTickId;
+				stream << gameTick;
+				host.bufferAllData(stream);
 
-			lastGFXUpdate = now;
+				host.sendBuffered();
+			}
+		}
+
+		if (flags & Flag::render) {
+			now = SDL_GetPerformanceCounter();
+			if (static_cast<double>(now - lastGFXUpdate) >= RENDER_STEP) {
+				preRenderStep();
+				renderStep();
+				postRenderStep();
+				++renderTick;
+
+				lastGFXUpdate = now;
+			}
 		}
 
 
@@ -180,9 +223,13 @@ void Game::loop() {
 }
 
 const RenderSystem& Game::getRender() {
-	return render;
+	return renderSystem;
 }
 
 const EventQueue& Game::getEvents() {
 	return events;
+}
+
+void Game::setGameTick(Tick newGameTick) {
+	gameTick = newGameTick;
 }

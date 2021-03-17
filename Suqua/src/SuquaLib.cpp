@@ -12,8 +12,8 @@ extern "C" {
 
 using json = nlohmann::json;
 
-int SuquaLib::SuquaInit(const std::string& settingsFile, unsigned char mode, Vec2i viewRes) {
-	
+int SuquaLib::SuquaInit(const std::string& settingsFile, ModeType mode_, Vec2i viewRes) {
+	mode = mode_;
 	json settings;
 	std::ifstream file{ settingsFile };
 	Vec2i windowRes;
@@ -26,29 +26,34 @@ int SuquaLib::SuquaInit(const std::string& settingsFile, unsigned char mode, Vec
 		return 1;
 	}
 
-	if (settings.contains("window_width") &&  settings.contains("window_height")) {
-		windowRes.x = settings["window_width"];
-		windowRes.y = settings["window_height"];
+	if (mode & Mode::graphics) {
+		if (settings.contains("window_width") && settings.contains("window_height")) {
+			windowRes.x = settings["window_width"];
+			windowRes.y = settings["window_height"];
+		}
+		else {
+			SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Settings file missing fields.");
+			return 1;
+		}
+
+		SDL_Init(SDL_INIT_VIDEO);
+
+		SDL_Window* window = NULL;
+		window = SDL_CreateWindow("Stabby", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowRes.x, windowRes.y, SDL_WINDOW_OPENGL);
+
+		if (window == NULL) {
+			SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Window Creation Failed.");
+			return 1;
+		}
+
+		DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
+		debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowRes.x, windowRes.y }, .5 });
+
+		GLRenderer::Init(window, windowRes, viewRes);
 	}
-	else {
-		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Settings file missing fields.");
-		return 1;
+	if (mode & Mode::network) {
+		enet_initialize();
 	}
-
-	SDL_Init(SDL_INIT_VIDEO);
-
-	SDL_Window* window = NULL;
-	window = SDL_CreateWindow("Stabby", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowRes.x, windowRes.y, SDL_WINDOW_OPENGL);
-
-	if (window == NULL) {
-		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Window Creation Failed.");
-		return 1;
-	}
-
-	DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
-	debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowRes.x, windowRes.y }, .5 });
-
-	GLRenderer::Init(window, windowRes, viewRes);
 
 	return 0;
 }
@@ -62,3 +67,4 @@ CamId SuquaLib::getDebugCamId() {
 }
 
 CamId SuquaLib::debugCamId{};
+SuquaLib::ModeType SuquaLib::mode{};

@@ -4,6 +4,8 @@
 #include "RenderSystem.h"
 #include "Scene.h"
 #include "InputDevice.h"
+#include "Host.h"
+#include "Tick.h"
 #include <unordered_map>
 #include <vector>
 
@@ -14,9 +16,19 @@ class Game {
 friend class SuquaLib;
 
 public:
-	using Tick = unsigned long long;
+	using FlagType = char;
+	enum Flag : FlagType {
+		render = 1 << 0,
+		physics = 1 << 1,
+		server = 1 << 2,
+		client = 1 << 3,
+		input =  1 << 4,
+		client_flags = render | physics | client | input,
+		server_flags = physics | server,
+		none = 0
+	};
 
-	Game(double physics_step, double render_step);
+	Game(double physics_step, double render_step, double server_step, FlagType flags_);
 	virtual ~Game();
 
 	template<typename S, typename ... Args>
@@ -24,6 +36,9 @@ public:
 
 	template<typename T, typename ... Args>
 	InputDeviceId loadInputDevice(Args ... args);
+
+	template<typename P, typename ... Args>
+	PacketHandlerId loadPacketHandler(PacketHandlerId id, Args... args);
 
 	InputDevice& getInputDevice(InputDeviceId id);
 
@@ -36,9 +51,12 @@ public:
 
 	const double PHYSICS_STEP;
 	const double RENDER_STEP;
+	const double SERVER_STEP;
 
 	const RenderSystem& getRender();
 	const EventQueue& getEvents();
+
+	void setGameTick(Tick newGameTick);
 
 private:
 	void pollSDLEvents();
@@ -57,11 +75,15 @@ private:
 
 	Tick renderTick;
 	Tick physicsTick;
+	Tick serverTick;
+	Tick gameTick;
 	EventQueue events;
 
-	RenderSystem render;
+	RenderSystem renderSystem;
 	std::vector<ScenePtr> scenes;
 	std::unordered_map<InputDeviceId, InputDevicePtr> inputDevices;
+	FlagType flags;
+	Host host;
 };
 
 template<typename S, typename ... Args>
@@ -77,4 +99,10 @@ inline InputDeviceId Game::loadInputDevice(Args ...args) {
 	InputDevicePtr inputDevice = std::make_unique<T>(inputDevices.size());
 	inputDevices.emplace(inputDevices.size(), std::move(inputDevice));
 	return inputDevices.size() - 1;
+}
+
+template<typename P, typename ...Args>
+inline PacketHandlerId Game::loadPacketHandler(PacketHandlerId id, Args ...args) {
+	host.loadPacketHandler<P>(id, args...);
+	return id;
 }
