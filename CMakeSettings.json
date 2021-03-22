@@ -9,19 +9,18 @@
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
+      "ctestCommandArgs": ""
+    },
+    {
+      "name": "x64-Release",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "variables": [
-        {
-          "name": "SDL2_DIR",
-          "value": "${projectDir}/windows-sdl2",
-          "type": "PATH"
-        },
-        {
-          "name": "SDL2_MIXER_DIR",
-          "value": "${projectDir}/windows-sdl2_mixer",
-          "type": "PATH"
-        }
-      ]
+      "inheritEnvironments": [ "msvc_x64_x64" ]
     }
   ]
 }

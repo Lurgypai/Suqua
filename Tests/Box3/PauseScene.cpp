@@ -7,7 +7,7 @@ PauseScene::PauseScene(SceneId id_, char flags_, SceneId targetScene_) :
 	targetScene{targetScene_}
 {}
 
-void PauseScene::load()
+void PauseScene::load(Game& game)
 {
 }
 
@@ -42,6 +42,6 @@ void PauseScene::postRenderStep(Game& game)
 {
 }
 
-void PauseScene::unload()
+void PauseScene::unload(Game& game)
 {
 }

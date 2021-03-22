@@ -58,6 +58,7 @@ public:
 
 	void setGameTick(Tick newGameTick);
 
+	Host host;
 private:
 	void pollSDLEvents();
 	void clearSDLEvents();
@@ -83,13 +84,12 @@ private:
 	std::vector<ScenePtr> scenes;
 	std::unordered_map<InputDeviceId, InputDevicePtr> inputDevices;
 	FlagType flags;
-	Host host;
 };
 
 template<typename S, typename ... Args>
 inline SceneId Game::loadScene(char flags_, Args... args) {
 	ScenePtr scene = std::make_unique<S>(scenes.size(), flags_, args...);
-	scene->load();
+	scene->load(*this);
 	scenes.emplace_back(std::move(scene));
 	return scenes.size() - 1;
 }

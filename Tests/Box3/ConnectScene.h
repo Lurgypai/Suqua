@@ -1,10 +1,9 @@
-#pragma once
 #include "Scene.h"
 
-class PauseScene : public Scene {
+class ConnectScene : public Scene {
 public:
-	PauseScene(SceneId id_, char flags_, SceneId targetScene_);
-	// Inherited via Scene
+	ConnectScene(SceneId id_, FlagType flags_, const std::string& ip_, int port_);
+
 	virtual void load(Game& game) override;
 	virtual void prePhysicsStep(Game& game) override;
 	virtual void physicsStep(Game& game) override;
@@ -14,5 +13,6 @@ public:
 	virtual void postRenderStep(Game& game) override;
 	virtual void unload(Game& game) override;
 private:
-	SceneId targetScene;
+	std::string ip;
+	int port;
 };

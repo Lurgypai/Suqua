@@ -7,20 +7,13 @@
 #include "PositionData.h"
 #include "Game.h"
 #include "ControllerComponent.h"
-BoxScene::BoxScene(SceneId id_, char flags_, InputDeviceId input_) :
+BoxScene::BoxScene(SceneId id_, char flags_) :
 	Scene{id_, flags_},
-	input{input_}
+	boxId{0}
 {}
 
-void BoxScene::load() {
-	
-	GLRenderer::LoadTexture("box.png", "box");
-
-	auto boxId = addEntities(1)[0];
-	EntitySystem::MakeComps<RenderComponent>(1, &boxId);
-	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(boxId);
-	render->setDrawable<Sprite>("box");
-	render->getDrawable<Sprite>()->setScale({3, 3});
+void BoxScene::load(Game& game) {
+	boxId = addEntities(1)[0];
 
 	EntitySystem::MakeComps<BoxComponent>(1, &boxId);
 	EntitySystem::MakeComps<ControllerComponent>(1, &boxId);
@@ -31,7 +24,6 @@ void BoxScene::load() {
 	data->get<float>(Y) = 640 / 2;
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(boxId);
 	physics->setRes({ 75, 75 });
-	EntitySystem::GetComp<RenderComponent>(boxId)->getDrawable<Sprite>()->setDepth(0.0);
 
 	auto platformId = addEntities(1)[0];
 	EntitySystem::MakeComps<PhysicsComponent>(1, &platformId);
@@ -42,11 +34,6 @@ void BoxScene::load() {
 	platformData->get<float>(Y) = 1080 - 4;
 	platformData->get<bool>(COLLIDEABLE) = true;
 	platformData->get<bool>(FROZEN) = true;
-
-	Camera cam{ {0,0}, {1920, 1080}, 1.0 };
-	camId = GLRenderer::addCamera(cam);
-
-	addEntityInputs({ {boxId, input} });
 }
 
 void BoxScene::prePhysicsStep(Game& game) {
@@ -67,13 +54,10 @@ void BoxScene::preRenderStep(Game& game) {
 }
 
 void BoxScene::renderStep(Game& game) {
-	GLRenderer::Clear();
-	drawScene(game.getRender());
-	GLRenderer::Swap();
 }
 
 void BoxScene::postRenderStep(Game& game) {
 }
 
-void BoxScene::unload() {
+void BoxScene::unload(Game& game) {
 }

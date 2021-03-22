@@ -1,4 +1,3 @@
-
 #include "Host.h"
 
 Host::Host(size_t channelCount_) :

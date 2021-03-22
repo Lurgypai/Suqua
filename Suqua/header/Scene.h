@@ -26,7 +26,7 @@ public:
 
 	Scene(SceneId id_, FlagType flags_);
 	virtual ~Scene() = 0 {};
-	virtual void load() = 0;
+	virtual void load(Game& game) = 0;
 	virtual void prePhysicsStep(Game& game) = 0;
 	virtual void physicsStep(Game& game) = 0;
 	virtual void postPhysicsStep(Game& game) = 0;
@@ -34,7 +34,7 @@ public:
 	virtual void preRenderStep(Game& game) = 0;
 	virtual void renderStep(Game& game) = 0;
 	virtual void postRenderStep(Game& game) = 0;
-	virtual void unload() = 0;
+	virtual void unload(Game& game) = 0;
 
 	void applyInputs(Game& game);
 	void removeAllEntities();

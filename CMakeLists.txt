@@ -5,8 +5,6 @@ cmake_minimum_required (VERSION 3.8)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-set(CMAKE_BUILD_TYPE Debug)
-
 set(CMAKE_USER_MAKE_RULES_OVERRIDE
   ${CMAKE_CURRENT_SOURCE_DIR}/c_flag_overrides.cmake)
 set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
@@ -27,3 +25,5 @@ add_subdirectory ("Tests/DataComponent")
 add_subdirectory ("Tests/ByteStream")
 add_subdirectory ("Tests/ByteOrder")
 add_subdirectory ("Tests/Box3")
+add_subdirectory ("Tests/Box3Server")
+add_subdirectory ("Tests/Box3Core")

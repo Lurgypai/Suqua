@@ -195,19 +195,22 @@ void Game::loop() {
 
 		if (flags & Flag::server) {
 			now = SDL_GetPerformanceCounter();
-			if (static_cast<double>(now - lastServerUpdate) >= SERVER_STEP) {
+			if (static_cast<double>(now - lastServerUpdate) / SDL_GetPerformanceFrequency() >= SERVER_STEP) {
 				ByteStream stream;
 				stream << Packet::GameTickId;
 				stream << gameTick;
 				host.bufferAllData(stream);
 
 				host.sendBuffered();
+				std::cout << "Packets sent...\n";
+
+				lastServerUpdate = now;
 			}
 		}
 
 		if (flags & Flag::render) {
 			now = SDL_GetPerformanceCounter();
-			if (static_cast<double>(now - lastGFXUpdate) >= RENDER_STEP) {
+			if (static_cast<double>(now - lastGFXUpdate) / SDL_GetPerformanceFrequency() >= RENDER_STEP) {
 				preRenderStep();
 				renderStep();
 				postRenderStep();
