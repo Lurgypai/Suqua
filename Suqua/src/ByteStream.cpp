@@ -4,6 +4,18 @@ ByteStream::ByteStream() :
 	readPos{0}
 {}
 
+bool ByteStream::operator==(const ByteStream& other) {
+	return _data == other._data && readPos == other.readPos;
+}
+
+bool ByteStream::operator!=(const ByteStream& other) {
+	return !(*this == other);
+}
+
+bool ByteStream::sameData(const ByteStream& other) {
+	return _data == other._data;
+}
+
 void ByteStream::setReadPos(size_t readPos_) {
 	readPos = readPos_;
 }

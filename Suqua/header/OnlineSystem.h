@@ -9,7 +9,7 @@ public:
 	OnlineSystem();
 	void registerOnlineComponent(EntityId id, NetworkId netId);
 	void addOnlineComponent(EntityId id);
-	EntityId getEntity(NetworkId netId);
+	EntityId getEntity(NetworkId netId) const;
 
 private:
 	std::unordered_map<NetworkId, EntityId> ids;

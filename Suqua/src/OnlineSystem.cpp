@@ -54,7 +54,7 @@ void OnlineSystem::addOnlineComponent(EntityId id) {
 	ids[netId] = id;
 }
 
-EntityId OnlineSystem::getEntity(NetworkId netId) {
+EntityId OnlineSystem::getEntity(NetworkId netId) const{
 	auto id = ids.find(netId);
 	if (id != ids.end())
 		return id->second;

@@ -18,6 +18,11 @@ public:
 	template<typename T>
 	bool operator>>(T& t);
 
+	bool operator==(const ByteStream& other);
+	bool operator!=(const ByteStream& other);
+
+	bool sameData(const ByteStream& other);
+
 	void writeData(void* data, size_t len);
 
 	void setReadPos(size_t readPos_);

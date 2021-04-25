@@ -6,6 +6,8 @@
 #include "InputDevice.h"
 #include "Host.h"
 #include "Tick.h"
+#include "OnlineSystem.h"
+
 #include <unordered_map>
 #include <vector>
 
@@ -59,6 +61,7 @@ public:
 	void setGameTick(Tick newGameTick);
 
 	Host host;
+	OnlineSystem online;
 private:
 	void pollSDLEvents();
 	void clearSDLEvents();
