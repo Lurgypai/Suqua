@@ -1,2 +1,0 @@
-/usr/bin/ar qc libBox3Core.a  CMakeFiles/Box3Core.dir/BoxComponent.cpp.o CMakeFiles/Box3Core.dir/BoxScene.cpp.o
-/usr/bin/ranlib libBox3Core.a

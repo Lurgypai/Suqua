@@ -1,1 +1,0 @@
-/usr/bin/c++  -g   CMakeFiles/Box3Server.dir/Box3Server.cpp.o  -o Box3Server  ../../Suqua/libSuqua.a ../Box3Core/libBox3Core.a ../../Suqua/libSuqua.a -ldl ../../enet-master/libenet.a -lstdc++fs 

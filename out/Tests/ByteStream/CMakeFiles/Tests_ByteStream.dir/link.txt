@@ -1,1 +1,0 @@
-/usr/bin/c++  -g   CMakeFiles/Tests_ByteStream.dir/Tests_ByteStream.cpp.o  -o Tests_ByteStream  ../../Suqua/libSuqua.a -ldl ../../enet-master/libenet.a -lstdc++fs 

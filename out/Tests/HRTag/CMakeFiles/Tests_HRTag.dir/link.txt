@@ -1,1 +1,0 @@
-/usr/bin/c++  -g   CMakeFiles/Tests_HRTag.dir/Tests_HRTag.cpp.o  -o Tests_HRTag  ../../Suqua/libSuqua.a -ldl ../../enet-master/libenet.a -lstdc++fs 

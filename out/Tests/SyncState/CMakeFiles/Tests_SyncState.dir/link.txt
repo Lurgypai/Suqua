@@ -1,1 +1,0 @@
-/usr/bin/c++  -g   CMakeFiles/Tests_SyncState.dir/Tests_SyncState.cpp.o  -o Tests_SyncState  ../../Suqua/libSuqua.a -ldl ../../enet-master/libenet.a -lstdc++fs 

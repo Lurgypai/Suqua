@@ -1,1 +1,0 @@
-/usr/bin/c++  -g   CMakeFiles/Tests_DataComponent.dir/Tests_DataComponent.cpp.o  -o Tests_DataComponent  ../../Suqua/libSuqua.a -ldl ../../enet-master/libenet.a -lstdc++fs 
