@@ -165,8 +165,5 @@ int main() {
 
     //two ndcs
 
-    //one ndc with cont
-
-    //two ndcs with cont
     return 0;
 }
