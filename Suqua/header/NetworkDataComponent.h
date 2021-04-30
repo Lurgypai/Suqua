@@ -29,6 +29,9 @@ public:
 		template<typename T>
 		T& get();
 
+        template<typename T>
+        const T& getConst() const;
+
 		template<typename T>
 		void set(const T& t);
 
@@ -38,8 +41,8 @@ public:
 		void write(ByteStream& s);
 		void read(ByteStream& s);
 
-		bool operator==(const Data& other);
-		bool operator!=(const Data& other);
+		bool operator==(const Data& other) const;
+		bool operator!=(const Data& other) const;
 	private:
 
 		DataValue value;
@@ -54,6 +57,9 @@ public:
 	NetworkDataComponent(EntityId id_ = 0);
 	NetworkDataComponent(const NetworkDataComponent& other) = default;
 
+    bool operator==(const NetworkDataComponent& other) const;
+    bool operator!=(const NetworkDataComponent& other) const;
+
 	void serializeForNetwork(ByteStream& stream);
 	void serializeForNetwork(ByteStream& stream, const std::map<DataId, Data>& prevData);
 	void unserialize(ByteStream& stream);
@@ -64,6 +70,8 @@ public:
 	void set(DataId id, T&& t);
 	template<typename T>
 	T& get(DataId id);
+    template<typename T>
+    const T& getConst(DataId id) const;
 
 	const DataMap& data();
 
@@ -77,6 +85,12 @@ private:
 
 template<typename T>
 inline T& NetworkDataComponent::Data::get() {
+	return std::get<T>(value);
+}
+
+
+template<typename T>
+inline const T& NetworkDataComponent::Data::getConst() const {
 	return std::get<T>(value);
 }
 
@@ -105,6 +119,11 @@ void NetworkDataComponent::set(DataId id, T&& t) {
 template<typename T>
 T& NetworkDataComponent::get(DataId id) {
 	return data_.at(id).get<T>();
+}
+
+template<typename T>
+inline const T& NetworkDataComponent::getConst(DataId id) const {
+	return data_.at(id).getConst<T>();
 }
 
 template<typename T>

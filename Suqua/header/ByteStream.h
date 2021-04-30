@@ -23,7 +23,8 @@ public:
 
 	bool sameData(const ByteStream& other);
 
-	void writeData(void* data, size_t len);
+	void putData(void* data, size_t len);
+    std::string getData();
 
 	void setReadPos(size_t readPos_);
 
@@ -82,6 +83,7 @@ inline bool ByteStream::operator>> <std::string>(std::string& s) {
 			s.resize(size);
 			std::memcpy(s.data(), _data.data() + readPos, size);
 			readPos += size;
+            return true;
 		}
 		else {
 			return false;

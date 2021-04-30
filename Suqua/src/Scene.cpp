@@ -28,6 +28,8 @@ Scene::Scene(SceneId id_, FlagType flags_) :
 	flags{flags_}
 {}
 
+Scene::~Scene() {};
+
 void Scene::applyInputs(Game& game) {
 	for (auto&& pair : entityInputs) {
 		game.getInputDevice(pair.second).doInput(pair.first);

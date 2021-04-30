@@ -7,7 +7,7 @@ using InputDeviceId = uint64_t;
 class InputDevice {
 public:
 	InputDevice(InputDeviceId id_);
-	virtual ~InputDevice() = 0 {};
+	virtual ~InputDevice() = 0;
 	//reads input into the ControllerComponent
 	virtual void doInput(EntityId controllerCompId) = 0;
 
@@ -15,5 +15,7 @@ public:
 private:
 	InputDeviceId id;
 };
+
+InputDevice::~InputDevice() {};
 
 using InputDevicePtr = std::unique_ptr<InputDevice>;

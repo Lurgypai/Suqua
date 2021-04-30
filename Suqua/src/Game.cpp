@@ -1,5 +1,5 @@
-#include "..\header\Game.h"
-#include "packet.h"
+#include "Game.h"
+#include "Packet.h"
 #include "PHGameTime.h"
 
 Game::Game(double physics_step, double render_step, double server_step, FlagType flags_) :

@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 
 template<typename T>
 T s_hton(T value);

@@ -1,4 +1,4 @@
-#include "..\header\PHGameTime.h"
+#include "PHGameTime.h"
 #include "Game.h"
 
 PHGameTime::PHGameTime(PacketHandlerId id_) :

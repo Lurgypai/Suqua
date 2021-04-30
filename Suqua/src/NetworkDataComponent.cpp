@@ -6,12 +6,20 @@ NetworkDataComponent::NetworkDataComponent(EntityId id_) :
 	data_ {}
 {}
 
-bool NetworkDataComponent::Data::operator==(const NetworkDataComponent::Data& other) {
+bool NetworkDataComponent::Data::operator==(const NetworkDataComponent::Data& other) const {
 	return value == other.value && type == other.type;
 }
 
-bool NetworkDataComponent::Data::operator!=(const NetworkDataComponent::Data& other) {
+bool NetworkDataComponent::Data::operator!=(const NetworkDataComponent::Data& other) const {
 	return !((*this) == other);
+}
+
+bool NetworkDataComponent::operator==(const NetworkDataComponent& other) const {
+    return data_ == other.data_ && id == other.id;
+}
+
+bool NetworkDataComponent::operator!=(const NetworkDataComponent& other) const {
+    return !(*this == other);
 }
 
 void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {

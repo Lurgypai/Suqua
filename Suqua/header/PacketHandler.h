@@ -9,7 +9,7 @@ class Game;
 class PacketHandler {
 public:
 	PacketHandler(PacketHandlerId id_);
-	virtual ~PacketHandler() = 0 {};
+	virtual ~PacketHandler() = 0;
 	virtual void handlePacket(ByteStream& data, Game& game) = 0;
 	PacketHandlerId getId() const;
 private:

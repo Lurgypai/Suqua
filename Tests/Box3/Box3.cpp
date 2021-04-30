@@ -14,7 +14,5 @@ int main(int argc, char* argv[]) {
 	game.loadScene<ConnectScene>(Scene::physics, "127.0.0.1", 25565);
 	SuquaLib::RunGame(game);
 
-	std::cout << "Hello, World!";
-
 	return 0;
 }

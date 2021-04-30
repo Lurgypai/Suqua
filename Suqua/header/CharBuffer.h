@@ -70,7 +70,7 @@ inline CharBuffer<Size>::CharBuffer(const std::string& s) :
 
 template<size_t Size>
 template<size_t InSize>
-inline constexpr CharBuffer<Size>::CharBuffer<Size>(const char (&input)[InSize]) :
+inline constexpr CharBuffer<Size>::CharBuffer(const char (&input)[InSize]) :
 	_data{}
 {
 	if (InSize > Size)

@@ -1,4 +1,5 @@
-#include "..\header\ByteStream.h"
+#include "ByteStream.h"
+#include <cstring>
 
 ByteStream::ByteStream() :
 	readPos{0}
@@ -20,10 +21,19 @@ void ByteStream::setReadPos(size_t readPos_) {
 	readPos = readPos_;
 }
 
-void ByteStream::writeData(void* data, size_t len) {
+void ByteStream::putData(void* data, size_t len) {
 	auto start = _data.size();
 	_data.resize(start + len);
 	std::memcpy(_data.data() + start, data, len);
+}
+
+std::string ByteStream::getData() {
+    if(_data.empty())
+        return "";
+    std::string out;
+    out.resize(_data.size());
+    std::memcpy(out.data(), _data.data(), _data.size());
+    return out;
 }
 
 bool ByteStream::hasMoreData() {

@@ -1,6 +1,6 @@
 #include "RenderSystem.h"
 #include "AnimatedSprite.h"
-#include "NetworkDataComponent.h";
+#include "NetworkDataComponent.h"
 #include "PositionData.h"
 
 using NDC = NetworkDataComponent;

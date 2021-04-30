@@ -1,21 +1,34 @@
-#include "..\header\SyncState.h"
+#include "SyncState.h"
 #include "OnlineComponent.h"
 #include "OnlineSystem.h"
+#include <unordered_map>
 
 SyncState::SyncState(Tick gameTime_) :
 	gameTime{gameTime_}
 {
-	for (auto&& data : EntitySystem::GetPool<NetworkDataComponent>()) {
-		auto* controller = EntitySystem::GetComp<ControllerComponent>(data.getId());
+    if(EntitySystem::Contains<NetworkDataComponent>()) {
+        for (auto&& data : EntitySystem::GetPool<NetworkDataComponent>()) {
+            ControllerComponent* controller = nullptr;
+            if(EntitySystem::Contains<ControllerComponent>()) {
+                controller = EntitySystem::GetComp<ControllerComponent>(data.getId());
+            }
 
-		states.emplace(data.getId(), State{ data, controller ? std::optional<ControllerComponent>{*controller} : std::nullopt });
-	}
+            states.emplace(data.getId(),
+                    State{ data,
+                    controller ? std::optional<ControllerComponent>{*controller} :
+                                 std::nullopt });
+        }
+    }
 }
 
 SyncState::SyncState() {}
 
-bool SyncState::operator==(const SyncState& other) {
+bool SyncState::operator==(const SyncState& other) const {
 	return gameTime == other.gameTime && states == other.states;
+}
+
+bool SyncState::operator!=(const SyncState& other) const {
+    return !((*this) == other);
 }
 
 void SyncState::serialize(ByteStream& stream) {
@@ -23,7 +36,7 @@ void SyncState::serialize(ByteStream& stream) {
 	stream << states.size();
 	for (auto&& state : states) {
 		auto* online = EntitySystem::GetComp<OnlineComponent>(state.first);
-		stream << online->getId();
+		stream << online->getNetId();
 		state.second.data.serializeForNetwork(stream);
 		stream << state.second.cont.has_value();
 		if (state.second.cont) {
@@ -45,7 +58,7 @@ void SyncState::unserialize(ByteStream& stream, const OnlineSystem& online) {
 		stream >> netId;
 
 		EntityId id = online.getEntity(netId);
-		State s{};
+		State& s = states.at(id);
 		s.data.unserialize(stream);
 		bool has_cont;
 		stream >> has_cont;
@@ -61,12 +74,23 @@ void SyncState::unserialize(ByteStream& stream, const OnlineSystem& online) {
 
 			cont.setState(prevControllerState);
 			cont.setState(controllerState);
+            s.cont->setController(cont);
 		}
-
-		states[id] = s;
 	}
 }
 
 Tick SyncState::getGameTime() const {
 	return gameTime;
+}
+
+const std::unordered_map<EntityId, SyncState::State>& SyncState::getStates() const {
+    return states;
+}
+
+bool SyncState::State::operator==(const SyncState::State& other) const {
+    return data == other.data && cont == other.cont;
+}
+
+bool SyncState::State::operator!=(const SyncState::State& other) const {
+    return !((*this) == other);
 }

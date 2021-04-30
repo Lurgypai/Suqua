@@ -16,6 +16,14 @@ Controller::Controller(ControllerState state_, ControllerState prevState_) :
 	mouseScroll{0}
 {}
 
+bool Controller::operator==(const Controller& other) const {
+    return pointerPos == other.pointerPos && mouseScroll == other.mouseScroll && state == other.state && prevState == other.prevState;
+}
+
+bool Controller::operator!=(const Controller& other) const {
+    return !((*this) == other);
+}
+
 bool Controller::operator[](ControllerState ctrl_bits) const {
 	return state & ctrl_bits;
 }

@@ -1,4 +1,4 @@
-#include "..\header\SyncSystem.h"
+#include "SyncSystem.h"
 #include "NetworkDataComponent.h"
 #include "OnlineComponent.h"
 #include "ControllerComponent.h"

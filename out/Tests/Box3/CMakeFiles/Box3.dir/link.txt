@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/Box3.dir/Box3.cpp.o CMakeFiles/Box3.dir/ClientBoxScene.cpp.o CMakeFiles/Box3.dir/ConnectScene.cpp.o CMakeFiles/Box3.dir/PauseScene.cpp.o  -o Box3  ../../Suqua/libSuqua.a ../Box3Core/libBox3Core.a ../../Suqua/libSuqua.a -ldl ../../enet-master/libenet.a -lstdc++fs 

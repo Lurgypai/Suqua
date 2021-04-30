@@ -105,13 +105,12 @@ void Host::handlePackets(Game& game) {
 		ENetEvent e;
 		while (service(&e, 0) > 0) {
 			switch (e.type) {
-				break;
 			case ENET_EVENT_TYPE_DISCONNECT:
 				connected = false;
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:
 				ByteStream stream;
-				stream.writeData(e.packet->data, e.packet->dataLength);
+				stream.putData(e.packet->data, e.packet->dataLength);
 				PacketHandlerId id;
 				stream >> id;
 				packetHandlers.at(id)->handlePacket(stream, game);
@@ -136,6 +135,7 @@ PeerId Host::tryConnect(const std::string & ip, int port, size_t channels) {
 		peers.add(id, enet_host_connect(host, &address, channels, 0));
 		return id;
 	}
+    return 0;
 }
 
 PeerId Host::addPeer(ENetPeer * peer) {
@@ -145,6 +145,7 @@ PeerId Host::addPeer(ENetPeer * peer) {
 		peers.add(id, peer);
 		return id;
 	}
+    return 0;
 }
 
 void Host::removePeer(PeerId peerId) {

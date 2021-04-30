@@ -1,0 +1,4 @@
+Needs:
+    Keep track of which scenes are loaded
+    mark scenes that are network oriented
+    

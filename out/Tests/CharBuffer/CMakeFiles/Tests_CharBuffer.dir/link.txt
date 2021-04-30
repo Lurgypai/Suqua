@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/Tests_CharBuffer.dir/Tests_CharBuffer.cpp.o  -o Tests_CharBuffer  ../../Suqua/libSuqua.a -ldl ../../enet-master/libenet.a -lstdc++fs 

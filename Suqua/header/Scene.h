@@ -25,7 +25,7 @@ public:
 	};
 
 	Scene(SceneId id_, FlagType flags_);
-	virtual ~Scene() = 0 {};
+	virtual ~Scene() = 0;
 	virtual void load(Game& game) = 0;
 	virtual void prePhysicsStep(Game& game) = 0;
 	virtual void physicsStep(Game& game) = 0;

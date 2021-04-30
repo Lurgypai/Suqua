@@ -2,7 +2,7 @@
 #include <cstdint>
 #include "Vec2.h"
 
-using ControllerState = uint16_t;
+using ControllerState = uint32_t;
 
 enum ControllerBits : ControllerState {
 	UP = 1 << 0,
@@ -33,6 +33,9 @@ public:
 	Controller();
 	Controller(const Controller& other);
 	Controller(ControllerState state_, ControllerState prevState_);
+
+    bool operator==(const Controller& other) const;
+    bool operator!=(const Controller& other) const;
 	bool operator[](ControllerState ctrl_bits) const;
 	bool toggled(ControllerState ctrl_bits) const;
 
