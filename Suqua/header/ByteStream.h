@@ -63,7 +63,7 @@ template<typename T>
 inline bool ByteStream::operator>>(T& t) {
 	if (readPos + sizeof(t) <= _data.size()) {
 		std::memcpy(&t, _data.data() + readPos, sizeof(t));
-		t = s_hton(t);
+		t = s_ntoh(t);
 		readPos += sizeof(t);
 		return true;
 	}

@@ -5,7 +5,7 @@
 
 int main() {
 	uint32_t x = 5;
-	uint64_t y = 6;
+	uint64_t y = 10;
 	int32_t a = 7;
 	int64_t b = 8;
 	float f = 5.0f;
@@ -65,10 +65,10 @@ int main() {
 	std::cout << "Using templated version...\n";
 
 	TestUtil::expect(x, x2);
-	//TestUtil::expect(a, a2);
+	TestUtil::expect(a, a2);
 
 	TestUtil::expect(y, y2);
-	//TestUtil::expect(b, b2);
+	TestUtil::expect(b, b2);
 
 	TestUtil::expect(f, f2);
 	TestUtil::expect(d, d2);

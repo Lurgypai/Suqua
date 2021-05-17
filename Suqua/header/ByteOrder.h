@@ -17,10 +17,10 @@ template<typename T>
 T s_htonll(T value);
 
 template<typename T>
-T s_nthol(T source);
+T s_ntohl(T source);
 
 template<typename T>
-T s_ntholl(T source);
+T s_ntohll(T source);
 
 template<typename T>
 inline T s_hton(T value) {

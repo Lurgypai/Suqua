@@ -1,5 +1,5 @@
 #include <iostream>
-#include "DataComponent.h"
+#include "NetworkDataComponent.h"
 #include <iostream>
 #include "TestUtil.h"
 
@@ -23,7 +23,7 @@
 */
 
 int main() {
-	DataComponent dataComp{};
+	NetworkDataComponent dataComp{};
 	dataComp.set<char>(0, 'a');
 	dataComp.set<uint32_t>(1, 1);
 	dataComp.set<int32_t>(2, 2);
