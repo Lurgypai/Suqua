@@ -21,7 +21,16 @@ SyncState::SyncState(Tick gameTime_) :
     }
 }
 
-SyncState::SyncState() {}
+SyncState::SyncState(const SyncState& other) :
+    gameTime{other.gameTime},
+    states{other.states}
+{}
+
+SyncState& SyncState::operator=(SyncState& other) {
+    gameTime = other.gameTime;
+    states = other.states;
+    return *this;
+}
 
 bool SyncState::operator==(const SyncState& other) const {
 	return gameTime == other.gameTime && states == other.states;
@@ -85,6 +94,15 @@ Tick SyncState::getGameTime() const {
 
 const std::unordered_map<EntityId, SyncState::State>& SyncState::getStates() const {
     return states;
+}
+
+void SyncState::applyState() {
+    for(auto&& state : states) {
+        *EntitySystem::GetComp<NetworkDataComponent>(state.first) = state.second.data;
+        if(state.second.cont.has_value()) {
+            *EntitySystem::GetComp<ControllerComponent>(state.first) = *state.second.cont;
+        }
+    }
 }
 
 bool SyncState::State::operator==(const SyncState::State& other) const {

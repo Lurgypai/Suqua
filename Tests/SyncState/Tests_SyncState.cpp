@@ -5,6 +5,15 @@
 #include "SyncSystem.h"
 #include "OnlineComponent.h"
 #include "OnlineSystem.h"
+#include "Game.h"
+
+void TestCopy() {
+    Game game{1.0 / 120, 1.0 / 60, 1.0 / 30, Game::Flag::client_flags}; 
+ 
+    SyncState stateA{5};
+    SyncState aCpy{stateA};
+    SyncState aCpy2 = stateA;
+}
 
 void TestNoNdc() {
     OnlineSystem online;
@@ -156,6 +165,7 @@ void TestOneNdcAndCC() {
 }
 
 int main() {
+    TestCopy();
     //no ndcs
 //    TestNoNdc(); 
     //one ndc

@@ -1,6 +1,3 @@
-#
-# Find SDL_MIXER
-#
 
 # Additional modules
 include(FindPackageHandleStandardArgs)
@@ -24,10 +21,6 @@ find_library(SDL2_LIBRARY
   PATH_SUFFIXES lib
 )
 
-# Handle REQUIRD argument, define *_FOUND variable
-#find_package_handle_standard_args(SDL_MIXER_INCLUDE_DIR)
-
-# Hide some variables
 elseif(WIN32)
 set(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/../windows-sdl2/include")
 
@@ -35,6 +28,6 @@ set(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/../windows-sdl2/include")
 if (${CMAKE_SIZEOF_VOID_P} MATCHES 8)
   set(SDL2_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../windows-sdl2/lib/x64/SDL2.lib;${CMAKE_CURRENT_LIST_DIR}/../windows-sdl2/lib/x64/SDL2main.lib")
 else ()
-  set(SDL2_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../windows-sdl2/lib/x86/SDL2.lib;${CMAKE_CURRENT_LIST_DIR}/../windows-sdl2/lib/x86/SDL2main.lib")
+    set(SDL2_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../windows-sdl2/lib/x86/SDL2.lib;${CMAKE_CURRENT_LIST_DIR}/../windows-sdl2/lib/x86/SDL2main.lib")
 endif ()
 endif()

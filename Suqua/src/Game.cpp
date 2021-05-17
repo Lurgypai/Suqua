@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Packet.h"
 #include "PHGameTime.h"
+#include "SyncState.h"
 
 Game::Game(double physics_step, double render_step, double server_step, FlagType flags_) :
 	PHYSICS_STEP{physics_step},
@@ -174,17 +175,11 @@ void Game::loop() {
 			}
 
 			if (flags & Flag::physics) {
-				prePhysicsStep();
-				physicsStep();
-				postPhysicsStep();
+                physicsUpdate();
 			}
 
 			if (flags & (Flag::server | client)) {
 				host.handlePackets(*this);
-			}
-
-			if (flags & server) {
-				++gameTick;
 			}
 
 			clearSDLEvents();
@@ -200,6 +195,13 @@ void Game::loop() {
 				stream << Packet::GameTickId;
 				stream << gameTick;
 				host.bufferAllData(stream);
+
+                ByteStream statePacket;
+                statePacket << Packet::StateId;
+
+                SyncState currState{gameTick};
+                currState.serialize(statePacket);
+                host.bufferAllData(statePacket);
 
 				host.sendBuffered();
 				std::cout << "Packets sent...\n";
@@ -235,4 +237,16 @@ const EventQueue& Game::getEvents() {
 
 void Game::setGameTick(Tick newGameTick) {
 	gameTick = newGameTick;
+}
+
+Tick Game::getGameTick() const {
+    return gameTick;
+}
+
+void Game::physicsUpdate() {
+    prePhysicsStep();
+    physicsStep();
+    postPhysicsStep();
+
+    ++gameTick;
 }

@@ -56,6 +56,7 @@ public:
 
 	NetworkDataComponent(EntityId id_ = 0);
 	NetworkDataComponent(const NetworkDataComponent& other) = default;
+    NetworkDataComponent& operator=(const NetworkDataComponent& other) = default;
 
     bool operator==(const NetworkDataComponent& other) const;
     bool operator!=(const NetworkDataComponent& other) const;

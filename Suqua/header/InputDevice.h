@@ -16,6 +16,4 @@ private:
 	InputDeviceId id;
 };
 
-InputDevice::~InputDevice() {};
-
 using InputDevicePtr = std::unique_ptr<InputDevice>;

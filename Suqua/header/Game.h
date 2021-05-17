@@ -1,5 +1,5 @@
 #pragma once
-#include <SDL.h>
+#include "SDL.h"
 #include <deque>
 #include "RenderSystem.h"
 #include "Scene.h"
@@ -7,6 +7,7 @@
 #include "Host.h"
 #include "Tick.h"
 #include "OnlineSystem.h"
+#include "SyncSystem.h"
 
 #include <unordered_map>
 #include <vector>
@@ -59,9 +60,13 @@ public:
 	const EventQueue& getEvents();
 
 	void setGameTick(Tick newGameTick);
+    Tick getGameTick() const;
+    
+    void physicsUpdate();
 
 	Host host;
 	OnlineSystem online;
+    SyncSystem sync;
 private:
 	void pollSDLEvents();
 	void clearSDLEvents();
