@@ -26,9 +26,20 @@ SyncState::SyncState(const SyncState& other) :
     states{other.states}
 {}
 
+SyncState::SyncState(SyncState&& other) :
+    gameTime{other.gameTime},
+    states{std::move(other.states)}
+{}
+
 SyncState& SyncState::operator=(SyncState& other) {
     gameTime = other.gameTime;
     states = other.states;
+    return *this;
+}
+
+SyncState& SyncState::operator=(SyncState&& other) {
+    gameTime = other.gameTime;
+    states = std::move(other.states);
     return *this;
 }
 

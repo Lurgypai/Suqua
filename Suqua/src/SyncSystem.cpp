@@ -11,6 +11,10 @@ void SyncSystem::storeCurrentState(Tick gameTime) {
 	states.emplace(gameTime, gameTime);
 }
 
+void SyncSystem::overrideState(Tick gameTime) {
+    states.at(gameTime) = SyncState{gameTime};
+}
+
 void SyncSystem::writeStatePacket(ByteStream& stream, Tick gameTime)
 {
 	stream << Packet::StateId;
@@ -26,7 +30,7 @@ void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
         states.at(s.getGameTime()) = s;
         //clear states after time
         //you can't use remove_if with an associative container!
-        for(auto iter = states.begin(); iter != states.end(); ++iter) {
+        for(auto iter = states.begin(); iter != states.end();) {
             if(iter->first > s.getGameTime())
                 iter = states.erase(iter);
             else

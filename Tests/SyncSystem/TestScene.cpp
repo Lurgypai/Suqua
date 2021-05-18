@@ -1,5 +1,6 @@
 #include "TestScene.h"
 #include "NetworkDataComponent.h"
+#include "Game.h"
 
 TestScene::TestScene(SceneId id_, FlagType flags_) :
     Scene(id_, flags_)
@@ -12,6 +13,8 @@ void TestScene::load(Game& game) {
     EntitySystem::GenEntities(1, &id);
     EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
     EntitySystem::GetComp<NetworkDataComponent>(id)->set<int32_t>(0, 0);
+    
+    game.online.addOnlineComponent(id);
 }
 
 void TestScene::prePhysicsStep(Game& game) {

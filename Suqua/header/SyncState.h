@@ -22,7 +22,9 @@ public:
 	SyncState();
 
     SyncState(const SyncState& other);
+    SyncState(SyncState&& other);
     SyncState& operator=(SyncState& other);
+    SyncState& operator=(SyncState&& other);
 
 	bool operator==(const SyncState& other) const;
 	bool operator!=(const SyncState& other) const;

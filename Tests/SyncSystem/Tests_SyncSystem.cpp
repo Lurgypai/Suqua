@@ -39,7 +39,7 @@ void TestData() {
     game.sync.writeStatePacket(packet, 1);
     //update and replace state 1
     game.physicsUpdate();
-    game.sync.storeCurrentState(1);
+    game.sync.overrideState(1);
     printNDCs();
     //resync
     PacketHandlerId pack;
@@ -51,5 +51,6 @@ void TestData() {
 int main() {
     TestNoData();
     TestData();
+    //repredict state call
     return 0;
 }

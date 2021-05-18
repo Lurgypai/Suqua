@@ -10,6 +10,7 @@
 class SyncSystem {
 public:
 	void storeCurrentState(Tick gameTime);
+    void overrideState(Tick gameTime);
 
 	void writeStatePacket(ByteStream& stream, Tick gameTime);
 
