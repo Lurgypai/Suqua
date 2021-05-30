@@ -15,6 +15,7 @@ public:
 	void writeStatePacket(ByteStream& stream, Tick gameTime);
 
 	void resyncStatePacket(ByteStream& stream, Game& game);
+    const std::unordered_map<Tick, SyncState>& getStates() const;
 	
 private:
 	Tick lastStoredTime;

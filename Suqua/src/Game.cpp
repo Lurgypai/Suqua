@@ -85,6 +85,35 @@ void Game::sceneOff(SceneId id) {
 	scene->flags = Scene::none;
 }
 
+void Game::unloadScene(SceneId id) {
+	Scene* scene;
+	for (auto&& s : scenes) {
+		if (s->getId() == id)
+			scene = s.get();
+	}
+
+	//scene not found
+	if (!scene)
+		throw std::exception{};
+
+    scene->unload(*this);
+    scene->removeAllEntities();
+    for(auto sceneIter = scenes.begin(); sceneIter != scenes.end(); ++sceneIter) {
+        if((*sceneIter)->getId() == id) {
+            scenes.erase(sceneIter);
+            break;
+        }
+    }
+}
+
+void Game::close() {
+    for(auto sceneIter = scenes.begin(); sceneIter != scenes.end();) {
+        (*sceneIter)->unload(*this);
+        (*sceneIter)->removeAllEntities();
+        sceneIter = scenes.erase(sceneIter);
+    }
+}
+
 void Game::inputStep() {
 	for (auto&& scene : scenes) {
 		if (scene->flags & Scene::Flag::input) {

@@ -48,9 +48,50 @@ void TestData() {
     printNDCs();
 }
 
+void printSyncSystemStates(const SyncSystem& sync) {
+    for(auto&& state : sync.getStates()) {
+        std::cout << "States at time: " << state.first << '\n';
+        for(auto&& entityState : state.second.getStates()) {
+            std::cout << "\tEntity: " << entityState.first << ", Data: ";
+            std::cout << entityState.second.data.getConst<int32_t>(0) << '\n';
+        }
+    }
+}
+
+void TestDataReUpdate() {
+    Game game{1.0 / 120, 1.0 / 60, 1.0 / 30, Game::Flag::client_flags}; 
+    game.loadScene<TestScene>(Scene::Flag::physics);
+    game.setGameTick(0);
+    //store as state current state 
+    //time 0 - val 0
+    game.sync.storeCurrentState(game.getGameTick());
+    game.sync.storeCurrentState(1);
+    //write as current state 
+    ByteStream packet;
+    game.sync.writeStatePacket(packet, 1);
+    //run and store 3 updates, (states 
+    game.physicsUpdate();
+    game.sync.overrideState(1);
+    game.physicsUpdate();
+    game.sync.storeCurrentState(game.getGameTick());
+    game.physicsUpdate();
+    game.sync.storeCurrentState(game.getGameTick());
+
+    std::cout << "States before update:\n";
+    printSyncSystemStates(game.sync);
+
+    //resync
+    PacketHandlerId pack;
+    packet >> pack;
+    game.sync.resyncStatePacket(packet, game);
+    std::cout << "States after resync:\n";
+    printSyncSystemStates(game.sync);
+}
+
 int main() {
     TestNoData();
-    TestData();
+    //TestData();
+    TestDataReUpdate();
     //repredict state call
     return 0;
 }

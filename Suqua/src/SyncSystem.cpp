@@ -42,8 +42,13 @@ void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
         game.setGameTick(s.getGameTime());
         while(game.getGameTick() < currTick) {
             game.physicsUpdate();
+            game.sync.storeCurrentState(game.getGameTick());
         } 
 	}
+}
+
+const std::unordered_map<Tick, SyncState>& SyncSystem::getStates() const {
+    return states;
 }
 
 //store the state as set of all ndc/controller in id addressable slot

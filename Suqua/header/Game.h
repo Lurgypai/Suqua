@@ -51,6 +51,7 @@ public:
 	void sceneOff(SceneId id);
 
 	void unloadScene(SceneId id);
+    void close();
 
 	const double PHYSICS_STEP;
 	const double RENDER_STEP;

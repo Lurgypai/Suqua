@@ -38,7 +38,7 @@ public:
 
 	void applyInputs(Game& game);
 	void removeAllEntities();
-	void removeDeadEntites();
+	void removeDeadEntities();
 	void drawScene(const RenderSystem& render) const;
 
 	const std::set<EntityId>& getEntities() const;

@@ -41,7 +41,7 @@ void Scene::removeAllEntities() {
 	EntitySystem::FreeEntities(entityVec.size(), entityVec.data());
 }
 
-void Scene::removeDeadEntites() {
+void Scene::removeDeadEntities() {
 	for (auto&& base : EntitySystem::GetPool<EntityBaseComponent>()) {
 		if (base.isDead)
 			entities.erase(entities.find(base.getId()));
