@@ -9,12 +9,11 @@ TestScene::TestScene(SceneId id_, FlagType flags_) :
 TestScene::~TestScene() {};
 
 void TestScene::load(Game& game) {
-    EntityId id;
-    EntitySystem::GenEntities(1, &id);
-    EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
-    EntitySystem::GetComp<NetworkDataComponent>(id)->set<int32_t>(0, 0);
+    EntityId entity = addEntities(1)[0];
+    EntitySystem::MakeComps<NetworkDataComponent>(1, &entity);
+    EntitySystem::GetComp<NetworkDataComponent>(entity)->set<int32_t>(0, 0);
     
-    game.online.addOnlineComponent(id);
+    game.online.addOnlineComponent(entity);
 }
 
 void TestScene::prePhysicsStep(Game& game) {
@@ -22,6 +21,7 @@ void TestScene::prePhysicsStep(Game& game) {
 
 void TestScene::physicsStep(Game& game) {
     for(auto&& data : EntitySystem::GetPool<NetworkDataComponent>()) {
+        std::cout << "Updating entity " << data.getId() << " from " << data.get<int32_t>(0) << " to " << data.get<int32_t>(0) + 1 << '\n';
         ++data.get<int32_t>(0);
     }
 }

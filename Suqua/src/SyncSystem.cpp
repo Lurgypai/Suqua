@@ -42,7 +42,7 @@ void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
         game.setGameTick(s.getGameTime());
         while(game.getGameTick() < currTick) {
             game.physicsUpdate();
-            game.sync.storeCurrentState(game.getGameTick());
+            storeCurrentState(game.getGameTick());
         } 
 	}
 }

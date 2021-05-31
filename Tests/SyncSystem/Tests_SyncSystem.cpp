@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "Packet.h"
 #include "TestScene.h"
+#include "TestScene2.h"
 #include <iostream>
 
 void TestNoData() {
@@ -46,6 +47,7 @@ void TestData() {
     packet >> pack;
     game.sync.resyncStatePacket(packet, game);
     printNDCs();
+    game.close();
 }
 
 void printSyncSystemStates(const SyncSystem& sync) {
@@ -60,7 +62,7 @@ void printSyncSystemStates(const SyncSystem& sync) {
 
 void TestDataReUpdate() {
     Game game{1.0 / 120, 1.0 / 60, 1.0 / 30, Game::Flag::client_flags}; 
-    game.loadScene<TestScene>(Scene::Flag::physics);
+    game.loadScene<TestScene2>(Scene::Flag::physics);
     game.setGameTick(0);
     //store as state current state 
     //time 0 - val 0
@@ -90,7 +92,7 @@ void TestDataReUpdate() {
 
 int main() {
     TestNoData();
-    //TestData();
+    TestData();
     TestDataReUpdate();
     //repredict state call
     return 0;
