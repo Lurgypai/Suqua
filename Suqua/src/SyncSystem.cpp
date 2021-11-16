@@ -8,6 +8,9 @@
 #include "Game.h"
 
 void SyncSystem::storeCurrentState(Tick gameTime) {
+    //properly rotate out states
+    if (states.size() > 128)
+        states.clear();
 	states.emplace(gameTime, gameTime);
 }
 
@@ -26,6 +29,9 @@ void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
     //create dummy state
 	SyncState s{0};
 	s.unserialize(stream, game.online);
+    //TODO: Add a better error handler for this, or make sure it doesn't happen in the first place
+    if (states.find(s.getGameTime()) == states.end())
+        return;
 	if (s != states.at(s.getGameTime())) {
         states.at(s.getGameTime()) = s;
         //clear states after time

@@ -13,6 +13,7 @@ public:
 	virtual void renderStep(Game& game) override;
 	virtual void postRenderStep(Game& game) override;
 	virtual void unload(Game& game) override;
+	virtual void onConnect(Game& game, PeerId connectingId) override;
 private:
 	SceneId targetScene;
 };

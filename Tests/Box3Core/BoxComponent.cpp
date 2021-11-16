@@ -3,6 +3,8 @@
 #include "PhysicsComponent.h"
 #include "PositionData.h"
 #include "ControllerComponent.h"
+#include "OnlineSystem.h"
+#include "OnlineComponent.h"
 #include <SDL.h>
 
 #include <iostream>
@@ -13,6 +15,9 @@ BoxComponent::BoxComponent(EntityId id_) :
 	if (id != 0) {
 		if (!EntitySystem::Contains<PhysicsComponent>() || !EntitySystem::GetComp<PhysicsComponent>(id)) {
 			EntitySystem::MakeComps<PhysicsComponent>(1, &id);
+		}
+		if (!EntitySystem::Contains<OnlineComponent>() || !EntitySystem::GetComp<OnlineComponent>(id)) {
+			EntitySystem::MakeComps<OnlineComponent>(1, &id);
 		}
 	}
 }

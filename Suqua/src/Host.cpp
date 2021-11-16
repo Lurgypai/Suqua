@@ -1,50 +1,43 @@
 #include "Host.h"
+#include "Game.h"
+#include <iostream>
+#include <algorithm>
 
 Host::Host(size_t channelCount_) :
 	host{NULL},
 	channelCount{channelCount_},
 	channelIncrementer{0},
-	connected{false}
-{}
+	clientConnected{false},
+	connectCallback{}
+{
+	ownedNetIds.resize(channelCount);
+}
 
 Host::~Host() {
 	enet_host_destroy(host);
-	for (auto iter = peers.beginResource(); iter != peers.endResource(); ++iter) {
-		if (!iter->isFree) {
-			enet_peer_reset(iter->val);
-		}
-	}
 }
 
-bool Host::createClient(size_t peerCount, size_t channels, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth) {
+void Host::createClient(size_t peerCount, size_t channels, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth) {
 	host = enet_host_create(NULL, peerCount, channels, incomingBandwidth, outgoingBandwidth);
+	//unable to generate host
+	if (host == NULL) throw std::exception{};
 
-	if (host != NULL) {
-		channelCount = channels;
-		peers.resize(peerCount);
-		for (size_t id = 0; id != peerCount;) {
-			freeIds.push_back(id++);
-		}
-	}
-
-	return host != NULL;
+	channelCount = channels;
+	ownedNetIds.resize(channelCount);
+	type = Type::client;
 }
 
-bool Host::createServer(int port, size_t peerCount, size_t channels, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth) {
+void Host::createServer(int port, size_t peerCount, size_t channels, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth) {
 	ENetAddress address;
 	address.host = ENET_HOST_ANY;
 	address.port = port;
 	host = enet_host_create(&address, peerCount, channels, incomingBandwidth, outgoingBandwidth);
+	//unable to generate host
+	if (host == NULL) throw std::exception{};
 
-	if (host != NULL) {
-		channelCount = channels;
-		peers.resize(peerCount);
-		for (size_t id = 0; id != peerCount;) {
-			freeIds.push_back(++id);
-		}
-	}
-
-	return host != NULL;
+	channelCount = channels;
+	ownedNetIds.resize(channelCount);
+	type = Type::server;
 }
 
 void Host::sendAllData(const ByteStream& data) {
@@ -56,66 +49,73 @@ void Host::sendAllDataByChannel(enet_uint8 channel, const ByteStream& data) {
 }
 
 void Host::bufferAllData(const ByteStream& data) {
-	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE), 0, (channelIncrementer++) % channelCount });
+	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE), 0, (channelIncrementer++) % channelCount, true});
 }
 
 void Host::bufferAllDataByChannel(enet_uint8 channel, const ByteStream& data) {
-	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE), 0, channel });
+	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE), 0, channel, true});
 }
 
 void Host::sendData(PeerId id, const ByteStream& data) {
-	enet_peer_send(peers[id], (channelIncrementer++) % channelCount, enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE));
+	enet_peer_send(host->peers + id, (channelIncrementer++) % channelCount, enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE));
 }
 
 void Host::sendDataByChannel(PeerId id, enet_uint8 channel, const ByteStream& data) {
-	enet_peer_send(peers[id], channel, enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE));
+	enet_peer_send(host->peers + id, channel, enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE));
 }
 
 void Host::bufferData(PeerId id, const ByteStream& data) {
-	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE), id, (channelIncrementer++) % channelCount });
+	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE), id, (channelIncrementer++) % channelCount, false});
 }
 
 void Host::bufferDataToChannel(PeerId id, enet_uint8 channel, const ByteStream& data) {
-	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE), id, channel });
+	idDestinedPackets.emplace_back(DestinedPacket{ enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE), id, channel, false});
 }
 
 void Host::sendBuffered() {
 	for (auto& packet : idDestinedPackets) {
-		if (packet.id == 0) {
+		if (packet.broadcast) {
 			enet_host_broadcast(host, packet.channel, packet.packet);
 		}
 		else {
-			enet_peer_send(peers[packet.id], packet.channel, packet.packet);
+			enet_peer_send(host->peers + packet.id, packet.channel, packet.packet);
 		}
 	}
 	idDestinedPackets.clear();
 }
 
 void Host::handlePackets(Game& game) {
-	if (!connected) {
-		ENetEvent e;
-		while (service(&e, 0) > 0) {
-			if (e.type == ENET_EVENT_TYPE_CONNECT) {
-				connected = true;
-				break;
+
+	ENetEvent e;
+	PeerId connectedId;
+	while (service(&e, 0) > 0) {
+		switch (e.type) {
+		case ENET_EVENT_TYPE_CONNECT:
+			connectedId = getId(e.peer);
+			std::cout << "Connection received from new peer " << connectedId << '\n';
+
+			if (type == Type::client) clientConnected = true;
+
+			if (connectCallback) connectCallback(e);
+			else std::cout << "Connection received. No callback function implemented.\n";
+			game.onConnect(connectedId);
+			break;
+		case ENET_EVENT_TYPE_DISCONNECT:
+			if(type == Type::client) clientConnected = false;
+			break;
+		case ENET_EVENT_TYPE_RECEIVE:
+			ByteStream stream;
+			stream.putData(e.packet->data, e.packet->dataLength);
+			PacketId id;
+			stream.peek(id);
+
+			if (packetHandlers.find(id) != packetHandlers.end()) {
+				packetHandlers.at(id)->handlePacket(game, stream, getId(e.peer));
 			}
-		}
-	}
-	if (connected) {
-		ENetEvent e;
-		while (service(&e, 0) > 0) {
-			switch (e.type) {
-			case ENET_EVENT_TYPE_DISCONNECT:
-				connected = false;
-				break;
-			case ENET_EVENT_TYPE_RECEIVE:
-				ByteStream stream;
-				stream.putData(e.packet->data, e.packet->dataLength);
-				PacketHandlerId id;
-				stream >> id;
-				packetHandlers.at(id)->handlePacket(stream, game);
-				break;
+			else {
+				std::cout << "No handler for ID \'" << id << "\'.\n";
 			}
+			break;
 		}
 	}
 }
@@ -124,41 +124,48 @@ int Host::service(ENetEvent * event, enet_uint32 timeout) {
 	return enet_host_service(host, event, timeout);
 }
 
-PeerId Host::tryConnect(const std::string & ip, int port, size_t channels) {
-	if (!freeIds.empty()) {
-		ENetAddress address;
-		enet_address_set_host(&address, ip.c_str());
-		address.port = port;
-
-		PeerId id = freeIds.front();
-		freeIds.pop_front();
-		peers.add(id, enet_host_connect(host, &address, channels, 0));
-		return id;
-	}
-    return 0;
+void Host::tryConnect(const std::string & ip, int port, size_t channels) {
+	ENetAddress address;
+	enet_address_set_host(&address, ip.c_str());
+	address.port = port;
+	enet_host_connect(host, &address, channels, 0);
 }
 
-PeerId Host::addPeer(ENetPeer * peer) {
-	if (!freeIds.empty()) {
-		PeerId id = freeIds.front();
-		freeIds.pop_front();
-		peers.add(id, peer);
-		return id;
+ENetPeer& Host::getPeer(PeerId id) {
+	if (id >= 0 && id < host->connectedPeers) {
+		return host->peers[id];
 	}
-    return 0;
+	//uh oh, we couldn't find it
+	throw std::exception{};
 }
 
-void Host::removePeer(PeerId peerId) {
-	freeIds.push_back(peerId);
-	peers.free(peerId);
+PeerId Host::getId(ENetPeer* peer) {
+	return peer - host->peers;
 }
 
 void Host::disconnect(PeerId peerId) {
-	enet_peer_disconnect(peers[peerId], 0);
-	removePeer(peerId);
+	enet_peer_disconnect(host->peers + peerId, 0);
 }
 
 void Host::resetConnection(PeerId peerId) {
-	enet_peer_reset(peers[peerId]);
-	removePeer(peerId);
+	enet_peer_reset(host->peers + peerId);
+}
+
+void Host::setConnectCallback(std::function<ConnectCallback> newCallBack) {
+	connectCallback = newCallBack;
+}
+bool Host::isConnected() {
+	return clientConnected;
+}
+
+void Host::addNetIdToPeer(PeerId peerId, NetworkId netId) {
+	ownedNetIds[peerId].emplace_back(netId);
+}
+
+void Host::removeNetIdFromPeer(PeerId peerId, NetworkId netId) {
+	ownedNetIds[peerId].erase(std::remove(ownedNetIds[peerId].begin(), ownedNetIds[peerId].end(), netId), ownedNetIds[peerId].end());
+}
+
+const std::vector<NetworkId>& Host::getPeerOwnedNetIds(PeerId id) {
+	return ownedNetIds[id];
 }

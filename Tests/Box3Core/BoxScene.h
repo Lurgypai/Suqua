@@ -1,6 +1,9 @@
+#pragma once
 #include "Scene.h"
 #include "PhysicsSystem.h"
 #include "InputDevice.h"
+#include "OnlineSystem.h"
+#include <vector>
 
 class BoxScene : public Scene {
 public:
@@ -14,8 +17,11 @@ public:
 	virtual void renderStep(Game& game) override;
 	virtual void postRenderStep(Game& game) override;
 	virtual void unload(Game& game) override;
+	virtual void onConnect(Game& game, PeerId connectingId) override;
+
+	EntityId addBox(Game& game, bool isClient, NetworkId targetId = 0);
 private:
 	PhysicsSystem physics;
 protected:
-	EntityId boxId;
+	std::vector<EntityId> boxes;
 };

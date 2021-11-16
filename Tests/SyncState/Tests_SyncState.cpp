@@ -164,7 +164,7 @@ void TestOneNdcAndCC() {
 
 }
 
-int main() {
+int main(int argv, char** argc) {
     TestCopy();
     //no ndcs
 //    TestNoNdc(); 

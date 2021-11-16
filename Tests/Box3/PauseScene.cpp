@@ -45,3 +45,5 @@ void PauseScene::postRenderStep(Game& game)
 void PauseScene::unload(Game& game)
 {
 }
+
+void PauseScene::onConnect(Game& game, PeerId connectingId) {}

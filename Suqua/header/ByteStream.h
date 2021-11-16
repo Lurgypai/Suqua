@@ -18,6 +18,9 @@ public:
 	template<typename T>
 	bool operator>>(T& t);
 
+	template<typename T>
+	bool peek(T& t);
+
 	bool operator==(const ByteStream& other);
 	bool operator!=(const ByteStream& other);
 
@@ -84,6 +87,38 @@ inline bool ByteStream::operator>> <std::string>(std::string& s) {
 			std::memcpy(s.data(), _data.data() + readPos, size);
 			readPos += size;
             return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+template<typename T>
+inline bool ByteStream::peek(T& t) {
+	if (readPos + sizeof(t) <= _data.size()) {
+		std::memcpy(&t, _data.data() + readPos, sizeof(t));
+		t = s_ntoh(t);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+template<>
+inline bool ByteStream::peek<std::string>(std::string& s) {
+	if (readPos + sizeof(size_t) <= _data.size()) {
+		size_t size;
+		std::memcpy(&size, _data.data() + readPos, sizeof(size_t));
+		size = s_ntoh(size);
+		if (readPos + sizeof(size_t) + size <= _data.size()) {
+			s.resize(size);
+			std::memcpy(s.data(), _data.data() + readPos, size);
+			return true;
 		}
 		else {
 			return false;

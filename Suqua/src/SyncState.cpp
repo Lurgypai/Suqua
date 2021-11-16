@@ -6,15 +6,16 @@
 SyncState::SyncState(Tick gameTime_) :
 	gameTime{gameTime_}
 {
-    if(EntitySystem::Contains<NetworkDataComponent>()) {
-        for (auto&& data : EntitySystem::GetPool<NetworkDataComponent>()) {
+    if(EntitySystem::Contains<OnlineComponent>()) {
+        for (auto&& online : EntitySystem::GetPool<OnlineComponent>()) {
+			auto* data = EntitySystem::GetComp<NetworkDataComponent>(online.getId());
             ControllerComponent* controller = nullptr;
             if(EntitySystem::Contains<ControllerComponent>()) {
-                controller = EntitySystem::GetComp<ControllerComponent>(data.getId());
+                controller = EntitySystem::GetComp<ControllerComponent>(data->getId());
             }
 
-            states.emplace(data.getId(),
-                    State{ data,
+            states.emplace(data->getId(),
+                    State{ *data,
                     controller ? std::optional<ControllerComponent>{*controller} :
                                  std::nullopt });
         }

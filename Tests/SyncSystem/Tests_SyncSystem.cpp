@@ -16,7 +16,7 @@ void TestNoData() {
     
     game.physicsUpdate();
 
-    PacketHandlerId pack;
+    PacketId pack;
     packet >> pack;
     game.sync.resyncStatePacket(packet, game);
     //store current state
@@ -43,7 +43,7 @@ void TestData() {
     game.sync.overrideState(1);
     printNDCs();
     //resync
-    PacketHandlerId pack;
+    PacketId pack;
     packet >> pack;
     game.sync.resyncStatePacket(packet, game);
     printNDCs();
@@ -83,14 +83,14 @@ void TestDataReUpdate() {
     printSyncSystemStates(game.sync);
 
     //resync
-    PacketHandlerId pack;
+    PacketId pack;
     packet >> pack;
     game.sync.resyncStatePacket(packet, game);
     std::cout << "States after resync:\n";
     printSyncSystemStates(game.sync);
 }
 
-int main() {
+int main(int argv, char** argc) {
     TestNoData();
     TestData();
     TestDataReUpdate();

@@ -2,6 +2,10 @@
 #include "PacketHandler.h"
 
 namespace Packet {
-	constexpr PacketHandlerId GameTickId = 1;
-	constexpr PacketHandlerId StateId = 2;
+	//stores a ping packet
+	//id
+	//source starting gametick
+	//server game tick
+	constexpr PacketId PingId = 1;
+	constexpr PacketId StateId = 2;
 }

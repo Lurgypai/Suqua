@@ -20,12 +20,16 @@ int main() {
 	bool b2;
 	std::string s2;
 
+	int x3;
+	stream.peek(x3);
+
 	stream >> x2;
 	stream >> y2;
 	stream >> b2;
 	stream >> s2;
 
 	TestUtil::expect(x2, x);
+	TestUtil::expect(x2, x3);
 	TestUtil::expect(y2, y);
 	TestUtil::expect(b2, b);
 	TestUtil::expect(s2, s);

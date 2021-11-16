@@ -50,10 +50,12 @@ void Scene::removeDeadEntities() {
 
 void Scene::drawScene(const RenderSystem& render) const {
 	GLRenderer::setCamera(camId);
-	for (auto&& entity : entities) {
-		RenderComponent* renderComp = EntitySystem::GetComp<RenderComponent>(entity);
-		if (renderComp) {
-			render.draw(*renderComp);
+	if (EntitySystem::Contains<RenderComponent>()) {
+		for (auto&& entity : entities) {
+			RenderComponent* renderComp = EntitySystem::GetComp<RenderComponent>(entity);
+			if (renderComp) {
+				render.draw(*renderComp);
+			}
 		}
 	}
 }

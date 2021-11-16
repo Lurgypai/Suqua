@@ -1,19 +1,20 @@
 #pragma once
 #include "ByteStream.h"
+#include "PeerId.h"
 #include <memory>
 
-using PacketHandlerId = uint32_t;
+using PacketId = uint32_t;
 
 class Game;
 
 class PacketHandler {
 public:
-	PacketHandler(PacketHandlerId id_);
+	PacketHandler(PacketId id_);
 	virtual ~PacketHandler() = 0;
-	virtual void handlePacket(ByteStream& data, Game& game) = 0;
-	PacketHandlerId getId() const;
+	virtual void handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) = 0;
+	PacketId getId() const;
 private:
-	PacketHandlerId id;
+	PacketId id;
 };
 
 using PacketHandlerPtr = std::unique_ptr<PacketHandler>;

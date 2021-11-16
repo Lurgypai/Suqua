@@ -1,11 +1,11 @@
 #include "PacketHandler.h"
 
-PacketHandler::PacketHandler(PacketHandlerId id_) :
+PacketHandler::PacketHandler(PacketId id_) :
 	id{id_}
 {}
 
 PacketHandler::~PacketHandler() {};
 
-PacketHandlerId PacketHandler::getId() const {
+PacketId PacketHandler::getId() const {
 	return id;
 }

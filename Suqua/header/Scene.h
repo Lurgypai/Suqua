@@ -7,6 +7,7 @@
 #include <vector>
 #include "RenderSystem.h"
 #include "InputDevice.h"
+#include "Host.h"
 
 using SceneId = uint64_t;
 
@@ -35,6 +36,8 @@ public:
 	virtual void renderStep(Game& game) = 0;
 	virtual void postRenderStep(Game& game) = 0;
 	virtual void unload(Game& game) = 0;
+
+	virtual void onConnect(Game& game, PeerId connectingId) = 0;
 
 	void applyInputs(Game& game);
 	void removeAllEntities();

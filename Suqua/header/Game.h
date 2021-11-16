@@ -37,11 +37,14 @@ public:
 	template<typename S, typename ... Args>
 	SceneId loadScene(char flags_, Args... args);
 
+	template<typename S>
+	S& getScene(SceneId id);
+
 	template<typename T, typename ... Args>
 	InputDeviceId loadInputDevice(Args ... args);
 
 	template<typename P, typename ... Args>
-	PacketHandlerId loadPacketHandler(PacketHandlerId id, Args... args);
+	PacketId loadPacketHandler(PacketId id, Args... args);
 
 	InputDevice& getInputDevice(InputDeviceId id);
 
@@ -64,10 +67,14 @@ public:
     Tick getGameTick() const;
     
     void physicsUpdate();
+	void onConnect(PeerId id);
 
 	Host host;
 	OnlineSystem online;
     SyncSystem sync;
+	Tick clientPingFrequency;
+
+	FlagType getFlags();
 private:
 	void pollSDLEvents();
 	void clearSDLEvents();
@@ -85,8 +92,8 @@ private:
 
 	Tick renderTick;
 	Tick physicsTick;
-	Tick serverTick;
 	Tick gameTick;
+	Tick clientPingCtr;
 	EventQueue events;
 
 	RenderSystem renderSystem;
@@ -103,6 +110,17 @@ inline SceneId Game::loadScene(char flags_, Args... args) {
 	return scenes.size() - 1;
 }
 
+template<typename S>
+inline S& Game::getScene(SceneId id) {
+	if (id >= 0 && scenes.size() > id) {
+		return *static_cast<S*>(scenes[id].get());
+	}
+	else {
+		//we're missing that id!
+		throw std::exception{};
+	}
+}
+
 template<typename T, typename ...Args>
 inline InputDeviceId Game::loadInputDevice(Args ...args) {
 	InputDevicePtr inputDevice = std::make_unique<T>(inputDevices.size());
@@ -111,7 +129,7 @@ inline InputDeviceId Game::loadInputDevice(Args ...args) {
 }
 
 template<typename P, typename ...Args>
-inline PacketHandlerId Game::loadPacketHandler(PacketHandlerId id, Args ...args) {
+inline PacketId Game::loadPacketHandler(PacketId id, Args ...args) {
 	host.loadPacketHandler<P>(id, args...);
 	return id;
 }

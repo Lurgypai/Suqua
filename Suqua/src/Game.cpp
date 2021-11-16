@@ -1,6 +1,8 @@
 #include "Game.h"
 #include "Packet.h"
-#include "PHGameTime.h"
+#include "PHClientPing.h"
+#include "PHServerPing.h"
+#include "PHSyncState.h"
 #include "SyncState.h"
 
 Game::Game(double physics_step, double render_step, double server_step, FlagType flags_) :
@@ -9,16 +11,18 @@ Game::Game(double physics_step, double render_step, double server_step, FlagType
 	SERVER_STEP{server_step},
 	renderTick{0},
 	physicsTick{0},
-	serverTick{0},
 	gameTick{0},
-	flags{flags_}
+	flags{flags_},
+	clientPingFrequency{ 120 }
 {
 	if (flags & client) {
 		host.createClient(1, 10);
-		loadPacketHandler<PHGameTime>(Packet::GameTickId);
+		loadPacketHandler<PHClientPing>(Packet::PingId);
+		loadPacketHandler<PHSyncState>(Packet::StateId);
 	}
 	if (flags & server) {
 		host.createServer(25565, 10, 10);
+		loadPacketHandler<PHServerPing>(Packet::PingId);
 	}
 }
 
@@ -115,11 +119,11 @@ void Game::close() {
 }
 
 void Game::inputStep() {
-	for (auto&& scene : scenes) {
-		if (scene->flags & Scene::Flag::input) {
-			scene->applyInputs(*this);
-		}
+for (auto&& scene : scenes) {
+	if (scene->flags & Scene::Flag::input) {
+		scene->applyInputs(*this);
 	}
+}
 }
 
 void Game::prePhysicsStep() {
@@ -170,6 +174,10 @@ void Game::postRenderStep() {
 	}
 }
 
+Game::FlagType Game::getFlags() {
+	return flags;
+}
+
 void Game::pollSDLEvents() {
 	SDL_Event e;
 	while (SDL_PollEvent(&e)) {
@@ -204,11 +212,25 @@ void Game::loop() {
 			}
 
 			if (flags & Flag::physics) {
-                physicsUpdate();
+				physicsUpdate();
 			}
 
-			if (flags & (Flag::server | client)) {
+			if (flags & (Flag::client)) {
+				if (clientPingCtr < clientPingFrequency) ++clientPingCtr;
+				else {
+					clientPingCtr = 0;
+					ByteStream pingPacket;
+					pingPacket << Packet::PingId;
+					pingPacket << gameTick;
+					host.bufferAllDataByChannel(0, pingPacket);
+					std::cout << "Client pinging server...\n";
+				}
+			}
+
+			if (flags & (Flag::server | Flag::client)) {
 				host.handlePackets(*this);
+				host.sendBuffered();
+				sync.storeCurrentState(gameTick);
 			}
 
 			clearSDLEvents();
@@ -220,20 +242,15 @@ void Game::loop() {
 		if (flags & Flag::server) {
 			now = SDL_GetPerformanceCounter();
 			if (static_cast<double>(now - lastServerUpdate) / SDL_GetPerformanceFrequency() >= SERVER_STEP) {
-				ByteStream stream;
-				stream << Packet::GameTickId;
-				stream << gameTick;
-				host.bufferAllData(stream);
 
                 ByteStream statePacket;
                 statePacket << Packet::StateId;
 
                 SyncState currState{gameTick};
                 currState.serialize(statePacket);
-                host.bufferAllData(statePacket);
+                host.bufferAllDataByChannel(0, statePacket);
 
-				host.sendBuffered();
-				std::cout << "Packets sent...\n";
+				//std::cout << "Packets sent...\n";
 
 				lastServerUpdate = now;
 			}
@@ -253,6 +270,12 @@ void Game::loop() {
 
 
 		EntitySystem::FreeDeadEntities();
+	}
+}
+
+void Game::onConnect(PeerId id) {
+	for (auto& scenePtr : scenes) {
+		scenePtr->onConnect(*this, id);
 	}
 }
 
