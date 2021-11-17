@@ -43,6 +43,10 @@ void TestScene2::postRenderStep(Game& game) {
 void TestScene2::unload(Game& game) {
 }
 
+void TestScene2::onConnect(Game& game, PeerId connectingId)
+{
+}
+
 
 
 

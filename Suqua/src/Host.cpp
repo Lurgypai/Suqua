@@ -8,9 +8,9 @@ Host::Host(size_t channelCount_) :
 	channelCount{channelCount_},
 	channelIncrementer{0},
 	clientConnected{false},
-	connectCallback{}
+	connectCallback{},
+	connectedPeers{}
 {
-	ownedNetIds.resize(channelCount);
 }
 
 Host::~Host() {
@@ -23,7 +23,8 @@ void Host::createClient(size_t peerCount, size_t channels, enet_uint32 incomingB
 	if (host == NULL) throw std::exception{};
 
 	channelCount = channels;
-	ownedNetIds.resize(channelCount);
+	ownedNetIds.resize(peerCount);
+	connectedPeers.resize(peerCount);
 	type = Type::client;
 }
 
@@ -36,7 +37,8 @@ void Host::createServer(int port, size_t peerCount, size_t channels, enet_uint32
 	if (host == NULL) throw std::exception{};
 
 	channelCount = channels;
-	ownedNetIds.resize(channelCount);
+	ownedNetIds.resize(peerCount);
+	connectedPeers.resize(peerCount);
 	type = Type::server;
 }
 
@@ -92,9 +94,16 @@ void Host::handlePackets(Game& game) {
 		switch (e.type) {
 		case ENET_EVENT_TYPE_CONNECT:
 			connectedId = getId(e.peer);
+			connectedPeers.set(connectedId, true);
 			std::cout << "Connection received from new peer " << connectedId << '\n';
 
-			if (type == Type::client) clientConnected = true;
+			if (type == Type::client) {
+				clientConnected = true;
+				ByteStream pingPacket;
+				pingPacket << Packet::PingId;
+				pingPacket << game.getGameTick();
+				bufferAllDataByChannel(0, pingPacket);
+			}
 
 			if (connectCallback) connectCallback(e);
 			else std::cout << "Connection received. No callback function implemented.\n";
@@ -102,6 +111,8 @@ void Host::handlePackets(Game& game) {
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT:
 			if(type == Type::client) clientConnected = false;
+			connectedPeers.set(getId(e.peer), false);
+			std::cout << "Disconnecting...\n";
 			break;
 		case ENET_EVENT_TYPE_RECEIVE:
 			ByteStream stream;
@@ -145,10 +156,12 @@ PeerId Host::getId(ENetPeer* peer) {
 
 void Host::disconnect(PeerId peerId) {
 	enet_peer_disconnect(host->peers + peerId, 0);
+	connectedPeers.set(peerId, false);
 }
 
 void Host::resetConnection(PeerId peerId) {
 	enet_peer_reset(host->peers + peerId);
+	connectedPeers.set(peerId, false);
 }
 
 void Host::setConnectCallback(std::function<ConnectCallback> newCallBack) {
@@ -168,4 +181,15 @@ void Host::removeNetIdFromPeer(PeerId peerId, NetworkId netId) {
 
 const std::vector<NetworkId>& Host::getPeerOwnedNetIds(PeerId id) {
 	return ownedNetIds[id];
+}
+bool Host::isPeerConnected(PeerId id) {
+	return connectedPeers[id];
+}
+
+size_t Host::getConnectedPeerCount() {
+	return host->connectedPeers;
+}
+
+size_t Host::getPeerCount() {
+	return host->peerCount;
 }

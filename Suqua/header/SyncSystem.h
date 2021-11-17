@@ -19,6 +19,7 @@ public:
 	
 private:
 	Tick lastStoredTime;
+	//change this to a circular buffer
 	std::unordered_map<Tick, SyncState> states;
 };
 

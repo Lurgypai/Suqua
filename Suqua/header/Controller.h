@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "Vec2.h"
+#include "ByteStream.h"
 
 using ControllerState = uint32_t;
 
@@ -47,6 +48,9 @@ public:
 
 	ControllerState getState() const;
 	ControllerState getPrevState() const;
+
+	void serialize(ByteStream& data) const;
+	void unserialize(ByteStream& data);
 
 	Vec2i pointerPos;
 	int mouseScroll;

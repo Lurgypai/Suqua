@@ -2,10 +2,10 @@
 #pragma once
 #include "Scene.h"
 
-class TestScene2 : public Scene {
+class TestScene3 : public Scene {
 public:
-    TestScene2(SceneId id_, FlagType flags_);
-    virtual ~TestScene2();
+    TestScene3(SceneId id_, FlagType flags_);
+    virtual ~TestScene3();
     virtual void load(Game& game);
     virtual void prePhysicsStep(Game& game);
     virtual void physicsStep(Game& game);
@@ -17,4 +17,6 @@ public:
     virtual void unload(Game& game);
 
     virtual void onConnect(Game& game, PeerId connectingId) override;
+
+    EntityId entity;
 };

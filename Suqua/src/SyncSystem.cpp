@@ -9,8 +9,10 @@
 
 void SyncSystem::storeCurrentState(Tick gameTime) {
     //properly rotate out states
-    if (states.size() > 128)
-        states.clear();
+    auto toRemove = states.find(gameTime - (120 * 5));
+    if (toRemove != states.end())
+        states.erase(toRemove);
+
 	states.emplace(gameTime, gameTime);
 }
 
@@ -22,7 +24,6 @@ void SyncSystem::writeStatePacket(ByteStream& stream, Tick gameTime)
 {
 	stream << Packet::StateId;
 	states.at(gameTime).serialize(stream);
-	
 }
 
 void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
@@ -33,23 +34,33 @@ void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
     if (states.find(s.getGameTime()) == states.end())
         return;
 	if (s != states.at(s.getGameTime())) {
+        std::cout << "Resynchronizing for time " << s.getGameTime() << '\n';
         states.at(s.getGameTime()) = s;
         //clear states after time
         //you can't use remove_if with an associative container!
+        std::unordered_map<Tick, SyncState> removedStates{};
         for(auto iter = states.begin(); iter != states.end();) {
-            if(iter->first > s.getGameTime())
+            if (iter->first > s.getGameTime()) {
+                removedStates.emplace(std::move(*iter));
                 iter = states.erase(iter);
-            else
-                ++iter;
+            }
+            else ++iter;
         }
+        SyncState currState{ game.getGameTick() };
         //apply state
         s.applyState();
         Tick currTick = game.getGameTick();
         game.setGameTick(s.getGameTime());
-        while(game.getGameTick() < currTick) {
+        while(game.getGameTick() < currTick - 1) {
+            removedStates.at(game.getGameTick() + 1).applyInput(game.getOwnedNetIds(), game.online);
             game.physicsUpdate();
+            game.tickTime();
             storeCurrentState(game.getGameTick());
-        } 
+        }
+        //the state for the current frame has not yet been stored (waiting till after all packets are processed)
+        currState.applyInput(game.getOwnedNetIds(), game.online);
+        game.physicsUpdate();
+        game.tickTime();
 	}
 }
 

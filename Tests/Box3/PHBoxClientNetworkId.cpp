@@ -15,5 +15,6 @@ void PHBoxClientNetworkId::handlePacket(Game& game, ByteStream& data, PeerId sou
 	data >> netId;
 	auto& targetScene = game.getScene<ClientBoxScene>(targetSceneId);
 	targetScene.ourBoxNetId = netId;
+	game.addOwnedNetId(netId);
 	std::cout << "Set our network id to " << netId << '\n';
 }

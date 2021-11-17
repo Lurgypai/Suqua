@@ -13,7 +13,7 @@ void connectionCallback(const ENetEvent& e) {
 
 int main(int argc, char* argv[]) {
 	SuquaLib::SuquaInit("settings.json", SuquaLib::all, { 640, 480 });
-	Game game{1.0 / 120, 1.0 / 60, 0, Game::Flag::client_flags};
+	Game game{ Game::Flag::client_flags };
 	InputDeviceId keyboard = game.loadInputDevice<IDKeyboardMouse>();
 	SceneId boxScene = game.loadScene<ClientBoxScene>(Scene::all, keyboard, "127.0.0.1", 25565);
 	game.loadScene<PauseScene>(Scene::physics, boxScene);

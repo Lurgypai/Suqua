@@ -1,10 +1,12 @@
 #include "Controller.h"
+#include "ByteStream.h"
 #include <vector>
 
 
 Controller::Controller() : state{ 0 }, prevState{0}, mouseScroll{ 0 } {}
 
 Controller::Controller(const Controller& other) :
+	pointerPos{other.pointerPos},
 	state{other.state},
 	prevState{other.prevState},
 	mouseScroll{other.mouseScroll}
@@ -61,4 +63,20 @@ ControllerState Controller::getState() const {
 
 ControllerState Controller::getPrevState() const {
 	return prevState;
+}
+
+void Controller::serialize(ByteStream& stream) const {
+	stream << pointerPos.x;
+	stream << pointerPos.y;
+	stream << mouseScroll;
+	stream << state;
+	stream << prevState;
+}
+
+void Controller::unserialize(ByteStream& stream) {
+	stream >> pointerPos.x;
+	stream >> pointerPos.y;
+	stream >> mouseScroll;
+	stream >> state;
+	stream >> prevState;
 }

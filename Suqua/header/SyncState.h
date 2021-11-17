@@ -36,6 +36,7 @@ public:
 
 	Tick getGameTime() const;
     const std::unordered_map<EntityId, State>& getStates() const;
+	void applyInput(const std::vector<NetworkId>& netIds, const OnlineSystem& online);
     void applyState();
 private:
 	Tick gameTime;

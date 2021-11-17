@@ -3,10 +3,11 @@
 #include "Packet.h"
 #include "TestScene.h"
 #include "TestScene2.h"
+#include "TestScene3.h"
 #include <iostream>
 
 void TestNoData() {
-    Game game{1.0 / 120, 1.0 / 60, 1.0 / 30, Game::Flag::client_flags}; 
+    Game game{ Game::Flag::physics}; 
    
     game.setGameTick(10);
     game.sync.storeCurrentState(game.getGameTick());
@@ -15,6 +16,7 @@ void TestNoData() {
     game.sync.writeStatePacket(packet, game.getGameTick());
     
     game.physicsUpdate();
+    game.tickTime();
 
     PacketId pack;
     packet >> pack;
@@ -30,7 +32,7 @@ void printNDCs() {
     }
 }
 void TestData() {
-    Game game{1.0 / 120, 1.0 / 60, 1.0 / 30, Game::Flag::client_flags}; 
+    Game game{Game::Flag::physics };
     game.loadScene<TestScene>(Scene::Flag::physics);
     printNDCs();
     //store as state 1
@@ -40,6 +42,7 @@ void TestData() {
     game.sync.writeStatePacket(packet, 1);
     //update and replace state 1
     game.physicsUpdate();
+    game.tickTime();
     game.sync.overrideState(1);
     printNDCs();
     //resync
@@ -60,27 +63,47 @@ void printSyncSystemStates(const SyncSystem& sync) {
     }
 }
 
-void TestDataReUpdate() {
-    Game game{1.0 / 120, 1.0 / 60, 1.0 / 30, Game::Flag::client_flags}; 
-    game.loadScene<TestScene2>(Scene::Flag::physics);
+void TestInputReUpdate() {
+    Game game{ Game::Flag::physics };
+    auto sceneId = game.loadScene<TestScene3>(Scene::Flag::physics);
+    EntityId entity = game.getScene<TestScene3>(sceneId).entity;
     game.setGameTick(0);
-    //store as state current state 
-    //time 0 - val 0
-    game.sync.storeCurrentState(game.getGameTick());
-    game.sync.storeCurrentState(1);
-    //write as current state 
+
+    //generate an alternate start state
+    EntitySystem::GetComp<NetworkDataComponent>(entity)->set<int32_t>(0, 5);
+    game.sync.storeCurrentState(0);
     ByteStream packet;
-    game.sync.writeStatePacket(packet, 1);
-    //run and store 3 updates, (states 
-    game.physicsUpdate();
-    game.sync.overrideState(1);
+    game.sync.writeStatePacket(packet, 0);
+
+
+    //replace the start state and simulate
+    EntitySystem::GetComp<NetworkDataComponent>(entity)->set<int32_t>(0, 0);
+    game.sync.overrideState(0);
+    game.tickTime();
     game.physicsUpdate();
     game.sync.storeCurrentState(game.getGameTick());
+    game.tickTime();
     game.physicsUpdate();
     game.sync.storeCurrentState(game.getGameTick());
 
+    game.tickTime();
+    EntitySystem::GetComp<ControllerComponent>(entity)->getController().on(ControllerBits::BUTTON_1);
+    game.physicsUpdate();
+    game.sync.storeCurrentState(game.getGameTick());
+    game.tickTime();
+    game.physicsUpdate();
+    game.sync.storeCurrentState(game.getGameTick());
+    game.tickTime();
+    game.physicsUpdate();
+    game.sync.storeCurrentState(game.getGameTick());
+
+    game.tickTime();
+    game.physicsUpdate();
+
     std::cout << "States before update:\n";
     printSyncSystemStates(game.sync);
+    std::cout << "Final state before update: " << EntitySystem::GetComp<NetworkDataComponent>(entity)->get<int32_t>(0) << '\n';
+    std::cout << "Time before update: " << game.getGameTick() << '\n';
 
     //resync
     PacketId pack;
@@ -88,12 +111,15 @@ void TestDataReUpdate() {
     game.sync.resyncStatePacket(packet, game);
     std::cout << "States after resync:\n";
     printSyncSystemStates(game.sync);
+    std::cout << "Final state after update: " << EntitySystem::GetComp<NetworkDataComponent>(entity)->get<int32_t>(0) << '\n';
+    std::cout << "Time after update: " << game.getGameTick() << '\n';
 }
 
 int main(int argv, char** argc) {
-    TestNoData();
-    TestData();
-    TestDataReUpdate();
+    //TestNoData();
+    //TestData();
+    //TestData();
+    TestInputReUpdate();
     //repredict state call
     return 0;
 }

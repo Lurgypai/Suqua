@@ -15,4 +15,6 @@ public:
     virtual void renderStep(Game& game);
     virtual void postRenderStep(Game& game);
     virtual void unload(Game& game);
+
+    virtual void onConnect(Game& game, PeerId connectingId) override;
 };

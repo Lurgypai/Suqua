@@ -4,6 +4,7 @@
 #include "ByteStream.h"
 #include "PeerId.h"
 #include "PacketHandler.h"
+#include "DynamicBitset.h"
 
 #include <string>
 #include <deque>
@@ -76,6 +77,9 @@ public:
 	void removeNetIdFromPeer(PeerId peerId, NetworkId netId);
 
 	const std::vector<NetworkId>& getPeerOwnedNetIds(PeerId id);
+	bool isPeerConnected(PeerId id);
+	size_t getConnectedPeerCount();
+	size_t getPeerCount();
 private:
 	ENetHost * host;
 	size_t channelCount;
@@ -88,6 +92,7 @@ private:
 	std::vector<std::vector<NetworkId>> ownedNetIds;
 
 	Type type;
+	DynamicBitset connectedPeers;
 };
 
 //add owning entities

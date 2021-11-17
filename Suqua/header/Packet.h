@@ -8,4 +8,9 @@ namespace Packet {
 	//server game tick
 	constexpr PacketId PingId = 1;
 	constexpr PacketId StateId = 2;
+	//stores a client input
+	//id
+	//gametime
+	//input state
+	constexpr PacketId InputId = 3;
 }

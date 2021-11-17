@@ -33,10 +33,13 @@ public:
         const T& getConst() const;
 
 		template<typename T>
-		void set(const T& t);
+		void set(T& t);
 
 		template<typename T>
 		void set(T&& t);
+
+		template<typename T>
+		void set(const T& t);
 
 		void write(ByteStream& s);
 		void read(ByteStream& s);
@@ -64,11 +67,13 @@ public:
 	void serializeForNetwork(ByteStream& stream);
 	void serializeForNetwork(ByteStream& stream, const std::map<DataId, Data>& prevData);
 	void unserialize(ByteStream& stream);
-
+	
 	template<typename T>
-	void set(DataId id, const T& t);
+	void set(DataId id, T& t);
 	template<typename T>
 	void set(DataId id, T&& t);
+	template<typename T>
+	void set(DataId id, const T& t);
 	template<typename T>
 	T& get(DataId id);
     template<typename T>
@@ -96,7 +101,7 @@ inline const T& NetworkDataComponent::Data::getConst() const {
 }
 
 template<typename T>
-inline void NetworkDataComponent::Data::set(const T& t) {
+inline void NetworkDataComponent::Data::set(T& t) {
 	type = getDataType<T>();
 	value = t;
 }
@@ -104,17 +109,28 @@ inline void NetworkDataComponent::Data::set(const T& t) {
 template<typename T>
 inline void NetworkDataComponent::Data::set(T&& t) {
 	type = getDataType<T>();
-	value = std::forward<T&&>(t);
+	value = std::move(t);
+}
+
+template<typename T>
+inline void NetworkDataComponent::Data::set(const T& t) {
+	type = getDataType<T>();
+	value = t;
+}
+
+template<typename T>
+inline void NetworkDataComponent::set(DataId id, T& t) {
+	data_[id].set(t);
+}
+
+template<typename T>
+inline void NetworkDataComponent::set(DataId id, T&& t) {
+	data_[id].set(std::forward<T&&>(t));
 }
 
 template<typename T>
 inline void NetworkDataComponent::set(DataId id, const T& t) {
 	data_[id].set(t);
-}
-
-template<typename T>
-void NetworkDataComponent::set(DataId id, T&& t) {
-	data_[id].set(std::forward<T&&>(t));
 }
 
 template<typename T>

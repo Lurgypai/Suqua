@@ -62,10 +62,7 @@ void SyncState::serialize(ByteStream& stream) {
 		stream << state.second.cont.has_value();
 		if (state.second.cont) {
 			auto& controller = state.second.cont->getController();
-			stream << controller.getPrevState();
-			stream << controller.getState();
-			stream << controller.pointerPos;
-			stream << controller.mouseScroll;
+			controller.serialize(stream);
 		}
 	}
 }
@@ -84,18 +81,7 @@ void SyncState::unserialize(ByteStream& stream, const OnlineSystem& online) {
 		bool has_cont;
 		stream >> has_cont;
 		if (has_cont) {
-			ControllerState controllerState;
-			ControllerState prevControllerState;
-			Controller cont;
-			
-			stream >> prevControllerState;
-			stream >> controllerState;
-			stream >> cont.pointerPos;
-			stream >> cont.mouseScroll;
-
-			cont.setState(prevControllerState);
-			cont.setState(controllerState);
-            s.cont->setController(cont);
+			s.cont->getController().unserialize(stream);
 		}
 	}
 }
@@ -106,6 +92,13 @@ Tick SyncState::getGameTime() const {
 
 const std::unordered_map<EntityId, SyncState::State>& SyncState::getStates() const {
     return states;
+}
+
+void SyncState::applyInput(const std::vector<NetworkId>& netIds, const OnlineSystem& online) {
+	for (NetworkId netId : netIds) {
+		EntityId entity = online.getEntity(netId);
+		*EntitySystem::GetComp<ControllerComponent>(entity) = *states.at(entity).cont;
+	}
 }
 
 void SyncState::applyState() {

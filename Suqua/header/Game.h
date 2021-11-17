@@ -8,6 +8,7 @@
 #include "Tick.h"
 #include "OnlineSystem.h"
 #include "SyncSystem.h"
+#include "ServerInputQueue.h"
 
 #include <unordered_map>
 #include <vector>
@@ -31,7 +32,7 @@ public:
 		none = 0
 	};
 
-	Game(double physics_step, double render_step, double server_step, FlagType flags_);
+	Game(FlagType flags, double physics_step = (1.0 / 120.0), double render_step = (1.0 / 60.0), Tick clientPingDelay_ = 120, Tick serverBroadcastDelay_ = 4);
 	virtual ~Game();
 
 	template<typename S, typename ... Args>
@@ -55,10 +56,10 @@ public:
 
 	void unloadScene(SceneId id);
     void close();
+	void tickTime();
 
 	const double PHYSICS_STEP;
 	const double RENDER_STEP;
-	const double SERVER_STEP;
 
 	const RenderSystem& getRender();
 	const EventQueue& getEvents();
@@ -68,11 +69,18 @@ public:
     
     void physicsUpdate();
 	void onConnect(PeerId id);
+	void addOwnedNetId(NetworkId id);
+	void removeOwnedNetId(NetworkId id);
+	const std::vector<NetworkId>& getOwnedNetIds() const;
 
 	Host host;
 	OnlineSystem online;
     SyncSystem sync;
-	Tick clientPingFrequency;
+	ServerInputQueue serverInputQueue;
+	//how often, in game ticks, the client pings the server
+	Tick clientPingDelay;
+	//how often, in game ticks, the server broadcasts the state
+	Tick serverBroadcastDelay;
 
 	FlagType getFlags();
 private:
@@ -91,15 +99,18 @@ private:
 	void postRenderStep();
 
 	Tick renderTick;
-	Tick physicsTick;
 	Tick gameTick;
 	Tick clientPingCtr;
+	Tick serverBroadcastCtr;
 	EventQueue events;
 
 	RenderSystem renderSystem;
 	std::vector<ScenePtr> scenes;
 	std::unordered_map<InputDeviceId, InputDevicePtr> inputDevices;
 	FlagType flags;
+
+	//for a client, the network ids we own
+	std::vector<NetworkId> ownedNetIds;
 };
 
 template<typename S, typename ... Args>

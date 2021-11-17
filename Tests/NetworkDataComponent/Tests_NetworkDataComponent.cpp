@@ -158,5 +158,7 @@ int main() {
 	TestUtil::expect(three, v3);
 	std::cout << "Testing complete.\n";
 
+	NetworkDataComponent other{ dataComp };
+
 	return 0;
 }
