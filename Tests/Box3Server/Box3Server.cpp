@@ -10,6 +10,7 @@ void connectCallback(const ENetEvent& e) {
 int main(int argc, char* argv[]) {
 	SuquaLib::SuquaInit("settings.json", SuquaLib::network, { 640, 480 });
 	Game game{ Game::Flag::server_flags };
+	game.serverBroadcastDelay = 30;
 	SceneId boxScene = game.loadScene<ServerBoxScene>(Scene::physics);
 	SuquaLib::RunGame(game);
 

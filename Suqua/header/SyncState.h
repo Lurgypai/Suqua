@@ -38,7 +38,13 @@ public:
     const std::unordered_map<EntityId, State>& getStates() const;
 	void applyInput(const std::vector<NetworkId>& netIds, const OnlineSystem& online);
     void applyState();
+
+	void setServerAcknowledged();
+	bool isServerAcknowledged();
+
+	void interp(const SyncState& other, float ratio);
 private:
 	Tick gameTime;
 	std::unordered_map<EntityId, State> states;
+	bool serverAcknowledged;
 };

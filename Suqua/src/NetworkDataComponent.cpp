@@ -1,5 +1,6 @@
 #include "NetworkDataComponent.h"
 #include <cstring>
+#include <iostream>
 
 NetworkDataComponent::NetworkDataComponent(EntityId id_) :
 	id{ id_ },
@@ -23,29 +24,39 @@ bool NetworkDataComponent::operator!=(const NetworkDataComponent& other) const {
 }
 
 void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {
-	stream << data_.size();
-	for (auto&& pair : data_) {
-		stream << pair.first;
-		pair.second.write(stream);
-	}
-}
-
-void NetworkDataComponent::serializeForNetwork(ByteStream& stream, const std::map<DataId, Data>& prevData) {
-
+	//add the ability to allocate bytestream space, and overwrite at position
 	size_t writeCount = 0;
-	for (auto&& pair : data_) {
-		if (pair.second != prevData.at(pair.first)) {
+	for (const auto& pair : data_) {
+		if (pair.second.mode != SyncMode::NONE) {
 			++writeCount;
 		}
 	}
+
 	stream << writeCount;
 	for (auto&& pair : data_) {
-		if (pair.second != prevData.at(pair.first)) {
+		if (pair.second.mode != SyncMode::NONE) {
 			stream << pair.first;
 			pair.second.write(stream);
 		}
 	}
 }
+
+//void NetworkDataComponent::serializeForNetwork(ByteStream& stream, const std::map<DataId, Data>& prevData) {
+//
+//	size_t writeCount = 0;
+//	for (auto&& pair : data_) {
+//		if (pair.second != prevData.at(pair.first)) {
+//			++writeCount;
+//		}
+//	}
+//	stream << writeCount;
+//	for (auto&& pair : data_) {
+//		if (pair.second != prevData.at(pair.first)) {
+//			stream << pair.first;
+//			pair.second.write(stream);
+//		}
+//	}
+//}
 
 void NetworkDataComponent::unserialize(ByteStream& stream) {
 
@@ -136,10 +147,48 @@ inline void NetworkDataComponent::Data::read(ByteStream& s) {
 	}
 }
 
-const NetworkDataComponent::DataMap& NetworkDataComponent::data() {
-	return data_;
-}
+//const NetworkDataComponent::DataMap& NetworkDataComponent::data() {
+//	return data_;
+//}
 
 EntityId NetworkDataComponent::getId() const {
 	return id;
+}
+
+void NetworkDataComponent::setSyncMode(DataId id, SyncMode mode) {
+	data_.at(id).mode = mode;
+}
+
+void NetworkDataComponent::interp(const NetworkDataComponent& start, const NetworkDataComponent& end, float ratio) {
+	for (auto&& pair : data_) {
+		if (pair.second.mode == SyncMode::INTERPOLATED) {
+			switch (pair.second.type)
+			{
+			case NetworkDataComponent::Data::DataType::BYTE:
+				pair.second.get<char>() = start.get<char>(pair.first) + (end.get<char>(pair.first) - start.get<char>(pair.first)) * ratio;
+				break;
+			case NetworkDataComponent::Data::DataType::UINT_32:
+				pair.second.get<uint32_t>() = start.get<uint32_t>(pair.first) + (end.get<uint32_t>(pair.first) - start.get<uint32_t>(pair.first)) * ratio;
+				break;
+			case NetworkDataComponent::Data::DataType::INT_32:
+				pair.second.get<int32_t>() = start.get<int32_t>(pair.first) + (end.get<int32_t>(pair.first) - start.get<int32_t>(pair.first)) * ratio;
+				break;
+			case NetworkDataComponent::Data::DataType::UINT_64:
+				pair.second.get<uint64_t>() = start.get<uint64_t>(pair.first) + (end.get<uint64_t>(pair.first) - start.get<uint64_t>(pair.first)) * ratio;
+				break;
+			case NetworkDataComponent::Data::DataType::INT_64:
+				pair.second.get<int64_t>() = start.get<int64_t>(pair.first) + (end.get<int64_t>(pair.first) - start.get<int64_t>(pair.first)) * ratio;
+				break;
+			case NetworkDataComponent::Data::DataType::FLOAT:
+				//std::cout << "start value: " << start.get<float>(pair.first) << ", end value: " << end.get<float>(pair.first) << ", interpolated value " << start.get<float>(pair.first) + (end.get<float>(pair.first) - start.get<float>(pair.first)) * ratio << '\n';
+				pair.second.get<float>() = start.get<float>(pair.first) + (end.get<float>(pair.first) - start.get<float>(pair.first)) * ratio;
+				break;
+			case NetworkDataComponent::Data::DataType::DOUBLE:
+				pair.second.get<double>() = start.get<double>(pair.first) + (end.get<double>(pair.first) - start.get<double>(pair.first)) * ratio;
+				break;
+			default:
+				break;
+			}
+		}
+	}
 }

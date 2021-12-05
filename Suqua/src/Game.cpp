@@ -7,11 +7,12 @@
 #include "SyncState.h"
 
 Game::Game(FlagType flags_, double physics_step, double render_step, Tick clientPingDelay_, Tick serverBroadcastDelay_) :
-	PHYSICS_STEP{physics_step},
-	RENDER_STEP{render_step},
-	renderTick{0},
-	gameTick{0},
-	flags{flags_},
+	PHYSICS_STEP{ physics_step },
+	RENDER_STEP{ render_step },
+	TICK_RATE{ 1.0 / PHYSICS_STEP },
+	renderTick{ 0 },
+	gameTick{ 0 },
+	flags{ flags_ },
 	clientPingCtr{ 0 },
 	clientPingDelay{ clientPingDelay_ },
 	serverBroadcastCtr{ 0 },
@@ -203,81 +204,98 @@ void Game::loop() {
 	uint64_t physicsDelta = PHYSICS_STEP * SDL_GetPerformanceFrequency();
 
 	uint64_t lastGFXUpdate = SDL_GetPerformanceCounter();
+	uint64_t now;
 
 	while (true) {
-
-		uint64_t now = SDL_GetPerformanceCounter();
-		uint64_t elapsedTime = (now - lastPhysicsUpdate) + leftover;
-		lastPhysicsUpdate = now;
-		for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
+		//if we're a server, run up until the latest client input is received
+		if (flags & Flag::server) {
 			pollSDLEvents();
 
-			//if we haven't received enough inputs to update, just handle the packets
-			if (flags & Flag::server) {
-				if (!serverInputQueue.allReceived(host, gameTick)) {
-					host.handlePackets(*this);
-					host.sendBuffered();
-					//std::cout << "Waiting for inputs for time " << gameTick << '\n';
-					continue;
-				}
-				//else std::cout << "Recevied all inputs, applying physics...\n";
-			}
-
-			if (flags & Flag::input) {
-				inputStep();
-
-				if (flags & Flag::client) {
-					for (NetworkId ownedNetId : ownedNetIds) {
-						ByteStream inputPacket;
-						inputPacket << Packet::InputId;
-						inputPacket << gameTick;
-						inputPacket << ownedNetId;
-						Controller& cont = EntitySystem::GetComp<ControllerComponent>(online.getEntity(ownedNetId))->getController();
-						cont.serialize(inputPacket);
-						host.bufferAllDataByChannel(1, inputPacket);
-					}
-				}
-			}
-
-			if (flags & Flag::physics) {
-				if (flags & Flag::server) serverInputQueue.applyInputs(online, gameTick);
+			if (serverInputQueue.allReceived(host, gameTick)) {
+				//std::cout << "Received inputs for tick " << gameTick << '\n';
+				serverInputQueue.applyInputs(online, gameTick);
 				physicsUpdate();
-			}
 
-
-			if (flags & (Flag::server | Flag::client)) {
 				host.handlePackets(*this);
+
 				host.sendBuffered();
 				sync.storeCurrentState(gameTick);
-			}
 
-			//if (flags & Flag::client) {
-			//	if (clientPingCtr < clientPingDelay) ++clientPingCtr;
-			//	else {
-			//		clientPingCtr = 0;
-			//		ByteStream pingPacket;
-			//		pingPacket << Packet::PingId;
-			//		pingPacket << gameTick;
-			//		host.bufferAllDataByChannel(0, pingPacket);
-			//		std::cout << "Client pinging server...\n";
-			//	}
-			//}
-
-			if (flags & Flag::server) {
-				if (serverBroadcastCtr < serverBroadcastDelay) ++serverBroadcastCtr;
-				else {
+				++serverBroadcastCtr;
+				if (serverBroadcastCtr == serverBroadcastDelay - 1) {
 					serverBroadcastCtr = 0;
+
 					ByteStream statePacket;
 					sync.writeStatePacket(statePacket, gameTick);
+					//std::cout << "Buffering for broarcast for tick " << gameTick << '\n';
 					host.bufferAllDataByChannel(0, statePacket);
 				}
+
+				tickTime();
+				clearSDLEvents();
 			}
-
-			clearSDLEvents();
-
-			tickTime();
+			else {
+				//std::cout << "Have not received inputs for tick " << gameTick << '\n';
+				host.handlePackets(*this);
+				host.sendBuffered();
+			}
 		}
-		leftover = elapsedTime;
+
+		//if we're not a server, operate like client or non-online client
+		else {
+			now = SDL_GetPerformanceCounter();
+			uint64_t elapsedTime = (now - lastPhysicsUpdate) + leftover;
+			lastPhysicsUpdate = now;
+			for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
+				pollSDLEvents();
+
+				if (flags & Flag::input) {
+					inputStep();
+
+					if (flags & Flag::client) {
+						for (NetworkId ownedNetId : ownedNetIds) {
+							ByteStream inputPacket;
+							inputPacket << Packet::InputId;
+							inputPacket << gameTick;
+							inputPacket << ownedNetId;
+							Controller& cont = EntitySystem::GetComp<ControllerComponent>(online.getEntity(ownedNetId))->getController();
+							cont.serialize(inputPacket);
+							host.bufferAllDataByChannel(1, inputPacket);
+						}
+					}
+				}
+
+				if (flags & Flag::physics) {
+					physicsUpdate();
+					//std::cout << "currentTick: " << gameTick << '\n';
+					if (flags & Flag::client) sync.interpolate(gameTick - (2 * serverBroadcastDelay));
+				}
+
+
+				if (flags & Flag::client) {
+					host.handlePackets(*this);
+					host.sendBuffered();
+					sync.storeCurrentState(gameTick);
+				}
+
+				//if (flags & Flag::client) {
+				//	if (clientPingCtr < clientPingDelay) ++clientPingCtr;
+				//	else {
+				//		clientPingCtr = 0;
+				//		ByteStream pingPacket;
+				//		pingPacket << Packet::PingId;
+				//		pingPacket << gameTick;
+				//		host.bufferAllDataByChannel(0, pingPacket);
+				//		std::cout << "Client pinging server...\n";
+				//	}
+				//}
+
+				clearSDLEvents();
+
+				tickTime();
+			}
+			leftover = elapsedTime;
+		}
 
 		if (flags & Flag::render) {
 			now = SDL_GetPerformanceCounter();
@@ -290,7 +308,6 @@ void Game::loop() {
 				lastGFXUpdate = now;
 			}
 		}
-
 
 		EntitySystem::FreeDeadEntities();
 	}

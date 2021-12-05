@@ -7,8 +7,19 @@
 #include "ByteOrder.h"
 #include "EntitySystem.h"
 
+//where do you want to store previous states for interpolation?
+//where do you want to store the SyncMode (none, immediate, interpolated)?
+
 class NetworkDataComponent {
 public:
+	enum class SyncMode : char {
+		//the default is immediate, this is cheapest option to still allow syncing. To be changed?
+		IMMEDIATE = 0,
+		INTERPOLATED = 1,
+		NONE = 2
+	};
+
+private:
 	class Data {
 	public:
 		using DataValue = std::variant<char, bool, uint32_t, int32_t, uint64_t, int64_t, float, double, std::string>;
@@ -25,12 +36,15 @@ public:
 			DOUBLE,
 			STRING
 		} type;
+		SyncMode mode;
+
+		inline Data() = default;
 
 		template<typename T>
 		T& get();
 
-        template<typename T>
-        const T& getConst() const;
+		template<typename T>
+		const T& getConst() const;
 
 		template<typename T>
 		void set(T& t);
@@ -54,8 +68,8 @@ public:
 		constexpr DataType getDataType();
 	};
 
+public:
 	using DataId = uint32_t;
-	using DataMap = std::map<DataId, Data>;
 
 	NetworkDataComponent(EntityId id_ = 0);
 	NetworkDataComponent(const NetworkDataComponent& other) = default;
@@ -65,7 +79,7 @@ public:
     bool operator!=(const NetworkDataComponent& other) const;
 
 	void serializeForNetwork(ByteStream& stream);
-	void serializeForNetwork(ByteStream& stream, const std::map<DataId, Data>& prevData);
+	//void serializeForNetwork(ByteStream& stream, const std::map<DataId, Data>& prevData);
 	void unserialize(ByteStream& stream);
 	
 	template<typename T>
@@ -77,23 +91,28 @@ public:
 	template<typename T>
 	T& get(DataId id);
     template<typename T>
-    const T& getConst(DataId id) const;
+    const T& get(DataId id) const;
 
-	const DataMap& data();
+	void setSyncMode(DataId id, SyncMode mode);
+
+	//sets this entity to the interpolation between the two targets
+	void interp(const NetworkDataComponent& first, const NetworkDataComponent& second, float ratio);
+
+	//const DataMap& data();
 
 	EntityId getId() const;
 private:
+	using DataMap = std::map<DataId, Data>;
+
 	DataMap data_;
 	EntityId id;
 };
-
 
 
 template<typename T>
 inline T& NetworkDataComponent::Data::get() {
 	return std::get<T>(value);
 }
-
 
 template<typename T>
 inline const T& NetworkDataComponent::Data::getConst() const {
@@ -139,7 +158,7 @@ T& NetworkDataComponent::get(DataId id) {
 }
 
 template<typename T>
-inline const T& NetworkDataComponent::getConst(DataId id) const {
+inline const T& NetworkDataComponent::get(DataId id) const {
 	return data_.at(id).getConst<T>();
 }
 

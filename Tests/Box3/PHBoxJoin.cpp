@@ -2,6 +2,7 @@
 #include "OnlineSystem.h"
 #include "ByteStream.h"
 #include "Game.h"
+#include "PositionData.h"
 #include <iostream>
 
 PHBoxJoin::PHBoxJoin(PacketId id_, SceneId targetSceneId_) :
@@ -29,9 +30,13 @@ void PHBoxJoin::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) {
 	else {
 		std::cout << "Registered client " << netId << " joining.\n";
 		render->loadDrawable<Sprite>("evil_box");
+
+		auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(boxId);
+		ndc->setSyncMode(X, NetworkDataComponent::SyncMode::INTERPOLATED);
+		ndc->setSyncMode(Y, NetworkDataComponent::SyncMode::INTERPOLATED);
 	}
 
-	render->getDrawable<Sprite>()->setScale({ 3, 3 });
+	render->getDrawable<Sprite>()->setScale({ 3.0, 3.0 });
 
 	//create the box with the netId
 }

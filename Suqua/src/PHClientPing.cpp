@@ -16,5 +16,6 @@ void PHClientPing::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer)
 	data >> arrivalTime;
 	//set to just arrival time - 1, ensures 100% consistency
 	game.setGameTick(arrivalTime - 1);
+	std::cout << "Set time to " << arrivalTime - 1 << '\n';
 	//std::cout << "new time: " << arrivalTime + (rtt / 2) << '\n';
 }

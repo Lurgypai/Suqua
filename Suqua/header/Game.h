@@ -32,7 +32,7 @@ public:
 		none = 0
 	};
 
-	Game(FlagType flags, double physics_step = (1.0 / 120.0), double render_step = (1.0 / 60.0), Tick clientPingDelay_ = 120, Tick serverBroadcastDelay_ = 4);
+	Game(FlagType flags, double physics_step = (1.0 / 120.0), double render_step = (1.0 / 60.0), Tick clientPingDelay_ = 120, Tick serverBroadcastDelay = 4);
 	virtual ~Game();
 
 	template<typename S, typename ... Args>
@@ -60,6 +60,7 @@ public:
 
 	const double PHYSICS_STEP;
 	const double RENDER_STEP;
+	const double TICK_RATE;
 
 	const RenderSystem& getRender();
 	const EventQueue& getEvents();
@@ -79,7 +80,7 @@ public:
 	ServerInputQueue serverInputQueue;
 	//how often, in game ticks, the client pings the server
 	Tick clientPingDelay;
-	//how often, in game ticks, the server broadcasts the state
+	//how many new states to wait before sending an update
 	Tick serverBroadcastDelay;
 
 	FlagType getFlags();

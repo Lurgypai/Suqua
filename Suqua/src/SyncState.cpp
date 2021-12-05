@@ -2,9 +2,11 @@
 #include "OnlineComponent.h"
 #include "OnlineSystem.h"
 #include <unordered_map>
+#include <iostream>
 
 SyncState::SyncState(Tick gameTime_) :
-	gameTime{gameTime_}
+	gameTime{gameTime_},
+	serverAcknowledged{false}
 {
     if(EntitySystem::Contains<OnlineComponent>()) {
         for (auto&& online : EntitySystem::GetPool<OnlineComponent>()) {
@@ -97,7 +99,9 @@ const std::unordered_map<EntityId, SyncState::State>& SyncState::getStates() con
 void SyncState::applyInput(const std::vector<NetworkId>& netIds, const OnlineSystem& online) {
 	for (NetworkId netId : netIds) {
 		EntityId entity = online.getEntity(netId);
-		*EntitySystem::GetComp<ControllerComponent>(entity) = *states.at(entity).cont;
+		auto comp = EntitySystem::GetComp<ControllerComponent>(entity);
+		if (comp) *comp = *states.at(entity).cont;
+		else std::cout << "Entity " << entity << " does not yet have an associated controller component.\n";
 	}
 }
 
@@ -116,4 +120,20 @@ bool SyncState::State::operator==(const SyncState::State& other) const {
 
 bool SyncState::State::operator!=(const SyncState::State& other) const {
     return !((*this) == other);
+}
+
+void SyncState::setServerAcknowledged() {
+	serverAcknowledged = true;
+}
+
+bool SyncState::isServerAcknowledged() {
+	return serverAcknowledged;
+}
+
+void SyncState::interp(const SyncState& other, float ratio) {
+	for (auto&& online : EntitySystem::GetPool<OnlineComponent>()) {
+		auto& data = *EntitySystem::GetComp<NetworkDataComponent>(online.getId());
+		if(states.find(data.getId()) == states.end()) return;
+		data.interp(states.at(data.getId()).data, other.states.at(data.getId()).data, ratio);
+	}
 }

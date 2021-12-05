@@ -20,14 +20,13 @@ void EntitySystem::FreeEntities(unsigned int num, const EntityId * idStore) {
 }
 
 void EntitySystem::FreeDeadEntities() {
-	std::vector<EntityId> deadComps{};
-	Pool<EntityBaseComponent> & entities = ComponentMaps.get<EntityBaseComponent>();
-	deadComps.reserve(entities.size());
-	for (auto& comp : entities) {
-		if (comp.isDead) {
-			deadComps.push_back(comp.getId());
+	auto pool = EntitySystem::GetPool<EntityBaseComponent>();
+	for (auto resIter = pool.beginResource(); resIter != pool.endResource(); ++resIter) {
+		if (resIter->val.isDead) {
+			for (auto& pool : ComponentMaps) {
+				//add an erase function to do in place erasing
+				pool->free(resIter->val.getId());
+			}
 		}
 	}
-
-	EntitySystem::FreeEntities(deadComps.size(), deadComps.data());
 }

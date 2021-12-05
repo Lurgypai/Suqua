@@ -16,7 +16,10 @@ public:
 
 	void resyncStatePacket(ByteStream& stream, Game& game);
     const std::unordered_map<Tick, SyncState>& getStates() const;
+	bool hasState(Tick gameTime) const;
 	
+	//interpolates all interpolateable data
+	void interpolate(Tick gameTime);
 private:
 	Tick lastStoredTime;
 	//change this to a circular buffer

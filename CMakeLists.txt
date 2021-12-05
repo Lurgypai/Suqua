@@ -27,3 +27,7 @@ add_subdirectory ("Tests/Box3Server")
 add_subdirectory ("Tests/Box3Core")
 add_subdirectory ("Tests/SyncState")
 add_subdirectory ("Tests/SyncSystem")
+
+if (MSVC)
+set_target_properties("Suqua" "Box3Core" "Box3" "Box3Server" PROPERTIES LINK_FLAGS "/PROFILE")
+endif()
