@@ -6,7 +6,11 @@
 #include "PHBoxJoin.h"
 #include "PHBoxQuit.h"
 #include "../Box3Core/BoxPacket.h"
+#include "nlohmann/json.hpp"
 #include <iostream>
+#include <fstream>
+
+using nlohmann::json;
 
 void connectionCallback(const ENetEvent& e) {
 	std::cout << "Called connection callback on client\n";
@@ -16,9 +20,25 @@ int main(int argc, char* argv[]) {
 	//view res needs to be removed
 	SuquaLib::SuquaInit("settings.json", SuquaLib::all, { 1920, 1080 });
 	Game game{ Game::Flag::client_flags };
-	game.serverBroadcastDelay = 30;
+	game.serverBroadcastDelay = 12;
 	InputDeviceId keyboard = game.loadInputDevice<IDKeyboardMouse>();
-	SceneId boxScene = game.loadScene<ClientBoxScene>(Scene::all, keyboard, "127.0.0.1", 25565);
+
+	json settings;
+	std::ifstream file{ "settings.json" };
+	Vec2i windowRes;
+	if (file.good()) {
+		file >> settings;
+		file.close();
+	}
+
+	std::string ip = "127.0.0.1";
+	if (settings.contains("ip")) {
+		ip = settings["ip"];
+	}
+
+	std::cout << "The target ip is " << ip << ".\n";
+
+	SceneId boxScene = game.loadScene<ClientBoxScene>(Scene::all, keyboard, ip, 25565);
 	game.loadScene<PauseScene>(Scene::physics, boxScene);
 	game.loadPacketHandler<PHBoxClientNetworkId>(BoxPacket::ClientNetworkIdPacket, boxScene);
 	game.loadPacketHandler<PHBoxJoin>(BoxPacket::JoinPacket, boxScene);

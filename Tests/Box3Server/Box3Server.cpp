@@ -29,7 +29,7 @@ void disconnectCallback(Game& game, const ENetEvent& e) {
 int main(int argc, char* argv[]) {
 	SuquaLib::SuquaInit("settings.json", SuquaLib::network, { 640, 480 });
 	Game game{ Game::Flag::server_flags };
-	game.serverBroadcastDelay = 30;
+	game.serverBroadcastDelay = 12;
 	game.host.setDisconnectCallback(disconnectCallback);
 	SceneId boxScene = game.loadScene<ServerBoxScene>(Scene::physics);
 	SuquaLib::RunGame(game);
