@@ -14,6 +14,7 @@
 #include <OnlineComponent.h>
 
 using ConnectCallback = void(const ENetEvent&);
+using DisconnectCallback = void(Game& game, const ENetEvent&);
 
 //packet with with info about how to send it
 //add "packet handlers"
@@ -72,6 +73,7 @@ public:
 
 	bool isConnected();
 	void setConnectCallback(std::function<ConnectCallback> callback);
+	void setDisconnectCallback(std::function<DisconnectCallback> callback);
 
 	void addNetIdToPeer(PeerId peerId, NetworkId netId);
 	void removeNetIdFromPeer(PeerId peerId, NetworkId netId);
@@ -88,7 +90,8 @@ private:
 	std::unordered_map<PacketId, PacketHandlerPtr> packetHandlers;
 	//if this is a client, a flag for if we're connected to the server
 	bool clientConnected;
-	std::function<void(const ENetEvent&)> connectCallback;
+	std::function<ConnectCallback> connectCallback;
+	std::function<DisconnectCallback> disconnectCallback;
 	std::vector<std::vector<NetworkId>> ownedNetIds;
 
 	Type type;

@@ -29,7 +29,9 @@ void ServerInputQueue::storeInput(Tick gameTime, NetworkId id, Controller state)
 void ServerInputQueue::applyInputs(const OnlineSystem& online, Tick gameTime) {
 	auto& map = states.at(gameTime);
 	for (const auto& pair : map) {
-		EntitySystem::GetComp<ControllerComponent>(online.getEntity(pair.first))->setController(pair.second);
+		auto* comp = EntitySystem::GetComp<ControllerComponent>(online.getEntity(pair.first));
+		if (comp) comp->setController(pair.second);
+		else std::cout << "The entity " << pair.first << " has no controller.\n";
 	}
 	states.erase(states.find(gameTime));
 }

@@ -65,7 +65,8 @@ void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
 
     //acknowledge it after resolved
     states.at(s.getGameTime()).setServerAcknowledged();
-    std::cout << "Acknowledged state for time " << s.getGameTime() << '\n';
+    interpolate(game.getGameTick() - 2 * game.serverBroadcastDelay);
+    //std::cout << "Acknowledged state for time " << s.getGameTime() << '\n';
 }
 
 const std::unordered_map<Tick, SyncState>& SyncSystem::getStates() const {

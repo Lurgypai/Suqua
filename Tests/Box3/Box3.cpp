@@ -4,6 +4,7 @@
 #include "IDKeyboardMouse.h"
 #include "PHBoxClientNetworkId.h"
 #include "PHBoxJoin.h"
+#include "PHBoxQuit.h"
 #include "../Box3Core/BoxPacket.h"
 #include <iostream>
 
@@ -21,6 +22,7 @@ int main(int argc, char* argv[]) {
 	game.loadScene<PauseScene>(Scene::physics, boxScene);
 	game.loadPacketHandler<PHBoxClientNetworkId>(BoxPacket::ClientNetworkIdPacket, boxScene);
 	game.loadPacketHandler<PHBoxJoin>(BoxPacket::JoinPacket, boxScene);
+	game.loadPacketHandler<PHBoxQuit>(BoxPacket::LeavePacket);
 
 	game.host.setConnectCallback(&connectionCallback);
 	SuquaLib::RunGame(game);

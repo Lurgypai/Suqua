@@ -112,7 +112,8 @@ void Host::handlePackets(Game& game) {
 		case ENET_EVENT_TYPE_DISCONNECT:
 			if(type == Type::client) clientConnected = false;
 			connectedPeers.set(getId(e.peer), false);
-			std::cout << "Disconnecting...\n";
+			if (disconnectCallback) disconnectCallback(game, e);
+			else std::cout << "Disconnected. No callback function implemented.\n";
 			break;
 		case ENET_EVENT_TYPE_RECEIVE:
 			ByteStream stream;
@@ -167,6 +168,11 @@ void Host::resetConnection(PeerId peerId) {
 void Host::setConnectCallback(std::function<ConnectCallback> newCallBack) {
 	connectCallback = newCallBack;
 }
+
+void Host::setDisconnectCallback(std::function<DisconnectCallback> newCallBack) {
+	disconnectCallback = newCallBack;
+}
+
 bool Host::isConnected() {
 	return clientConnected;
 }

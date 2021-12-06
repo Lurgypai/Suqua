@@ -182,6 +182,12 @@ void Game::postRenderStep() {
 	}
 }
 
+void Game::cleanScenes() {
+	for (auto&& scene : scenes) {
+		scene->removeDeadEntities();
+	}
+}
+
 Game::FlagType Game::getFlags() {
 	return flags;
 }
@@ -309,6 +315,7 @@ void Game::loop() {
 			}
 		}
 
+		cleanScenes();
 		EntitySystem::FreeDeadEntities();
 	}
 }

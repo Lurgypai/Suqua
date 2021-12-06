@@ -99,6 +99,9 @@ private:
 	void renderStep();
 	void postRenderStep();
 
+	//remove all dead entities from active scenes
+	void cleanScenes();
+
 	Tick renderTick;
 	Tick gameTick;
 	Tick clientPingCtr;

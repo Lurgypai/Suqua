@@ -42,9 +42,17 @@ void Scene::removeAllEntities() {
 }
 
 void Scene::removeDeadEntities() {
-	for (auto&& base : EntitySystem::GetPool<EntityBaseComponent>()) {
-		if (base.isDead)
-			entities.erase(entities.find(base.getId()));
+	static auto isDead = [](EntityId id) {
+		auto* base = EntitySystem::GetComp<EntityBaseComponent>(id);
+		return base && base->isDead;
+	};
+
+	for (auto iter = entities.begin();;) {
+		if (iter == entities.end()) break;
+		if (isDead(*iter)) {
+			iter = entities.erase(iter);
+		}
+		else ++iter;
 	}
 }
 
