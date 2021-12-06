@@ -3,11 +3,6 @@
 #
 cmake_minimum_required (VERSION 3.16)
 
-set(CMAKE_USER_MAKE_RULES_OVERRIDE
-  ${CMAKE_CURRENT_SOURCE_DIR}/c_flag_overrides.cmake)
-set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
-  ${CMAKE_CURRENT_SOURCE_DIR}/cxx_flag_overrides.cmake)
-
 
 project ("Suqua")
 
@@ -27,4 +22,5 @@ add_subdirectory ("Tests/SyncSystem")
 
 if (MSVC)
 set_target_properties("Suqua" "Box3Core" "Box3" "Box3Server" PROPERTIES LINK_FLAGS "/PROFILE")
+set_target_properties("Suqua" "Box3Core" "Box3" "Box3Server"  PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
