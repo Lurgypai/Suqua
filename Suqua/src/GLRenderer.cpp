@@ -25,7 +25,9 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 	gladLoadGLLoader(SDL_GL_GetProcAddress);
 
 
-	SDL_GL_SetSwapInterval(1);
+	if (SDL_GL_SetSwapInterval(1) < 0) {
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to set SwapIntervale.");
+	}
 
 	glViewport(0, 0, windowRes.x, windowRes.y);
 	glDisable(GL_DEPTH_TEST);
@@ -80,6 +82,10 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
 
 void GLRenderer::Clear(GLbitfield bits) {
 	glClear(bits);
+}
+
+void GLRenderer::Clear() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void GLRenderer::LoadShaders(const std::vector<std::pair<std::string, std::string>> & shaders_, int * idsToFill) {
@@ -486,16 +492,16 @@ bool GLRenderer::ReadErrors() {
 	return ret;
 }
 
-int GLRenderer::addCamera(const Camera & cam) {
+CamId GLRenderer::addCamera(const Camera & cam) {
 	cameras.push_back(cam);
 	return cameras.size() - 1;
 }
 
-void GLRenderer::setCamera(int id) {
+void GLRenderer::setCamera(CamId id) {
 	currentCam = id;
 }
 
-Camera& GLRenderer::getCamera(int id) {
+Camera& GLRenderer::getCamera(CamId id) {
 	return cameras[id];
 }
 

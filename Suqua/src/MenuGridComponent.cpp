@@ -1,6 +1,9 @@
 #include "MenuGridComponent.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
+#include "PositionData.h"
 #include <iostream>
+
+using NDC = NetworkDataComponent;
 
 MenuGridComponent::MenuGridComponent(EntityId id_) :
 	id{ id_ },
@@ -10,8 +13,8 @@ MenuGridComponent::MenuGridComponent(EntityId id_) :
 	prefix{}
 {
 	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
+		if (!EntitySystem::Contains<NDC>() || !EntitySystem::GetComp<NDC>(id)) {
+			EntitySystem::MakeComps<NDC>(1, &id);
 		}
 	}
 }
@@ -21,8 +24,9 @@ EntityId MenuGridComponent::getId() const {
 }
 
 void MenuGridComponent::update(Vec2f mousePos, bool toggled_) {
-	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
-	boundingBox.pos = pos->pos;
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	Vec2f pos{data->get<float>(X), data->get<float>(Y)};
+	boundingBox.pos = pos;
 
 	wasActive = isActive;
 	isActive = false;
@@ -34,7 +38,7 @@ void MenuGridComponent::update(Vec2f mousePos, bool toggled_) {
 		for (auto button : buttons[prefix]) {
 			Vec2i buttonPos = { i % columns, i / columns };
 			if (buttonPos.y < rows) {
-				AABB currBox = AABB{ {pos->pos.x + margins.x + buttonPos.x * (buttonRes.x + margins.x), pos->pos.y + margins.y + buttonPos.y * (buttonRes.y + margins.y)}, buttonRes };
+				AABB currBox = AABB{ {pos.x + margins.x + buttonPos.x * (buttonRes.x + margins.x), pos.y + margins.y + buttonPos.y * (buttonRes.y + margins.y)}, buttonRes };
 				if (currBox.contains(mousePos)) {
 
 					selected = prefix + button;
@@ -81,7 +85,8 @@ StringTree MenuGridComponent::getCurrButtons() const {
 }
 
 std::vector<AABB> MenuGridComponent::generateButtonBoxes() {
-	PositionComponent* pos = EntitySystem::GetComp<PositionComponent>(id);
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	Vec2f pos{ data->get<float>(X), data->get<float>(Y)};
 	int columns = boundingBox.res.x / (margins.x + buttonRes.x);
 	int rows = boundingBox.res.y / (margins.y + buttonRes.y);
 
@@ -89,7 +94,7 @@ std::vector<AABB> MenuGridComponent::generateButtonBoxes() {
 	std::vector<AABB> boxes;
 	for (auto tag : buttons) {
 		Vec2i buttonPos = { i % columns, i / columns };
-		boxes.emplace_back( Vec2f{ pos->pos.x + margins.x + buttonPos.x * (buttonRes.x + margins.x), pos->pos.y + margins.y + buttonPos.y * (buttonRes.y + margins.y) }, buttonRes);
+		boxes.emplace_back( Vec2f{ pos.x + margins.x + buttonPos.x * (buttonRes.x + margins.x), pos.y + margins.y + buttonPos.y * (buttonRes.y + margins.y) }, buttonRes);
 		++i;
 	}
 

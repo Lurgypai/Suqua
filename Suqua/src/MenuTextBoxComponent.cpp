@@ -1,5 +1,7 @@
 #include "MenuTextBoxComponent.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
+
+using NDC = NetworkDataComponent;
 
 MenuTextBoxComponent::MenuTextBoxComponent(EntityId id_) :
 	id{id_},
@@ -12,8 +14,8 @@ MenuTextBoxComponent::MenuTextBoxComponent(EntityId id_) :
 	textWasEntered{false}
 {
 	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
+		if (!EntitySystem::Contains<NDC>() || !EntitySystem::GetComp<NDC>(id)) {
+			EntitySystem::MakeComps<NDC>(1, &id);
 		}
 	}
 }

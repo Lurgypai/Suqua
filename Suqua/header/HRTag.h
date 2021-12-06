@@ -1,4 +1,5 @@
 #pragma once
+#include "CharBuffer.h"
 
 /*
 	Human Readable Tag
@@ -7,6 +8,25 @@
 
 	its really just an int string pair, so that lookup can be done using either
 */
-class HRTag {
 
+using TagIdNum = unsigned long long;
+
+class HRTag {
+public:
+	static constexpr size_t TAG_LENGTH = 16;
+
+	HRTag() = default;
+	HRTag(unsigned long long idNum_, CharBuffer<TAG_LENGTH> idTag_);
+	HRTag(const HRTag& other);
+
+	HRTag& operator=(const HRTag& other);
+
+	bool operator==(const HRTag& other);
+	bool operator!=(const HRTag& other);
+
+	bool sameNum(const HRTag& other);
+	bool sameTag(const HRTag& other);
+
+	TagIdNum idNum;
+	CharBuffer<TAG_LENGTH> idTag;
 };
