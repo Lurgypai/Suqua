@@ -1,7 +1,8 @@
 #include "ByteOrder.h"
 #include <cstring>
 
-uint32_t s_htonl(uint32_t value)
+/*
+uint32_t s_hton(uint32_t value)
 {
 
     uint8_t retPtr[4]{};
@@ -15,7 +16,7 @@ uint32_t s_htonl(uint32_t value)
     return ret;
 }
 
-uint32_t s_ntohl(uint32_t source)
+uint32_t s_ntoh(uint32_t source)
 {
     uint8_t sourcePtr[4]{};
     memcpy(sourcePtr, &source, sizeof(source));
@@ -27,7 +28,7 @@ uint32_t s_ntohl(uint32_t source)
         (static_cast<std::uint32_t>(sourcePtr[3]) << 24);
 }
 
-uint64_t s_htonll(uint64_t value)
+uint64_t s_hton(uint64_t value)
 {
     uint8_t retPtr[8]{};
 
@@ -45,7 +46,7 @@ uint64_t s_htonll(uint64_t value)
     return ret;
 }
 
-uint64_t s_ntohll(uint64_t source)
+uint64_t s_ntoh(uint64_t source)
 {
     uint8_t sourcePtr[8]{};
     memcpy(sourcePtr, &source, sizeof(source));
@@ -60,7 +61,7 @@ uint64_t s_ntohll(uint64_t source)
         (static_cast<std::uint64_t>(sourcePtr[7]) << 56);
 }
 
-uint32_t s_htonf(float value)
+uint32_t s_hton(float value)
 {
     uint8_t retPtr[4]{};
     uint32_t valuePtr{};
@@ -75,8 +76,7 @@ uint32_t s_htonf(float value)
     memcpy(&ret, retPtr, sizeof(ret));
     return ret;
 }
-
-float s_ntohf(uint32_t source)
+float s_ntoh(uint32_t source)
 {
     uint8_t sourcePtr[4]{};
     memcpy(sourcePtr, &source, sizeof(source));
@@ -93,7 +93,7 @@ float s_ntohf(uint32_t source)
        
 }
 
-uint64_t s_htond(double value)
+uint64_t s_hton(double value)
 {
     uint8_t retPtr[8]{};
     uint64_t valuePtr{};
@@ -113,7 +113,8 @@ uint64_t s_htond(double value)
     return ret;
 }
 
-double s_ntohd(uint64_t source)
+/*
+double s_ntoh(uint64_t source)
 {
     uint8_t sourcePtr[8]{};
     memcpy(sourcePtr, &source, sizeof(source));
@@ -131,3 +132,4 @@ double s_ntohd(uint64_t source)
     memcpy(&retDouble, &ret, sizeof(retDouble));
     return retDouble;
 }
+*/

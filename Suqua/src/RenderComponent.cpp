@@ -1,14 +1,19 @@
-
 #include "RenderComponent.h"
-#include "PositionComponent.h"
+#include "NetworkDataComponent.h"
+#include "PositionData.h"
+
+using NDC = NetworkDataComponent;
 
 RenderComponent::RenderComponent(EntityId id_) :
 	id{id_},
 	offset{0, 0}
 {
 	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
+		if (!EntitySystem::Contains<NDC>() || EntitySystem::GetComp<NDC>(id) == nullptr) {
+			EntitySystem::MakeComps<NDC>(1, &id);
+			NDC* data = EntitySystem::GetComp<NDC>(id);
+			data->set<float>(X, 0);
+			data->set<float>(Y, 0);
 		}
 	}
 }

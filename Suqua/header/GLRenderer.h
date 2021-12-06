@@ -21,6 +21,8 @@
 
 #define IMG_DATA_BUFFER_SIZE 1000
 
+using CamId = uint32_t;
+
 //add converter to point, test with player lc, use to test colliders.
 struct Camera {
 	Vec2f pos;
@@ -104,6 +106,7 @@ public:
 	//static void Quit();
 
 	static void Clear(GLbitfield bits);
+	static void Clear();
 	static void LoadShaders(const std::vector<std::pair<std::string, std::string>> & shaders, int * idsToFill);
 
 	static void LoadTexture(const std::string& filePath, const std::string& tag);
@@ -147,9 +150,9 @@ public:
 
 	static bool ReadErrors();
 
-	static int addCamera(const Camera& cam);
-	static void setCamera(int id);
-	static Camera& getCamera(int id);
+	static CamId addCamera(const Camera& cam);
+	static void setCamera(CamId id);
+	static Camera& getCamera(CamId id);
 	static void bindCurrShader();
 	static Vec2f screenToWorld(Vec2f point, int camId = currentCam);
 	static Vec2f worldToSceen(Vec2f point, int camId = currentCam);

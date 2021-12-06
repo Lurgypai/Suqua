@@ -18,7 +18,7 @@ public:
 	static void MakeComps(unsigned int size, EntityId* first);
 
 	static void GenEntities(unsigned int num, EntityId* idStore);
-	static void FreeEntities(unsigned int num, EntityId * idStore);
+	static void FreeEntities(unsigned int num, const EntityId * idStore);
 	static void FreeDeadEntities();
 	
 	template<typename T>
@@ -37,6 +37,8 @@ private:
 
 template<typename T>
 inline T * EntitySystem::GetComp(EntityId id) {
+	if (id == 0)
+		throw std::exception{};
 	auto & pool = ComponentMaps.get<T>();
 	if (pool.contains(id - 1))
 		return &pool[id - 1];
