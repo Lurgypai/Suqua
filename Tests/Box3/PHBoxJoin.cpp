@@ -3,6 +3,7 @@
 #include "ByteStream.h"
 #include "Game.h"
 #include "PositionData.h"
+#include "PhysicsData.h"
 #include <iostream>
 
 PHBoxJoin::PHBoxJoin(PacketId id_, SceneId targetSceneId_) :
@@ -34,6 +35,9 @@ void PHBoxJoin::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) {
 		auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(boxId);
 		ndc->setSyncMode(X, NetworkDataComponent::SyncMode::INTERPOLATED);
 		ndc->setSyncMode(Y, NetworkDataComponent::SyncMode::INTERPOLATED);
+		//set other players not to move except by interpolation
+		ndc->setSyncMode(FROZEN, NetworkDataComponent::SyncMode::NONE);
+		ndc->get<bool>(FROZEN) = true;
 	}
 
 	render->getDrawable<Sprite>()->setScale({ 3.0, 3.0 });
