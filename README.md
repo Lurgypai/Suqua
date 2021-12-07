@@ -38,12 +38,3 @@ Asssuming the compilation is successful, simply run the generated output!
 
 # THIS IS A VERY WORK IN PROGRESS
 Feel free to contact me on twitter if you want to talk about it ([@Lurgypai](https://twitter.com/Lurgypai))
-
-Pull the git repo
-Install if cmake if not already installed
-Install g++ if not already installed
-Install sdl2 development libraries if not already installed (libsdl2-dev)
-Run the out script (./out.sh)
-enter the target directory (out/Tests/Box3)
-run make
-run the simulation (./Box3)
