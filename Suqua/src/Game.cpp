@@ -16,7 +16,8 @@ Game::Game(FlagType flags_, double physics_step, double render_step, Tick client
 	clientPingCtr{ 0 },
 	clientPingDelay{ clientPingDelay_ },
 	serverBroadcastCtr{ 0 },
-	serverBroadcastDelay{ serverBroadcastDelay_ }
+	serverBroadcastDelay{ serverBroadcastDelay_ },
+	inputLagCompensationLevel{ 2 }
 {
 	if (flags & client) {
 		host.createClient(1, 10);
@@ -167,11 +168,13 @@ void Game::preRenderStep() {
 }
 
 void Game::renderStep() {
+	GLRenderer::Clear();
 	for (auto&& scene : scenes) {
 		if (scene->flags & Scene::Flag::physics) {
 			scene->renderStep(*this);
 		}
 	}
+	GLRenderer::Swap();
 }
 
 void Game::postRenderStep() {
@@ -356,6 +359,10 @@ Tick Game::getGameTick() const {
 
 void Game::physicsUpdate() {
     prePhysicsStep();
-    physicsStep();
+
+	if (inputLagCompensationLevel > 0) {
+		physicsStep();
+	}
+
     postPhysicsStep();
 }

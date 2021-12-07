@@ -78,6 +78,7 @@ bool SyncSystem::hasState(Tick gameTime) const {
 }
 
 void SyncSystem::interpolate(Tick gameTime) {
+    if (!doInterp) return;
     //find the most recent acknowledged state (including this)
     //std::cout << "Looking to interpolate: " << gameTime << '\n';
     Tick prevTick;

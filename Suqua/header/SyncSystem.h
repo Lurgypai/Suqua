@@ -20,6 +20,8 @@ public:
 	
 	//interpolates all interpolateable data
 	void interpolate(Tick gameTime);
+
+	bool doInterp;
 private:
 	Tick lastStoredTime;
 	//change this to a circular buffer

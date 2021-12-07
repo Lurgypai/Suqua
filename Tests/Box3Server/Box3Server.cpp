@@ -27,7 +27,7 @@ void disconnectCallback(Game& game, const ENetEvent& e) {
 }
 
 int main(int argc, char* argv[]) {
-	SuquaLib::SuquaInit("settings.json", SuquaLib::network, { 640, 480 });
+	SuquaLib::SuquaInit("Box3Server", "settings.json", SuquaLib::network);
 	Game game{ Game::Flag::server_flags };
 	game.serverBroadcastDelay = 12;
 	game.host.setDisconnectCallback(disconnectCallback);

@@ -11,7 +11,7 @@ std::vector<EntityId> Scene::addEntities(unsigned int count) {
 	for (auto&& id : ids) {
 		entities.insert(id);
 	}
-	return std::move(ids);
+	return ids;
 }
 
 void Scene::removeEntities(const std::vector<EntityId>& entities_) {

@@ -34,7 +34,7 @@ void BoxScene::physicsStep(Game& game) {
 	physics.runPhysics(game.PHYSICS_STEP);
 	if (EntitySystem::Contains<BoxComponent>()) {
 		for (auto&& box : EntitySystem::GetPool<BoxComponent>()) {
-			box.update();
+			box.update(game);
 		}
 	}
 }

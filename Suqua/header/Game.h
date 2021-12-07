@@ -84,6 +84,8 @@ public:
 	Tick serverBroadcastDelay;
 
 	FlagType getFlags();
+
+	int inputLagCompensationLevel;
 private:
 	void pollSDLEvents();
 	void clearSDLEvents();

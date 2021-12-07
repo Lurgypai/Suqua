@@ -8,5 +8,12 @@ void PHSyncState::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) 
 	PacketId id;
 	data >> id;
 
-	game.sync.resyncStatePacket(data, game);
+	if (game.inputLagCompensationLevel > 1) {
+		game.sync.resyncStatePacket(data, game);
+	}
+	else {
+		SyncState s{ 0 };
+		s.unserialize(data, game.online);
+		s.applyState();
+	}
 }

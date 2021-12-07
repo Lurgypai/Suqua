@@ -5,6 +5,7 @@
 #include "PHBoxClientNetworkId.h"
 #include "PHBoxJoin.h"
 #include "PHBoxQuit.h"
+#include "MenuScene.h"
 #include "../Box3Core/BoxPacket.h"
 #include "nlohmann/json.hpp"
 #include <iostream>
@@ -40,6 +41,7 @@ int main(int argc, char* argv[]) {
 
 	SceneId boxScene = game.loadScene<ClientBoxScene>(Scene::all, keyboard, ip, 25565);
 	game.loadScene<PauseScene>(Scene::physics, boxScene);
+	game.loadScene<MenuScene>(Scene::all, keyboard);
 	game.loadPacketHandler<PHBoxClientNetworkId>(BoxPacket::ClientNetworkIdPacket, boxScene);
 	game.loadPacketHandler<PHBoxJoin>(BoxPacket::JoinPacket, boxScene);
 	game.loadPacketHandler<PHBoxQuit>(BoxPacket::LeavePacket);
@@ -49,3 +51,7 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
+
+//dead reckoning
+//reconciliation
+//interpolation
