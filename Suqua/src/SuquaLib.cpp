@@ -12,7 +12,7 @@ extern "C" {
 
 using json = nlohmann::json;
 
-int SuquaLib::SuquaInit(const std::string& settingsFile, ModeType mode_, Vec2i viewRes) {
+int SuquaLib::SuquaInit(const std::string& windowName, const std::string& settingsFile, ModeType mode_) {
 	mode = mode_;
 	json settings;
 	std::ifstream file{ settingsFile };
@@ -39,7 +39,7 @@ int SuquaLib::SuquaInit(const std::string& settingsFile, ModeType mode_, Vec2i v
 		SDL_Init(SDL_INIT_VIDEO);
 
 		SDL_Window* window = NULL;
-		window = SDL_CreateWindow("Stabby", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowRes.x, windowRes.y, SDL_WINDOW_OPENGL);
+		window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowRes.x, windowRes.y, SDL_WINDOW_OPENGL);
 
 		if (window == NULL) {
 			SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Window Creation Failed.");
@@ -49,7 +49,7 @@ int SuquaLib::SuquaInit(const std::string& settingsFile, ModeType mode_, Vec2i v
 		DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
 		debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowRes.x, windowRes.y }, .5 });
 
-		GLRenderer::Init(window, windowRes, viewRes);
+		GLRenderer::Init(window, windowRes);
 	}
 	if (mode & Mode::network) {
 		enet_initialize();

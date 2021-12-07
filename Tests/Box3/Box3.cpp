@@ -18,7 +18,7 @@ void connectionCallback(const ENetEvent& e) {
 
 int main(int argc, char* argv[]) {
 	//view res needs to be removed
-	SuquaLib::SuquaInit("settings.json", SuquaLib::all, { 1920, 1080 });
+	SuquaLib::SuquaInit("Box3", "settings.json", SuquaLib::all);
 	Game game{ Game::Flag::client_flags };
 	game.serverBroadcastDelay = 12;
 	InputDeviceId keyboard = game.loadInputDevice<IDKeyboardMouse>();

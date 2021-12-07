@@ -102,7 +102,7 @@ public:
 	};
 
 	//add support for buffer a ton of data from one texture.
-	static void Init(SDL_Window* window, Vec2i windowRes, Vec2i viewRes);
+	static void Init(SDL_Window* window, Vec2i windowRes);
 	//static void Quit();
 
 	static void Clear(GLbitfield bits);
@@ -167,7 +167,6 @@ private:
 	static unsigned int ImgDataBuffer;
 	static std::vector<Camera> cameras;
 	static int currentCam;
-	static Vec2i viewRes;
 	static Vec2i windowRes;
 	static std::unordered_map<unsigned int, Shader> shaders;
 	static Shader * currentShader;

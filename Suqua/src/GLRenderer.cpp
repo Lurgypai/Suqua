@@ -7,10 +7,9 @@
 #include "FileNotFoundException.h"
 #include <iostream>
 
-void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_, Vec2i viewRes_) {
+void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_) {
 	window = window_;
 	windowRes = windowRes_;
-	viewRes = viewRes_;
 	SDL_GL_LoadLibrary(NULL);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -543,7 +542,6 @@ unsigned int GLRenderer::ImgDataBuffer{};
 std::vector<Camera> GLRenderer::cameras{};
 int GLRenderer::currentCam{};
 Vec2i GLRenderer::windowRes{};
-Vec2i GLRenderer::viewRes{};
 std::unordered_map<unsigned int, Shader> GLRenderer::shaders{};
 Shader * GLRenderer::currentShader{nullptr};
 int GLRenderer::DefaultShaders[5]{};

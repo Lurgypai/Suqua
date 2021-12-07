@@ -10,7 +10,7 @@ public:
 		all = graphics | network
 	};
 
-	static int SuquaInit(const std::string& settings, ModeType mode_, Vec2i viewRes);
+	static int SuquaInit(const std::string& windowName, const std::string& settings, ModeType mode_);
 	static void RunGame(Game& game);
 	static CamId getDebugCamId();
 private:
