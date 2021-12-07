@@ -1,8 +1,8 @@
 #version 430 core
 
 
-uniform vec2 camPos = vec2(0.0, 0.0);
-uniform vec2 camRes;
+uniform vec2 camPos = vec2(0, 0);
+uniform ivec2 camRes;
 uniform vec2 zoom = vec2(1.0, 1.0);
 uniform float depth;
 
@@ -14,7 +14,7 @@ void main() {
     
 	//position
 	vec2 pixelPos = (pos - camPos);
-	vec2 windowPos = pixelPos / (camRes / zoom);
+	vec2 windowPos = pixelPos / (vec2(camRes) / zoom);
 	windowPos.y = (-windowPos.y) + 1;
 	windowPos = 2 * (windowPos) - 1;
 	

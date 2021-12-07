@@ -10,18 +10,24 @@
 void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_) {
 	window = window_;
 	windowRes = windowRes_;
-	SDL_GL_LoadLibrary(NULL);
+	unsigned int  err = SDL_GL_LoadLibrary(NULL);
+    if(!err) std::cout << SDL_GetError();
+
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
 
 	context = SDL_GL_CreateContext(window);
+    if(!context) std::cout << "SDL create context failed: " << SDL_GetError() << '\n';
 
-
-	gladLoadGLLoader(SDL_GL_GetProcAddress);
+	if(!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
+        std::cout << "Unable to initialize OpenGL context\n";
+        std::cout << "Attempting general load...\n";
+        if(!gladLoadGL()) std::cout << "Failed to initialize OpenGL as well.\n";
+    }
 
 
 	if (SDL_GL_SetSwapInterval(1) < 0) {
