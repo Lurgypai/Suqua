@@ -5,10 +5,13 @@ A 2D networked game library.
 This is a set of game libraries for 2D (or 3D if you want to manually write the OpenGL) games, with a focus on organizational tools, and handling netcode. The dream is to be able to (almost) seamlessly develop networked games that have little lag, with no concern for managing the synchronization of data manually.
 
 ## Testing on Windows
-The latest release shows containes Box3, and modified source to allow the display of the networking capabilities. Simply download Box3.zip from the releases page and run it. (Windows may warn you that its unsafe, simply proceed to running.)
+The latest release containes Box3, and modified source to allow the display of the networking capabilities. Simply download Box3.zip from the releases page and run it. (Windows may warn you that its unsafe, simply proceed to running.)
 
 ## Testing on Linux (Ubuntu)
-**Note: I haven't yet gotten this to run (the machines I have don't support the latest OpenGL)**
+**Note: I haven't yet gotten this to run (the machines I have don't support the minimum OpenGL required). The minimum required version is 4.3. You can check with the following command.**
+```
+glxinfo | grep "OpenGL version"
+```
 </br>
 Begin by installing the dependencies.
 ```
