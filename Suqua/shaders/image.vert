@@ -1,17 +1,17 @@
 #version 430 core
 
 
-uniform vec2 camPos = vec2(0.0, 0.0);
-uniform vec2 camRes;
+uniform vec2 camPos = vec2(0, 0);
+uniform ivec2 camRes;
 uniform vec2 zoom = vec2(1.0, 1.0);
 uniform bool flip_vertically = true;
 
 struct ImgData
 {
 	vec2 objPos;
-	vec2 imgRes;
-	vec2 imgOffset;
-	vec2 objRes;
+	ivec2 imgRes;
+	ivec2 imgOffset;
+	ivec2 objRes;
 	vec2 origin;
 	vec2 scale;
 	float angle;
@@ -30,17 +30,19 @@ void main() {
 	ImgData dat = data[ gl_VertexID / 6];
 	
 	int id = abs((gl_VertexID % 6) - 3);
+    
 	vec2 pos = vec2(id % 2, id / 2);
-	vec2 imgPos = pos;
+    vec2 h = vec2(0.5);
+	vec2 imgPos = pos - h;
 	
-	//move 1, 1 to surround origin
-	imgPos -= 0.5;
-	imgPos *= dat.objRes;
-	imgPos += (abs(dat.objRes) / 2.0);
-	
+	//move -0.5, 0.5 to surround origin
+	imgPos *= sign(dat.objRes);
+    imgPos += h;
+    
+    imgPos *= abs(dat.objRes);
 	imgPos += dat.imgOffset;
-	imgPos /= dat.imgRes;
-	FragCoord = imgPos;
+    imgPos += 0.1; //remove this line to re-enable rounding bug
+	FragCoord = vec2(imgPos) / dat.imgRes;
 	
 	vec2 pixelPos = (pos * abs(dat.objRes));
 	
@@ -57,7 +59,7 @@ void main() {
 	//position
 	pixelPos += (dat.objPos - camPos);
     
-	vec2 windowPos = pixelPos / (camRes / zoom);
+	vec2 windowPos = pixelPos / (vec2(camRes) / zoom);
     if(flip_vertically)
         windowPos.y = (-windowPos.y) + 1;
 	windowPos = 2 * (windowPos) - 1;
