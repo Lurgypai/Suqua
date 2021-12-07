@@ -12,7 +12,7 @@ The latest release containes Box3, and modified source to allow the display of t
 ```
 glxinfo | grep "OpenGL version"
 ```
-Begin by installing the dependencies.
+### Begin by installing the dependencies.
 ```
 sudo apt install git cmake g++ libsdl2-dev
 ```
