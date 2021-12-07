@@ -1,4 +1,4 @@
-#version 450 core
+#version 430 core
 
 uniform vec2 camPos = vec2(0, 0);
 uniform ivec2 camRes;
