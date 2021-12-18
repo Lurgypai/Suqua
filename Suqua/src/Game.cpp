@@ -307,7 +307,9 @@ void Game::loop() {
 			now = SDL_GetPerformanceCounter();
 			if (static_cast<double>(now - lastGFXUpdate) / SDL_GetPerformanceFrequency() >= RENDER_STEP) {
 				preRenderStep();
+				GLRenderer::Clear();
 				renderStep();
+				GLRenderer::Swap();
 				postRenderStep();
 				++renderTick;
 
