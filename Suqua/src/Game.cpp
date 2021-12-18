@@ -328,6 +328,12 @@ void Game::onConnect(PeerId id) {
 	}
 }
 
+void Game::onDisconnect(PeerId id) {
+	for (auto& scenePtr : scenes) {
+		scenePtr->onDisconnect(*this, id);
+	}
+}
+
 void Game::addOwnedNetId(NetworkId id) {
 	ownedNetIds.emplace_back(id);
 }

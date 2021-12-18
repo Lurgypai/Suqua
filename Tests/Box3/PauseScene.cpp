@@ -47,3 +47,7 @@ void PauseScene::unload(Game& game)
 }
 
 void PauseScene::onConnect(Game& game, PeerId connectingId) {}
+
+void PauseScene::onDisconnect(Game& game, PeerId disconnectingId)
+{
+}

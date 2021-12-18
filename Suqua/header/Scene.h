@@ -38,6 +38,7 @@ public:
 	virtual void unload(Game& game) = 0;
 
 	virtual void onConnect(Game& game, PeerId connectingId) = 0;
+	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) = 0;
 
 	void applyInputs(Game& game);
 	void removeAllEntities();

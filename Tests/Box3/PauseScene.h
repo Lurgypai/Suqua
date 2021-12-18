@@ -14,6 +14,7 @@ public:
 	virtual void postRenderStep(Game& game) override;
 	virtual void unload(Game& game) override;
 	virtual void onConnect(Game& game, PeerId connectingId) override;
+	virtual void onDisconnect(Game& game, PeerId disconnectingId) override;
 private:
 	SceneId targetScene;
 };

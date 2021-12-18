@@ -6,28 +6,24 @@
 #include "EntityBaseComponent.h"
 #include <iostream>
 
-void connectCallback(const ENetEvent& e) {
-	std::cout << "Called connect callback on server.\n";
-}
-
-void disconnectCallback(Game& game, const ENetEvent& e) {
+void disconnectCallback(Game& game, PeerId id) {
 	ByteStream quitPacket{};
 	quitPacket << BoxPacket::LeavePacket;
 	//put the only net id this peer owns in
-	NetworkId targetNetId = game.host.getPeerOwnedNetIds(game.host.getId(e.peer)).front();
+	NetworkId targetNetId = game.host.getPeerOwnedNetIds(id).front();
 	quitPacket << targetNetId;
 
 	game.host.bufferAllDataByChannel(0, quitPacket);
-	std::cout << "Broadcasting removal of net id " << game.host.getPeerOwnedNetIds(game.host.getId(e.peer)).front() << '\n';
+	std::cout << "Broadcasting removal of net id " << game.host.getPeerOwnedNetIds(id).front() << '\n';
 
 	//erase the associated components
 	EntitySystem::GetComp<EntityBaseComponent>(game.online.getEntity(targetNetId))->isDead = true;
 	//remove from the networking
-	game.host.removeNetIdFromPeer(game.host.getId(e.peer), targetNetId);
+	game.host.removeNetIdFromPeer(id, targetNetId);
 }
 
 int main(int argc, char* argv[]) {
-	SuquaLib::SuquaInit("settings.json", SuquaLib::network, { 640, 480 });
+	SuquaLib::SuquaInit("Box3Server", "settings.json", SuquaLib::network);
 	Game game{ Game::Flag::server_flags };
 	game.serverBroadcastDelay = 12;
 	game.host.setDisconnectCallback(disconnectCallback);

@@ -13,8 +13,8 @@
 #include <vector>
 #include <OnlineComponent.h>
 
-using ConnectCallback = void(const ENetEvent&);
-using DisconnectCallback = void(Game& game, const ENetEvent&);
+using ConnectCallback = void(Game& game, PeerId id);
+using DisconnectCallback = void(Game& game, PeerId id);
 
 //packet with with info about how to send it
 //add "packet handlers"

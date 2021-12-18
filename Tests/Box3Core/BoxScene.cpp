@@ -57,6 +57,10 @@ void BoxScene::unload(Game& game) {
 void BoxScene::onConnect(Game& game, PeerId connetingId) {
 }
 
+void BoxScene::onDisconnect(Game& game, PeerId disconnectId)
+{
+}
+
 EntityId BoxScene::addBox(Game& game, bool isClient, NetworkId targetId) {
 	EntityId boxId = addEntities(1)[0];
 

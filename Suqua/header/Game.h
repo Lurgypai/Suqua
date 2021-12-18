@@ -70,6 +70,7 @@ public:
     
     void physicsUpdate();
 	void onConnect(PeerId id);
+	void onDisconnect(PeerId id);
 	void addOwnedNetId(NetworkId id);
 	void removeOwnedNetId(NetworkId id);
 	const std::vector<NetworkId>& getOwnedNetIds() const;

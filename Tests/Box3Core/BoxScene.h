@@ -18,6 +18,7 @@ public:
 	virtual void postRenderStep(Game& game) override;
 	virtual void unload(Game& game) override;
 	virtual void onConnect(Game& game, PeerId connectingId) override;
+	virtual void onDisconnect(Game& game, PeerId disconnectId) override;
 
 	EntityId addBox(Game& game, bool isClient, NetworkId targetId = 0);
 private:

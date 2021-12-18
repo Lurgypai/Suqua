@@ -30,9 +30,7 @@ void ClientBoxScene::load(Game& game)
 }
 
 void ClientBoxScene::renderStep(Game& game) {
-	GLRenderer::Clear();
 	drawScene(game.getRender());
-	GLRenderer::Swap();
 }
 
 void ClientBoxScene::linkInputToEntity(EntityId targetEntity) {

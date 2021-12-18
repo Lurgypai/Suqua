@@ -89,7 +89,7 @@ void Host::sendBuffered() {
 void Host::handlePackets(Game& game) {
 
 	ENetEvent e;
-	PeerId connectedId;
+	PeerId connectedId, disconnectedId;
 	while (service(&e, 0) > 0) {
 		switch (e.type) {
 		case ENET_EVENT_TYPE_CONNECT:
@@ -105,15 +105,17 @@ void Host::handlePackets(Game& game) {
 				bufferAllDataByChannel(0, pingPacket);
 			}
 
-			if (connectCallback) connectCallback(e);
+			if (connectCallback) connectCallback(game, connectedId);
 			else std::cout << "Connection received. No callback function implemented.\n";
 			game.onConnect(connectedId);
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT:
 			if(type == Type::client) clientConnected = false;
-			connectedPeers.set(getId(e.peer), false);
-			if (disconnectCallback) disconnectCallback(game, e);
+			disconnectedId = getId(e.peer);
+			connectedPeers.set(disconnectedId, false);
+			if (disconnectCallback) disconnectCallback(game, disconnectedId);
 			else std::cout << "Disconnected. No callback function implemented.\n";
+			game.onDisconnect(disconnectedId);
 			break;
 		case ENET_EVENT_TYPE_RECEIVE:
 			ByteStream stream;

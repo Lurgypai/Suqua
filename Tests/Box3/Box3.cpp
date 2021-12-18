@@ -12,7 +12,7 @@
 
 using nlohmann::json;
 
-void connectionCallback(const ENetEvent& e) {
+void connectionCallback(Game& game, PeerId id) {
 	std::cout << "Called connection callback on client\n";
 }
 
