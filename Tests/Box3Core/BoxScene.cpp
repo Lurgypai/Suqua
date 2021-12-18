@@ -2,7 +2,6 @@
 #include "Sprite.h"
 #include "BoxComponent.h"
 #include "NetworkDataComponent.h"
-#include "PhysicsData.h"
 #include "PhysicsComponent.h"
 #include "PositionData.h"
 #include "Game.h"
@@ -19,11 +18,9 @@ void BoxScene::load(Game& game) {
 	EntitySystem::MakeComps<PhysicsComponent>(1, &platformId);
 	PhysicsComponent* platformPhysics = EntitySystem::GetComp<PhysicsComponent>(platformId);
 	platformPhysics->setRes({ 1920, 4 });
-	NetworkDataComponent* platformData = EntitySystem::GetComp<NetworkDataComponent>(platformId);
-	platformData->get<float>(X) = 0;
-	platformData->get<float>(Y) = 1080 - 4;
-	platformData->get<bool>(COLLIDEABLE) = true;
-	platformData->get<bool>(FROZEN) = true;
+	platformPhysics->setPos({ 0, 1080 - 4 });
+	platformPhysics->setCollideable(true);
+	platformPhysics->setFrozen(true);
 }
 
 void BoxScene::prePhysicsStep(Game& game) {
@@ -68,12 +65,10 @@ EntityId BoxScene::addBox(Game& game, bool isClient, NetworkId targetId) {
 
 	EntitySystem::MakeComps<BoxComponent>(1, &boxId);
 	EntitySystem::MakeComps<ControllerComponent>(1, &boxId);
-	NetworkDataComponent* data = EntitySystem::GetComp<NetworkDataComponent>(boxId);
-	data->get<float>(WEIGHT) = 30.0f;
-	data->get<bool>(COLLIDEABLE) = false;
-	data->get<float>(X) = 1920 / 2;
-	data->get<float>(Y) = 1080 / 2;
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(boxId);
+	physics->setWeight(30.0f);
+	physics->setCollideable(false);
+	physics->setPos({ 1920 / 2, 1080 / 2 });
 	physics->setRes({ 75, 75 });
 
 	if (isClient) {

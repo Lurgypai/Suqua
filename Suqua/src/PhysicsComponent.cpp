@@ -1,7 +1,6 @@
 #include "PhysicsComponent.h"
 #include "AngleUtil.h"
 #include "NetworkDataComponent.h"
-#include "PhysicsData.h"
 #include "PositionData.h"
 #include <cmath>
 
@@ -34,6 +33,8 @@ PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, 
 		dataComp->set(FROZEN, false);
 		dataComp->set(WEIGHTLESS, false);
 		dataComp->set(COLLIDEABLE, collideable_);
+		dataComp->set(XRES, collider.res.x);
+		dataComp->set(YRES, collider.res.y);
 	}
 }
 
@@ -45,7 +46,7 @@ const AABB & PhysicsComponent::getCollider() const {
 	return collider;
 }
 
-void PhysicsComponent::reevaluatePosition() {
+void PhysicsComponent::refreshPos() {
 	NDC* dataComp = EntitySystem::GetComp<NDC>(id);
 	collider.pos = { dataComp->get<float>(X), dataComp->get<float>(Y) };
 }
@@ -92,8 +93,21 @@ void PhysicsComponent::teleport(const Vec2f & newPos) {
 	data->set(Y, collider.pos.y);
 }
 
-Vec2f PhysicsComponent::getPos() const {
+Vec2f PhysicsComponent::position() const {
 	return collider.pos + Vec2f{ collider.res.x / 2, collider.res.y };
+}
+
+void PhysicsComponent::setPos(const Vec2f& newPos) {
+	collider.pos = newPos;
+
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->set(X, collider.pos.x);
+	data->set(Y, collider.pos.y);
+}
+
+Vec2f PhysicsComponent::getPos() const {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return { data->get<float>(X), data->get<float>(Y) };
 }
 
 Vec2f PhysicsComponent::center() {
@@ -104,6 +118,81 @@ Vec2f PhysicsComponent::getRes() const {
 	return collider.res;
 }
 
-void PhysicsComponent::setRes(Vec2f res_) {
+void PhysicsComponent::setRes(const Vec2f& res_) {
 	collider.res = res_;
+
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->set(XRES, collider.res.x);
+	data->set(YRES, collider.res.y);
+}
+
+Vec2f PhysicsComponent::getVel() const {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return Vec2f{ data->get<float>(XVEL), data->get<float>(YVEL) };
+}
+
+void PhysicsComponent::setVel(const Vec2f& newVel) {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->set(XVEL, newVel.x);
+	data->set(YVEL, newVel.y);
+}
+
+void PhysicsComponent::freeze() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->set(FROZEN, true);
+}
+
+void PhysicsComponent::unfreeze() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->set(FROZEN, false);
+}
+
+bool PhysicsComponent::isFrozen() const {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return data->get<bool>(FROZEN);
+}
+
+void PhysicsComponent::setFrozen(bool newFrozen) {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->set(FROZEN, newFrozen);
+}
+
+void PhysicsComponent::setWeight(float newWeight) {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->set(WEIGHT, newWeight);
+}
+
+float PhysicsComponent::getWeight() const {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return data->get<float>(WEIGHT);
+}
+
+bool PhysicsComponent::isCollideable() const {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return data->get<bool>(COLLIDEABLE);
+}
+
+void PhysicsComponent::setCollideable(bool newCollideable) {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->set(COLLIDEABLE, newCollideable);
+}
+
+bool PhysicsComponent::isWeightless() const {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return data->get<bool>(WEIGHTLESS);
+}
+
+void PhysicsComponent::setWeigtless(bool newWeigtless) {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->set(WEIGHTLESS, newWeigtless);
+}
+
+bool PhysicsComponent::isGrounded() const {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return data->get<bool>(GROUNDED);
+}
+
+void PhysicsComponent::setGrounded(bool newWeigtless) {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->set(GROUNDED, newWeigtless);
 }

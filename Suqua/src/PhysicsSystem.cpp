@@ -3,6 +3,8 @@
 #include "NetworkDataComponent.h"
 #include "PositionData.h"
 
+#include <iostream>
+
 using NDC = NetworkDataComponent;
 
 PhysicsSystem::PhysicsSystem() {}
@@ -18,27 +20,25 @@ void PhysicsSystem::runPhysics(double timeDelta) {
 void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 	if (EntitySystem::Contains<PhysicsComponent>()) {
 		PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(entity);
-		NDC * data = EntitySystem::GetComp<NDC>(entity);
-		Vec2f dataPos{ data->get<float>(X), data->get<float>(Y) };
 
 		//refresh to make sure we're in the right place
-		comp->collider.pos = dataPos;
+		comp->refreshPos();
 
-		if (!data->get<bool>(FROZEN)) {
+		if (!comp->isFrozen()) {
 			//accelerate downwards, gravity
-			if (!data->get<bool>(WEIGHTLESS))
-				comp->accelerate({ 0, data->get<float>(WEIGHT)}); //hmmmmmmm
+			if (!comp->isWeightless()) comp->accelerate({ 0, comp->getWeight()}); //hmmmmmmm
 
-			data->get<bool>(GROUNDED) = false;
-			Vec2f currPos = dataPos;
-			Vec2f vel{ data->get<float>(XVEL), data->get<float>(YVEL) };
+
+			//only the physics system manages grounded-ness, so this has to be a direct access
+			comp->setGrounded(false);
+			Vec2f currPos = comp->getPos();
+			Vec2f vel = comp->getVel();
 			Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
 
 			//handle collisions with the stage
-			for (auto& physicsComp : EntitySystem::GetPool<PhysicsComponent>()) {
-				NDC* otherData = EntitySystem::GetComp<NDC>(physicsComp.getId());
-				if (physicsComp.id != comp->id && otherData->get<bool>(COLLIDEABLE)) {
-					auto& collider = physicsComp.getCollider();
+			for (auto& otherComp : EntitySystem::GetPool<PhysicsComponent>()) {
+				if (otherComp.id != comp->id && otherComp.isCollideable()) {
+					auto& collider = otherComp.getCollider();
 					Vec2f res = comp->getRes();
 					//place we are updating too
 
@@ -83,35 +83,30 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 						}
 						//vertical collision
 						else if (overlap.x == 0.0f && overlap.y != 0.0f) {
-							if (vel.y > 0)
-								data->get<bool>(GROUNDED) = true;
+							if (vel.y > 0) comp->setGrounded(true);
 							vel.y = 0.0f;
 						}
 						//corner collision
 						else if (overlap.x != 0.0f && overlap.y != 0.0f) {
-							float absXVel = abs(vel.x);
-							float absYVel = abs(vel.y);
-							if (absXVel > absYVel) {
+							if (std::abs(vel.x) > std::abs(vel.y)) {
 								//this means don't resolve collisions allong the x axis
 								overlap.x = 0;
-								//and stop moving allong the y axis
+								//and stop moving along the y axis
 								vel.y = 0;
-								data->get<bool>(GROUNDED) = true;
+								comp->setGrounded(true);
 							}
 							else {
 								overlap.y = 0;
 								vel.x = 0;
 							}
 						}
-						data->get<float>(XVEL) = vel.x;
-						data->get<float>(YVEL) = vel.y;
+						comp->setVel(vel);
 						newPos -= overlap;
 					}
 				}
 			}
 			currPos = newPos;
-			data->get<float>(X) = currPos.x;
-			data->get<float>(Y) = currPos.y;
+			comp->setPos(currPos);
 			comp->collider.pos = currPos;
 		}
 	}

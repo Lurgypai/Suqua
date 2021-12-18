@@ -27,16 +27,16 @@ EntityId BoxComponent::getId() const {
 }
 
 void BoxComponent::update() {
-	NetworkDataComponent* data = EntitySystem::GetComp<NetworkDataComponent>(id);
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 	ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(id);
 	const Controller& controller = cont->getController();
 
 	if (controller[ControllerBits::BUTTON_11]) {
-		data->get<float>(X) = controller.pointerPos.x - (physics->getCollider().res.x / 2);
-		data->get<float>(Y) = controller.pointerPos.y - (physics->getCollider().res.y / 2);
+		physics->setPos({
+			controller.pointerPos.x - (physics->getCollider().res.x / 2),
+			controller.pointerPos.y - (physics->getCollider().res.y / 2)
+			});
 
-		data->get<float>(XVEL) = 0;
-		data->get<float>(YVEL) = 0;
+		physics->setVel({ 0, 0 });
 	}
 }

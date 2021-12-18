@@ -19,8 +19,7 @@ NavMesh::NavMesh(float zoneHeight_, float ignoreGapSize_) :
 void NavMesh::addPhysicsMesh() {
 	//generate all walking zones
 	for (auto& physics : EntitySystem::GetPool<PhysicsComponent>()) {
-		NDC* data = EntitySystem::GetComp<NDC>(physics.getId());
-		if (data->get<bool>(COLLIDEABLE)) {
+		if (physics.isCollideable()) {
 			NavZone zone{ AABB{{physics.getCollider().pos.x, (physics.getCollider().pos.y - zoneHeight)}, {physics.getCollider().res.x, zoneHeight}}, "walk", {}, ++zoneId, false, false };
 			zones.emplace(zone.id, zone);
 		}
@@ -34,8 +33,7 @@ void NavMesh::addPhysicsMesh() {
 		std::vector<NavZone> toAddZones;
 		//compare them all to eachother to decrease the amount of cases.
 		for (auto& physics : EntitySystem::GetPool<PhysicsComponent>()) {
-			NDC* data = EntitySystem::GetComp<NDC>(physics.getId());
-			if (data->get<bool>(COLLIDEABLE)) {
+			if (physics.isCollideable()) {
 				for (auto& pair : zones) {
 
 					const AABB& zoneA = physics.getCollider();
