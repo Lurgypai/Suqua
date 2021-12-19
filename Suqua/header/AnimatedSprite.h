@@ -1,33 +1,42 @@
 #pragma once
 #include "Vec2.h"
 #include "Sprite.h"
+#include "AABB.h"
 #include <unordered_map>
 
-class AnimatedSprite  : public Sprite {
+
+//need to override setDepth and other things to use the proper thing
+class AnimatedSprite  : public IDrawable {
 public:
 	AnimatedSprite();
-	AnimatedSprite(const std::string &texture_tag_, Vec2f objRes_,
-		int columns_ = 8, float frameDelay = (4.0 / 60));
-	void forward(double timeDelta);
-	void backward(double timeDelta);
+	AnimatedSprite(const std::string& texture_tag, const std::string& json_pat);
+	void update(int millis);
 	int getFrame() const;
 	void setFrame(int frame);
-	void addAnimation(int id, int beginFrame, int endFrame);
-	void setAnimation(int id);
+	void addAnimation(const std::string& tag, int beginFrame, int endFrame);
+	void setAnimation(const std::string& tag);
 	void resetDelay();
-	Vec2i getAnimation(int id);
-	int getCurrentAnimationId();
+	Vec2i getAnimation(const std::string& tag) const;
+	std::string getCurrentAnimationId() const;
+
+	void setHorizontalFlip(bool horizFlip);
 
 	IDrawable* clone() override;
+	virtual void draw() override;
+	virtual void setPos(Vec2f pos) override;
 
 	bool looping;
-	double frameDelay;
+	float speed;
 private:
-	std::unordered_map<int, Vec2i> animations;
+	struct Frame {
+		Sprite s;
+		AABB obj;
+		int duration;
+	};
+	std::vector<Frame> frames;
+	std::unordered_map<std::string, Vec2i> animations;
 	Vec2i currentAnimation;
-	int currentAnimationId;
-	int columns;
-	int sheetOffset;
+	std::string currentAnimationId;
 	int currentFrame;
-	double currentTime;
+	int currentTime;
 };

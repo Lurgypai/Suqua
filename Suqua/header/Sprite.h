@@ -33,6 +33,8 @@ public:
 	virtual void draw() override;
 	virtual IDrawable* clone() override;
 	std::string texture_tag;
+
+	bool horizontalFlip;
 protected:
 	ImgData data;
 	int channels;

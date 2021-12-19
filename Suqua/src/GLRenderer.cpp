@@ -214,6 +214,8 @@ void GLRenderer::BufferImgData(ImgData&& data) {
 }
 
 void GLRenderer::DrawImage(ImgData data, const std::string& tag) {
+	GLRenderer::SetDefShader(ImageShader);
+
 	Vec2f atlasRes = textureAtlas->getTexture(0).res;
 	AtlasTextureData textureData = textures[tag];
 	data.imgOffset.x += textureData.offset.x;
@@ -422,6 +424,8 @@ void GLRenderer::SetDefShader(DefShader shader) {
 }
 
 void GLRenderer::DrawOverScreen(unsigned int texId) {
+	SetDefShader(FullscreenShader);
+	currentShader->use();
 	glBindVertexArray(SCREEN_VAO);
 	glViewport(0, 0, windowRes.x, windowRes.y);
 	glActiveTexture(GL_TEXTURE0);

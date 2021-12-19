@@ -20,7 +20,10 @@ add_subdirectory ("Tests/Box3Core")
 add_subdirectory ("Tests/SyncState")
 add_subdirectory ("Tests/SyncSystem")
 
+add_subdirectory("Tests/Stabby2Client")
+add_subdirectory("Tests/Stabby2Core")
+
 if (MSVC)
-set_target_properties("Suqua" "Box3Core" "Box3" "Box3Server" PROPERTIES LINK_FLAGS "/PROFILE")
-set_target_properties("Suqua" "Box3Core" "Box3" "Box3Server"  PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set_target_properties("Suqua" "Box3Core" "Box3" "Box3Server" "Stabby2Core" "Stabby2Client" PROPERTIES LINK_FLAGS "/PROFILE")
+set_target_properties("Suqua" "Box3Core" "Box3" "Box3Server" "Stabby2Core" "Stabby2Client" PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()

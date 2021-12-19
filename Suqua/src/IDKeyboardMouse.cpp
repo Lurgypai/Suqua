@@ -17,14 +17,16 @@ void IDKeyboardMouse::doInput(EntityId controllerCompId) {
 
 	const Uint8* state = SDL_GetKeyboardState(NULL);
 
-	controller.set(ControllerBits::UP, state[SDL_SCANCODE_UP]);
-	controller.set(ControllerBits::DOWN, state[SDL_SCANCODE_DOWN]);
-	controller.set(ControllerBits::LEFT, state[SDL_SCANCODE_LEFT]);
-	controller.set(ControllerBits::RIGHT, state[SDL_SCANCODE_RIGHT]);
-	controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_Z]);
-	controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_X]);
-	controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_C]);
-	controller.set(ControllerBits::BUTTON_4, state[SDL_SCANCODE_V]);
+	controller.set(ControllerBits::UP, state[SDL_SCANCODE_W]);
+	controller.set(ControllerBits::DOWN, state[SDL_SCANCODE_S]);
+	controller.set(ControllerBits::LEFT, state[SDL_SCANCODE_A]);
+	controller.set(ControllerBits::RIGHT, state[SDL_SCANCODE_D]);
+	controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_H]);
+	controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_J]);
+	controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_K]);
+	controller.set(ControllerBits::BUTTON_4, state[SDL_SCANCODE_L]);
 
 	controller.set(ControllerBits::BUTTON_5, state[SDL_SCANCODE_SPACE]);
+	controller.set(ControllerBits::BUTTON_6, state[SDL_SCANCODE_LSHIFT]);
+	controller.set(ControllerBits::BUTTON_7, state[SDL_SCANCODE_LCTRL]);
 }
