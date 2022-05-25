@@ -6,6 +6,7 @@
 #include "stb_image.h"
 #include "FileNotFoundException.h"
 #include <iostream>
+#include <filesystem>
 
 void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_) {
 	window = window_;
@@ -108,6 +109,7 @@ void GLRenderer::LoadTexture(const std::string& filePath, const std::string& tag
 	int w, h, channels;
 	unsigned char* imgData = stbi_load(filePath.c_str(), &w, &h, &channels, 0);
 	if (imgData == NULL) {
+		std::cout << "Unable to find file " << std::filesystem::current_path() << "\\" << filePath << '\n';
 		FileNotFoundException e{ filePath };
 		throw e;
 	}

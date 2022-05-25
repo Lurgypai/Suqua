@@ -34,7 +34,7 @@ void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
     if (states.find(s.getGameTime()) == states.end())
         return;
 	if (s != states.at(s.getGameTime())) {
-        //std::cout << "Resynchronizing for time " << s.getGameTime() << '\n';
+        std::cout << "Resynchronizing for time " << s.getGameTime() << '\n';
         states.at(s.getGameTime()) = s;
         //clear states after time
         //you can't use remove_if with an associative container!

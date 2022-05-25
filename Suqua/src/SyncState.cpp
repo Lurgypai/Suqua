@@ -100,8 +100,12 @@ void SyncState::applyInput(const std::vector<NetworkId>& netIds, const OnlineSys
 	for (NetworkId netId : netIds) {
 		EntityId entity = online.getEntity(netId);
 		auto comp = EntitySystem::GetComp<ControllerComponent>(entity);
-		if (comp) *comp = *states.at(entity).cont;
-		else std::cout << "Entity " << entity << " does not yet have an associated controller component.\n";
+		auto contIter = states.find(entity);
+		if (contIter != states.end()) {
+			if (comp) *comp = *(contIter->second.cont);
+			else std::cout << "Entity " << entity << " does not yet have an associated controller component.\n";
+		}
+		else std::cout << "Entity " << entity << " is missing an input for time " << gameTime << ".\n";
 	}
 }
 

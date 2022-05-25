@@ -1,11 +1,12 @@
 #pragma once
-#include "Scene.h"]
+#include "Scene.h"
 #include "PhysicsSystem.h"
+#include "CombatSystem.h"
 
 class PlayingScene : public Scene {
 public:
 	PlayingScene(SceneId id_, FlagType flags_);
-	virtual ~PlayingScene() = 0;
+	virtual ~PlayingScene();
 
 	virtual void load(Game& game);
 	virtual void prePhysicsStep(Game& game);
@@ -20,9 +21,9 @@ public:
 	virtual void onConnect(Game& game, PeerId connectingId);
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer);
 
+	virtual EntityId addPlayer();
 protected:
-	EntityId addPlayer();
-private:
+	CombatSystem combat;
 	PhysicsSystem physics;
 	EntityId platformId;
 };

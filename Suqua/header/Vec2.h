@@ -41,12 +41,14 @@ struct Vec2 {
 	bool operator==(const Vec2 & other) const;
 	bool operator!=(const Vec2 & other) const;
 	T distance(const Vec2 & other);
+	T magn();
 	Vec2 round() const;
 	Vec2 ceil() const;
 	Vec2 floor() const;
 	Vec2 scale(const T& value) const;
 
 	Vec2 abs();
+	Vec2 norm();
 };
 
 template<typename T>
@@ -165,6 +167,11 @@ T Vec2<T>::distance(const Vec2<T> & other) {
 }
 
 template<typename T>
+T Vec2<T>::magn() {
+	return sqrt(x * x + y * y);
+}
+
+template<typename T>
 inline Vec2<T> Vec2<T>::round() const {
 	return Vec2<T>{std::round(x), std::round(y)};
 }
@@ -188,6 +195,14 @@ inline Vec2<T> Vec2<T>::scale(const T& value) const {
 template<typename T>
 inline Vec2<T> Vec2<T>::abs() {
 	return {std::abs(x), std::abs(y)};
+}
+
+template<typename T>
+inline Vec2<T> Vec2<T>::norm() {
+	T m = magn();
+	if (m == 0)
+		return Vec2<T>{0, 0};
+	return Vec2<T>{x / m, y / m};
 }
 
 template<typename T>

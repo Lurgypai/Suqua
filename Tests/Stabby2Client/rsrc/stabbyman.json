@@ -438,7 +438,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
     "sourceSize": { "w": 64, "h": 64 },
-    "duration": 15
+    "duration": 22
    },
    {
     "filename": "stabbyman.49.ase",
@@ -447,7 +447,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
     "sourceSize": { "w": 64, "h": 64 },
-    "duration": 15
+    "duration": 22
    },
    {
     "filename": "stabbyman.50.ase",
@@ -456,7 +456,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
     "sourceSize": { "w": 64, "h": 64 },
-    "duration": 15
+    "duration": 22
    },
    {
     "filename": "stabbyman.51.ase",
@@ -465,7 +465,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
     "sourceSize": { "w": 64, "h": 64 },
-    "duration": 15
+    "duration": 66
    },
    {
     "filename": "stabbyman.52.ase",
@@ -528,43 +528,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
     "sourceSize": { "w": 64, "h": 64 },
-    "duration": 66
-   },
-   {
-    "filename": "stabbyman.59.ase",
-    "frame": { "x": 192, "y": 448, "w": 64, "h": 64 },
-    "rotated": false,
-    "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
-    "sourceSize": { "w": 64, "h": 64 },
-    "duration": 15
-   },
-   {
-    "filename": "stabbyman.60.ase",
-    "frame": { "x": 256, "y": 448, "w": 64, "h": 64 },
-    "rotated": false,
-    "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
-    "sourceSize": { "w": 64, "h": 64 },
-    "duration": 15
-   },
-   {
-    "filename": "stabbyman.61.ase",
-    "frame": { "x": 320, "y": 448, "w": 64, "h": 64 },
-    "rotated": false,
-    "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
-    "sourceSize": { "w": 64, "h": 64 },
-    "duration": 15
-   },
-   {
-    "filename": "stabbyman.62.ase",
-    "frame": { "x": 384, "y": 448, "w": 64, "h": 64 },
-    "rotated": false,
-    "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
-    "sourceSize": { "w": 64, "h": 64 },
-    "duration": 15
+    "duration": 67
    }
  ],
  "meta": {
@@ -586,10 +550,10 @@
    { "name": "Heal", "from": 38, "to": 47, "direction": "forward" },
    { "name": "Crouch", "from": 38, "to": 43, "direction": "forward" },
    { "name": "Pray", "from": 44, "to": 47, "direction": "forward" },
-   { "name": "Jumpsquat", "from": 48, "to": 51, "direction": "forward" },
-   { "name": "Airdodge", "from": 52, "to": 52, "direction": "forward" },
-   { "name": "Dair", "from": 53, "to": 58, "direction": "forward" },
-   { "name": "Landing", "from": 59, "to": 62, "direction": "forward" }
+   { "name": "Jumpsquat", "from": 48, "to": 50, "direction": "forward" },
+   { "name": "Airdodge", "from": 51, "to": 51, "direction": "forward" },
+   { "name": "Dair", "from": 52, "to": 57, "direction": "forward" },
+   { "name": "Landing", "from": 58, "to": 58, "direction": "forward" }
   ],
   "layers": [
    { "name": "Layer 0", "opacity": 255, "blendMode": "normal" }

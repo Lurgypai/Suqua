@@ -11,5 +11,6 @@ public:
 
 private:
 	PlayerComponent::PlayerState prevState;
+	PlayerComponent::PlayerAttack prevAttack;
 	EntityId id;
 };

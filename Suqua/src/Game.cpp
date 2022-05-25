@@ -227,14 +227,16 @@ void Game::loop() {
 				host.sendBuffered();
 				sync.storeCurrentState(gameTick);
 
-				++serverBroadcastCtr;
-				if (serverBroadcastCtr == serverBroadcastDelay - 1) {
+				if (serverBroadcastCtr == serverBroadcastDelay) {
 					serverBroadcastCtr = 0;
 
 					ByteStream statePacket;
 					sync.writeStatePacket(statePacket, gameTick);
 					//std::cout << "Buffering for broarcast for tick " << gameTick << '\n';
 					host.bufferAllDataByChannel(0, statePacket);
+				}
+				else {
+					++serverBroadcastCtr;
 				}
 
 				tickTime();

@@ -67,7 +67,6 @@ void AnimatedSprite::update(int millis) {
 		}
 		currFrame = &frames.at(currentFrame);
 	}
-	std::cout << currentFrame << '\n';
 }
 
 int AnimatedSprite::getFrame() const {

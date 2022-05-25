@@ -8,7 +8,8 @@ public:
 	virtual void load(Game& game) override;
 	virtual void renderStep(Game& game) override;
 
-	void addPlayer();
+	EntityId addPlayer() override;
+	void addControl(EntityId id);
 private:
 	InputDeviceId keyboard;
 

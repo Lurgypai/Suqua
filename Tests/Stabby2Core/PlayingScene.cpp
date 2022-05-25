@@ -20,8 +20,8 @@ void PlayingScene::load(Game& game) {
 	platformId = addEntities(1)[0];
 	EntitySystem::MakeComps<PhysicsComponent>(1, &platformId);
 	PhysicsComponent* platformPhysics = EntitySystem::GetComp<PhysicsComponent>(platformId);
-	platformPhysics->setRes({ 480, 4 });
-	platformPhysics->setPos({ 0, 270 - 4 });
+	platformPhysics->setRes({ 440, 12 });
+	platformPhysics->setPos({ 20, 270 - 12 });
 	platformPhysics->setCollideable(true);
 	platformPhysics->setFrozen(true);
 }
@@ -33,10 +33,11 @@ void PlayingScene::prePhysicsStep(Game& game)
 void PlayingScene::physicsStep(Game& game) {
 	if (EntitySystem::Contains<PlayerComponent>()) {
 		for (auto& player : EntitySystem::GetPool<PlayerComponent>()) {
-			player.update();
+			player.update(game);
 		}
 	}
 	physics.runPhysics(game.PHYSICS_STEP);
+	combat.update();
 }
 
 void PlayingScene::postPhysicsStep(Game& game)
