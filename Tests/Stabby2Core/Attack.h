@@ -17,6 +17,7 @@ public:
 	void start();
 	void update(int millis);
 	void setPos(Vec2f pos_, int dir_);
+	void setElapsedTime(uint32_t elapsedTime_);
 	//specialize this for just an AABB
 	template<typename T>
 	bool intersects(const T& other) const;
@@ -27,6 +28,7 @@ public:
 	int getCurrHitboxIndex() const;
 	void setCurrHitboxIndex(int index);
 	const Vec2f& getPos() const;
+	uint32_t getElapsedTime() const;
 	int getDir() const;
 
 	bool finished();
@@ -34,7 +36,7 @@ public:
 	float attackSpeed = 1.0f;
 private:
 	int currHitboxIndex;
-	int elapsedTime;
+	unsigned int elapsedTime;
 	int dir;
 	Vec2f pos;
 	std::vector<Hitbox> hitboxes;

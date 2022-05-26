@@ -49,6 +49,7 @@ PlayerComponent::PlayerComponent(EntityId id_) :
 		data->set<uint32_t>(STATE, PlayerState::idle);
 		data->set<uint32_t>(CURR_ATTACK, PlayerAttack::none);
 		data->set<uint32_t>(CURR_HITBOX, 0);
+		data->set<uint32_t>(ATTACK_ELAPSED_TIME, 0);
 	}
 
 	attacks.resize(4);
@@ -67,7 +68,10 @@ void PlayerComponent::update(const Game& game) {
 	// I don't like this solution, as it means intermixing the netcode in here, which I disapprove of. oh well.
 	// Set the currHitboxIndex if it was updated by the netcode
 	uint32_t currAttack = data->get<uint32_t>(CURR_ATTACK);
-	if(currAttack != PlayerAttack::none) attacks[currAttack].setCurrHitboxIndex(data->get<uint32_t>(CURR_HITBOX));
+	if (currAttack != PlayerAttack::none) {
+		attacks[currAttack].setCurrHitboxIndex(data->get<uint32_t>(CURR_HITBOX));
+		attacks[currAttack].setElapsedTime(data->get<uint32_t>(ATTACK_ELAPSED_TIME));
+	}
 
 	switch (data->get<uint32_t>(STATE)) {
 	case PlayerState::idle: _idle(); break;
@@ -81,7 +85,10 @@ void PlayerComponent::update(const Game& game) {
 	}
 
 	//set the synchronized currHitboxIndex
-	if (currAttack != PlayerAttack::none) data->get<uint32_t>(CURR_HITBOX) = attacks[currAttack].getCurrHitboxIndex();
+	if (currAttack != PlayerAttack::none) {
+		data->get<uint32_t>(CURR_HITBOX) = attacks[currAttack].getCurrHitboxIndex();
+		data->get<uint32_t>(ATTACK_ELAPSED_TIME) = attacks[currAttack].getElapsedTime();
+	}
 
 	//// DEBUG LOG
 	//if (!playerLog.good()) {

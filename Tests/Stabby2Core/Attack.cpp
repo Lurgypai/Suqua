@@ -24,6 +24,11 @@ void Attack::setPos(Vec2f pos_, int dir_) {
 	dir = dir_;
 }
 
+void Attack::setElapsedTime(uint32_t elapsedTime_)
+{
+	elapsedTime = elapsedTime_;
+}
+
 void Attack::addHitbox(std::vector<AABB> hitboxes_, int duration, int launchSpeed, float launchAngle) {
 	hitboxes.emplace_back(Hitbox{ hitboxes_, duration, launchSpeed, launchAngle });
 }
@@ -48,6 +53,11 @@ void Attack::setCurrHitboxIndex(int index) {
 
 const Vec2f& Attack::getPos() const {
 	return pos;
+}
+
+uint32_t Attack::getElapsedTime() const
+{
+	return elapsedTime;
 }
 
 int Attack::getDir() const {

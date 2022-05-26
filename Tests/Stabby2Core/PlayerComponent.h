@@ -18,6 +18,7 @@ namespace PlayerData {
 	constexpr unsigned int STATE = 38;
 	constexpr unsigned int CURR_ATTACK = 39;
 	constexpr unsigned int CURR_HITBOX = 40;
+	constexpr unsigned int ATTACK_ELAPSED_TIME = 41;
 }
 
 class PlayerComponent {
