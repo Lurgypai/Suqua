@@ -40,8 +40,8 @@ AnimatedSprite::AnimatedSprite(const std::string& texture_tag, const std::string
 		animations.emplace(
 			animation["name"],
 			Vec2i{
-				animation["from"],
-				animation["to"] + 1
+				static_cast<int32_t>(animation["from"]),
+				static_cast<int32_t>(animation["to"]) + 1
 			}
 		);
 		//defaults

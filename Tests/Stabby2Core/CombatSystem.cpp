@@ -2,6 +2,8 @@
 #include "PlayerComponent.h"
 #include "PhysicsComponent.h"
 
+#include <cmath>
+
 void CombatSystem::update() {
 	if (EntitySystem::Contains<PlayerComponent>()) {
 		for (auto& player : EntitySystem::GetPool<PlayerComponent>()) {
@@ -16,7 +18,7 @@ void CombatSystem::update() {
 						auto currHitbox = attack->getCurrHitbox();
 
 						const auto& dir = EntitySystem::GetComp<NetworkDataComponent>(player.getId())->get<int32_t>(PlayerData::DIR);
-						launchData.emplace(physics.getId(), Vec2f{ std::cosf(currHitbox->launchAngle) * dir, -std::sinf(currHitbox->launchAngle) });
+						launchData.emplace(physics.getId(), Vec2f{ cosf(currHitbox->launchAngle) * dir, -sinf(currHitbox->launchAngle) });
 
 						player.markHit(otherPlayer->getId());
 					}
