@@ -13,17 +13,17 @@ using NDC = NetworkDataComponent;
 using namespace PlayerData;
 
 PlayerComponent::PlayerComponent(EntityId id_) :
-	id{id_},
+	id{ id_ },
 	jumpSquatMax{ 8 },
 	landingMax{ 8 },
 	jumpVel{ 350 },
-	shortHopVel{220},
+	shortHopVel{ 220 },
 	moveSpeed{ 80 },
 	groundedDecel{ 10 },
 	dodgeSpeed{ 100 },
-	dodgeMax{56},
+	dodgeMax{ 56 },
 	airdodgeMax{ 30 },
-	airdodgeSpeed{200}
+	airdodgeSpeed{ 200 }
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<PhysicsComponent>() || !EntitySystem::GetComp<PhysicsComponent>(id)) {
@@ -48,8 +48,12 @@ PlayerComponent::PlayerComponent(EntityId id_) :
 		data->set<bool>(BUFFER_ATTACK, false);
 		data->set<uint32_t>(STATE, PlayerState::idle);
 		data->set<uint32_t>(CURR_ATTACK, PlayerAttack::none);
+		data->set<uint32_t>(PREV_ATTACK, PlayerAttack::none);
 		data->set<uint32_t>(CURR_HITBOX, 0);
+		data->set<uint32_t>(PREV_HITBOX, 0);
 		data->set<uint32_t>(ATTACK_ELAPSED_TIME, 0);
+		data->set<uint32_t>(PERCENT, 0);
+		data->set<uint32_t>(STUN_FRAME, 0);
 	}
 
 	attacks.resize(4);
@@ -71,6 +75,10 @@ void PlayerComponent::update(const Game& game) {
 	if (currAttack != PlayerAttack::none) {
 		attacks[currAttack].setCurrHitboxIndex(data->get<uint32_t>(CURR_HITBOX));
 		attacks[currAttack].setElapsedTime(data->get<uint32_t>(ATTACK_ELAPSED_TIME));
+
+		//also store the previous
+		data->get<uint32_t>(PREV_ATTACK) = data->get<uint32_t>(CURR_ATTACK);
+		data->get<uint32_t>(PREV_HITBOX) = data->get<uint32_t>(CURR_HITBOX);
 	}
 
 	switch (data->get<uint32_t>(STATE)) {
@@ -82,12 +90,19 @@ void PlayerComponent::update(const Game& game) {
 	case PlayerState::dodge: _dodge(); break;
 	case PlayerState::airdodge: _airdodge(); break;
 	case PlayerState::grounded_attack: _groundedAttack(game); break;
+	case PlayerState::respawning: _respawning(game); break;
+	case PlayerState::hitstun: _hitstun(); break;
 	}
 
 	//set the synchronized currHitboxIndex
 	if (currAttack != PlayerAttack::none) {
 		data->get<uint32_t>(CURR_HITBOX) = attacks[currAttack].getCurrHitboxIndex();
 		data->get<uint32_t>(ATTACK_ELAPSED_TIME) = attacks[currAttack].getElapsedTime();
+	}
+
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	if (physics->getPos().y > 320) {
+		beginRespawn();
 	}
 
 	//// DEBUG LOG
@@ -108,6 +123,45 @@ PlayerComponent::PlayerState PlayerComponent::getState() const
 {
 	NDC* data = EntitySystem::GetComp<NDC>(id);
 	return static_cast<PlayerState>(data->get<uint32_t>(STATE));
+}
+
+void PlayerComponent::doRespawn() {
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	physics->teleport({ 480 / 2, 270 / 2 });
+
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->get<uint32_t>(PERCENT) = 0;
+}
+
+void PlayerComponent::damage(int damage_) {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->get<uint32_t>(PERCENT) += damage_;
+}
+
+void PlayerComponent::launch(Vec2f launchDir) {
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	physics->accelerate(launchDir * data->get<uint32_t>(PERCENT));
+	std::cout << "Launching, percent " << data->get<uint32_t>(PERCENT) << ", at " << launchDir.x << ", " << launchDir.y << '\n';
+	beginHitstun();
+}
+
+void PlayerComponent::markHit(EntityId otherPlayer) {
+	hitEntities.emplace(otherPlayer);
+}
+
+bool PlayerComponent::hasHit(EntityId otherPlayer) {
+	return hitEntities.find(otherPlayer) != hitEntities.end();
+}
+
+bool PlayerComponent::hitboxChanged() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return data->get<uint32_t>(CURR_HITBOX) != data->get<uint32_t>(PREV_HITBOX) ||
+		data->get<uint32_t>(CURR_ATTACK) != data->get<uint32_t>(PREV_ATTACK);
+}
+
+void PlayerComponent::clearMarked() {
+	hitEntities.clear();
 }
 
 std::optional<Attack> PlayerComponent::getCurrAttack() const {
@@ -394,6 +448,46 @@ void PlayerComponent::_groundedAttack(const Game& game) {
 	}
 
 	decelerate();
+}
+
+void PlayerComponent::beginRespawn() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	physics->setVel({ 0, 0 });
+	data->get<uint32_t>(STATE) = PlayerState::respawning;
+}
+
+void PlayerComponent::_respawning(const Game& game)
+{
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->get<uint32_t>(STATE) = PlayerState::airborn;
+}
+
+void PlayerComponent::beginHitstun() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->get<uint32_t>(ACTION_FRAME) = 0;
+	data->get<uint32_t>(STATE) = PlayerState::hitstun;
+}
+
+void PlayerComponent::_hitstun() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+
+	auto& actionFrame = data->get<uint32_t>(ACTION_FRAME);
+
+	if (physics->isGrounded()) {
+		data->get<uint32_t>(ACTION_FRAME) = 0;
+		data->get<uint32_t>(STATE) = PlayerState::landing;
+		return;
+	}
+
+	if (actionFrame >= 120) {
+		data->get<uint32_t>(ACTION_FRAME) = 0;
+		data->get<uint32_t>(STATE) = PlayerState::airborn;
+	}
+	else {
+		++actionFrame;
+	}
 }
 
 void PlayerComponent::decelerate() {

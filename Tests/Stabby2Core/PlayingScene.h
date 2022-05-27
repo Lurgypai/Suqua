@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "PhysicsSystem.h"
 #include "CombatSystem.h"
+#include "RespawnSystem.h"
 
 class PlayingScene : public Scene {
 public:
@@ -25,5 +26,6 @@ public:
 protected:
 	CombatSystem combat;
 	PhysicsSystem physics;
+	RespawnSystem respawn;
 	EntityId platformId;
 };

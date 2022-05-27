@@ -13,11 +13,7 @@ file(GLOB_RECURSE source_files
 	"*.cpp"
 )
 
-file(GLOB_RECURSE header_files
-	"*.h"
-)
-
-add_library(Stabby2Core ${source_files} ${header_files})
+add_library(Stabby2Core ${source_files})
 
 target_include_directories(Stabby2Core PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/../include"

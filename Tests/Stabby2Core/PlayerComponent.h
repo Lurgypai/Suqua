@@ -5,6 +5,7 @@
 #include "Game.h"
 
 #include <fstream>
+#include <unordered_set>
 
 namespace PlayerData {
 	constexpr unsigned int ACTION_FRAME = 30;
@@ -19,6 +20,10 @@ namespace PlayerData {
 	constexpr unsigned int CURR_ATTACK = 39;
 	constexpr unsigned int CURR_HITBOX = 40;
 	constexpr unsigned int ATTACK_ELAPSED_TIME = 41;
+	constexpr unsigned int PERCENT = 42;
+	constexpr unsigned int STUN_FRAME = 43;
+	constexpr unsigned int PREV_HITBOX = 44;
+	constexpr unsigned int PREV_ATTACK = 45;
 }
 
 class PlayerComponent {
@@ -31,7 +36,9 @@ public:
 		landing,
 		dodge,
 		airdodge,
-		grounded_attack
+		grounded_attack,
+		respawning,
+		hitstun
 	};
 
 	enum PlayerAttack : uint32_t {
@@ -47,6 +54,14 @@ public:
 
 	void update(const Game& game);
 	PlayerState getState() const;
+	void doRespawn();
+	void damage(int damage);
+	void launch(Vec2f launchDir);
+
+	void markHit(EntityId otherPlayer);
+	bool hasHit(EntityId otherPlayer);
+	bool hitboxChanged();
+	void clearMarked();
 
 	std::optional<Attack> getCurrAttack() const;
 	PlayerAttack getCurrAttackId() const;
@@ -69,6 +84,12 @@ private:
 
 	void beginGroundedAttack();
 	void _groundedAttack(const Game& game);
+
+	void beginRespawn();
+	void _respawning(const Game& game);
+
+	void beginHitstun();
+	void _hitstun();
 
 	void decelerate();
 
@@ -93,10 +114,10 @@ private:
 	float groundedDecel;
 	float airdodgeSpeed;
 
-
 	EntityId id;
 
 	std::vector<Attack> attacks;
+	std::unordered_set<EntityId> hitEntities;
 
 	static std::ofstream playerLog;
 };

@@ -57,6 +57,10 @@ void PlayerGFXComponent::update(int millis) {
 			sprite->looping = false;
 			sprite->setAnimation("Airdodge");
 			break;
+		case PlayerComponent::PlayerState::hitstun:
+			sprite->looping = false;
+			sprite->setAnimation("Hurt");
+			break;
 		case PlayerComponent::PlayerState::grounded_attack:
 			switch (player->getCurrAttackId()) {
 			case PlayerComponent::PlayerAttack::slash1:

@@ -127,11 +127,11 @@ void Game::tickTime() {
 }
 
 void Game::inputStep() {
-for (auto&& scene : scenes) {
-	if (scene->flags & Scene::Flag::input) {
-		scene->applyInputs(*this);
+	for (auto&& scene : scenes) {
+		if (scene->flags & Scene::Flag::input) {
+			scene->applyInputs(*this);
+		}
 	}
-}
 }
 
 void Game::prePhysicsStep() {

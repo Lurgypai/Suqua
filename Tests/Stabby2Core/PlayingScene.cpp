@@ -38,6 +38,7 @@ void PlayingScene::physicsStep(Game& game) {
 	}
 	physics.runPhysics(game.PHYSICS_STEP);
 	combat.update();
+	respawn.update();
 }
 
 void PlayingScene::postPhysicsStep(Game& game)
