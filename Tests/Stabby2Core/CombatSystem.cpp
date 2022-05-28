@@ -2,6 +2,8 @@
 #include "PlayerComponent.h"
 #include "PhysicsComponent.h"
 
+#include <cmath>
+
 void CombatSystem::update() {
 	if (EntitySystem::Contains<PlayerComponent>()) {
 		for (auto& player : EntitySystem::GetPool<PlayerComponent>()) {
