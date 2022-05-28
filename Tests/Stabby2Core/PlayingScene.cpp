@@ -3,6 +3,7 @@
 #include "Game.h"
 #include "PositionData.h"
 #include "PlayerComponent.h"
+#include "ZombieComponent.h"
 
 using NDC = NetworkDataComponent;
 
@@ -33,6 +34,11 @@ void PlayingScene::prePhysicsStep(Game& game)
 void PlayingScene::physicsStep(Game& game) {
 	if (EntitySystem::Contains<PlayerComponent>()) {
 		for (auto& player : EntitySystem::GetPool<PlayerComponent>()) {
+			player.update(game);
+		}
+	}
+	if (EntitySystem::Contains<ZombieComponent>()) {
+		for (auto& player : EntitySystem::GetPool<ZombieComponent>()) {
 			player.update(game);
 		}
 	}
@@ -72,5 +78,11 @@ void PlayingScene::onDisconnect(Game& game, PeerId disconnectedPeer)
 EntityId PlayingScene::addPlayer() {
 	EntityId playerId = addEntities(1).front();
 	EntitySystem::MakeComps<PlayerComponent>(1, &playerId);
+	return playerId;
+}
+
+EntityId PlayingScene::addZombie() {
+	EntityId playerId = addEntities(1).front();
+	EntitySystem::MakeComps<ZombieComponent>(1, &playerId);
 	return playerId;
 }

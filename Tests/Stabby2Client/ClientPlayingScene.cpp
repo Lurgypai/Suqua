@@ -1,7 +1,12 @@
 #include "ClientPlayingScene.h"
 #include "Game.h"
 #include "PlayerGFXComponent.h"
+#include "ZombieGFXComponent.h"
 #include "RectDrawable.h"
+
+#include "PositionData.h"
+
+using NDC = NetworkDataComponent;
 
 ClientPlayingScene::ClientPlayingScene(SceneId id_, FlagType flags_, InputDeviceId keyboard_) :
 	PlayingScene{id_, flags_},
@@ -13,6 +18,7 @@ void ClientPlayingScene::load(Game& game) {
 	PlayingScene::load(game);
 
 	GLRenderer::LoadTexture("stabbyman.png", "stabbyman");
+	GLRenderer::LoadTexture("zombie.png", "zombie");
 
 	EntitySystem::MakeComps<RenderComponent>(1, &platformId);
 	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(platformId);
@@ -39,8 +45,19 @@ void ClientPlayingScene::renderStep(Game& game) {
 		}
 	}
 
+	if (EntitySystem::Contains<ZombieGFXComponent>()) {
+		for (auto& gfx : EntitySystem::GetPool<ZombieGFXComponent>()) {
+			gfx.update(game.RENDER_STEP * 1000);
+		}
+	}
+
 	screenBuffer.bind();
 	GLRenderer::Clear();
+
+	auto& cam = GLRenderer::getCamera(camId);
+	NDC* data = EntitySystem::GetComp<NDC>(player);
+	cam.center(Vec2f{data->get<float>(X), data->get<float>(Y)});
+	
 	drawScene(game.getRender());
 
 	static RectDrawable hitboxGFX{
@@ -94,6 +111,14 @@ EntityId ClientPlayingScene::addPlayer() {
 	return playerId;
 }
 
+EntityId ClientPlayingScene::addZombie() {
+	EntityId playerId = PlayingScene::addZombie();
+
+	EntitySystem::MakeComps<ZombieGFXComponent>(1, &playerId);
+	return playerId;
+}
+
 void ClientPlayingScene::addControl(EntityId id) {
 	addEntityInputs({ {id, keyboard} });
+	player = id;
 }

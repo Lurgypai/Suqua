@@ -17,4 +17,7 @@ void JoinPacketHandler::handlePacket(Game& game, ByteStream& data, PeerId source
 	ClientPlayingScene& playingScene = game.getScene<ClientPlayingScene>(playingSceneId);
 	EntityId newPlayer = playingScene.addPlayer();
 	game.online.registerOnlineComponent(newPlayer, netId);
+
+	//set player to be frozen, and not to sync frozen, so that they'll only be moved when new positions come in
+
 }

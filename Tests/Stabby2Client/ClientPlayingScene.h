@@ -9,8 +9,10 @@ public:
 	virtual void renderStep(Game& game) override;
 
 	EntityId addPlayer() override;
+	EntityId addZombie() override;
 	void addControl(EntityId id);
 private:
+	EntityId player;
 	InputDeviceId keyboard;
 
 	Framebuffer screenBuffer;

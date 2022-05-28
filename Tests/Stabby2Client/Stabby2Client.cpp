@@ -42,12 +42,13 @@ int main(int argc, char** argv) {
 	game.loadPacketHandler<JoinPacketHandler>(Stabby2Packet::JoinPacket, playingScene);
 	game.loadPacketHandler<OwnedNetIdPacketHandler>(Stabby2Packet::OwnedNetIdPacket, playingScene);
 
-	constexpr bool online = true;
+	constexpr bool online = false;
 	if (online) {
 		game.sceneOff(playingScene);
 	}
 	else {
-		auto playerId = game.getScene<ClientPlayingScene>(playingScene).addPlayer();
+		//auto playerId = game.getScene<ClientPlayingScene>(playingScene).addPlayer();
+		auto playerId = game.getScene<ClientPlayingScene>(playingScene).addZombie();
 		game.getScene<ClientPlayingScene>(playingScene).addControl(playerId);
 		game.sceneOff(menuScene);
 
