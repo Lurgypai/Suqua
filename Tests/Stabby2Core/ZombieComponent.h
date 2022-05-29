@@ -9,6 +9,8 @@ namespace ZombieData {
 	constexpr unsigned int DIR = 31;
 	constexpr unsigned int STATE = 32;
 	constexpr unsigned int HEALTH = 33;
+	constexpr unsigned int FREEZE_FRAME = 34;
+	constexpr unsigned int FREEZE_STATE = 35;
 }
 
 class ZombieComponent {
@@ -18,7 +20,8 @@ public:
 		moving,
 		charging,
 		attacking,
-		hurt
+		hurt,
+		freeze
 	};
 
 	ZombieComponent(EntityId id_ = 0);
@@ -26,6 +29,7 @@ public:
 
 	void update(Game& game);
 	ZombieState getState() const;
+	ZombieState getFrozenState() const;
 	void damage(int damage);
 
 	void markHit(EntityId target);
@@ -35,6 +39,7 @@ public:
 
 	int getDir() const;
 	
+	void beginFreeze();
 private:
 	void beginIdle();
 	void idle_();
@@ -51,9 +56,12 @@ private:
 	void beginHurt();
 	void hurt_();
 
+	void freeze_();
+
 	unsigned int idleTime;
 	unsigned int chargeTime;
-	float groundedDecel;
+	float moveDecel;
+	float attackDecel;
 	float moveSpeed;
 	Vec2f launchSpeed;
 

@@ -24,6 +24,8 @@ namespace PlayerData {
 	constexpr unsigned int STUN_FRAME = 43;
 	constexpr unsigned int PREV_HITBOX = 44;
 	constexpr unsigned int PREV_ATTACK = 45;
+	constexpr unsigned int FREEZE_STATE = 46;
+	constexpr unsigned int FREEZE_FRAME = 47;
 }
 
 class PlayerComponent {
@@ -38,7 +40,8 @@ public:
 		airdodge,
 		grounded_attack,
 		respawning,
-		hitstun
+		hitstun,
+		freeze
 	};
 
 	enum PlayerAttack : uint32_t {
@@ -54,9 +57,9 @@ public:
 
 	void update(const Game& game);
 	PlayerState getState() const;
+	PlayerState getFrozenState() const;
 	void doRespawn();
 	void damage(int damage);
-	void launch(Vec2f launchDir);
 
 	void markHit(EntityId otherPlayer);
 	bool hasHit(EntityId otherPlayer);
@@ -66,6 +69,8 @@ public:
 	std::optional<Attack> getCurrAttack() const;
 	PlayerAttack getCurrAttackId() const;
 
+
+	void beginFreeze();
 private:
 	void _idle();
 	void _walking();
@@ -90,6 +95,8 @@ private:
 
 	void beginHitstun();
 	void _hitstun();
+
+	void _freeze();
 
 	void decelerate();
 

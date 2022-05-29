@@ -7,10 +7,11 @@ using namespace ZombieData;
 
 ZombieComponent::ZombieComponent(EntityId id_) :
 	id{ id_ },
-	groundedDecel{ 6 },
+	moveDecel{ 1 },
+	attackDecel{ 20 },
 	idleTime{ 15 },
 	chargeTime{ 60 },
-	moveSpeed{ 300 },
+	moveSpeed{ 80 },
 	launchSpeed{ 200, -100 }
 {
 	if (id != 0) {
@@ -18,7 +19,7 @@ ZombieComponent::ZombieComponent(EntityId id_) :
 			EntitySystem::MakeComps<PhysicsComponent>(1, &id);
 			auto* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 			physics->setRes({ 6, 17 });
-			physics->teleport({ 480 / 2, 270 / 2 });
+			physics->teleport({ 480 / 8, 270 / 2 });
 			physics->setWeight(4);
 		}
 
@@ -30,7 +31,9 @@ ZombieComponent::ZombieComponent(EntityId id_) :
 		data->set<uint32_t>(ACTION_FRAME, 0);
 		data->set<int32_t>(DIR, 1);
 		data->set<uint32_t>(STATE, ZombieState::idle);
+		data->set<uint32_t>(FREEZE_STATE, ZombieState::idle);
 		data->set<uint32_t>(HEALTH, 100);
+		data->set<uint32_t>(FREEZE_FRAME, 0);
 	}
 }
 
@@ -47,6 +50,7 @@ void ZombieComponent::update(Game& game) {
 	case ZombieState::charging: charging_(); break;
 	case ZombieState::attacking: attacking_(); break;
 	case ZombieState::hurt: hurt_(); break;
+	case ZombieState::freeze: freeze_(); break;
 	}
 
 
@@ -57,11 +61,18 @@ ZombieComponent::ZombieState ZombieComponent::getState() const {
 	return static_cast<ZombieState>(data->get<uint32_t>(STATE));
 }
 
+ZombieComponent::ZombieState ZombieComponent::getFrozenState() const
+{
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return static_cast<ZombieState>(data->get<uint32_t>(FREEZE_STATE));
+}
+
 void ZombieComponent::damage(int damage) {
 	NDC* data = EntitySystem::GetComp<NDC>(id);
 	auto& health = data->get<uint32_t>(HEALTH);
 	if (health < damage) health = 0;
 	else health -= damage;
+	beginHurt();
 }
 
 void ZombieComponent::markHit(EntityId target) {
@@ -74,7 +85,8 @@ bool ZombieComponent::hasHit(EntityId target) {
 
 bool ZombieComponent::hitboxChanged() {
 	NDC* data = EntitySystem::GetComp<NDC>(id);
-	return data->get<uint32_t>(STATE) != ZombieState::attacking;
+	const auto& state = data->get<uint32_t>(STATE);
+	return state != ZombieState::attacking && state != ZombieState::freeze;
 }
 
 void ZombieComponent::clearMarked() {
@@ -138,11 +150,11 @@ void ZombieComponent::beginMoving() {
 void ZombieComponent::moving_() {
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
-	if (physics->getVel().x > groundedDecel / 2) {
-		physics->accelerate({ -groundedDecel, 0 });
+	if (physics->getVel().x > moveDecel / 2) {
+		physics->accelerate({ -moveDecel, 0 });
 	}
-	else if (physics->getVel().x < -groundedDecel / 2) {
-		physics->accelerate({ groundedDecel, 0 });
+	else if (physics->getVel().x < -moveDecel / 2) {
+		physics->accelerate({ moveDecel, 0 });
 	}
 	else {
 		physics->setVel({ 0, 0 });
@@ -155,6 +167,15 @@ void ZombieComponent::beginCharging() {
 	data->get<uint32_t>(STATE) = ZombieState::charging;
 
 	data->get<uint32_t>(ACTION_FRAME) = chargeTime;
+
+	ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(id);
+	const Controller& c = cont->getController();
+
+	int inputDir = 0;
+	if (c[ControllerBits::LEFT]) --inputDir;
+	if (c[ControllerBits::RIGHT]) ++inputDir;
+
+	if (inputDir != 0) data->get<int32_t>(DIR) = inputDir;
 }
 
 void ZombieComponent::charging_() {
@@ -180,13 +201,12 @@ void ZombieComponent::beginAttacking() {
 
 void ZombieComponent::attacking_() {
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
-
 	if (physics->isGrounded()) {
-		if (physics->getVel().x > groundedDecel / 2) {
-			physics->accelerate({ -groundedDecel, 0 });
+		if (physics->getVel().x > attackDecel / 2) {
+			physics->accelerate({ -attackDecel, 0 });
 		}
-		else if (physics->getVel().x < -groundedDecel / 2) {
-			physics->accelerate({ groundedDecel, 0 });
+		else if (physics->getVel().x < -attackDecel / 2) {
+			physics->accelerate({ attackDecel, 0 });
 		}
 		else {
 			physics->setVel({ 0, 0 });
@@ -195,12 +215,55 @@ void ZombieComponent::attacking_() {
 	}
 }
 
-void ZombieComponent::beginHurt()
-{
+void ZombieComponent::beginHurt() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->get<uint32_t>(ACTION_FRAME) = 0;
+	data->get<uint32_t>(STATE) = ZombieState::hurt;
+
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	physics->setVel({ 0, 0 });
 }
 
-void ZombieComponent::hurt_()
-{
+void ZombieComponent::hurt_() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+
+	auto& actionFrame = data->get<uint32_t>(ACTION_FRAME);
+
+	if (actionFrame >= 60) {
+		data->get<uint32_t>(ACTION_FRAME) = 0;
+		data->get<uint32_t>(STATE) = ZombieState::idle;
+	}
+	else {
+		++actionFrame;
+	}
+}
+
+
+
+void ZombieComponent::beginFreeze() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->get<uint32_t>(FREEZE_STATE) = data->get<uint32_t>(STATE);
+	data->get<uint32_t>(FREEZE_FRAME) = 0;
+	data->get<uint32_t>(STATE) = ZombieState::freeze;
+
+	auto* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	physics->freeze();
+}
+
+void ZombieComponent::freeze_() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+
+	auto& freezeFrame = data->get<uint32_t>(FREEZE_FRAME);
+
+	if (freezeFrame >= 20) {
+		data->get<uint32_t>(STATE) = data->get<uint32_t>(FREEZE_STATE);
+
+		auto* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+		physics->unfreeze();
+	}
+	else {
+		++freezeFrame;
+	}
 }
 
 

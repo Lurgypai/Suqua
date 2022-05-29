@@ -4,6 +4,7 @@
 #include "PositionData.h"
 #include "PlayerComponent.h"
 #include "ZombieComponent.h"
+#include "ZombieController.h"
 
 using NDC = NetworkDataComponent;
 
@@ -81,8 +82,12 @@ EntityId PlayingScene::addPlayer() {
 	return playerId;
 }
 
-EntityId PlayingScene::addZombie() {
+EntityId PlayingScene::addZombie(Game& game) {
 	EntityId playerId = addEntities(1).front();
 	EntitySystem::MakeComps<ZombieComponent>(1, &playerId);
+
+	auto input = game.loadInputDevice<ZombieController>();
+	addEntityInputs({ {playerId, input} });
+
 	return playerId;
 }

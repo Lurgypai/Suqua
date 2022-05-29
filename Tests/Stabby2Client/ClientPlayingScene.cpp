@@ -111,8 +111,8 @@ EntityId ClientPlayingScene::addPlayer() {
 	return playerId;
 }
 
-EntityId ClientPlayingScene::addZombie() {
-	EntityId playerId = PlayingScene::addZombie();
+EntityId ClientPlayingScene::addZombie(Game& game) {
+	EntityId playerId = PlayingScene::addZombie(game);
 
 	EntitySystem::MakeComps<ZombieGFXComponent>(1, &playerId);
 	return playerId;

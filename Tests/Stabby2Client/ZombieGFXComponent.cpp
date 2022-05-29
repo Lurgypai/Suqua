@@ -29,10 +29,11 @@ EntityId ZombieGFXComponent::getId() const {
 void ZombieGFXComponent::update(int millis) {
 	auto* render = EntitySystem::GetComp<RenderComponent>(id);
 	auto* sprite = render->getDrawable<AnimatedSprite>();
-	sprite->update(millis);
 
 	auto* zombie = EntitySystem::GetComp<ZombieComponent>(id);
 	auto* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+
+	if(zombie->getState() != ZombieComponent::ZombieState::freeze) sprite->update(millis);
 
 	if (prevState != zombie->getState()) {
 		switch (zombie->getState()) {

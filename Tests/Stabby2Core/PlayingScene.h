@@ -23,7 +23,7 @@ public:
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer);
 
 	virtual EntityId addPlayer();
-	virtual EntityId addZombie();
+	virtual EntityId addZombie(Game& game);
 protected:
 	CombatSystem combat;
 	PhysicsSystem physics;

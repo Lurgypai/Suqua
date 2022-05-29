@@ -24,12 +24,13 @@ EntityId PlayerGFXComponent::getId() const {
 void PlayerGFXComponent::update(int millis) {
 	auto* render = EntitySystem::GetComp<RenderComponent>(id);
 	auto* sprite = render->getDrawable<AnimatedSprite>();
-	sprite->update(millis);
 
 	auto* player = EntitySystem::GetComp<PlayerComponent>(id);
 	auto* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
-	if (prevState != player->getState()) {
+	if (player->getState() != PlayerComponent::PlayerState::freeze) sprite->update(millis);
+
+	if (prevState != player->getState() && prevState != PlayerComponent::PlayerState::freeze) {
 		switch (player->getState()) {
 		case PlayerComponent::PlayerState::idle:
 			sprite->setAnimation("Idle");
@@ -108,6 +109,6 @@ void PlayerGFXComponent::update(int millis) {
 		}
 	}
 
-	prevState = player->getState();
+	if(player->getState() != PlayerComponent::PlayerState::freeze) prevState = player->getState();
 	prevAttack = player->getCurrAttackId();
 }

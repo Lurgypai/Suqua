@@ -29,8 +29,8 @@ void Attack::setElapsedTime(uint32_t elapsedTime_)
 	elapsedTime = elapsedTime_;
 }
 
-void Attack::addHitbox(std::vector<AABB> hitboxes_, int duration, int launchSpeed, float launchAngle) {
-	hitboxes.emplace_back(Hitbox{ hitboxes_, duration, launchSpeed, launchAngle });
+void Attack::addHitbox(std::vector<AABB> hitboxes_, int duration, int damage) {
+	hitboxes.emplace_back(Hitbox{ hitboxes_, duration, damage });
 }
 
 const std::vector<Attack::Hitbox>& Attack::getHitboxes() const {

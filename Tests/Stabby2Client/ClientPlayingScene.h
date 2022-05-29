@@ -9,7 +9,7 @@ public:
 	virtual void renderStep(Game& game) override;
 
 	EntityId addPlayer() override;
-	EntityId addZombie() override;
+	EntityId addZombie(Game& game) override;
 	void addControl(EntityId id);
 private:
 	EntityId player;

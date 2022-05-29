@@ -47,8 +47,8 @@ int main(int argc, char** argv) {
 		game.sceneOff(playingScene);
 	}
 	else {
-		//auto playerId = game.getScene<ClientPlayingScene>(playingScene).addPlayer();
-		auto playerId = game.getScene<ClientPlayingScene>(playingScene).addZombie();
+		auto playerId = game.getScene<ClientPlayingScene>(playingScene).addPlayer();
+		auto zombieId = game.getScene<ClientPlayingScene>(playingScene).addZombie(game);
 		game.getScene<ClientPlayingScene>(playingScene).addControl(playerId);
 		game.sceneOff(menuScene);
 

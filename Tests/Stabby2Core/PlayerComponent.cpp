@@ -47,20 +47,21 @@ PlayerComponent::PlayerComponent(EntityId id_) :
 		data->set<bool>(AIRDODGED, false);
 		data->set<bool>(BUFFER_ATTACK, false);
 		data->set<uint32_t>(STATE, PlayerState::idle);
+		data->set<uint32_t>(FREEZE_STATE, PlayerState::idle);
 		data->set<uint32_t>(CURR_ATTACK, PlayerAttack::none);
 		data->set<uint32_t>(PREV_ATTACK, PlayerAttack::none);
 		data->set<uint32_t>(CURR_HITBOX, 0);
 		data->set<uint32_t>(PREV_HITBOX, 0);
 		data->set<uint32_t>(ATTACK_ELAPSED_TIME, 0);
 		data->set<uint32_t>(PERCENT, 0);
-		data->set<uint32_t>(STUN_FRAME, 0);
+		data->set<uint32_t>(FREEZE_FRAME, 0);
 	}
 
 	attacks.resize(4);
-	attacks[PlayerAttack::slash1].addHitbox({ AABB{ {0, -21}, {16, 13} } }, 300, 100, 45);
-	attacks[PlayerAttack::slash2].addHitbox({ AABB{ {4, -23}, {16, 22} } }, 350, 150, 45);
-	attacks[PlayerAttack::slash3].addHitbox({ AABB{ {8, -17, }, { 19, 17 } }, AABB{ {-3, -24}, {25, 11} } }, 400, 400, 45);
-	attacks[PlayerAttack::dair].addHitbox({ AABB{ {0, -16}, {16, 16} } }, 400, 200, 45);
+	attacks[PlayerAttack::slash1].addHitbox({ AABB{ {0, -21}, {16, 13} } }, 300, 25);
+	attacks[PlayerAttack::slash2].addHitbox({ AABB{ {4, -23}, {16, 22} } }, 350, 35);
+	attacks[PlayerAttack::slash3].addHitbox({}, 100, 0);
+	attacks[PlayerAttack::slash3].addHitbox({ AABB{ {8, -17, }, { 19, 17 } }, AABB{ {-3, -24}, {25, 11} } }, 300, 40);
 }
 
 EntityId PlayerComponent::getId() const {
@@ -92,6 +93,7 @@ void PlayerComponent::update(const Game& game) {
 	case PlayerState::grounded_attack: _groundedAttack(game); break;
 	case PlayerState::respawning: _respawning(game); break;
 	case PlayerState::hitstun: _hitstun(); break;
+	case PlayerState::freeze: _freeze(); break;
 	}
 
 	//set the synchronized currHitboxIndex
@@ -125,6 +127,12 @@ PlayerComponent::PlayerState PlayerComponent::getState() const
 	return static_cast<PlayerState>(data->get<uint32_t>(STATE));
 }
 
+PlayerComponent::PlayerState PlayerComponent::getFrozenState() const
+{
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	return static_cast<PlayerState>(data->get<uint32_t>(FREEZE_STATE));
+}
+
 void PlayerComponent::doRespawn() {
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 	physics->teleport({ 480 / 2, 270 / 2 });
@@ -136,13 +144,7 @@ void PlayerComponent::doRespawn() {
 void PlayerComponent::damage(int damage_) {
 	NDC* data = EntitySystem::GetComp<NDC>(id);
 	data->get<uint32_t>(PERCENT) += damage_;
-}
 
-void PlayerComponent::launch(Vec2f launchDir) {
-	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	NDC* data = EntitySystem::GetComp<NDC>(id);
-	physics->accelerate(launchDir * data->get<uint32_t>(PERCENT));
-	std::cout << "Launching, percent " << data->get<uint32_t>(PERCENT) << ", at " << launchDir.x << ", " << launchDir.y << '\n';
 	beginHitstun();
 }
 
@@ -467,26 +469,49 @@ void PlayerComponent::beginHitstun() {
 	NDC* data = EntitySystem::GetComp<NDC>(id);
 	data->get<uint32_t>(ACTION_FRAME) = 0;
 	data->get<uint32_t>(STATE) = PlayerState::hitstun;
+
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	physics->setVel({ 0, 0 });
 }
 
 void PlayerComponent::_hitstun() {
 	NDC* data = EntitySystem::GetComp<NDC>(id);
-	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
 	auto& actionFrame = data->get<uint32_t>(ACTION_FRAME);
 
-	if (physics->isGrounded()) {
+	if (actionFrame >= 30) {
 		data->get<uint32_t>(ACTION_FRAME) = 0;
-		data->get<uint32_t>(STATE) = PlayerState::landing;
-		return;
-	}
-
-	if (actionFrame >= 120) {
-		data->get<uint32_t>(ACTION_FRAME) = 0;
-		data->get<uint32_t>(STATE) = PlayerState::airborn;
+		data->get<uint32_t>(STATE) = PlayerState::idle;
 	}
 	else {
 		++actionFrame;
+	}
+}
+
+void PlayerComponent::beginFreeze() {
+
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+	data->get<uint32_t>(FREEZE_STATE) = data->get<uint32_t>(STATE);
+	data->get<uint32_t>(FREEZE_FRAME) = 0;
+	data->get<uint32_t>(STATE) = freeze;
+
+	auto* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+	physics->freeze();
+}
+
+void PlayerComponent::_freeze() {
+	NDC* data = EntitySystem::GetComp<NDC>(id);
+
+	auto& freezeFrame = data->get<uint32_t>(FREEZE_FRAME);
+
+	if (freezeFrame >= 20) {
+		data->get<uint32_t>(STATE) = data->get<uint32_t>(FREEZE_STATE);
+		
+		auto* physics = EntitySystem::GetComp<PhysicsComponent>(id);
+		physics->unfreeze();
+	}
+	else {
+		++freezeFrame;
 	}
 }
 

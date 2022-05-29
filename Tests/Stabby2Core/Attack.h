@@ -8,8 +8,7 @@ public:
 	struct Hitbox {
 		std::vector<AABB> hitboxes;
 		int duration;
-		int launchSpeed;
-		float launchAngle;
+		int damage;
 	};
 
 	Attack() = default;
@@ -22,7 +21,7 @@ public:
 	template<typename T>
 	bool intersects(const T& other) const;
 
-	void addHitbox(std::vector<AABB> hitboxes_, int duration, int launchSpeed, float launchAngle);
+	void addHitbox(std::vector<AABB> hitboxes_, int duration, int damage);
 	const std::vector<Hitbox>& getHitboxes() const;
 	const Hitbox* getCurrHitbox() const;
 	int getCurrHitboxIndex() const;
