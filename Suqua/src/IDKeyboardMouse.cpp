@@ -1,15 +1,11 @@
 #include "IDKeyboardMouse.h"
-#include "ControllerComponent.h"
 #include "SDL.h"
 
 IDKeyboardMouse::IDKeyboardMouse(InputDeviceId id_) :
 	InputDevice{id_}
 {}
 
-void IDKeyboardMouse::doInput(EntityId controllerCompId) {
-	ControllerComponent* contComp = EntitySystem::GetComp<ControllerComponent>(controllerCompId);
-	Controller& controller = contComp->getController();
-
+Controller IDKeyboardMouse::getControllerState() {
 	auto mouseState = SDL_GetMouseState(&controller.pointerPos.x, &controller.pointerPos.y);
 
 	controller.set(ControllerBits::BUTTON_11, mouseState & SDL_BUTTON(SDL_BUTTON_LEFT));
@@ -29,4 +25,6 @@ void IDKeyboardMouse::doInput(EntityId controllerCompId) {
 	controller.set(ControllerBits::BUTTON_5, state[SDL_SCANCODE_SPACE]);
 	controller.set(ControllerBits::BUTTON_6, state[SDL_SCANCODE_LSHIFT]);
 	controller.set(ControllerBits::BUTTON_7, state[SDL_SCANCODE_LCTRL]);
+
+	return controller;
 }

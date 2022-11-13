@@ -39,24 +39,19 @@ void ClientPlayingScene::load(Game& game) {
 }
 
 void ClientPlayingScene::renderStep(Game& game) {
-	if (EntitySystem::Contains<PlayerGFXComponent>()) {
-		for (auto& gfx : EntitySystem::GetPool<PlayerGFXComponent>()) {
-			gfx.update(game.RENDER_STEP * 1000);
-		}
-	}
-
-	if (EntitySystem::Contains<ZombieGFXComponent>()) {
-		for (auto& gfx : EntitySystem::GetPool<ZombieGFXComponent>()) {
-			gfx.update(game.RENDER_STEP * 1000);
-		}
-	}
-
 	screenBuffer.bind();
 	GLRenderer::Clear();
 
 	auto& cam = GLRenderer::getCamera(camId);
 	NDC* data = EntitySystem::GetComp<NDC>(player);
-	cam.center(Vec2f{data->get<float>(X), data->get<float>(Y)});
+
+	// don't move to the player before they've been initialized
+	if (data) {
+		cam.center(Vec2f{ data->get<float>(X), data->get<float>(Y) });
+	}
+	else {
+		cam.center({ 0, 0 });
+	}
 	
 	drawScene(game.getRender());
 
@@ -104,6 +99,25 @@ void ClientPlayingScene::renderStep(Game& game) {
 	GLRenderer::DrawOverScreen(screenBuffer.getTexture(0).id);
 }
 
+void ClientPlayingScene::renderUpdateStep(Game& game) {
+	// update graphics every tick to keep them perfectly in sync
+	if (EntitySystem::Contains<PlayerGFXComponent>()) {
+		for (auto& gfx : EntitySystem::GetPool<PlayerGFXComponent>()) {
+			gfx.update(game.PHYSICS_STEP * 1000);
+		}
+	}
+
+	if (EntitySystem::Contains<ZombieGFXComponent>()) {
+		for (auto& gfx : EntitySystem::GetPool<ZombieGFXComponent>()) {
+			gfx.update(game.PHYSICS_STEP * 1000);
+		}
+	}
+}
+
+void ClientPlayingScene::physicsStep(Game& game) {
+	PlayingScene::physicsStep(game);
+}
+
 EntityId ClientPlayingScene::addPlayer() {
 	EntityId playerId = PlayingScene::addPlayer();
 
@@ -111,8 +125,8 @@ EntityId ClientPlayingScene::addPlayer() {
 	return playerId;
 }
 
-EntityId ClientPlayingScene::addZombie(Game& game) {
-	EntityId playerId = PlayingScene::addZombie(game);
+EntityId ClientPlayingScene::addZombie(Game& game, const Vec2f& targetPos) {
+	EntityId playerId = PlayingScene::addZombie(game, targetPos);
 
 	EntitySystem::MakeComps<ZombieGFXComponent>(1, &playerId);
 	return playerId;

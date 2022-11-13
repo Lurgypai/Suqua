@@ -24,9 +24,6 @@ void MenuScene::load(Game& game) {
 	Framebuffer::unbind();
 }
 
-void MenuScene::prePhysicsStep(Game& game)
-{
-}
 
 void MenuScene::physicsStep(Game& game) {
 	Vec2i mousePos;
@@ -39,11 +36,7 @@ void MenuScene::physicsStep(Game& game) {
 	}
 }
 
-void MenuScene::postPhysicsStep(Game& game)
-{
-}
-
-void MenuScene::preRenderStep(Game& game)
+void MenuScene::renderUpdateStep(Game& game)
 {
 }
 
@@ -54,10 +47,6 @@ void MenuScene::renderStep(Game& game) {
 	menu.draw();
 	Framebuffer::unbind();
 	GLRenderer::DrawOverScreen(screenBuffer.getTexture(0).id);
-}
-
-void MenuScene::postRenderStep(Game& game)
-{
 }
 
 void MenuScene::unload(Game& game)

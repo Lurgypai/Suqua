@@ -14,7 +14,15 @@ public:
 
 	void writeStatePacket(ByteStream& stream, Tick gameTime);
 
+	// If we have a "true" state for the current time, apply it immediately.
+	void resync(Game& game);
+	bool hasCurrentState(Game& game);
+
+	// Handle incoming packets
+	// if its for the future, stores it for later.
+	// if its for the past, applies it and regenerates the current state.
 	void resyncStatePacket(ByteStream& stream, Game& game);
+
     const std::unordered_map<Tick, SyncState>& getStates() const;
 	bool hasState(Tick gameTime) const;
 	
@@ -24,6 +32,7 @@ private:
 	Tick lastStoredTime;
 	//change this to a circular buffer
 	std::unordered_map<Tick, SyncState> states;
+	std::unordered_map<Tick, SyncState> futureStates;
 };
 
 /*

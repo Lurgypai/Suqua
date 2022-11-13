@@ -9,21 +9,18 @@ public:
 	PlayingScene(SceneId id_, FlagType flags_);
 	virtual ~PlayingScene();
 
-	virtual void load(Game& game);
-	virtual void prePhysicsStep(Game& game);
-	virtual void physicsStep(Game& game);
-	virtual void postPhysicsStep(Game& game);
+	virtual void load(Game& game) override;
+	virtual void physicsStep(Game& game) override;
 
-	virtual void preRenderStep(Game& game);
-	virtual void renderStep(Game& game);
-	virtual void postRenderStep(Game& game);
-	virtual void unload(Game& game);
+	virtual void renderUpdateStep(Game& game) override;
+	virtual void renderStep(Game& game) override;
+	virtual void unload(Game& game) override;
 
-	virtual void onConnect(Game& game, PeerId connectingId);
-	virtual void onDisconnect(Game& game, PeerId disconnectedPeer);
+	virtual void onConnect(Game& game, PeerId connectingId) override;
+	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) override;
 
 	virtual EntityId addPlayer();
-	virtual EntityId addZombie(Game& game);
+	virtual EntityId addZombie(Game& game, const Vec2f& targetPos);
 protected:
 	CombatSystem combat;
 	PhysicsSystem physics;

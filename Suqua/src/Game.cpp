@@ -16,7 +16,8 @@ Game::Game(FlagType flags_, double physics_step, double render_step, Tick client
 	clientPingCtr{ 0 },
 	clientPingDelay{ clientPingDelay_ },
 	serverBroadcastCtr{ 0 },
-	serverBroadcastDelay{ serverBroadcastDelay_ }
+	serverBroadcastDelay{ serverBroadcastDelay_ },
+	networkInputDelay{ 0 }
 {
 	if (flags & client) {
 		host.createClient(1, 10);
@@ -37,7 +38,7 @@ InputDevice& Game::getInputDevice(InputDeviceId id) {
 }
 
 void Game::setSceneFlags(SceneId id, Scene::FlagType flags_, bool value) {
-	Scene* scene;
+	Scene* scene = nullptr;
 	for (auto&& s : scenes) {
 		if (s->getId() == id)
 			scene = s.get();
@@ -129,15 +130,8 @@ void Game::tickTime() {
 void Game::inputStep() {
 	for (auto&& scene : scenes) {
 		if (scene->flags & Scene::Flag::input) {
+			scene->storeInputs(*this);
 			scene->applyInputs(*this);
-		}
-	}
-}
-
-void Game::prePhysicsStep() {
-	for (auto&& scene : scenes) {
-		if (scene->flags & Scene::Flag::physics) {
-			scene->prePhysicsStep(*this);
 		}
 	}
 }
@@ -150,18 +144,10 @@ void Game::physicsStep() {
 	}
 }
 
-void Game::postPhysicsStep() {
+void Game::renderUpdateStep() {
 	for (auto&& scene : scenes) {
 		if (scene->flags & Scene::Flag::physics) {
-			scene->postPhysicsStep(*this);
-		}
-	}
-}
-
-void Game::preRenderStep() {
-	for (auto&& scene : scenes) {
-		if (scene->flags & Scene::Flag::physics) {
-			scene->preRenderStep(*this);
+			scene->renderUpdateStep(*this);
 		}
 	}
 }
@@ -170,14 +156,6 @@ void Game::renderStep() {
 	for (auto&& scene : scenes) {
 		if (scene->flags & Scene::Flag::physics) {
 			scene->renderStep(*this);
-		}
-	}
-}
-
-void Game::postRenderStep() {
-	for (auto&& scene : scenes) {
-		if (scene->flags & Scene::Flag::physics) {
-			scene->postRenderStep(*this);
 		}
 	}
 }
@@ -218,7 +196,7 @@ void Game::loop() {
 			pollSDLEvents();
 
 			if (serverInputQueue.allReceived(host, gameTick)) {
-				//std::cout << "Received inputs for tick " << gameTick << '\n';
+				// std::cout << "Received inputs for tick " << gameTick << '\n';
 				serverInputQueue.applyInputs(online, gameTick);
 				physicsUpdate();
 
@@ -232,7 +210,7 @@ void Game::loop() {
 
 					ByteStream statePacket;
 					sync.writeStatePacket(statePacket, gameTick);
-					//std::cout << "Buffering for broarcast for tick " << gameTick << '\n';
+					std::cout << "Buffering for broadcast for tick " << gameTick << '\n';
 					host.bufferAllDataByChannel(0, statePacket);
 				}
 				else {
@@ -247,6 +225,8 @@ void Game::loop() {
 				host.handlePackets(*this);
 				host.sendBuffered();
 			}
+
+			// add latency bounding
 		}
 
 		//if we're not a server, operate like client or non-online client
@@ -261,22 +241,42 @@ void Game::loop() {
 					inputStep();
 
 					if (flags & Flag::client) {
-						for (NetworkId ownedNetId : ownedNetIds) {
-							ByteStream inputPacket;
-							inputPacket << Packet::InputId;
-							inputPacket << gameTick;
-							inputPacket << ownedNetId;
-							Controller& cont = EntitySystem::GetComp<ControllerComponent>(online.getEntity(ownedNetId))->getController();
-							cont.serialize(inputPacket);
-							host.bufferAllDataByChannel(1, inputPacket);
+
+						// send all current inputs
+						for (auto&& scene : scenes) {
+							if (scene->flags & Scene::Flag::input) {
+								const auto* currInputs = scene->getInputsAtTime(gameTick + networkInputDelay);
+								if (currInputs) {
+									for (NetworkId ownedNetId : ownedNetIds) {
+										ByteStream inputPacket;
+										inputPacket << Packet::InputId;
+										inputPacket << gameTick + networkInputDelay;
+										inputPacket << ownedNetId;
+
+										//don't like these copies, may be an issue
+										Controller cont = currInputs->find(online.getEntity(ownedNetId))->second;
+										cont.serialize(inputPacket);
+										//std::cout << "Sent inputs for tick " << gameTick + networkInputDelay << " on tick " << gameTick << ".\n";
+										host.bufferAllDataByChannel(1, inputPacket);
+									}
+								}
+							}
 						}
 					}
 				}
 
 				if (flags & Flag::physics) {
-					physicsUpdate();
+					if (sync.hasCurrentState(*this)) {
+						//std::cout << "Applied server provided state for time " << gameTick << ".\n";
+						sync.resync(*this);
+						renderUpdateStep();
+					}
+					else {
+						physicsUpdate();
+						renderUpdateStep();
+					}
 					//std::cout << "currentTick: " << gameTick << '\n';
-					if (flags & Flag::client) sync.interpolate(gameTick - (2 * serverBroadcastDelay));
+					//if (flags & Flag::client) sync.interpolate(gameTick - (2 * serverBroadcastDelay));
 				}
 
 
@@ -308,11 +308,9 @@ void Game::loop() {
 		if (flags & Flag::render) {
 			now = SDL_GetPerformanceCounter();
 			if (static_cast<double>(now - lastGFXUpdate) / SDL_GetPerformanceFrequency() >= RENDER_STEP) {
-				preRenderStep();
 				GLRenderer::Clear();
 				renderStep();
 				GLRenderer::Swap();
-				postRenderStep();
 				++renderTick;
 
 				lastGFXUpdate = now;
@@ -365,7 +363,5 @@ Tick Game::getGameTick() const {
 }
 
 void Game::physicsUpdate() {
-    prePhysicsStep();
     physicsStep();
-    postPhysicsStep();
 }

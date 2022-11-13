@@ -8,5 +8,7 @@ void PHSyncState::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) 
 	PacketId id;
 	data >> id;
 
+
+	// store the future state/apply old state
 	game.sync.resyncStatePacket(data, game);
 }

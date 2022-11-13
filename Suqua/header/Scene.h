@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
+#include <optional>
 #include <memory>
+#include <unordered_map>
 #include "EntitySystem.h"
 #include "GLRenderer.h"
 #include <set>
@@ -8,6 +10,8 @@
 #include "RenderSystem.h"
 #include "InputDevice.h"
 #include "Host.h"
+#include "Tick.h"
+#include "Controller.h"
 
 using SceneId = uint64_t;
 
@@ -28,19 +32,23 @@ public:
 	Scene(SceneId id_, FlagType flags_);
 	virtual ~Scene() = 0;
 	virtual void load(Game& game) = 0;
-	virtual void prePhysicsStep(Game& game) = 0;
 	virtual void physicsStep(Game& game) = 0;
-	virtual void postPhysicsStep(Game& game) = 0;
+	virtual void renderUpdateStep(Game& game) = 0;
 
-	virtual void preRenderStep(Game& game) = 0;
 	virtual void renderStep(Game& game) = 0;
-	virtual void postRenderStep(Game& game) = 0;
 	virtual void unload(Game& game) = 0;
 
 	virtual void onConnect(Game& game, PeerId connectingId) = 0;
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) = 0;
 
+	void storeInputs(Game& game);
+
+	// pointer to imply maybe existence
+	// it might not exist if the scene doesn't have any current entities that need input
+	const std::unordered_map<EntityId, Controller>* getInputsAtTime(Tick time) const;
+
 	void applyInputs(Game& game);
+
 	void removeAllEntities();
 	void removeDeadEntities();
 	void drawScene(const RenderSystem& render) const;
@@ -52,17 +60,23 @@ public:
 	char flags;
 protected:
 	using EntityInputSet = std::set<std::pair<EntityId, InputDeviceId>>;
+	using EntityInputMap = std::unordered_map<EntityId, InputDeviceId>;
 
 	SceneId id;
 	CamId camId;
 
 	std::vector<EntityId> addEntities(unsigned int count);
 	void removeEntities(const std::vector<EntityId>& entities);
+
+	// only supporting one input at a time atm
 	void addEntityInputs(const EntityInputSet& inputs);
-	void removeEntityInputs(const EntityInputSet& inputs);
+	void removeEntityInputs(EntityId id);
 private:
 	std::set<EntityId> entities;
-	EntityInputSet entityInputs;
+	EntityInputMap entityInputs;
+
+	// entity input states to be applied at a later date.
+	std::unordered_map<Tick, std::unordered_map<EntityId, Controller>> futureEntityInputs;
 };
 
 using ScenePtr = std::unique_ptr<Scene>;

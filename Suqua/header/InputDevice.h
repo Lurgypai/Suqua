@@ -1,4 +1,5 @@
 #pragma once
+#include "Controller.h"
 #include "EntitySystem.h"
 #include <memory>
 
@@ -9,7 +10,7 @@ public:
 	InputDevice(InputDeviceId id_);
 	virtual ~InputDevice() = 0;
 	//reads input into the ControllerComponent
-	virtual void doInput(EntityId controllerCompId) = 0;
+	virtual Controller getControllerState() = 0;
 
 	InputDeviceId getId() const;
 private:

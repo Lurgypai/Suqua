@@ -62,6 +62,9 @@ public:
 	const double RENDER_STEP;
 	const double TICK_RATE;
 
+	// artificial input delay in ticks, to reduce sudden jumping during networking.
+	Tick networkInputDelay;
+
 	const RenderSystem& getRender();
 	const EventQueue& getEvents();
 
@@ -92,13 +95,9 @@ private:
 
 	void inputStep();
 
-	void prePhysicsStep();
 	void physicsStep();
-	void postPhysicsStep();
-
-	void preRenderStep();
+	void renderUpdateStep();
 	void renderStep();
-	void postRenderStep();
 
 	//remove all dead entities from active scenes
 	void cleanScenes();
@@ -139,7 +138,7 @@ inline S& Game::getScene(SceneId id) {
 
 template<typename T, typename ...Args>
 inline InputDeviceId Game::loadInputDevice(Args ...args) {
-	InputDevicePtr inputDevice = std::make_unique<T>(inputDevices.size());
+	InputDevicePtr inputDevice = std::make_unique<T>(inputDevices.size(), args...);
 	inputDevices.emplace(inputDevices.size(), std::move(inputDevice));
 	return inputDevices.size() - 1;
 }

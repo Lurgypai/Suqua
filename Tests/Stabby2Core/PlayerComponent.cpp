@@ -20,10 +20,8 @@ PlayerComponent::PlayerComponent(EntityId id_) :
 	shortHopVel{ 220 },
 	moveSpeed{ 80 },
 	groundedDecel{ 10 },
-	dodgeSpeed{ 100 },
-	dodgeMax{ 56 },
-	airdodgeMax{ 30 },
-	airdodgeSpeed{ 200 }
+	dodgeSpeed{ 150 },
+	dodgeMax{ 58 }
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<PhysicsComponent>() || !EntitySystem::GetComp<PhysicsComponent>(id)) {
@@ -41,10 +39,6 @@ PlayerComponent::PlayerComponent(EntityId id_) :
 		data->set<uint32_t>(ACTION_FRAME, 0);
 		data->set<int32_t>(DIR, 1);
 		data->set<int32_t>(DODGE_DIR, 1);
-		data->set<float>(AIRDODGE_X_DIR, 0);
-		data->set<float>(AIRDODGE_Y_DIR, 0);
-		data->set<bool>(FULLHOP, false);
-		data->set<bool>(AIRDODGED, false);
 		data->set<bool>(BUFFER_ATTACK, false);
 		data->set<uint32_t>(STATE, PlayerState::idle);
 		data->set<uint32_t>(FREEZE_STATE, PlayerState::idle);
@@ -85,11 +79,7 @@ void PlayerComponent::update(const Game& game) {
 	switch (data->get<uint32_t>(STATE)) {
 	case PlayerState::idle: _idle(); break;
 	case PlayerState::walking: _walking(); break;
-	case PlayerState::jumpsquat: _jumpsquat(); break;
-	case PlayerState::airborn: _airborn(); break;
-	case PlayerState::landing: _landing(); break;
 	case PlayerState::dodge: _dodge(); break;
-	case PlayerState::airdodge: _airdodge(); break;
 	case PlayerState::grounded_attack: _groundedAttack(game); break;
 	case PlayerState::respawning: _respawning(game); break;
 	case PlayerState::hitstun: _hitstun(); break;
@@ -184,23 +174,19 @@ void PlayerComponent::_idle() {
 	const Controller& c = cont->getController();
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
+	int inputDir = 0;
+	if (c[ControllerBits::LEFT]) --inputDir;
+	if (c[ControllerBits::RIGHT]) ++inputDir;
 
-	if (c[ControllerBits::LEFT] || c[ControllerBits::RIGHT]) {
+	if (inputDir != 0) {
 		data->get<uint32_t>(STATE) = PlayerState::walking;
-		return;
-	}
-	if (c[ControllerBits::BUTTON_5]) {
-		beginJumpsquat();
 		return;
 	}
 	if (c.toggled(ControllerBits::BUTTON_11) && c[ControllerBits::BUTTON_11]) {
 		beginGroundedAttack();
 		return;
 	}
-	if (!physics->isGrounded()) {
-		data->get<uint32_t>(STATE) = PlayerState::airborn;
-		return;
-	}
+
 	decelerate();
 }
 
@@ -209,11 +195,6 @@ void PlayerComponent::_walking() {
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 	ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(id);
 	const Controller& c = cont->getController();
-
-	if (c[ControllerBits::BUTTON_5]) {
-		beginJumpsquat();
-		return;
-	}
 
 	int inputDir = 0;
 	if (c[ControllerBits::LEFT]) --inputDir;
@@ -242,89 +223,6 @@ void PlayerComponent::_walking() {
 	}
 }
 
-inline void PlayerComponent::beginJumpsquat() {
-	NDC* data = EntitySystem::GetComp<NDC>(id);
-	data->get<uint32_t>(ACTION_FRAME) = 0;
-	data->get<bool>(FULLHOP) = true;
-	data->get<uint32_t>(STATE) = PlayerState::jumpsquat;
-}
-
-void PlayerComponent::_jumpsquat() {
-	NDC* data = EntitySystem::GetComp<NDC>(id);
-	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(id);
-	auto& c = cont->getController();
-	if (!c[ControllerBits::BUTTON_5]) data->get<bool>(FULLHOP) = false;
-	uint32_t& actionFrame = data->get<uint32_t>(ACTION_FRAME);
-	bool& fullHop = data->get<bool>(FULLHOP);
-
-	++actionFrame;
-	if (actionFrame == jumpSquatMax) {
-		physics->setVel({ physics->getVel().x, fullHop ? -jumpVel : -shortHopVel });
-		data->get<uint32_t>(STATE) = PlayerState::airborn;
-		return;
-	}
-	decelerate();
-}
-
-void PlayerComponent::_airborn() {
-	NDC* data = EntitySystem::GetComp<NDC>(id);
-	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
-
-	if (physics->isGrounded()) {
-		data->get<uint32_t>(ACTION_FRAME) = 0;
-		data->get<uint32_t>(STATE) = PlayerState::landing;
-		return;
-	}
-
-	ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(id);
-	const Controller& c = cont->getController();
-
-	if (c[ControllerBits::BUTTON_6]) {
-		if (!data->get<bool>(AIRDODGED)) {
-			beginAirdodge();
-		}
-		return;
-	}
-
-	int dir = 0;
-	if (c[ControllerBits::LEFT]) --dir;
-	if (c[ControllerBits::RIGHT]) ++dir;
-
-	auto vel = physics->getVel();
-	vel.x = dir * moveSpeed;
-
-	physics->setVel(vel);
-}
-
-void PlayerComponent::_landing() {
-	NDC* data = EntitySystem::GetComp<NDC>(id);
-	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(id);
-	const Controller& c = cont->getController();
-
-	uint32_t& actionFrame = data->get<uint32_t>(ACTION_FRAME);
-
-	++actionFrame;
-	if (actionFrame == landingMax) {
-		if (c[ControllerBits::LEFT] || c[ControllerBits::RIGHT]) {
-			data->get<uint32_t>(STATE) = PlayerState::walking;
-		}
-		else if (c[ControllerBits::BUTTON_5]) {
-			beginJumpsquat();
-		}
-		else if (c.toggled(ControllerBits::BUTTON_11) && c[ControllerBits::BUTTON_11]) {
-			beginGroundedAttack();
-		}
-		else {
-			data->get<uint32_t>(STATE) = PlayerState::idle;
-		}
-		return;
-	}
-	data->get<bool>(AIRDODGED) = false;
-	decelerate();
-}
-
 inline void PlayerComponent::beginDodge() {
 	NDC* data = EntitySystem::GetComp<NDC>(id);
 	data->get<uint32_t>(ACTION_FRAME) = 0;
@@ -345,9 +243,6 @@ void PlayerComponent::_dodge() {
 		if (c[ControllerBits::LEFT] || c[ControllerBits::RIGHT]) {
 			data->get<uint32_t>(STATE) = PlayerState::walking;
 		}
-		else if (c[ControllerBits::BUTTON_5]) {
-			beginJumpsquat();
-		}
 		else {
 			data->get<uint32_t>(STATE) = PlayerState::idle;
 		}
@@ -357,49 +252,6 @@ void PlayerComponent::_dodge() {
 	auto vel = physics->getVel();
 	vel.x = dodgeSpeed * data->get<int32_t>(DODGE_DIR);
 	physics->setVel(vel);
-}
-
-void PlayerComponent::beginAirdodge() {
-	NDC* data = EntitySystem::GetComp<NDC>(id);
-	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(id);
-
-	auto& c = cont->getController();
-	Vec2f dir{ 0, 0 };
-	if (c[ControllerBits::LEFT]) --dir.x;
-	if (c[ControllerBits::RIGHT]) ++dir.x;
-	if (c[ControllerBits::UP]) --dir.y;
-	if (c[ControllerBits::DOWN]) ++dir.y;
-
-	Vec2f airdodgeDir = dir.norm();
-	data->get<float>(AIRDODGE_X_DIR) = airdodgeDir.x;
-	data->get<float>(AIRDODGE_Y_DIR) = airdodgeDir.y;
-
-
-	physics->setWeigtless(true);
-
-	data->get<uint32_t>(ACTION_FRAME) = 0;
-	data->get<bool>(AIRDODGED) = true;
-	data->get<uint32_t>(STATE) = PlayerState::airdodge;
-}
-
-void PlayerComponent::_airdodge() {
-	NDC* data = EntitySystem::GetComp<NDC>(id);
-	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
-	uint32_t& actionFrame = data->get<uint32_t>(ACTION_FRAME);
-
-	++actionFrame;
-	if (actionFrame == airdodgeMax) {
-		physics->setWeigtless(false);
-		data->get<uint32_t>(STATE) = PlayerState::airborn;
-		return;
-	}
-
-	Vec2f airdodgeDir = {
-		data->get<float>(AIRDODGE_X_DIR),
-		data->get<float>(AIRDODGE_Y_DIR)
-	};
-	physics->setVel(airdodgeDir.scale(airdodgeSpeed));
 }
 
 void PlayerComponent::beginGroundedAttack() {
@@ -462,7 +314,7 @@ void PlayerComponent::beginRespawn() {
 void PlayerComponent::_respawning(const Game& game)
 {
 	NDC* data = EntitySystem::GetComp<NDC>(id);
-	data->get<uint32_t>(STATE) = PlayerState::airborn;
+	data->get<uint32_t>(STATE) = PlayerState::idle;
 }
 
 void PlayerComponent::beginHitstun() {
@@ -518,13 +370,15 @@ void PlayerComponent::_freeze() {
 void PlayerComponent::decelerate() {
 	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(id);
 
-	if (physics->getVel().x > groundedDecel / 2) {
+	auto vel = physics->getVel();
+
+	if (vel.x > groundedDecel / 2) {
 		physics->accelerate({ -groundedDecel, 0 });
 	}
-	else if (physics->getVel().x < -groundedDecel / 2) {
+	else if (vel.x < -groundedDecel / 2) {
 		physics->accelerate({ groundedDecel, 0 });
 	}
 	else {
-		physics->setVel({ 0, 0 });
+		physics->setVel({ 0, vel.y });
 	}
 }

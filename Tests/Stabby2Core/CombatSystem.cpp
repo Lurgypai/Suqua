@@ -29,7 +29,7 @@ void CombatSystem::update() {
 				}
 
 				//zombie attack player
-				if (zombie.getState() == ZombieComponent::ZombieState::attacking) {
+				if (zombie.getState() == ZombieComponent::ZombieState::attacking && player.getState() != PlayerComponent::PlayerState::dodge) {
 					if(!zombie.hasHit(player.getId()) &&
 						zombiePhysics->getCollider().intersects(playerPhysics->getCollider())) {
 						hitPlayer = true;
@@ -46,8 +46,6 @@ void CombatSystem::update() {
 				if (hitPlayer) {
 					zombie.markHit(player.getId());
 					player.damage(34);
-					player.beginFreeze();
-					zombie.beginFreeze();
 				}
 			}
 		}

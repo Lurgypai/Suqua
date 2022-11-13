@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include <algorithm>
 #include <iterator>
+#include <iostream>
 #include "Game.h"
 #include "InputDevice.h"
 #include "EntityBaseComponent.h"
@@ -30,9 +31,43 @@ Scene::Scene(SceneId id_, FlagType flags_) :
 
 Scene::~Scene() {};
 
+/*
+* It might be good to add an optimization that doesn't store inputs if the networkInputDelay is 0.
+*/
+
+void Scene::storeInputs(Game& game) {
+	for (auto&& pair : entityInputs) {
+		ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(pair.first);
+		Controller c = game.getInputDevice(pair.second).getControllerState();
+		
+		// store future input
+		futureEntityInputs[game.getGameTick() + game.networkInputDelay].emplace( pair.first, c );
+	}
+}
+
+const std::unordered_map<EntityId, Controller>* Scene::getInputsAtTime(Tick time) const
+{
+	auto& pair = futureEntityInputs.find(time);
+	if (pair != futureEntityInputs.end()) {
+		return &pair->second;
+	}
+	return nullptr;
+}
+
 void Scene::applyInputs(Game& game) {
 	for (auto&& pair : entityInputs) {
-		game.getInputDevice(pair.second).doInput(pair.first);
+		ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(pair.first);
+
+		auto found = futureEntityInputs.find(game.getGameTick());
+		if (found != futureEntityInputs.end()) {
+
+			//found->second is the mapping of entity id -> controller
+			//found->second.find(pair.first) finds the controller associated with the entity "pair.first"
+			cont->setController(found->second.find(pair.first)->second);
+			futureEntityInputs.erase(found);
+		}
+		// no input found
+		// this can happen at the beginning, as the first inputs will be stored for the future.
 	}
 }
 
@@ -81,11 +116,11 @@ SceneId Scene::getId() const {
 }
 
 void Scene::addEntityInputs(const EntityInputSet& inputs) {
-	std::copy(inputs.begin(), inputs.end(), std::inserter(entityInputs, entityInputs.end()));
+	for (auto&& pair : inputs) {
+		entityInputs.emplace(pair.first, pair.second);
+	}
 }
 
-void Scene::removeEntityInputs(const EntityInputSet& inputs) {
-	for (auto&& input : inputs) {
-		entityInputs.erase(input);
-	}
+void Scene::removeEntityInputs(EntityId id) {
+	entityInputs.erase(id);
 }

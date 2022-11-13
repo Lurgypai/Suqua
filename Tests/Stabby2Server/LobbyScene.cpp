@@ -16,10 +16,6 @@ void LobbyScene::load(Game& game)
 {
 }
 
-void LobbyScene::prePhysicsStep(Game& game)
-{
-}
-
 void LobbyScene::physicsStep(Game& game) {
 	//std::cout << currPlayerCount << " / " << minPlayerCount << '\n';
 	if (currPlayerCount >= minPlayerCount) {
@@ -29,19 +25,11 @@ void LobbyScene::physicsStep(Game& game) {
 	}
 }
 
-void LobbyScene::postPhysicsStep(Game& game)
-{
-}
-
-void LobbyScene::preRenderStep(Game& game)
+void LobbyScene::renderUpdateStep(Game& game)
 {
 }
 
 void LobbyScene::renderStep(Game& game)
-{
-}
-
-void LobbyScene::postRenderStep(Game& game)
 {
 }
 

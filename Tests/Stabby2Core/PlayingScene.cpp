@@ -28,10 +28,6 @@ void PlayingScene::load(Game& game) {
 	platformPhysics->setFrozen(true);
 }
 
-void PlayingScene::prePhysicsStep(Game& game)
-{
-}
-
 void PlayingScene::physicsStep(Game& game) {
 	if (EntitySystem::Contains<PlayerComponent>()) {
 		for (auto& player : EntitySystem::GetPool<PlayerComponent>()) {
@@ -48,19 +44,11 @@ void PlayingScene::physicsStep(Game& game) {
 	respawn.update();
 }
 
-void PlayingScene::postPhysicsStep(Game& game)
-{
-}
-
-void PlayingScene::preRenderStep(Game& game)
+void PlayingScene::renderUpdateStep(Game& game)
 {
 }
 
 void PlayingScene::renderStep(Game& game)
-{
-}
-
-void PlayingScene::postRenderStep(Game & game)
 {
 }
 
@@ -82,12 +70,15 @@ EntityId PlayingScene::addPlayer() {
 	return playerId;
 }
 
-EntityId PlayingScene::addZombie(Game& game) {
+EntityId PlayingScene::addZombie(Game& game, const Vec2f& targetPos) {
 	EntityId playerId = addEntities(1).front();
 	EntitySystem::MakeComps<ZombieComponent>(1, &playerId);
 
-	auto input = game.loadInputDevice<ZombieController>();
+	auto input = game.loadInputDevice<ZombieController>(playerId);
 	addEntityInputs({ {playerId, input} });
+
+	auto* physics = EntitySystem::GetComp<PhysicsComponent>(playerId);
+	physics->teleport(targetPos);
 
 	return playerId;
 }

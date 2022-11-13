@@ -11,17 +11,12 @@ namespace PlayerData {
 	constexpr unsigned int ACTION_FRAME = 30;
 	constexpr unsigned int DIR = 31;
 	constexpr unsigned int DODGE_DIR = 32;
-	constexpr unsigned int AIRDODGE_X_DIR = 33;
-	constexpr unsigned int AIRDODGE_Y_DIR = 34;
-	constexpr unsigned int FULLHOP = 35;
-	constexpr unsigned int AIRDODGED = 36;
 	constexpr unsigned int BUFFER_ATTACK = 37;
 	constexpr unsigned int STATE = 38;
 	constexpr unsigned int CURR_ATTACK = 39;
 	constexpr unsigned int CURR_HITBOX = 40;
 	constexpr unsigned int ATTACK_ELAPSED_TIME = 41;
 	constexpr unsigned int PERCENT = 42;
-	constexpr unsigned int STUN_FRAME = 43;
 	constexpr unsigned int PREV_HITBOX = 44;
 	constexpr unsigned int PREV_ATTACK = 45;
 	constexpr unsigned int FREEZE_STATE = 46;
@@ -33,11 +28,7 @@ public:
 	enum PlayerState : uint32_t {
 		idle,
 		walking,
-		jumpsquat,
-		airborn,
-		landing,
 		dodge,
-		airdodge,
 		grounded_attack,
 		respawning,
 		hitstun,
@@ -75,17 +66,8 @@ private:
 	void _idle();
 	void _walking();
 
-	inline void beginJumpsquat();
-	void _jumpsquat();
-
-	void _airborn();
-	void _landing();
-
 	inline void beginDodge();
 	void _dodge();
-
-	void beginAirdodge();
-	void _airdodge();
 
 	void beginGroundedAttack();
 	void _groundedAttack(const Game& game);
@@ -113,13 +95,11 @@ private:
 	int jumpSquatMax;
 	int landingMax;
 	int dodgeMax;
-	int airdodgeMax;
 	float dodgeSpeed;
 	float jumpVel;
 	float shortHopVel;
 	float moveSpeed;
 	float groundedDecel;
-	float airdodgeSpeed;
 
 	EntityId id;
 

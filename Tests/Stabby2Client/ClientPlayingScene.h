@@ -7,9 +7,11 @@ public:
 
 	virtual void load(Game& game) override;
 	virtual void renderStep(Game& game) override;
+	virtual void renderUpdateStep(Game& game) override;
+	virtual void physicsStep(Game& game) override;
 
 	EntityId addPlayer() override;
-	EntityId addZombie(Game& game) override;
+	EntityId addZombie(Game& game, const Vec2f& targetPos) override;
 	void addControl(EntityId id);
 private:
 	EntityId player;

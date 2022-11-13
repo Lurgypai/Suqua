@@ -39,24 +39,9 @@ void PlayerGFXComponent::update(int millis) {
 			sprite->looping = true;
 			sprite->setAnimation("Walk");
 			break;
-		case PlayerComponent::PlayerState::jumpsquat:
-			sprite->looping = false;
-			sprite->setAnimation("Jumpsquat");
-			break;
-		case PlayerComponent::PlayerState::airborn:
-			sprite->setAnimation("Idle");
-			break;
-		case PlayerComponent::PlayerState::landing:
-			sprite->looping = false;
-			sprite->setAnimation("Landing");
-			break;
 		case PlayerComponent::PlayerState::dodge:
 			sprite->looping = false;
 			sprite->setAnimation("Roll");
-			break;
-		case PlayerComponent::PlayerState::airdodge:
-			sprite->looping = false;
-			sprite->setAnimation("Airdodge");
 			break;
 		case PlayerComponent::PlayerState::hitstun:
 			sprite->looping = false;

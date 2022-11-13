@@ -33,7 +33,12 @@ int main(int argc, char** argv) {
 		ip = settings["ip"];
 	}
 
+	if (settings.contains("networkInputDelay")) {
+		game.networkInputDelay = settings["networkInputDelay"];
+	}
+
 	std::cout << "The target ip is " << ip << ".\n";
+	std::cout << "The network input delay is " << game.networkInputDelay << ".\n";
 
 	InputDeviceId keyboardId = game.loadInputDevice<IDKeyboardMouse>();
 	SceneId playingScene = game.loadScene<ClientPlayingScene>(Scene::Flag::all, keyboardId);
@@ -42,13 +47,13 @@ int main(int argc, char** argv) {
 	game.loadPacketHandler<JoinPacketHandler>(Stabby2Packet::JoinPacket, playingScene);
 	game.loadPacketHandler<OwnedNetIdPacketHandler>(Stabby2Packet::OwnedNetIdPacket, playingScene);
 
-	constexpr bool online = false;
+	constexpr bool online = true;
 	if (online) {
 		game.sceneOff(playingScene);
 	}
 	else {
 		auto playerId = game.getScene<ClientPlayingScene>(playingScene).addPlayer();
-		auto zombieId = game.getScene<ClientPlayingScene>(playingScene).addZombie(game);
+		//auto zombieId = game.getScene<ClientPlayingScene>(playingScene).addZombie(game, { 200, -10 });
 		game.getScene<ClientPlayingScene>(playingScene).addControl(playerId);
 		game.sceneOff(menuScene);
 

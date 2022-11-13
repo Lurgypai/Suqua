@@ -4,15 +4,15 @@
 #include "PlayerComponent.h"
 #include "SDL.h"
 
-ZombieController::ZombieController(InputDeviceId id_) :
-	InputDevice{ id_ }
+ZombieController::ZombieController(InputDeviceId id_, EntityId entity_) :
+	InputDevice{ id_ },
+	entity{entity_}
 {}
 
-void ZombieController::doInput(EntityId controllerCompId) {
-	ControllerComponent* contComp = EntitySystem::GetComp<ControllerComponent>(controllerCompId);
-	Controller& controller = contComp->getController();
+Controller ZombieController::getControllerState() {
+	Controller controller;
 
-	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(controllerCompId);
+	PhysicsComponent* physics = EntitySystem::GetComp<PhysicsComponent>(entity);
 	
 	//find nearest player
 	float minDist = followDist;
@@ -47,4 +47,6 @@ void ZombieController::doInput(EntityId controllerCompId) {
 		controller.set(ControllerBits::LEFT, false);
 		controller.set(ControllerBits::BUTTON_11, false);
 	}
+
+	return controller;
 }

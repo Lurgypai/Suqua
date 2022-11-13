@@ -14,8 +14,11 @@ void PHClientPing::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer)
 	Tick rtt = game.getGameTick() - sourceTime;
 	Tick arrivalTime;
 	data >> arrivalTime;
-	//set to just arrival time - 1, ensures 100% consistency
-	game.setGameTick(arrivalTime - 1);
-	std::cout << "Set time to " << arrivalTime - 1 << '\n';
+
+	// set one frame prior to the expected next frame.
+	// this ensures that the next input created and sent will be the one the server wants
+	Tick newTime = arrivalTime - game.networkInputDelay - 1;
+	game.setGameTick(newTime);
+	std::cout << "Set time to " << newTime << '\n';
 	//std::cout << "new time: " << arrivalTime + (rtt / 2) << '\n';
 }

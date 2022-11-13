@@ -26,14 +26,30 @@ void SyncSystem::writeStatePacket(ByteStream& stream, Tick gameTime)
 	states.at(gameTime).serialize(stream);
 }
 
+void SyncSystem::resync(Game& game) {
+    auto newCurrState = futureStates.find(game.getGameTick());
+    if (newCurrState != futureStates.end()) {
+        newCurrState->second.applyState();
+    }
+}
+
+bool SyncSystem::hasCurrentState(Game& game) {
+    return futureStates.find(game.getGameTick()) != futureStates.end();
+}
+
 void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
     //create dummy state
 	SyncState s{0};
 	s.unserialize(stream, game.online);
-    //TODO: Add a better error handler for this, or make sure it doesn't happen in the first place
-    if (states.find(s.getGameTime()) == states.end())
+
+    // if this is a future state, store it for future use.
+    if (s.getGameTime() >= game.getGameTick()) {
+        futureStates.emplace(s.getGameTime(), s);
         return;
-	if (s != states.at(s.getGameTime())) {
+    }
+
+    // otherwise, resync with the correct state.
+    else if (s != states.at(s.getGameTime())) {
         std::cout << "Resynchronizing for time " << s.getGameTime() << '\n';
         states.at(s.getGameTime()) = s;
         //clear states after time
@@ -50,8 +66,10 @@ void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
         //apply state
         s.applyState();
         Tick currTick = game.getGameTick();
+        std::cout << "Setting time to: " << s.getGameTime() << " time was " << currTick << '\n';
         game.setGameTick(s.getGameTime());
         while(game.getGameTick() < currTick - 1) {
+            std::cout << "Applying update for time " << game.getGameTick() << '\n';
             removedStates.at(game.getGameTick() + 1).applyInput(game.getOwnedNetIds(), game.online);
             game.physicsUpdate();
             game.tickTime();

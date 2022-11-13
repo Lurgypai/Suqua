@@ -1,5 +1,6 @@
 {
   "window_width": 1920,
   "window_height":  1080,
-  "ip": "71.59.229.114"
+  "ip": "71.59.229.114",
+  "networkInputDelay": 4
 }
