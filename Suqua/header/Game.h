@@ -62,6 +62,8 @@ public:
 	const double RENDER_STEP;
 	const double TICK_RATE;
 
+	//how long (in seconds) to wait until the server gives up waiting for inputs.
+	double networkInputTimeout;
 	// artificial input delay in ticks, to reduce sudden jumping during networking.
 	Tick networkInputDelay;
 
@@ -101,6 +103,8 @@ private:
 
 	//remove all dead entities from active scenes
 	void cleanScenes();
+
+	void serverStep();
 
 	Tick renderTick;
 	Tick gameTick;

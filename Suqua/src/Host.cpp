@@ -97,6 +97,7 @@ void Host::handlePackets(Game& game) {
 			connectedPeers.set(connectedId, true);
 			std::cout << "Connection received from new peer " << connectedId << '\n';
 
+			// this might need to be moved
 			if (type == Type::client) {
 				clientConnected = true;
 				ByteStream pingPacket;
@@ -114,7 +115,7 @@ void Host::handlePackets(Game& game) {
 			disconnectedId = getId(e.peer);
 			connectedPeers.set(disconnectedId, false);
 			if (disconnectCallback) disconnectCallback(game, disconnectedId);
-			else std::cout << "Disconnected. No callback function implemented.\n";
+			else std::cout << "Disconnected " << disconnectedId << ". No callback function implemented.\n";
 			game.onDisconnect(disconnectedId);
 			break;
 		case ENET_EVENT_TYPE_RECEIVE:

@@ -51,8 +51,10 @@ void LobbyScene::onConnect(Game& game, PeerId connectingId) {
 	joinPacket << Stabby2Packet::JoinPacket;
 	joinPacket << onlineComp->getNetId();
 
+	// tell peers about new player
 	game.host.bufferAllDataByChannel(1, joinPacket);
 
+	// tell new player about peers
 	for (auto& online : EntitySystem::GetPool<OnlineComponent>()) {
 		if (online.getNetId() != onlineComp->getNetId()) {
 			ByteStream joinPacket2{};

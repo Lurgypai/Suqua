@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
 	
 	Game game{ Game::client_flags };
 	game.serverBroadcastDelay = 0;
+	game.clientPingDelay = 120;
 
 	json settings;
 	std::ifstream file{ "settings.json" };

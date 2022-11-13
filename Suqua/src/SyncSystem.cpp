@@ -69,7 +69,7 @@ void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
         std::cout << "Setting time to: " << s.getGameTime() << " time was " << currTick << '\n';
         game.setGameTick(s.getGameTime());
         while(game.getGameTick() < currTick - 1) {
-            std::cout << "Applying update for time " << game.getGameTick() << '\n';
+            // std::cout << "Applying update for time " << game.getGameTick() << '\n';
             removedStates.at(game.getGameTick() + 1).applyInput(game.getOwnedNetIds(), game.online);
             game.physicsUpdate();
             game.tickTime();

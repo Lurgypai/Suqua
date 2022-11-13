@@ -17,7 +17,8 @@ Game::Game(FlagType flags_, double physics_step, double render_step, Tick client
 	clientPingDelay{ clientPingDelay_ },
 	serverBroadcastCtr{ 0 },
 	serverBroadcastDelay{ serverBroadcastDelay_ },
-	networkInputDelay{ 0 }
+	networkInputDelay{ 0 },
+	networkInputTimeout{ 0 }
 {
 	if (flags & client) {
 		host.createClient(1, 10);
@@ -181,11 +182,38 @@ void Game::clearSDLEvents() {
 	events.clear();
 }
 
+void Game::serverStep() {
+	serverInputQueue.applyInputs(online, gameTick);
+	physicsUpdate();
+
+	host.handlePackets(*this);
+
+	host.sendBuffered();
+	sync.storeCurrentState(gameTick);
+
+	if (serverBroadcastCtr == serverBroadcastDelay) {
+		serverBroadcastCtr = 0;
+
+		ByteStream statePacket;
+		sync.writeStatePacket(statePacket, gameTick);
+		//std::cout << "Buffering for broadcast for tick " << gameTick << '\n';
+		host.bufferAllDataByChannel(0, statePacket);
+	}
+	else {
+		++serverBroadcastCtr;
+	}
+
+	tickTime();
+	clearSDLEvents();
+}
+
 void Game::loop() {
 
 	uint64_t lastPhysicsUpdate = SDL_GetPerformanceCounter();
+	uint64_t lastNetworkUpdate = SDL_GetPerformanceCounter();
 	uint64_t leftover = 0;
 	uint64_t physicsDelta = PHYSICS_STEP * SDL_GetPerformanceFrequency();
+	uint64_t networkDelta = networkInputTimeout * SDL_GetPerformanceFrequency();
 
 	uint64_t lastGFXUpdate = SDL_GetPerformanceCounter();
 	uint64_t now;
@@ -193,37 +221,47 @@ void Game::loop() {
 	while (true) {
 		//if we're a server, run up until the latest client input is received
 		if (flags & Flag::server) {
+
+
+			now = SDL_GetPerformanceCounter();
+			uint64_t elapsedTime = (now - lastNetworkUpdate);
+
 			pollSDLEvents();
 
 			if (serverInputQueue.allReceived(host, gameTick)) {
+				lastNetworkUpdate = now;
+				
 				// std::cout << "Received inputs for tick " << gameTick << '\n';
-				serverInputQueue.applyInputs(online, gameTick);
-				physicsUpdate();
+				serverStep();
+			}
 
-				host.handlePackets(*this);
 
-				host.sendBuffered();
-				sync.storeCurrentState(gameTick);
+			// this might not be the issue!
+			// it looks like there might be a clogging issue
+			/*
+			* When another player dcs,
+			* this hits the maximum over and over until the server realized they've dc'd
+			* this in turn causes the server to slow down significantly
+			* when the client then pings the server,
+			* they realize they're ahead
+			* so they jump backwards
+			* causing them to repeatedly jump backwards.
+			*/
 
-				if (serverBroadcastCtr == serverBroadcastDelay) {
-					serverBroadcastCtr = 0;
+			else {
+				// if we hit the delay, run the update anyway.
+				if (elapsedTime >= networkDelta) {
+					lastNetworkUpdate = now;
 
-					ByteStream statePacket;
-					sync.writeStatePacket(statePacket, gameTick);
-					std::cout << "Buffering for broadcast for tick " << gameTick << '\n';
-					host.bufferAllDataByChannel(0, statePacket);
+					std::cout << "Server waited " << networkInputTimeout << " second(s) and was still missing inputs for time " << gameTick << ", skipping missed inputs.\n";
+
+					serverStep();
 				}
 				else {
-					++serverBroadcastCtr;
+					//std::cout << "Have not received inputs for tick " << gameTick << '\n';
+					host.handlePackets(*this);
+					host.sendBuffered();
 				}
-
-				tickTime();
-				clearSDLEvents();
-			}
-			else {
-				//std::cout << "Have not received inputs for tick " << gameTick << '\n';
-				host.handlePackets(*this);
-				host.sendBuffered();
 			}
 
 			// add latency bounding
@@ -286,17 +324,17 @@ void Game::loop() {
 					sync.storeCurrentState(gameTick);
 				}
 
-				//if (flags & Flag::client) {
-				//	if (clientPingCtr < clientPingDelay) ++clientPingCtr;
-				//	else {
-				//		clientPingCtr = 0;
-				//		ByteStream pingPacket;
-				//		pingPacket << Packet::PingId;
-				//		pingPacket << gameTick;
-				//		host.bufferAllDataByChannel(0, pingPacket);
-				//		std::cout << "Client pinging server...\n";
-				//	}
-				//}
+				if (flags & Flag::client) {
+					if (clientPingCtr < clientPingDelay) ++clientPingCtr;
+					else {
+						clientPingCtr = 0;
+						ByteStream pingPacket;
+						pingPacket << Packet::PingId;
+						pingPacket << gameTick;
+						host.bufferAllDataByChannel(0, pingPacket);
+						std::cout << "Client pinging server...\n";
+					}
+				}
 
 				clearSDLEvents();
 

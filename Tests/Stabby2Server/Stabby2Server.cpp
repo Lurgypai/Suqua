@@ -16,6 +16,9 @@ int main(int argc, char** argv) {
 	Game game{ Game::server_flags };
 	game.serverBroadcastDelay = 0;
 
+	// set the timeout to one physics tick, so it should stay roughly in sync even when delayed
+	game.networkInputTimeout = 2.0 / 120;
+
 	json settings;
 	std::ifstream file{ "settings.json" };
 	if (file.good()) {
@@ -25,10 +28,14 @@ int main(int argc, char** argv) {
 
 	if (settings.contains("networkInputDelay")) {
 		game.networkInputDelay = settings["networkInputDelay"];
-		// given an input delay of n, we won't receive inputs for frames 0 to n-1
-		game.setGameTick(game.networkInputDelay);
 	}
 	std::cout << "The network input delay is " << game.networkInputDelay << ".\n";
+
+	if (settings.contains("networkInputTimeout")) {
+		game.networkInputTimeout = settings["networkInputTimeout"];
+		game.setGameTick(game.networkInputTimeout);
+	}
+	std::cout << "The network input timeout is " << game.networkInputDelay << ".\n";
 
 	SceneId playingSceneId = game.loadScene<PlayingScene>(Scene::Flag::physics);
 	game.loadScene<LobbyScene>(Scene::Flag::physics, playingSceneId, 1);
