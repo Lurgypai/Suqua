@@ -36,12 +36,11 @@ Scene::~Scene() {};
 */
 
 void Scene::storeInputs(Game& game) {
-	for (auto&& pair : entityInputs) {
-		ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(pair.first);
-		Controller c = game.getInputDevice(pair.second).getControllerState();
+	for (auto&& [entityId, inputId] : entityInputs) {
+		Controller c = game.getInputDevice(inputId).getControllerState();
 		
 		// store future input
-		futureEntityInputs[game.getGameTick() + game.networkInputDelay].emplace( pair.first, c );
+		futureEntityInputs[game.getGameTick() + game.networkInputDelay].emplace( entityId, c );
 	}
 }
 
@@ -55,20 +54,21 @@ const std::unordered_map<EntityId, Controller>* Scene::getInputsAtTime(Tick time
 }
 
 void Scene::applyInputs(Game& game) {
-	for (auto&& pair : entityInputs) {
-		ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(pair.first);
 
-		auto found = futureEntityInputs.find(game.getGameTick());
-		if (found != futureEntityInputs.end()) {
-
-			//found->second is the mapping of entity id -> controller
-			//found->second.find(pair.first) finds the controller associated with the entity "pair.first"
-			cont->setController(found->second.find(pair.first)->second);
-			futureEntityInputs.erase(found);
+	// if the future entity input map (mapping entity to controller ) exists
+	auto& mapForTick = futureEntityInputs.find(game.getGameTick());
+	if (mapForTick != futureEntityInputs.end()) {
+		// for every 
+		for (auto&& [id, controller] : mapForTick->second) {
+			ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(id);
+			cont->setController(controller);
 		}
-		// no input found
-		// this can happen at the beginning, as the first inputs will be stored for the future.
+		futureEntityInputs.erase(mapForTick);
 	}
+	else {
+		std::cout << "Unable to find inputs for time " << game.getGameTick() << '\n';
+	}
+
 }
 
 void Scene::removeAllEntities() {

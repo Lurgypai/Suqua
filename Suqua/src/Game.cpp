@@ -4,6 +4,7 @@
 #include "PHServerPing.h"
 #include "PHSyncState.h"
 #include "PHServerInputPacket.h"
+#include "PHOOSPacket.h"
 #include "SyncState.h"
 
 Game::Game(FlagType flags_, double physics_step, double render_step, Tick clientPingDelay_, Tick serverBroadcastDelay_) :
@@ -24,6 +25,7 @@ Game::Game(FlagType flags_, double physics_step, double render_step, Tick client
 		host.createClient(1, 10);
 		loadPacketHandler<PHClientPing>(Packet::PingId);
 		loadPacketHandler<PHSyncState>(Packet::StateId);
+		loadPacketHandler<PHOOSPacket>(Packet::OOSId);
 	}
 	if (flags & server) {
 		host.createServer(25565, 10, 10);
@@ -213,7 +215,7 @@ void Game::loop() {
 	uint64_t lastNetworkUpdate = SDL_GetPerformanceCounter();
 	uint64_t leftover = 0;
 	uint64_t physicsDelta = PHYSICS_STEP * SDL_GetPerformanceFrequency();
-	uint64_t networkDelta = networkInputTimeout * SDL_GetPerformanceFrequency();
+	// uint64_t networkDelta = networkInputTimeout * SDL_GetPerformanceFrequency();
 
 	uint64_t lastGFXUpdate = SDL_GetPerformanceCounter();
 	uint64_t now;
@@ -224,17 +226,28 @@ void Game::loop() {
 
 
 			now = SDL_GetPerformanceCounter();
-			uint64_t elapsedTime = (now - lastNetworkUpdate);
+			uint64_t elapsedTime = (now - lastNetworkUpdate) + leftover;
 
 			pollSDLEvents();
+			
+			lastNetworkUpdate = now;
+			for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
+				serverStep();
+				
+			}
+			leftover = elapsedTime;
 
+			/*
 			if (serverInputQueue.allReceived(host, gameTick)) {
 				lastNetworkUpdate = now;
 				
 				// std::cout << "Received inputs for tick " << gameTick << '\n';
 				serverStep();
 			}
+			*/
 
+			// add a toggle for prediction
+			// test just delayed netcode
 
 			// this might not be the issue!
 			// it looks like there might be a clogging issue
@@ -248,9 +261,10 @@ void Game::loop() {
 			* causing them to repeatedly jump backwards.
 			*/
 
+			/*
 			else {
 				// if we hit the delay, run the update anyway.
-				if (elapsedTime >= networkDelta) {
+				if (networkDelta != 0 && elapsedTime >= networkDelta) {
 					lastNetworkUpdate = now;
 
 					std::cout << "Server waited " << networkInputTimeout << " second(s) and was still missing inputs for time " << gameTick << ", skipping missed inputs.\n";
@@ -263,8 +277,7 @@ void Game::loop() {
 					host.sendBuffered();
 				}
 			}
-
-			// add latency bounding
+			*/
 		}
 
 		//if we're not a server, operate like client or non-online client
@@ -274,6 +287,16 @@ void Game::loop() {
 			lastPhysicsUpdate = now;
 			for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
 				pollSDLEvents();
+
+				/*
+				* INPUT CODE
+				* inputStep():
+				*	Poll inputs.
+				*   Store them for the correct time in the future.
+				*	Apply current inputs
+				* 
+				* Send current inputs to server
+				*/
 
 				if (flags & Flag::input) {
 					inputStep();
@@ -294,7 +317,7 @@ void Game::loop() {
 										//don't like these copies, may be an issue
 										Controller cont = currInputs->find(online.getEntity(ownedNetId))->second;
 										cont.serialize(inputPacket);
-										//std::cout << "Sent inputs for tick " << gameTick + networkInputDelay << " on tick " << gameTick << ".\n";
+										std::cout << "Sent inputs for tick " << gameTick + networkInputDelay << " on tick " << gameTick << ".\n";
 										host.bufferAllDataByChannel(1, inputPacket);
 									}
 								}
@@ -303,6 +326,14 @@ void Game::loop() {
 					}
 				}
 
+				/*
+				* PHYSICS UPDATE
+				* If we have the state stored, apply it (delay based)
+				* If we don't have it, do prediction (prediction based)
+				* 
+				* Missing:
+				*	toggle for prediction
+				*/
 				if (flags & Flag::physics) {
 					if (sync.hasCurrentState(*this)) {
 						//std::cout << "Applied server provided state for time " << gameTick << ".\n";

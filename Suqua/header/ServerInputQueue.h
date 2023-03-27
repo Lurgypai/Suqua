@@ -8,6 +8,8 @@
 class ServerInputQueue {
 public:
 	bool allReceived(Host& host, Tick time);
+	// received input from at least one connected peer
+	bool oneReceived(Host& host, Tick time);
 	void storeInput(Tick gameTime, NetworkId id, Controller state);
 	void applyInputs(const OnlineSystem& online, Tick gameTime);
 private:

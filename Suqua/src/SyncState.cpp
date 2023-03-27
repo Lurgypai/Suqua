@@ -78,12 +78,20 @@ void SyncState::unserialize(ByteStream& stream, const OnlineSystem& online) {
 		stream >> netId;
 
 		EntityId id = online.getEntity(netId);
-		State& s = states.at(id);
-		s.data.unserialize(stream);
-		bool has_cont;
-		stream >> has_cont;
-		if (has_cont) {
-			s.cont->getController().unserialize(stream);
+		auto iter = states.find(id);
+		if (iter != states.end()) {
+			State& s = iter->second;
+			s.data.unserialize(stream);
+			bool has_cont;
+			stream >> has_cont;
+			if (has_cont) {
+				s.cont->getController().unserialize(stream);
+			}
+		}
+		else {
+			// probably hasn't been given a net id yet by the server
+			std::cout << "Missing entity with network id " << netId << '\n';
+			return;
 		}
 	}
 }

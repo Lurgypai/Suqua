@@ -12,11 +12,20 @@ void PHServerInputPacket::handlePacket(Game& game, ByteStream& data, PeerId sour
 	Tick sourceTime;
 	data >> sourceTime;
 
-	NetworkId netId;
-	data >> netId;
+	if (sourceTime < game.getGameTick()) {
+		std::cout << "received out of sync input packet from peer " << sourcePeer << ", packet was for time " << sourceTime << ", current time " << game.getGameTick() << ".\n";
+		//ByteStream oosPacket;
+		//oosPacket << Packet::OOSId;
+		//game.host.bufferDataToChannel(sourcePeer, 0, oosPacket);
+		
+	}
+	else {
+		NetworkId netId;
+		data >> netId;
 
-	Controller cont;
-	cont.unserialize(data);
+		Controller cont;
+		cont.unserialize(data);
 
-	game.serverInputQueue.storeInput(sourceTime, netId, cont);
+		game.serverInputQueue.storeInput(sourceTime, netId, cont);
+	}
 }

@@ -21,6 +21,14 @@ bool ServerInputQueue::allReceived(Host& host, Tick time) {
 	return true;
 }
 
+bool ServerInputQueue::oneReceived(Host& host, Tick time) {
+	if (states.find(time) == states.end())
+		return false;
+
+	auto& map = states.at(time);
+	return !map.empty();
+}
+
 void ServerInputQueue::storeInput(Tick gameTime, NetworkId id, Controller state) {
 	states[gameTime][id] = state;
 	//std::cout << "Storing input for time " << gameTime << '\n';
@@ -30,10 +38,10 @@ void ServerInputQueue::applyInputs(const OnlineSystem& online, Tick gameTime) {
 	auto pair = states.find(gameTime);
 	if (pair != states.end()) {
 		auto& map = pair->second;
-		for (const auto& pair : map) {
-			auto* comp = EntitySystem::GetComp<ControllerComponent>(online.getEntity(pair.first));
-			if (comp) comp->setController(pair.second);
-			else std::cout << "The entity " << pair.first << " has no controller.\n";
+		for (const auto& [id, cont] : map) {
+			auto* comp = EntitySystem::GetComp<ControllerComponent>(online.getEntity(id));
+			if (comp) comp->setController(cont);
+			else std::cout << "The entity " << id << " has no controller.\n";
 		}
 		states.erase(states.find(gameTime));
 	}

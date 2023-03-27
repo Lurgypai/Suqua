@@ -48,38 +48,53 @@ void SyncSystem::resyncStatePacket(ByteStream& stream, Game& game) {
         return;
     }
 
-    // otherwise, resync with the correct state.
-    else if (s != states.at(s.getGameTime())) {
-        std::cout << "Resynchronizing for time " << s.getGameTime() << '\n';
-        states.at(s.getGameTime()) = s;
-        //clear states after time
-        //you can't use remove_if with an associative container!
-        std::unordered_map<Tick, SyncState> removedStates{};
-        for(auto iter = states.begin(); iter != states.end();) {
-            if (iter->first > s.getGameTime()) {
-                removedStates.emplace(std::move(*iter));
-                iter = states.erase(iter);
+    auto iter = states.find(s.getGameTime());
+    if (iter != states.end()) {
+        // otherwise, resync with the correct state.
+        if (s != iter->second) {
+            std::cout << "Resynchronizing for time " << s.getGameTime() << '\n';
+            // consider using iter->second
+            states.at(s.getGameTime()) = s;
+            //clear states after time
+            //you can't use remove_if with an associative container!
+            std::unordered_map<Tick, SyncState> removedStates{};
+            for (auto iter = states.begin(); iter != states.end();) {
+                if (iter->first > s.getGameTime()) {
+                    removedStates.emplace(std::move(*iter));
+                    iter = states.erase(iter);
+                }
+                else ++iter;
             }
-            else ++iter;
-        }
-        SyncState currState{ game.getGameTick() };
-        //apply state
-        s.applyState();
-        Tick currTick = game.getGameTick();
-        std::cout << "Setting time to: " << s.getGameTime() << " time was " << currTick << '\n';
-        game.setGameTick(s.getGameTime());
-        while(game.getGameTick() < currTick - 1) {
-            // std::cout << "Applying update for time " << game.getGameTick() << '\n';
-            removedStates.at(game.getGameTick() + 1).applyInput(game.getOwnedNetIds(), game.online);
+            SyncState currState{ game.getGameTick() };
+            //apply state
+            s.applyState();
+            Tick currTick = game.getGameTick();
+            std::cout << "Setting time to: " << s.getGameTime() << " time was " << currTick << '\n';
+            game.setGameTick(s.getGameTime());
+            while (game.getGameTick() < currTick - 1) {
+                // std::cout << "Applying update for time " << game.getGameTick() << '\n';
+                auto removedIter = removedStates.find(game.getGameTick() + 1);
+                if (removedIter != removedStates.end()) {
+                    removedIter->second.applyInput(game.getOwnedNetIds(), game.online);
+                }
+                else {
+                    // this can occur if pinging causes our time to skip ahead, causing some states not to be stored.
+                    //std::cout << "Missing future state for time " << game.getGameTick() + 1 << '\n';
+                }
+                game.physicsUpdate();
+                game.tickTime();
+                storeCurrentState(game.getGameTick());
+            }
+            //the state for the current frame has not yet been stored (waiting till after all packets are processed)
+            currState.applyInput(game.getOwnedNetIds(), game.online);
             game.physicsUpdate();
             game.tickTime();
-            storeCurrentState(game.getGameTick());
         }
-        //the state for the current frame has not yet been stored (waiting till after all packets are processed)
-        currState.applyInput(game.getOwnedNetIds(), game.online);
-        game.physicsUpdate();
-        game.tickTime();
-	}
+    }
+    else {
+        std::cout << "Missing state for time " << s.getGameTime() << '\n';
+        return;
+    }
 
     //acknowledge it after resolved
     states.at(s.getGameTime()).setServerAcknowledged();
