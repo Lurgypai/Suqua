@@ -32,14 +32,13 @@ public:
 private:
 
 	static EntityId entityIncrem;
-	static PoolMap ComponentMaps;
 };
 
 template<typename T>
 inline T * EntitySystem::GetComp(EntityId id) {
 	if (id == 0)
 		throw std::exception{};
-	auto & pool = ComponentMaps.get<T>();
+	auto & pool = PoolMap::get<T>();
 	if (pool.contains(id - 1))
 		return &pool[id - 1];
 	else
@@ -51,24 +50,24 @@ template<typename T>
 inline void EntitySystem::MakeComps(unsigned int size, EntityId * first) {
 	for (int i = 0; i != size; i++) {
 		if(first[i] > 0)
-			ComponentMaps.add<T>(first[i] - 1, first[i]);
+			PoolMap::add<T>(first[i] - 1, first[i]);
 	}
 }
 
 template<typename T>
 inline Pool<T> & EntitySystem::GetPool() {
-	return ComponentMaps.get<T>();
+	return PoolMap::get<T>();
 }
 
 template<typename T>
 inline bool EntitySystem::Contains() {
-	return ComponentMaps.contains<T>();
+	return PoolMap::contains<T>();
 }
 
 template<typename T>
 inline void EntitySystem::FreeComps(unsigned int size, EntityId * first) {
 	for (int i = 0; i != size; ++i) {
-		for (auto iter = ComponentMaps.get<T>().beginResource(); iter != ComponentMaps.get<T>().endResource(); ++iter) {
+		for (auto iter = PoolMap::get<T>().beginResource(); iter != PoolMap::get<T>().endResource(); ++iter) {
 			auto& comp = *iter;
 			if (comp.val.getId() == first[i])
 				comp.isFree = true;

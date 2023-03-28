@@ -15,6 +15,10 @@ struct Resource {
 		isFree = other.isFree;
 		return *this;
 	}
+
+	bool operator==(const Resource& other) const {
+		return val == other.val && isFree == other.isFree;
+	}
 };
 
 class IPool {
@@ -206,8 +210,16 @@ public:
 		return resources.end();
 	}
 
+	const T& operator[](std::size_t i) const {
+		return resources[i].val;
+	}
+
 	T& operator[](std::size_t i) {
 		return resources[i].val;
+	}
+
+	bool operator==(const Pool& other) const {
+		return resources == other.resources && freeIndices_ == other.freeIndices_;
 	}
 
 	T& front() {

@@ -21,7 +21,6 @@ PlayerComponent::PlayerComponent(EntityId id_) : id { id_ }
 
 		auto ndc = EntitySystem::GetComp<NDC>(id);
 		ndc->set<std::uint32_t>(playerStateVarId, static_cast<uint32_t>(State::idle));
-		ndc->set<float>(playerDirVarId, 0.0f);
 	}
 }
 

@@ -58,6 +58,8 @@ public:
 	SceneId getId() const;
 
 	char flags;
+
+	std::vector<EntityId> addEntities(unsigned int count);
 protected:
 	using EntityInputSet = std::set<std::pair<EntityId, InputDeviceId>>;
 	using EntityInputMap = std::unordered_map<EntityId, InputDeviceId>;
@@ -65,7 +67,6 @@ protected:
 	SceneId id;
 	CamId camId;
 
-	std::vector<EntityId> addEntities(unsigned int count);
 	void removeEntities(const std::vector<EntityId>& entities);
 
 	// only supporting one input at a time atm

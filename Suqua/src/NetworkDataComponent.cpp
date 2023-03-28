@@ -26,18 +26,20 @@ bool NetworkDataComponent::operator!=(const NetworkDataComponent& other) const {
 void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {
 	//add the ability to allocate bytestream space, and overwrite at position
 	size_t writeCount = 0;
-	for (const auto& pair : data_) {
-		if (pair.second.mode != SyncMode::NONE) {
+	for (const auto& value : data_) {
+		if (value.mode != SyncMode::NONE) {
 			++writeCount;
 		}
 	}
 
+	DataId pos = 0;
 	stream << writeCount;
-	for (auto&& pair : data_) {
-		if (pair.second.mode != SyncMode::NONE) {
-			stream << pair.first;
-			pair.second.write(stream);
+	for (auto&& value : data_) {
+		if (value.mode != SyncMode::NONE) {
+			stream << pos;
+			value.write(stream);
 		}
+		++pos;
 	}
 }
 
@@ -66,7 +68,7 @@ void NetworkDataComponent::unserialize(ByteStream& stream) {
 
 	for (size_t i = 0; i != size; ++i) {
 		if (stream >> id) {
-			data_.at(id).read(stream);
+			data_[id].read(stream);
 		}
 		else {
 			//we should have more elements to read
@@ -156,39 +158,41 @@ EntityId NetworkDataComponent::getId() const {
 }
 
 void NetworkDataComponent::setSyncMode(DataId id, SyncMode mode) {
-	data_.at(id).mode = mode;
+	data_[id].mode = mode;
 }
 
 void NetworkDataComponent::interp(const NetworkDataComponent& start, const NetworkDataComponent& end, float ratio) {
-	for (auto&& pair : data_) {
-		if (pair.second.mode == SyncMode::INTERPOLATED) {
-			switch (pair.second.type)
+	DataId pos;
+	for (auto&& value : data_) {
+		if (value.mode == SyncMode::INTERPOLATED) {
+			switch (value.type)
 			{
 			case NetworkDataComponent::Data::DataType::BYTE:
-				pair.second.get<char>() = start.get<char>(pair.first) + (end.get<char>(pair.first) - start.get<char>(pair.first)) * ratio;
+				value.get<char>() = start.get<char>(pos) + (end.get<char>(pos) - start.get<char>(pos)) * ratio;
 				break;
 			case NetworkDataComponent::Data::DataType::UINT_32:
-				pair.second.get<uint32_t>() = start.get<uint32_t>(pair.first) + (end.get<uint32_t>(pair.first) - start.get<uint32_t>(pair.first)) * ratio;
+				value.get<uint32_t>() = start.get<uint32_t>(pos) + (end.get<uint32_t>(pos) - start.get<uint32_t>(pos)) * ratio;
 				break;
 			case NetworkDataComponent::Data::DataType::INT_32:
-				pair.second.get<int32_t>() = start.get<int32_t>(pair.first) + (end.get<int32_t>(pair.first) - start.get<int32_t>(pair.first)) * ratio;
+				value.get<int32_t>() = start.get<int32_t>(pos) + (end.get<int32_t>(pos) - start.get<int32_t>(pos)) * ratio;
 				break;
 			case NetworkDataComponent::Data::DataType::UINT_64:
-				pair.second.get<uint64_t>() = start.get<uint64_t>(pair.first) + (end.get<uint64_t>(pair.first) - start.get<uint64_t>(pair.first)) * ratio;
+				value.get<uint64_t>() = start.get<uint64_t>(pos) + (end.get<uint64_t>(pos) - start.get<uint64_t>(pos)) * ratio;
 				break;
 			case NetworkDataComponent::Data::DataType::INT_64:
-				pair.second.get<int64_t>() = start.get<int64_t>(pair.first) + (end.get<int64_t>(pair.first) - start.get<int64_t>(pair.first)) * ratio;
+				value.get<int64_t>() = start.get<int64_t>(pos) + (end.get<int64_t>(pos) - start.get<int64_t>(pos)) * ratio;
 				break;
 			case NetworkDataComponent::Data::DataType::FLOAT:
-				//std::cout << "start value: " << start.get<float>(pair.first) << ", end value: " << end.get<float>(pair.first) << ", interpolated value " << start.get<float>(pair.first) + (end.get<float>(pair.first) - start.get<float>(pair.first)) * ratio << '\n';
-				pair.second.get<float>() = start.get<float>(pair.first) + (end.get<float>(pair.first) - start.get<float>(pair.first)) * ratio;
+				//std::cout << "start value: " << start.get<float>(pos) << ", end value: " << end.get<float>(pos) << ", interpolated value " << start.get<float>(pos) + (end.get<float>(pos) - start.get<float>(pos)) * ratio << '\n';
+				value.get<float>() = start.get<float>(pos) + (end.get<float>(pos) - start.get<float>(pos)) * ratio;
 				break;
 			case NetworkDataComponent::Data::DataType::DOUBLE:
-				pair.second.get<double>() = start.get<double>(pair.first) + (end.get<double>(pair.first) - start.get<double>(pair.first)) * ratio;
+				value.get<double>() = start.get<double>(pos) + (end.get<double>(pos) - start.get<double>(pos)) * ratio;
 				break;
 			default:
 				break;
 			}
 		}
+		++pos;
 	}
 }

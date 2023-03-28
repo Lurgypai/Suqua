@@ -9,6 +9,7 @@
 #include "PositionData.h"
 #include "RectDrawable.h"
 #include "DirectionComponent.h"
+#include "../Shooty2Core/GunFireComponent.h"
 
 ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_, InputDeviceId playerInput_) :
 	Scene{id_, flags_},
@@ -37,6 +38,7 @@ void ClientWorldScene::load(Game& game)
 
 	EntitySystem::MakeComps<AimToMouseComponent>(1, &myGunId);
 	EntitySystem::MakeComps<ParentComponent>(1, &myGunId);
+	EntitySystem::MakeComps<GunFireComponent>(1, &myGunId);
 	EntitySystem::MakeComps<GunGFXComponent>(1, &myGunId);
 
 	auto gunParentComp = EntitySystem::GetComp<ParentComponent>(myGunId);
@@ -58,6 +60,9 @@ void ClientWorldScene::physicsStep(Game& game)
 	for (auto& aimComp : EntitySystem::GetPool<AimToMouseComponent>()) {
 		aimComp.update();
 	}
+
+	auto gunFireComp = EntitySystem::GetComp<GunFireComponent>(myGunId);
+	gunFireComp->update(*this);
 
 	physics.runPhysics(game.PHYSICS_STEP);
 }

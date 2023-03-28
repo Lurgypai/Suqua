@@ -2,7 +2,7 @@
 #include <variant>
 #include <cstdint>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include "ByteStream.h"
 #include "ByteOrder.h"
 #include "EntitySystem.h"
@@ -40,6 +40,7 @@ private:
 		SyncMode mode;
 
 		inline Data() = default;
+		
 
 		template<typename T>
 		T& get();
@@ -103,7 +104,7 @@ public:
 
 	EntityId getId() const;
 private:
-	using DataMap = std::map<DataId, Data>;
+	using DataMap = Pool<Data>;
 
 	DataMap data_;
 	EntityId id;
@@ -129,7 +130,7 @@ inline void NetworkDataComponent::Data::set(T& t) {
 template<typename T>
 inline void NetworkDataComponent::Data::set(T&& t) {
 	type = getDataType<T>();
-	value = std::move(t);
+	value = std::forward<T&&>(t);
 }
 
 template<typename T>
@@ -140,11 +141,13 @@ inline void NetworkDataComponent::Data::set(const T& t) {
 
 template<typename T>
 inline void NetworkDataComponent::set(DataId id, T& t) {
-	data_[id].set(t);
+	data_.add(id, Data{});
+	data_[id].set(std::forward<T&&>(t));
 }
 
 template<typename T>
 inline void NetworkDataComponent::set(DataId id, T&& t) {
+	data_.add(id, Data{});
 	data_[id].set(std::forward<T&&>(t));
 }
 
@@ -155,12 +158,12 @@ inline void NetworkDataComponent::set(DataId id, const T& t) {
 
 template<typename T>
 T& NetworkDataComponent::get(DataId id) {
-	return data_.at(id).get<T>();
+	return data_[id].get<T>();
 }
 
 template<typename T>
 inline const T& NetworkDataComponent::get(DataId id) const {
-	return data_.at(id).getConst<T>();
+	return data_[id].getConst<T>();
 }
 
 template<typename T>

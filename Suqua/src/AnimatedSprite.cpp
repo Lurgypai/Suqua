@@ -9,7 +9,8 @@ using json = nlohmann::json;
 
 AnimatedSprite::AnimatedSprite(const std::string& texture_tag, const std::string& json_path) :
 	currentTime{ 0 },
-	speed{1.0f}
+	speed{1.0f},
+	looping{false}
 {
 	std::ifstream file{ json_path };
 	if (!file.good()) {

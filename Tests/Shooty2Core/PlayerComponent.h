@@ -10,7 +10,6 @@ class PlayerComponent {
 public:
 	enum PlayerVars : NetworkDataComponent::DataId {
 		playerStateVarId = 30,
-		playerDirVarId = 31,
 	};
 
 	enum class State : uint32_t {

@@ -1,10 +1,7 @@
 #include "PoolNotFoundException.h"
 
-PoolNotFoundException::PoolNotFoundException(type_id id_) :
-	id{id_},
-	wt{ "Pool with ID " + std::to_string(id_) + " not found" }
-{}
-
-const char * PoolNotFoundException::what() const noexcept {
+template<typename MissingClass>
+const char * PoolNotFoundException<MissingClass>::what() const noexcept {
+	std::string wt = "Missing pool. Described by template parameter MissingClass.";
 	return wt.c_str();
 }

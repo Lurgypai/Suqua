@@ -3,9 +3,8 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
-#include <list>
+#include <vector>
 
-#include "TypeData.h"
 #include "PoolNotFoundException.h"
 
 using pool_ptr = IPool*;
@@ -23,7 +22,7 @@ private:
 
 public:
 	template<typename U>
-	void add(U&& u) {
+	static void add(U&& u) {
 		if (PoolWrapper<U>::pool == nullptr) {
 			PoolWrapper<U>::pool = std::make_unique<Pool<U>>();
 			pools.emplace_back(PoolWrapper<U>::pool.get());
@@ -33,7 +32,7 @@ public:
 	}
 
 	template<typename U>
-	void add(size_t pos, U&& u) {
+	static void add(size_t pos, U&& u) {
 		if (PoolWrapper<U>::pool == nullptr) {
 			PoolWrapper<U>::pool = std::make_unique<Pool<U>>();
 			pools.emplace_back(PoolWrapper<U>::pool.get());
@@ -42,7 +41,7 @@ public:
 	}
 
 	template<typename U>
-	void add() {
+	static void add() {
 		if (PoolWrapper<U>::pool == nullptr) {
 			PoolWrapper<U>::pool = std::make_unique<Pool<U>>();
 			pools.emplace_back(PoolWrapper<U>::pool.get());
@@ -51,24 +50,20 @@ public:
 	}
 
 	template<typename T>
-	Pool<T> & get() {
+	static Pool<T> & get() {
 		return *PoolWrapper<T>::pool;
 	}
 
 	template<typename T>
-	bool contains() {
+	static bool contains() {
 		return PoolWrapper<T>::pool != nullptr;
 	}
 
-	auto begin() {
-		return pools.begin();
+	static std::vector<pool_ptr>& getPools() {
+		return pools;
 	}
 
-	auto end() {
-		return pools.end();
-	}
 
 private:
-
-	std::list<pool_ptr> pools;
+	inline static std::vector<pool_ptr> pools{};
 };

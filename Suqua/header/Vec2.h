@@ -43,6 +43,7 @@ struct Vec2 {
 	T distance(const Vec2 & other) const;
 	T magn() const;
 	float angle() const;
+	void angle(float newAngle);
 	Vec2 round() const;
 	Vec2 ceil() const;
 	Vec2 floor() const;
@@ -175,6 +176,13 @@ T Vec2<T>::magn() const {
 template<typename T>
 float Vec2<T>::angle() const {
 	return std::atan2f(static_cast<float>(y), static_cast<float>(x));
+}
+
+template<typename T>
+void Vec2<T>::angle(float newAngle) {
+	float m = magn();
+	x = std::cos(newAngle) * m;
+	y = std::cos(newAngle) * m;
 }
 
 template<typename T>
