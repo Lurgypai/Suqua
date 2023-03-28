@@ -22,7 +22,7 @@ public:
 private:
 	class Data {
 	public:
-		using DataValue = std::variant<char, bool, uint32_t, int32_t, uint64_t, int64_t, float, double, std::string>;
+		using DataValue = std::variant<char, bool, uint32_t, int32_t, uint64_t, int64_t, float, double, std::string, Vec2f>;
 
 		enum class DataType : char {
 			NONE,
@@ -34,7 +34,8 @@ private:
 			INT_64,
 			FLOAT,
 			DOUBLE,
-			STRING
+			STRING,
+			VEC2F,
 		} type;
 		SyncMode mode;
 
@@ -210,4 +211,9 @@ constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data
 template<>
 constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<std::string>() {
 	return NetworkDataComponent::Data::DataType::STRING;
+}
+
+template<>
+constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<Vec2f>() {
+	return NetworkDataComponent::Data::DataType::VEC2F;
 }

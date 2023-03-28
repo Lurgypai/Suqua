@@ -8,7 +8,8 @@
 Sprite::Sprite(const std::string &texture_tag_) :
 	texture_tag{texture_tag_},
 	data{ {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {1.0, 1.0}, 0, 0 },
-	horizontalFlip{false}
+	horizontalFlip{false},
+	verticalFlip{false}
 {
 	auto textureData = GLRenderer::GetTextureData(texture_tag);
 	data.objRes = textureData.res;
@@ -92,6 +93,8 @@ int Sprite::getChannels() const {
 void Sprite::draw() {
 	int mult = horizontalFlip ? -1 : 1;
 	data.objRes.x = std::abs(data.objRes.x) * mult;
+	mult = verticalFlip ? -1 : 1;
+	data.objRes.y = std::abs(data.objRes.y) * mult;
 	GLRenderer::DrawImage(data, texture_tag);
 }
 

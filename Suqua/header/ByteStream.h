@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstring>
 #include <string>
+#include "Vec2.h"
 #include "ByteOrder.h"
 
 using Byte = char;
@@ -62,6 +63,16 @@ inline ByteStream& ByteStream::operator<< <std::string>(const std::string& t) {
 	return *this;
 }
 
+template<>
+inline ByteStream& ByteStream::operator<< <Vec2f>(const Vec2f& t) {
+	size_t end = _data.size();
+	_data.resize(end + sizeof(t));
+	auto xCpy = s_hton(t.x);
+	auto yCpy = s_hton(t.y);
+	std::memcpy(_data.data() + end, &xCpy, sizeof(xCpy));
+	std::memcpy(_data.data() + end, &yCpy, sizeof(yCpy));
+}
+
 template<typename T>
 inline bool ByteStream::operator>>(T& t) {
 	if (readPos + sizeof(t) <= _data.size()) {
@@ -95,6 +106,19 @@ inline bool ByteStream::operator>> <std::string>(std::string& s) {
 	else {
 		return false;
 	}
+}
+
+template<>
+inline bool ByteStream::operator >> <Vec2f>(Vec2f& v) {
+	if (readPos + sizeof(v) > _data.size()) return false;
+
+	std::memcpy(&v.x, _data.data() + readPos, sizeof(v.x));
+	std::memcpy(&v.y, _data.data() + readPos, sizeof(v.y));
+
+	v.x = s_ntoh(v.x);
+	v.y = s_ntoh(v.y);
+
+	return true;
 }
 
 template<typename T>

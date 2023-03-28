@@ -326,24 +326,9 @@ void Game::loop() {
 					}
 				}
 
-				/*
-				* PHYSICS UPDATE
-				* If we have the state stored, apply it (delay based)
-				* If we don't have it, do prediction (prediction based)
-				* 
-				* Missing:
-				*	toggle for prediction
-				*/
 				if (flags & Flag::physics) {
-					if (sync.hasCurrentState(*this)) {
-						//std::cout << "Applied server provided state for time " << gameTick << ".\n";
-						sync.resync(*this);
-						renderUpdateStep();
-					}
-					else {
-						physicsUpdate();
-						renderUpdateStep();
-					}
+					physicsUpdate();
+					renderUpdateStep();
 					//std::cout << "currentTick: " << gameTick << '\n';
 					//if (flags & Flag::client) sync.interpolate(gameTick - (2 * serverBroadcastDelay));
 				}
@@ -363,7 +348,7 @@ void Game::loop() {
 						pingPacket << Packet::PingId;
 						pingPacket << gameTick;
 						host.bufferAllDataByChannel(0, pingPacket);
-						std::cout << "Client pinging server...\n";
+						// std::cout << "Client pinging server...\n";
 					}
 				}
 

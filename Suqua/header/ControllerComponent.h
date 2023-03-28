@@ -13,7 +13,7 @@ public:
 	//getter and setter in case i want to change the underlying whats of what controller is (base class or whatnot)
 	void setController(const Controller & cont);
 	Controller& getController();
-    const Controller& getControllerConst() const;
+    const Controller& getController() const;
 
 private:
 	Controller controller;

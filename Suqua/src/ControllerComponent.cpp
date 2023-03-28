@@ -24,6 +24,6 @@ Controller& ControllerComponent::getController() {
 	return controller;
 }
 
-const Controller& ControllerComponent::getControllerConst() const {
+const Controller& ControllerComponent::getController() const {
     return controller;
 }

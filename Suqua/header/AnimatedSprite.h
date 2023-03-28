@@ -9,7 +9,7 @@
 class AnimatedSprite  : public IDrawable {
 public:
 	AnimatedSprite();
-	AnimatedSprite(const std::string& texture_tag, const std::string& json_pat);
+	AnimatedSprite(const std::string& texture_tag, const std::string& json_path);
 	void update(int millis);
 	int getFrame() const;
 	void setFrame(int frame);

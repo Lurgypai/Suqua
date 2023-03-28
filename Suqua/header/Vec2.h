@@ -40,8 +40,9 @@ struct Vec2 {
 	void operator-=(const Vec2 & other);
 	bool operator==(const Vec2 & other) const;
 	bool operator!=(const Vec2 & other) const;
-	T distance(const Vec2 & other);
-	T magn();
+	T distance(const Vec2 & other) const;
+	T magn() const;
+	float angle() const;
 	Vec2 round() const;
 	Vec2 ceil() const;
 	Vec2 floor() const;
@@ -159,7 +160,7 @@ inline bool Vec2<T>::operator!=(const Vec2 & other) const {
 }
 
 template<typename T>
-T Vec2<T>::distance(const Vec2<T> & other) {
+T Vec2<T>::distance(const Vec2<T> & other) const {
 	T xDiff = x - other.x;
 	T yDiff = y - other.y;
 
@@ -167,8 +168,13 @@ T Vec2<T>::distance(const Vec2<T> & other) {
 }
 
 template<typename T>
-T Vec2<T>::magn() {
+T Vec2<T>::magn() const {
 	return sqrt(x * x + y * y);
+}
+
+template<typename T>
+float Vec2<T>::angle() const {
+	return std::atan2f(static_cast<float>(y), static_cast<float>(x));
 }
 
 template<typename T>

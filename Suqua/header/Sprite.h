@@ -35,6 +35,7 @@ public:
 	std::string texture_tag;
 
 	bool horizontalFlip;
+	bool verticalFlip;
 protected:
 	ImgData data;
 	int channels;
