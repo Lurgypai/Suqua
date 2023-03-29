@@ -24,6 +24,9 @@ ClientPlayerComponent::ClientPlayerComponent(EntityId id_) :
 		auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
 		renderComp->loadDrawable<AnimatedSprite>("hero", "stranded/Hero/Hero/Hero.json");
 		renderComp->offset = { -13, -24 };
+
+		auto sprite = renderComp->getDrawable<AnimatedSprite>();
+		sprite->looping = true;
 	}
 }
 
