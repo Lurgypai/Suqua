@@ -10,6 +10,8 @@
 //where do you want to store previous states for interpolation?
 //where do you want to store the SyncMode (none, immediate, interpolated)?
 
+// as it is, the NDC is not cache friendly. A major overhaul would be needed to improve cache friendliness, with a custom backing structure, and packing of the data elements, to conserve space while keeping data local.
+
 class NetworkDataComponent {
 public:
 	enum class SyncMode : char {

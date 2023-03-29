@@ -6,7 +6,6 @@
 #include "../Shooty2Core/PlayerComponent.h"
 #include "ParentComponent.h"
 #include "GunGFXComponent.h"
-#include "PositionData.h"
 #include "RectDrawable.h"
 #include "DirectionComponent.h"
 #include "../Shooty2Core/GunFireComponent.h"

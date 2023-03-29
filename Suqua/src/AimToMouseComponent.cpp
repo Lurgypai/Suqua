@@ -3,8 +3,8 @@
 #include "ControllerComponent.h"
 #include "NetworkDataComponent.h"
 #include "GLRenderer.h"
-#include "PositionData.h"
 #include "ParentComponent.h"
+#include "PositionComponent.h"
 
 AimToMouseComponent::AimToMouseComponent(EntityId id_) :
 	id{id_}
@@ -29,11 +29,8 @@ void AimToMouseComponent::update() {
 
 	//uses current camera, make sure to set the camera before updating
 	Vec2f targetPos = GLRenderer::screenToWorld(controller.pointerPos);
-	auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-	float x = ndc->get<float>(X);
-	float y = ndc->get<float>(Y);
-	Vec2f currPos{ x, y };
-	Vec2f delta = targetPos - currPos;
+	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
+	Vec2f delta = targetPos - posComp->getPos();
 	
 	auto directionComp = EntitySystem::GetComp<DirectionComponent>(id);
 	directionComp->setDir(delta.angle());

@@ -28,7 +28,6 @@ void GunGFXComponent::update() {
 	auto sprite = renderComp->getDrawable<Sprite>();
 	auto directionComp = EntitySystem::GetComp<DirectionComponent>(id);
 	int dirDeg = directionComp->getDir() * 180 / 3.14159;
-	std::cout << dirDeg << '\n';
 	if (dirDeg < -90 || dirDeg > 90) {
 		sprite->verticalFlip = true;
 	}

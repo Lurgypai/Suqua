@@ -2,7 +2,6 @@
 #include "EntitySystem.h"
 #include "NetworkDataComponent.h"
 #include "ControllerComponent.h"
-#include "DirectionData.h"
 
 #include <iostream>
 
@@ -24,12 +23,10 @@ public:
 	void update();
 
 	inline State getPlayerState() const;
-	inline float getPlayerDir() const;
 private:
 	EntityId id;
 
 	inline void setPlayerState(State newPlayerState);
-	inline void setPlayerDir(float newPlayerDir) const;
 
 	inline const Controller& getController() const;
 
@@ -45,19 +42,9 @@ inline PlayerComponent::State PlayerComponent::getPlayerState() const
 	return static_cast<State>(ndc->get<uint32_t>(playerStateVarId));
 }
 
-inline float PlayerComponent::getPlayerDir() const {
-	auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-	return ndc->get<float>(DIR);
-}
-
 inline void PlayerComponent::setPlayerState(State newPlayerState) {
 	auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
 	ndc->get<uint32_t>(playerStateVarId) = static_cast<uint32_t>(newPlayerState);
-}
-
-inline void PlayerComponent::setPlayerDir(float newPlayerDir) const {
-	auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-	ndc->get<float>(DIR) = newPlayerDir;
 }
 
 inline const Controller& PlayerComponent::getController() const {

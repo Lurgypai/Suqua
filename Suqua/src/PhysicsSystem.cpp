@@ -1,7 +1,7 @@
 #include "PhysicsSystem.h"
 #include "PhysicsComponent.h"
 #include "NetworkDataComponent.h"
-#include "PositionData.h"
+#include "PositionComponent.h"
 
 #include <iostream>
 
@@ -20,9 +20,12 @@ void PhysicsSystem::runPhysics(double timeDelta) {
 void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 	if (EntitySystem::Contains<PhysicsComponent>()) {
 		PhysicsComponent * comp = EntitySystem::GetComp<PhysicsComponent>(entity);
+		float xVel = comp->getVel().x;
+		PositionComponent* posComp = EntitySystem::GetComp<PositionComponent>(entity);
 
 		//refresh to make sure we're in the right place
 		comp->refreshPos();
+		std::cout << posComp->getPos() << '\n';
 
 		if (!comp->isFrozen()) {
 			//accelerate downwards, gravity
@@ -31,7 +34,7 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 
 			//only the physics system manages grounded-ness, so this has to be a direct access
 			comp->setGrounded(false);
-			Vec2f currPos = comp->getPos();
+			Vec2f currPos = posComp->getPos();
 			Vec2f vel = comp->getVel();
 			Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
 
@@ -106,7 +109,7 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 				}
 			}
 			currPos = newPos;
-			comp->setPos(currPos);
+			posComp->setPos(currPos);
 			comp->collider.pos = currPos;
 		}
 	}

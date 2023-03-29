@@ -4,20 +4,6 @@
 
 class PhysicsComponent {
 	friend class PhysicsSystem;
-
-private:
-	enum PhysicsData {
-		WEIGHT = 4,			//float
-		XVEL = 5,			//float
-		YVEL = 6,			//float
-		GROUNDED = 7,		//char
-		FROZEN = 8,			//char
-		WEIGHTLESS = 9,		//char
-		COLLIDEABLE = 10,	//char
-		XRES = 11,
-		YRES = 12,
-	};
-
 public:
 
 	PhysicsComponent(EntityId id_ = 0, AABB collider = AABB{ {0, 0}, {0, 0} }, float weight_ = 0, Vec2f vel = {0, 0}, bool collideable_ = false);
@@ -36,9 +22,6 @@ public:
 	//move the bottom center to newPos
 	void teleport(const Vec2f & newPos);
 	Vec2f position() const;
-	//move the pos to newPos
-	void setPos(const Vec2f& newPos);
-	Vec2f getPos() const;
 
 	Vec2f center();
 
@@ -62,12 +45,24 @@ public:
 	void setCollideable(bool newCollideable);
 
 	bool isWeightless() const;
-	void setWeigtless(bool newWeigtless);
+	void setWeightless(bool newWeigtless);
+
+private:
 
 private:
 	void setGrounded(bool newGrounded);
 
 protected:
-	AABB collider;
 	EntityId id;
+
+	AABB collider;
+	float* weight;
+	float* xVel;
+	float* yVel;
+	bool* grounded;
+	bool* frozen;
+	bool* weightless;
+	bool* collideable;
+	float* xRes;
+	float* yRes;
 };

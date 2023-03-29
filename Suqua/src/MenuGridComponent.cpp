@@ -1,9 +1,6 @@
 #include "MenuGridComponent.h"
-#include "NetworkDataComponent.h"
-#include "PositionData.h"
+#include "PositionComponent.h"
 #include <iostream>
-
-using NDC = NetworkDataComponent;
 
 MenuGridComponent::MenuGridComponent(EntityId id_) :
 	id{ id_ },
@@ -13,8 +10,8 @@ MenuGridComponent::MenuGridComponent(EntityId id_) :
 	prefix{}
 {
 	if (id != 0) {
-		if (!EntitySystem::Contains<NDC>() || !EntitySystem::GetComp<NDC>(id)) {
-			EntitySystem::MakeComps<NDC>(1, &id);
+		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
+			EntitySystem::MakeComps<PositionComponent>(1, &id);
 		}
 	}
 }
@@ -24,8 +21,8 @@ EntityId MenuGridComponent::getId() const {
 }
 
 void MenuGridComponent::update(Vec2f mousePos, bool toggled_) {
-	NDC* data = EntitySystem::GetComp<NDC>(id);
-	Vec2f pos{data->get<float>(X), data->get<float>(Y)};
+	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
+	auto pos = posComp->getPos();
 	boundingBox.pos = pos;
 
 	wasActive = isActive;
@@ -85,8 +82,8 @@ StringTree MenuGridComponent::getCurrButtons() const {
 }
 
 std::vector<AABB> MenuGridComponent::generateButtonBoxes() {
-	NDC* data = EntitySystem::GetComp<NDC>(id);
-	Vec2f pos{ data->get<float>(X), data->get<float>(Y)};
+	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
+	auto pos = posComp->getPos();
 	int columns = boundingBox.res.x / (margins.x + buttonRes.x);
 	int rows = boundingBox.res.y / (margins.y + buttonRes.y);
 

@@ -1,9 +1,6 @@
 #include "RenderSystem.h"
 #include "AnimatedSprite.h"
-#include "NetworkDataComponent.h"
-#include "PositionData.h"
-
-using NDC = NetworkDataComponent;
+#include "PositionComponent.h"
 
 void RenderSystem::drawAll() const {
 	if (EntitySystem::Contains<RenderComponent>()) {
@@ -17,9 +14,8 @@ inline void RenderSystem::draw(RenderComponent& render) const {
 	if (EntitySystem::Contains<RenderComponent>()) {
 		IDrawable* drawable = render.sprite.get();
 		if (drawable != nullptr) {
-			NetworkDataComponent* data = EntitySystem::GetComp<NetworkDataComponent>(render.getId());
-			Vec2f pos{ data->get<float>(X), data->get<float>(Y) };
-			drawable->setPos(pos + render.offset);
+			auto posComp = EntitySystem::GetComp<PositionComponent>(render.getId());
+			drawable->setPos(posComp->getPos() + render.offset);
 			drawable->draw();
 		}
 	}

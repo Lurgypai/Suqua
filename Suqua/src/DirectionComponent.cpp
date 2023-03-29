@@ -1,6 +1,8 @@
 #include "DirectionComponent.h"
 #include "NetworkDataComponent.h"
-#include "DirectionData.h"
+#include "NetworkDataComponentDataFields.h"
+
+using namespace DirectionData;
 
 DirectionComponent::DirectionComponent(EntityId id_) :
 	id{id_},

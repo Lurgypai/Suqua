@@ -5,6 +5,7 @@
 #include "AnimatedSprite.h"
 #include "PhysicsComponent.h"
 #include "ClientPlayerComponent.h"
+#include "DirectionComponent.h"
 
 ClientPlayerComponent::ClientPlayerComponent(EntityId id_) :
 	id{ id_ },
@@ -37,11 +38,12 @@ EntityId ClientPlayerComponent::getId() const {
 void ClientPlayerComponent::updateGFX() {
 	auto playerComponent = EntitySystem::GetComp<PlayerComponent>(id);
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
+	auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
 	AnimatedSprite* sprite = renderComp->getDrawable<AnimatedSprite>();
 	auto currPlayerState = playerComponent->getPlayerState();
 
-	float currPlayerDir = playerComponent->getPlayerDir();
+	float currPlayerDir = dirComp->getDir();
 	int currCardinalDir = 3;
 	int currPlayerDirDeg = currPlayerDir * 180 / 3.1415926535898 - 45;
 	if (currPlayerDirDeg < 0) currPlayerDirDeg += 360;
