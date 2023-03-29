@@ -24,7 +24,6 @@ PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, 
 			EntitySystem::MakeComps<PositionComponent>(1, &id);
 		}
 
-
 		NDC* dataComp = EntitySystem::GetComp<NDC>(id);
 
 		dataComp->set<float>(WEIGHT, weight_);

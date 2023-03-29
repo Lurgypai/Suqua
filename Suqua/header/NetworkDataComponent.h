@@ -6,6 +6,7 @@
 #include "ByteStream.h"
 #include "ByteOrder.h"
 #include "EntitySystem.h"
+#include <memory>
 
 //where do you want to store previous states for interpolation?
 //where do you want to store the SyncMode (none, immediate, interpolated)?
@@ -42,6 +43,13 @@ private:
 		SyncMode mode;
 
 		inline Data() = default;
+		/*
+		inline Data(const Data& other) = default;
+		inline Data(Data&& other) = default;
+
+		Data& operator=(const Data& other) = default;
+		Data& operator=(Data&& other) = default;
+		*/
 
 		template<typename T>
 		T& get();
@@ -75,8 +83,10 @@ public:
 	using DataId = uint32_t;
 
 	NetworkDataComponent(EntityId id_ = 0);
-	NetworkDataComponent(const NetworkDataComponent& other) = default;
-    NetworkDataComponent& operator=(const NetworkDataComponent& other) = default;
+	NetworkDataComponent(NetworkDataComponent&& other) = default;
+	NetworkDataComponent& operator=(NetworkDataComponent&& other) = default;
+	NetworkDataComponent(const NetworkDataComponent& other);
+    NetworkDataComponent& operator=(const NetworkDataComponent& other);
 
     bool operator==(const NetworkDataComponent& other) const;
     bool operator!=(const NetworkDataComponent& other) const;
@@ -106,8 +116,9 @@ public:
 	EntityId getId() const;
 private:
 	using DataMap = std::unordered_map<DataId, Data>;
+	using DataMapPtr = std::unique_ptr<DataMap>;
 
-	DataMap data_;
+	DataMapPtr dataPtr;
 	EntityId id;
 };
 
@@ -142,27 +153,27 @@ inline void NetworkDataComponent::Data::set(const T& t) {
 
 template<typename T>
 inline void NetworkDataComponent::set(DataId id, T& t) {
-	data_[id].set(t);
+	(*dataPtr)[id].set(t);
 }
 
 template<typename T>
 inline void NetworkDataComponent::set(DataId id, T&& t) {
-	data_[id].set(std::forward<T&&>(t));
+	(*dataPtr)[id].set(std::forward<T&&>(t));
 }
 
 template<typename T>
 inline void NetworkDataComponent::set(DataId id, const T& t) {
-	data_[id].set(t);
+	(*dataPtr)[id].set(t);
 }
 
 template<typename T>
 T& NetworkDataComponent::get(DataId id) {
-	return data_.at(id).get<T>();
+	return dataPtr->at(id).get<T>();
 }
 
 template<typename T>
 inline const T& NetworkDataComponent::get(DataId id) const {
-	return data_.at(id).getConst<T>();
+	return dataPtr->at(id).getConst<T>();
 }
 
 template<typename T>

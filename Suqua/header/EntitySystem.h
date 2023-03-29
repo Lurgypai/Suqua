@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <unordered_map>
+#include <iostream>
 #include "PoolMap.h"
 
 using EntityId = uint64_t;
@@ -29,8 +30,10 @@ public:
 
 	template<typename T>
 	static void FreeComps(unsigned int size, EntityId* first);
-private:
 
+	void Init(size_t entityMax);
+private:
+	static size_t entityMax;
 	static EntityId entityIncrem;
 };
 

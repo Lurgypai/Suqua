@@ -4,8 +4,19 @@
 
 NetworkDataComponent::NetworkDataComponent(EntityId id_) :
 	id{ id_ },
-	data_ {}
+	dataPtr{ new DataMap{} }
 {}
+
+NetworkDataComponent::NetworkDataComponent(const NetworkDataComponent& other) :
+	id{ other.id },
+	dataPtr{new DataMap{ *other.dataPtr }}
+{}
+
+NetworkDataComponent& NetworkDataComponent::operator=(const NetworkDataComponent& other) {
+	id = other.id;
+	dataPtr = std::make_unique<DataMap>(*other.dataPtr);
+	return *this;
+}
 
 bool NetworkDataComponent::Data::operator==(const NetworkDataComponent::Data& other) const {
 	return value == other.value && type == other.type;
@@ -16,7 +27,7 @@ bool NetworkDataComponent::Data::operator!=(const NetworkDataComponent::Data& ot
 }
 
 bool NetworkDataComponent::operator==(const NetworkDataComponent& other) const {
-    return data_ == other.data_ && id == other.id;
+    return *dataPtr == *other.dataPtr && id == other.id;
 }
 
 bool NetworkDataComponent::operator!=(const NetworkDataComponent& other) const {
@@ -26,14 +37,14 @@ bool NetworkDataComponent::operator!=(const NetworkDataComponent& other) const {
 void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {
 	//add the ability to allocate bytestream space, and overwrite at position
 	size_t writeCount = 0;
-	for (const auto& pair : data_) {
+	for (const auto& pair : *dataPtr) {
 		if (pair.second.mode != SyncMode::NONE) {
 			++writeCount;
 		}
 	}
 
 	stream << writeCount;
-	for (auto&& pair : data_) {
+	for (auto&& pair : *dataPtr) {
 		if (pair.second.mode != SyncMode::NONE) {
 			stream << pair.first;
 			pair.second.write(stream);
@@ -58,6 +69,7 @@ void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {
 //	}
 //}
 
+
 void NetworkDataComponent::unserialize(ByteStream& stream) {
 
 	DataId id;
@@ -66,7 +78,7 @@ void NetworkDataComponent::unserialize(ByteStream& stream) {
 
 	for (size_t i = 0; i != size; ++i) {
 		if (stream >> id) {
-			data_.at(id).read(stream);
+			dataPtr->at(id).read(stream);
 		}
 		else {
 			//we should have more elements to read
@@ -156,11 +168,11 @@ EntityId NetworkDataComponent::getId() const {
 }
 
 void NetworkDataComponent::setSyncMode(DataId id, SyncMode mode) {
-	data_.at(id).mode = mode;
+	dataPtr->at(id).mode = mode;
 }
 
 void NetworkDataComponent::interp(const NetworkDataComponent& start, const NetworkDataComponent& end, float ratio) {
-	for (auto&& pair : data_) {
+	for (auto&& pair : *dataPtr) {
 		if (pair.second.mode == SyncMode::INTERPOLATED) {
 			switch (pair.second.type)
 			{

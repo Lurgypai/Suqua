@@ -9,12 +9,10 @@ struct Resource {
 	Resource() : isFree{ true } {}
 	template<typename U>
 	Resource(U&& val_, bool isFree_) : val{ std::forward<U>(val_) }, isFree{ isFree_ } {}
-	Resource(const Resource & other) : val{ other.val }, isFree{ other.isFree } {}
-	Resource & operator=(const Resource & other) {
-		val = other.val;
-		isFree = other.isFree;
-		return *this;
-	}
+	Resource(const Resource& other) = default;
+	Resource(Resource&& other) = default;
+	Resource& operator=(const Resource& other) = default;
+	Resource& operator=(Resource&& other) = default;
 };
 
 class IPool {
@@ -168,6 +166,10 @@ public:
 			freeIndices_ -= freeElements;
 		}
 		resources.resize(s);
+	}
+
+	void reserve(std::size_t s) {
+		resources.reserve(s);
 	}
 
 	std::size_t capacity() const {
