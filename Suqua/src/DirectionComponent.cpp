@@ -3,7 +3,8 @@
 #include "DirectionData.h"
 
 DirectionComponent::DirectionComponent(EntityId id_) :
-	id{id_}
+	id{id_},
+	dir{nullptr}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<NetworkDataComponent>() || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
@@ -12,17 +13,16 @@ DirectionComponent::DirectionComponent(EntityId id_) :
 
 		auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
 		ndc->set<float>(DIR, 0.0f);
+		dir = &ndc->get<float>(DIR);
 	}
 }
 
 float DirectionComponent::getDir() const {
-	auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-	return ndc->get<float>(DIR);
+	return *dir;
 }
 
 void DirectionComponent::setDir(float newDir) {
-	auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-	ndc->get<float>(DIR) = newDir;
+	*dir = newDir;
 }
 
 EntityId DirectionComponent::getId() const {

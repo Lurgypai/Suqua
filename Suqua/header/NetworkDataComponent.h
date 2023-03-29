@@ -2,7 +2,7 @@
 #include <variant>
 #include <cstdint>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include "ByteStream.h"
 #include "ByteOrder.h"
 #include "EntitySystem.h"
@@ -103,7 +103,7 @@ public:
 
 	EntityId getId() const;
 private:
-	using DataMap = std::map<DataId, Data>;
+	using DataMap = std::unordered_map<DataId, Data>;
 
 	DataMap data_;
 	EntityId id;

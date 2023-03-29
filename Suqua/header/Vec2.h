@@ -10,8 +10,8 @@ struct Vec2 {
 	Vec2(T x, T y);
 	template<typename D>
 	Vec2(const Vec2<D>& other);
-	Vec2 operator+(const Vec2 & other);
-	Vec2 operator-(const Vec2 & other);
+	Vec2 operator+(const Vec2& other);
+	Vec2 operator-(const Vec2& other);
 	template<typename V>
 	Vec2 operator+(const V& other) const;
 
@@ -36,13 +36,14 @@ struct Vec2 {
 	template<typename V>
 	void operator/=(const V& other);
 
-	void operator+=(const Vec2 & other);
-	void operator-=(const Vec2 & other);
-	bool operator==(const Vec2 & other) const;
-	bool operator!=(const Vec2 & other) const;
-	T distance(const Vec2 & other) const;
+	void operator+=(const Vec2& other);
+	void operator-=(const Vec2& other);
+	bool operator==(const Vec2& other) const;
+	bool operator!=(const Vec2& other) const;
+	T distance(const Vec2& other) const;
 	T magn() const;
 	float angle() const;
+	void angle(float newAngle);
 	Vec2 round() const;
 	Vec2 ceil() const;
 	Vec2 floor() const;
@@ -62,26 +63,26 @@ Vec2<T>::Vec2() : x{}, y{} {}
 
 template<typename T>
 Vec2<T>::Vec2(T x_, T y_) :
-	x{x_},
-	y{y_}
+	x{ x_ },
+	y{ y_ }
 {}
 
 template<typename T>
 template<typename D>
-Vec2<T>::Vec2(const Vec2<D> & other) {
+Vec2<T>::Vec2(const Vec2<D>& other) {
 	x = static_cast<T>(other.x);
 	y = static_cast<T>(other.y);
 }
 
 template<typename T>
 template<typename V>
-inline Vec2<T> Vec2<T>::operator+(const V & other) const {
+inline Vec2<T> Vec2<T>::operator+(const V& other) const {
 	return Vec2<T>{x + other.x, y + other.y};
 }
 
 template<typename T>
 template<typename V>
-inline Vec2<T> Vec2<T>::operator-(const V & other) const {
+inline Vec2<T> Vec2<T>::operator-(const V& other) const {
 	return Vec2<T>{x - other.x, y - other.y};
 }
 
@@ -89,40 +90,40 @@ inline Vec2<T> Vec2<T>::operator-(const V & other) const {
 
 template<typename T>
 template<typename V>
-inline void Vec2<T>::operator+=(const V & other) {
+inline void Vec2<T>::operator+=(const V& other) {
 	x += other;
 	y += other;
 }
 
 template<typename T>
 template<typename V>
-inline void Vec2<T>::operator-=(const V & other) {
+inline void Vec2<T>::operator-=(const V& other) {
 	x -= other;
 	y -= other;
 }
 
 template<typename T>
 template<typename V>
-inline Vec2<T> Vec2<T>::operator*(const V & other) {
-	return Vec2<T>{x * other, y * other};
+inline Vec2<T> Vec2<T>::operator*(const V& other) {
+	return Vec2<T>{x* other, y* other};
 }
 
 template<typename T>
 template<typename V>
-inline Vec2<T> Vec2<T>::operator/(const V & other) {
+inline Vec2<T> Vec2<T>::operator/(const V& other) {
 	return Vec2<T>{x / other, y / other};
 }
 
 template<typename T>
 template<typename V>
-inline void Vec2<T>::operator*=(const V & other) {
+inline void Vec2<T>::operator*=(const V& other) {
 	x *= other;
 	y *= other;
 }
 
 template<typename T>
 template<typename V>
-inline void Vec2<T>::operator/=(const V & other) {
+inline void Vec2<T>::operator/=(const V& other) {
 	x /= other;
 	y /= other;
 }
@@ -138,29 +139,29 @@ Vec2<T> Vec2<T>::operator-(const Vec2<T>& other) {
 }
 
 template<typename T>
-void Vec2<T>::operator+=(const Vec2<T> & other) {
+void Vec2<T>::operator+=(const Vec2<T>& other) {
 	x += other.x;
 	y += other.y;
 }
 
 template<typename T>
-void Vec2<T>::operator-=(const Vec2<T> & other) {
+void Vec2<T>::operator-=(const Vec2<T>& other) {
 	x -= other.x;
 	y -= other.y;
 }
 
 template<typename T>
-inline bool Vec2<T>::operator==(const Vec2 & other) const {
+inline bool Vec2<T>::operator==(const Vec2& other) const {
 	return x == other.x && y == other.y;
 }
 
 template<typename T>
-inline bool Vec2<T>::operator!=(const Vec2 & other) const {
+inline bool Vec2<T>::operator!=(const Vec2& other) const {
 	return x != other.x || y != other.y;
 }
 
 template<typename T>
-T Vec2<T>::distance(const Vec2<T> & other) const {
+T Vec2<T>::distance(const Vec2<T>& other) const {
 	T xDiff = x - other.x;
 	T yDiff = y - other.y;
 
@@ -175,6 +176,13 @@ T Vec2<T>::magn() const {
 template<typename T>
 float Vec2<T>::angle() const {
 	return std::atan2f(static_cast<float>(y), static_cast<float>(x));
+}
+
+template<typename T>
+void Vec2<T>::angle(float newAngle) {
+	float m = magn();
+	x = std::cos(newAngle) * m;
+	y = std::cos(newAngle) * m;
 }
 
 template<typename T>
@@ -194,13 +202,13 @@ inline Vec2<T> Vec2<T>::floor() const {
 
 template<typename T>
 inline Vec2<T> Vec2<T>::scale(const T& value) const {
-	return Vec2<T>{x * value, y * value};
+	return Vec2<T>{x* value, y* value};
 }
 
 
 template<typename T>
 inline Vec2<T> Vec2<T>::abs() {
-	return {std::abs(x), std::abs(y)};
+	return { std::abs(x), std::abs(y) };
 }
 
 template<typename T>
@@ -212,7 +220,7 @@ inline Vec2<T> Vec2<T>::norm() {
 }
 
 template<typename T>
-std::ostream & operator<<(std::ostream & os, const Vec2<T> & vec) {
+std::ostream& operator<<(std::ostream& os, const Vec2<T>& vec) {
 	return os << vec.x << ", " << vec.y;
 }
 

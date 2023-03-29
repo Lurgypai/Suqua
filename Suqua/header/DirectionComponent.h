@@ -9,4 +9,6 @@ public:
 	void setDir(float newDir);
 private:
 	EntityId id;
+
+	float* dir;
 };
