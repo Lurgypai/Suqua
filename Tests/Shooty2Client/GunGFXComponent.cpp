@@ -1,6 +1,7 @@
 #include "GunGFXComponent.h"
 #include "RenderComponent.h"
 #include "DirectionComponent.h"
+#include "DebugIO.h"
 
 GunGFXComponent::GunGFXComponent(EntityId id_) :
 	id{id_}

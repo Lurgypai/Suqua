@@ -2,20 +2,22 @@
 #include "ByteStream.h"
 #include <vector>
 
-
-Controller::Controller() : state{ 0 }, prevState{0}, mouseScroll{ 0 } {}
-
-Controller::Controller(const Controller& other) :
-	pointerPos{other.pointerPos},
-	state{other.state},
-	prevState{other.prevState},
-	mouseScroll{other.mouseScroll}
+Controller::Controller() :
+	prevState{ 0 },
+	state{ 0 },
+	mouseScroll{ 0 },
+	pointerPos{ 0, 0 },
+	stick1{ 0, 0 },
+	stick2{ 0, 0 }
 {}
 
 Controller::Controller(ControllerState state_, ControllerState prevState_) :
 	prevState{prevState_},
 	state{state_},
-	mouseScroll{0}
+	mouseScroll{0},
+	pointerPos{ 0, 0 },
+	stick1{ 0, 0 },
+	stick2{ 0, 0 }
 {}
 
 bool Controller::operator==(const Controller& other) const {

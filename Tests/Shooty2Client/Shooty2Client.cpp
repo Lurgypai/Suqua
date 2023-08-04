@@ -36,8 +36,7 @@ int main(int argc, char** argv) {
 	std::cout << "The target ip is " << ip << ".\n";
 	std::cout << "The network input delay is " << game.networkInputDelay << ".\n";
 
-	InputDeviceId keyboardId = game.loadInputDevice<IDKeyboardMouse>();
-	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all, keyboardId);
+	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all);
 
 	SuquaLib::RunGame(game);
 

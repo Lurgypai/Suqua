@@ -41,13 +41,12 @@ public:
 	virtual void onConnect(Game& game, PeerId connectingId) = 0;
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) = 0;
 
-	void storeInputs(Game& game);
+	void doInputs(Game& game);
 
 	// pointer to imply maybe existence
 	// it might not exist if the scene doesn't have any current entities that need input
 	const std::unordered_map<EntityId, Controller>* getInputsAtTime(Tick time) const;
 
-	void applyInputs(Game& game);
 
 	void removeAllEntities();
 	void removeDeadEntities();
@@ -73,6 +72,9 @@ protected:
 	void addEntityInputs(const EntityInputSet& inputs);
 	void removeEntityInputs(EntityId id);
 private:
+	void storeInputs(Game& game);
+	void applyInputs(Game& game);
+
 	std::set<EntityId> entities;
 	EntityInputMap entityInputs;
 

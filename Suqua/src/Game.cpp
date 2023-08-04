@@ -6,6 +6,8 @@
 #include "PHServerInputPacket.h"
 #include "PHOOSPacket.h"
 #include "SyncState.h"
+#include "SuquaLib.h"
+#include "DebugIO.h"
 
 Game::Game(FlagType flags_, double physics_step, double render_step, Tick clientPingDelay_, Tick serverBroadcastDelay_) :
 	PHYSICS_STEP{ physics_step },
@@ -133,8 +135,7 @@ void Game::tickTime() {
 void Game::inputStep() {
 	for (auto&& scene : scenes) {
 		if (scene->flags & Scene::Flag::input) {
-			scene->storeInputs(*this);
-			scene->applyInputs(*this);
+			scene->doInputs(*this);
 		}
 	}
 }
@@ -233,7 +234,6 @@ void Game::loop() {
 			lastNetworkUpdate = now;
 			for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
 				serverStep();
-				
 			}
 			leftover = elapsedTime;
 
@@ -287,6 +287,22 @@ void Game::loop() {
 			lastPhysicsUpdate = now;
 			for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
 				pollSDLEvents();
+				for (auto& e : events) {
+					switch (e.type) {
+					case SDL_TEXTINPUT:
+						if (DebugIO::getOpen())
+							DebugIO::addInput(e.text.text);
+						break;
+					case SDL_KEYDOWN:
+						if (e.key.keysym.sym == SDLK_BACKQUOTE)
+							DebugIO::toggleDebug();
+						else if (e.key.keysym.sym == SDLK_BACKSPACE)
+							DebugIO::backspace();
+						else if (e.key.keysym.sym == SDLK_RETURN)
+							DebugIO::enterInput();
+						break;
+					}
+				}
 
 				/*
 				* INPUT CODE
@@ -299,8 +315,10 @@ void Game::loop() {
 				*/
 
 				if (flags & Flag::input) {
-					inputStep();
 
+					if(!DebugIO::getOpen())	inputStep();
+
+					/*
 					if (flags & Flag::client) {
 
 						// send all current inputs
@@ -324,6 +342,7 @@ void Game::loop() {
 							}
 						}
 					}
+					*/
 				}
 
 				if (flags & Flag::physics) {
@@ -335,11 +354,14 @@ void Game::loop() {
 
 
 				if (flags & Flag::client) {
+					// send governed entity states
+
 					host.handlePackets(*this);
 					host.sendBuffered();
-					sync.storeCurrentState(gameTick);
+					// sync.storeCurrentState(gameTick);
 				}
 
+				/*
 				if (flags & Flag::client) {
 					if (clientPingCtr < clientPingDelay) ++clientPingCtr;
 					else {
@@ -351,6 +373,7 @@ void Game::loop() {
 						// std::cout << "Client pinging server...\n";
 					}
 				}
+				*/
 
 				clearSDLEvents();
 
@@ -364,6 +387,7 @@ void Game::loop() {
 			if (static_cast<double>(now - lastGFXUpdate) / SDL_GetPerformanceFrequency() >= RENDER_STEP) {
 				GLRenderer::Clear();
 				renderStep();
+				SuquaLib::DrawConsole();
 				GLRenderer::Swap();
 				++renderTick;
 

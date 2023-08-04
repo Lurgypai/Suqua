@@ -6,7 +6,8 @@ using namespace DirectionData;
 
 DirectionComponent::DirectionComponent(EntityId id_) :
 	id{id_},
-	dir{nullptr}
+	dir{nullptr},
+	isLocked_{false}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<NetworkDataComponent>() || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
@@ -24,7 +25,18 @@ float DirectionComponent::getDir() const {
 }
 
 void DirectionComponent::setDir(float newDir) {
+	if (isLocked_) return;
 	*dir = newDir;
+}
+
+bool DirectionComponent::isLocked()
+{
+	return isLocked_;
+}
+
+void DirectionComponent::setLocked(bool locked)
+{
+	isLocked_ = locked;
 }
 
 EntityId DirectionComponent::getId() const {

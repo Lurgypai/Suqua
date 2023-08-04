@@ -34,6 +34,17 @@ Scene::~Scene() {};
 /*
 * It might be good to add an optimization that doesn't store inputs if the networkInputDelay is 0.
 */
+void Scene::doInputs(Game& game) {
+	//apply immediately
+	for (auto&& [entityId, inputId] : entityInputs) {
+		Controller c = game.getInputDevice(inputId).getControllerState();
+		ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(entityId);
+		cont->setController(c);
+	}
+
+	//storeInputs(game);
+	//applyInputs(game);
+}
 
 void Scene::storeInputs(Game& game) {
 	for (auto&& [entityId, inputId] : entityInputs) {
@@ -95,6 +106,9 @@ void Scene::drawScene(const RenderSystem& render) const {
 	GLRenderer::setCamera(camId);
 	if (EntitySystem::Contains<RenderComponent>()) {
 		for (auto&& entity : entities) {
+			auto baseComp = EntitySystem::GetComp<EntityBaseComponent>(entity);
+			if (!baseComp->isActive) continue;
+
 			RenderComponent* renderComp = EntitySystem::GetComp<RenderComponent>(entity);
 			if (renderComp) {
 				render.draw(*renderComp);

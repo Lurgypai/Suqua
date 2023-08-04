@@ -14,6 +14,7 @@ public:
 
 	RenderComponent(EntityId id_ = 0);
 	RenderComponent(const RenderComponent & other);
+	RenderComponent(RenderComponent&& other);
 	
 	RenderComponent & operator=(const RenderComponent & other);
 	

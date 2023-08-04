@@ -10,7 +10,19 @@ public:
 	EntityId getId() const;
 
 	EntityId parentId;
-	Vec2f offset;
+	Vec2f baseOffset;
+
+	enum class OffsetMode {
+		none, // the effected offset isn't used
+		cardinal, // flip on up down left right depending on dir
+		cardinal_left_right, 
+		cardinal_up_down,
+		radial // rotate around depending on dir
+	};
+
+	OffsetMode offsetMode;
+	// offset effected by the offset mode
+	Vec2f effectedOffset;
 
 	void update();
 private:

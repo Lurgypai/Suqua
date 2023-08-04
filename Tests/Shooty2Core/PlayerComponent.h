@@ -14,7 +14,6 @@ public:
 
 	enum class State : uint32_t {
 		idle,
-		walking
 	};
 
 	PlayerComponent(EntityId id_ = 0);
@@ -32,8 +31,6 @@ private:
 
 	void beginIdle();
 	void idle_();
-	void beginWalking();
-	void walking_();
 };
 
 inline PlayerComponent::State PlayerComponent::getPlayerState() const

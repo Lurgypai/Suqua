@@ -182,7 +182,7 @@ template<typename T>
 void Vec2<T>::angle(float newAngle) {
 	float m = magn();
 	x = std::cos(newAngle) * m;
-	y = std::cos(newAngle) * m;
+	y = std::sin(newAngle) * m;
 }
 
 template<typename T>

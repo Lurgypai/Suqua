@@ -18,6 +18,11 @@ public:
 	void resetDelay();
 	Vec2i getAnimation(const std::string& tag) const;
 	std::string getCurrentAnimationId() const;
+	bool animationIsFinished() const;
+	bool hasAnimation(const std::string& tag) const;
+
+	void setColorOverlay(const Color& c);
+	void setOverlayAmount(float a);
 
 	void setHorizontalFlip(bool horizFlip);
 
@@ -29,14 +34,20 @@ public:
 	float speed;
 private:
 	struct Frame {
-		Sprite s;
+		std::string textureTag;
 		AABB obj;
 		int duration;
 	};
+	ImgData data;
 	std::vector<Frame> frames;
 	std::unordered_map<std::string, Vec2i> animations;
 	Vec2i currentAnimation;
 	std::string currentAnimationId;
 	int currentFrame;
 	int currentTime;
+
+	bool horizontalFlip;
+	bool verticalFlip;
+
+	bool animationIsFinished_;
 };

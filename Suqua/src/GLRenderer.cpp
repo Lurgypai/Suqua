@@ -47,6 +47,7 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_) {
 	glGenVertexArrays(1, &PRIMITIVE_VAO);
 	glGenVertexArrays(1, &IMG_VAO);
 	glGenVertexArrays(1, &SCREEN_VAO);
+	glGenVertexArrays(1, &CIRCLE_VAO);
 	glGenBuffers(1, &ImgDataBuffer);
 	glGenBuffers(1, &VBO);
 
@@ -66,7 +67,8 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_) {
 		{Folder + "shaders/image.vert", Folder + "shaders/text.frag"},
 		{Folder + "shaders/basic.vert", Folder + "shaders/basic.frag"},
 		{Folder + "shaders/particle.vert", Folder + "shaders/particle.frag"},
-		{Folder + "shaders/primitive.vert", Folder + "shaders/primitive.frag"}
+		{Folder + "shaders/primitive.vert", Folder + "shaders/primitive.frag"},
+		{Folder + "shaders/circle.vert", Folder + "shaders/circle.frag"}
 		}, &DefaultShaders[0]);
 	GLRenderer::GetShaderRef(DefaultShaders[ImageShader]).use();
 	GLRenderer::GetShaderRef(DefaultShaders[ImageShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
@@ -76,6 +78,9 @@ void GLRenderer::Init(SDL_Window * window_, Vec2i windowRes_) {
 	GLRenderer::GetShaderRef(DefaultShaders[ParticleShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
 	GLRenderer::GetShaderRef(DefaultShaders[PrimitiveShader]).use();
 	GLRenderer::GetShaderRef(DefaultShaders[PrimitiveShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
+	GLRenderer::GetShaderRef(DefaultShaders[CircleShader]).use();
+	GLRenderer::GetShaderRef(DefaultShaders[CircleShader]).uniform2f("windowRes", windowRes.x, windowRes.y);
+
 
 	//generate texture atlas framebuffer
 	textureAtlas = std::make_unique<Framebuffer>();
@@ -128,6 +133,7 @@ void GLRenderer::LoadTexture(const std::string& filePath, const std::string& tag
 	}
 
 	ImgData drawData{
+		Color{1.0, 1.0, 1.0, 1.0},
 		textureAtlasPos,
 		Vec2f{static_cast<float>(w), static_cast<float>(h)},
 		Vec2f{0, 0},
@@ -175,6 +181,7 @@ void GLRenderer::DrawTextureAtlas() {
 	Vec2f atlasRes = textureAtlas->getTexture(0).res;
 
 	ImgData drawData{
+	Color{1.0, 1.0, 1.0, 1.0},
 	Vec2f{0, 0},
 	Vec2f{atlasRes.x, atlasRes.y},
 	Vec2f{0, 0},
@@ -409,6 +416,43 @@ void GLRenderer::DrawFilledPrimitives(const std::vector<Primitive>& primitives) 
 	}
 }
 
+
+void GLRenderer::DrawCircle(const Vec2f& pos, float depth, float r, const Color& color) {
+	/*
+	
+	GLRenderer::SetDefShader(CircleShader);
+
+	Camera& cam = cameras[currentCam];
+
+	glViewport(0, 0, cam.res.x, cam.res.y);
+	glBindVertexArray(CIRCLE_VAO);
+
+	currentShader->use();
+	currentShader->uniform2f("camPos", cam.pos.x, cam.pos.y);
+	currentShader->uniform2i("camRes", cam.res.x, cam.res.y);
+	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
+	currentShader->uniform1f("depth", depth);
+	currentShader->uniform4f("Color", color.r, color.g, color.b, color.a);
+	currentShader->uniform1f("Radius", r);
+	currentShader->uniform2f("Position", pos.x, pos.y);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	*/
+
+	constexpr int CirclePoints = 30;
+	Primitive p;
+	p.color = color;
+	p.depth = depth;
+	p.points.resize(CirclePoints);
+	for (int i = 0; i != CirclePoints; ++i) {
+		Vec2f offset{ r, 0 };
+		offset.angle(i * ((2 * 3.1415926535898) / CirclePoints));
+		p.points[i] = pos + offset;
+	}
+
+	DrawPrimitive(p);
+}
+
 void GLRenderer::Swap() {
 	SDL_GL_SwapWindow(window);
 }
@@ -549,6 +593,7 @@ SDL_Window* GLRenderer::window{nullptr};
 unsigned int GLRenderer::SCREEN_VAO{};
 unsigned int GLRenderer::IMG_VAO{};
 unsigned int GLRenderer::PRIMITIVE_VAO{};
+unsigned int GLRenderer::CIRCLE_VAO{};
 unsigned int GLRenderer::VBO{};
 unsigned int GLRenderer::ImgDataBuffer{};
 std::vector<Camera> GLRenderer::cameras{};
@@ -556,7 +601,7 @@ int GLRenderer::currentCam{};
 Vec2i GLRenderer::windowRes{};
 std::unordered_map<unsigned int, Shader> GLRenderer::shaders{};
 Shader * GLRenderer::currentShader{nullptr};
-int GLRenderer::DefaultShaders[5]{};
+int GLRenderer::DefaultShaders[6]{};
 ParticleSystem GLRenderer::particleSystem{};
 std::vector<unsigned int> GLRenderer::bufferedIds{};
 std::vector<Primitive> GLRenderer::primitives{};

@@ -13,6 +13,7 @@ public:
 	static int SuquaInit(const std::string& windowName, const std::string& settings, ModeType mode_);
 	static void RunGame(Game& game);
 	static CamId getDebugCamId();
+	static void DrawConsole();
 private:
 	static CamId debugCamId;
 	static ModeType mode;

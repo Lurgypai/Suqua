@@ -9,6 +9,7 @@ public:
 	Sprite(const std::string &texture_tag);
 	virtual ~Sprite() override;
 
+	Color getColorOverlay() const;
 	Vec2f getImgRes() const;
 	Vec2f getPos() const;
 	Vec2f getImgOffset() const;
@@ -17,8 +18,10 @@ public:
 	Vec2f getScale() const;
 	float getAngle() const;
 	float getDepth() const;
+	float getOverlayAmount() const;
 	const ImgData & getImgData() const;
 
+	void setColorOverlay(const Color& c);
 	void setImgRes(Vec2f res_);
 	void setPos(Vec2f pos_) override;
 	void setImgOffset(Vec2f imgOffset_);
@@ -27,6 +30,7 @@ public:
 	void setScale(Vec2f scale_);
 	void setAngle(float angle_);
 	void setDepth(float depth_);
+	void setOverlayAmount(float a_);
 
 	int getChannels() const;
 

@@ -24,6 +24,12 @@ RenderComponent::RenderComponent(const RenderComponent & other) :
 	}
 }
 
+RenderComponent::RenderComponent(RenderComponent&& other) :
+	id{ other.id },
+	offset{ other.offset },
+	sprite{ std::move(other.sprite) }
+{}
+
 RenderComponent & RenderComponent::operator=(const RenderComponent & other) {
 	id = other.id;
 	offset = other.offset;

@@ -46,10 +46,10 @@ int SuquaLib::SuquaInit(const std::string& windowName, const std::string& settin
 			return 1;
 		}
 
-		DebugIO::startDebug("suqua/fonts/consolas_0.png", "suqua/fonts/consolas.fnt");
-		debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowRes.x, windowRes.y }, .5 });
-
 		GLRenderer::Init(window, windowRes);
+		DebugIO::startDebug("suqua/fonts/consolas.fnt");
+		debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowRes.x, windowRes.y }, .5 });
+		GLRenderer::LoadTexture("suqua/fonts/consolas_0.png", "debug_font");
 	}
 	if (mode & Mode::network) {
 		enet_initialize();
@@ -64,6 +64,11 @@ void SuquaLib::RunGame(Game& game) {
 
 CamId SuquaLib::getDebugCamId() {
 	return debugCamId;
+}
+
+void SuquaLib::DrawConsole() {
+	GLRenderer::setCamera(debugCamId);
+	DebugIO::drawLines();
 }
 
 CamId SuquaLib::debugCamId{};

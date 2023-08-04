@@ -32,7 +32,12 @@ enum ControllerBits : ControllerState {
 class Controller {
 public:
 	Controller();
-	Controller(const Controller& other);
+	Controller(const Controller& other) = default;
+	Controller(Controller&& other) = default;
+
+	Controller& operator=(const Controller& other) = default;
+	Controller& operator=(Controller&& other) = default;
+
 	Controller(ControllerState state_, ControllerState prevState_);
 
     bool operator==(const Controller& other) const;
@@ -54,6 +59,8 @@ public:
 
 	Vec2i pointerPos;
 	int mouseScroll;
+	Vec2f stick1;
+	Vec2f stick2;
 private:
 	ControllerState state;
 	ControllerState prevState;

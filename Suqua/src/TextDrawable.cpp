@@ -30,6 +30,7 @@ void TextDrawable::draw() {
 		Character glyph = font.getCharacter(c);
 
 		ImgData data{
+			Color{1.0, 1.0, 1.0, 1.0},
 			Vec2f{ pos.x + (static_cast<float>(glyph.offset.x) * scale.x), pos.y + (static_cast<float>(glyph.offset.y) * scale.y)},	//objpos
 			Vec2f{512.0f, 256.0f},	//imgRes
 			Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},	//imgOffset
@@ -37,7 +38,8 @@ void TextDrawable::draw() {
 			{0.0f, 0.0f},	//origin
 			scale,	//scale
 			0.0f,	//angle
-			depth	//depth
+			depth,	//depth
+			0.0f	//a, how much the color overlay is applied
 		};
 		GLRenderer::DrawImage(data, "test_font");
 		pos.x += glyph.advance * scale.x;

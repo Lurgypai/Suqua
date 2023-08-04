@@ -11,7 +11,7 @@
 
 class DebugIO {
 public:
-	static void startDebug(std::string fontFile, std::string readFile);
+	static void startDebug(std::string fontFile);
 	static void openDebug();
 	static void closeDebug();
 	static void toggleDebug();
@@ -37,4 +37,6 @@ private:
 	static std::vector<std::string> lines;
 	static std::deque<std::string> console;
 	static std::string inputText;
+
+	static std::string fontImage;
 };

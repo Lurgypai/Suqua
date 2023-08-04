@@ -2,7 +2,8 @@
 
 EntityBaseComponent::EntityBaseComponent(EntityId id_) :
 	id{id_},
-	isDead{false}
+	isDead{false},
+	isActive{true}
 {}
 
 const EntityId EntityBaseComponent::getId() const {

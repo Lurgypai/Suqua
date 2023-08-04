@@ -1,6 +1,8 @@
 #pragma once
+#include "Color.h"
 
 struct ImgData {
+	Color colorOverlay;
 	Vec2f objPos;
 	Vec2i imgRes;
 	Vec2i imgOffset;
@@ -9,5 +11,6 @@ struct ImgData {
 	Vec2f scale;
 	float angle;
 	float depth;
-	float pad[2];
+	float a;
+	float pad0[1];
 };

@@ -5,7 +5,10 @@
 
 class EntityBaseComponent {
 public:
+	// cleaned up after this is set
 	bool isDead;
+	// do updates
+	bool isActive;
 
 	EntityBaseComponent(EntityId id_ = 0);
 

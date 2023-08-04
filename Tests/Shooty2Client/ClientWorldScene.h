@@ -1,10 +1,11 @@
 #pragma once
 #include "Scene.h"
 #include "PhysicsSystem.h"
+#include "../Shooty2Core/CombatSystem.h"
 
 class ClientWorldScene : public Scene {
 public:
-	ClientWorldScene(SceneId id_, Scene::FlagType flags_, InputDeviceId playerInput_);
+	ClientWorldScene(SceneId id_, Scene::FlagType flags_);
 	// Inherited via Scene
 	virtual void load(Game& game) override;
 	virtual void physicsStep(Game& game) override;
@@ -20,7 +21,12 @@ private:
 	EntityId myGunId;
 
 	InputDeviceId playerInput;
+	InputDeviceId gunInput;
 	PhysicsSystem physics;
+	CombatSystem combat;
 
 	Framebuffer screenBuffer;
+
+	InputDeviceId dummyAI;
+	EntityId dummy;
 };

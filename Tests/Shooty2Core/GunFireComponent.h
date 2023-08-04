@@ -7,8 +7,8 @@ public:
 	GunFireComponent(EntityId id_ = 0);
 	EntityId getId() const;
 
-	void fire(Scene& currScene);
-	void update(Scene& currScene);
+	void fire(Scene* currScene);
+	void update(Scene* currScene);
 private:
 	float offset;
 	EntityId id;

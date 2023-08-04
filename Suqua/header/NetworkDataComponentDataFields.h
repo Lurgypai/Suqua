@@ -23,3 +23,15 @@ namespace PhysicsData {
 	constexpr NetworkDataComponent::DataId XRES = 11;			//float
 	constexpr NetworkDataComponent::DataId YRES = 12;			//float
 }
+
+namespace MovementData {
+	constexpr NetworkDataComponent::DataId MOVE_SPEED = 13;
+}
+
+namespace LifeTimeData {
+	constexpr NetworkDataComponent::DataId LIFE_TIME = 14;
+}
+
+namespace HealthData {
+	constexpr NetworkDataComponent::DataId HEALTH = 15;			//uint32_t
+}

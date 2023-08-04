@@ -45,16 +45,16 @@ struct Camera {
 	void zoom(float scale) {
 		Vec2f center{ pos.x + (res.x / (2 * camScale)), pos.y + (res.y / (2 * camScale)) };
 		camScale += scale;
-		if (camScale < .1)
-			camScale = .1;
+		if (camScale < .1f)
+			camScale = .1f;
 		pos = { center.x - (static_cast<float>(res.x) / (2 * camScale)), center.y - (static_cast<float>(res.y) / (2 * camScale))};
 	}
 
 	void setZoom(float scale) {
 		Vec2f center{ pos.x + (res.x / (2 * camScale)), pos.y + (res.y / (2 * camScale)) };
 		camScale = scale;
-		if (camScale < .1)
-			camScale = .1;
+		if (camScale < .1f)
+			camScale = .1f;
 		pos = { center.x - (static_cast<float>(res.x) / (2 * camScale)), center.y - (static_cast<float>(res.y) / (2 * camScale)) };
 	}
 
@@ -90,7 +90,8 @@ enum DefShader {
 	TextShader = 1,
 	FullscreenShader = 2,
 	ParticleShader = 3,
-	PrimitiveShader = 4
+	PrimitiveShader = 4,
+	CircleShader = 5,
 };
 
 class GLRenderer {
@@ -128,6 +129,9 @@ public:
 	static void DrawFilledPrimitive(const Primitive& p);
 	static void DrawFilledPrimitives(const std::vector<Primitive>& p);
 
+	//INCOMPLETE
+	static void DrawCircle(const Vec2f& pos, float depth, float r, const Color& c);
+
 	//Swap
 	static void Swap();
 	//Get Shader based on its stored id.
@@ -163,6 +167,7 @@ private:
 	static unsigned int IMG_VAO;
 	static unsigned int SCREEN_VAO;
 	static unsigned int PRIMITIVE_VAO;
+	static unsigned int CIRCLE_VAO;
 	static unsigned int VBO;
 	static unsigned int ImgDataBuffer;
 	static std::vector<Camera> cameras;
@@ -170,7 +175,7 @@ private:
 	static Vec2i windowRes;
 	static std::unordered_map<unsigned int, Shader> shaders;
 	static Shader * currentShader;
-	static int DefaultShaders[5];
+	static int DefaultShaders[6];
 	static std::vector<unsigned int> bufferedIds;
 	static std::vector<Primitive> primitives;
 

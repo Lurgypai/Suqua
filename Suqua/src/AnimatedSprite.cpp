@@ -1,6 +1,7 @@
 #include "AnimatedSprite.h"
 #include "DebugIO.h"
 #include "nlohmann/json.hpp"
+#include "GLRenderer.h"
 #include <fstream>
 
 #include <iostream>
@@ -10,7 +11,13 @@ using json = nlohmann::json;
 AnimatedSprite::AnimatedSprite(const std::string& texture_tag, const std::string& json_path) :
 	currentTime{ 0 },
 	speed{1.0f},
-	looping{false}
+	looping{false},
+	horizontalFlip{false},
+	verticalFlip{false},
+	animationIsFinished_{false},
+	currentFrame{0},
+	currentAnimationId{},
+	data{ Color{1.0f, 1.0f, 1.0f, 1.0f}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {1.0, 1.0}, 0, 0, 0.0f }
 {
 	std::ifstream file{ json_path };
 	if (!file.good()) {
@@ -27,13 +34,10 @@ AnimatedSprite::AnimatedSprite(const std::string& texture_tag, const std::string
 	for (int i = 0; i != frameData.size(); ++i) {
 		json frame = frameData[i];
 		frames.emplace_back(Frame{
-			Sprite{texture_tag},
+			texture_tag,
 			AABB{{frame["frame"]["x"], frame["frame"]["y"]}, {frame["frame"]["w"], frame["frame"]["h"]}},
 			frame["duration"]
 			});
-		Frame& f = frames.back();
-		f.s.setObjRes(f.obj.res);
-		f.s.setImgOffset(f.obj.pos);
 	}
 	json animationData = data["meta"]["frameTags"];
 	for (int i = 0; i != animationData.size(); ++i) {
@@ -52,8 +56,8 @@ AnimatedSprite::AnimatedSprite(const std::string& texture_tag, const std::string
 			currentFrame = currentAnimation.x;
 		}
 	}
-	//load animations
 }
+
 
 void AnimatedSprite::update(int millis) {
 	currentTime += millis * speed;
@@ -64,7 +68,10 @@ void AnimatedSprite::update(int millis) {
 		++currentFrame;
 		if (currentFrame == currentAnimation.y) {
 			if (looping) currentFrame = currentAnimation.x;
-			else currentFrame = currentAnimation.y - 1;
+			else {
+				currentFrame = currentAnimation.y - 1;
+				animationIsFinished_ = true;
+			}
 		}
 		currFrame = &frames.at(currentFrame);
 	}
@@ -76,6 +83,7 @@ int AnimatedSprite::getFrame() const {
 
 void AnimatedSprite::setFrame(int frame) {
 	currentFrame = frame;
+	animationIsFinished_ = false;
 }
 
 void AnimatedSprite::addAnimation(const std::string& tag, int beginFrame, int endFrame) {
@@ -87,6 +95,7 @@ void AnimatedSprite::setAnimation(const std::string& tag) {
 	currentAnimation = animations.at(tag);
 	currentFrame = currentAnimation.x;
 	currentTime = 0;
+	animationIsFinished_ = false;
 }
 
 void AnimatedSprite::resetDelay() {
@@ -101,10 +110,18 @@ std::string AnimatedSprite::getCurrentAnimationId() const {
 	return currentAnimationId;
 }
 
+bool AnimatedSprite::animationIsFinished() const
+{
+	return animationIsFinished_;
+}
+
+
+bool AnimatedSprite::hasAnimation(const std::string& tag) const {
+	return animations.find(tag) != animations.end();
+}
+
 void AnimatedSprite::setHorizontalFlip(bool horizFlip) {
-	for (auto& f : frames) {
-		f.s.horizontalFlip = horizFlip;
-	}
+	horizontalFlip = horizFlip;
 }
 
 IDrawable* AnimatedSprite::clone() {
@@ -112,11 +129,26 @@ IDrawable* AnimatedSprite::clone() {
 }
 
 void AnimatedSprite::draw() {
-	frames.at(currentFrame).s.draw();
+	auto frame = frames.at(currentFrame);
+	auto textureTag = frame.textureTag;
+	data.objRes = frame.obj.res;
+	data.imgOffset = frame.obj.pos;
+
+	int mult = horizontalFlip ? -1 : 1;
+	data.objRes.x = std::abs(data.objRes.x) * mult;
+	mult = verticalFlip ? -1 : 1;
+	data.objRes.y = std::abs(data.objRes.y) * mult;
+	GLRenderer::DrawImage(data, textureTag);
 }
 
 void AnimatedSprite::setPos(Vec2f pos) {
-	for (auto& f : frames) {
-		f.s.setPos(pos);
-	}
+	data.objPos = pos;
+}
+
+void AnimatedSprite::setColorOverlay(const Color& c) {
+	data.colorOverlay = c;
+}
+
+void AnimatedSprite::setOverlayAmount(float a) {
+	data.a = a;
 }

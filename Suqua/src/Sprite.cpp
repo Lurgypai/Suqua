@@ -7,7 +7,7 @@
 
 Sprite::Sprite(const std::string &texture_tag_) :
 	texture_tag{texture_tag_},
-	data{ {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {1.0, 1.0}, 0, 0 },
+	data{ Color{1.0f, 1.0f, 1.0f, 1.0f}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {1.0, 1.0}, 0, 0, 0.0f },
 	horizontalFlip{false},
 	verticalFlip{false}
 {
@@ -17,6 +17,11 @@ Sprite::Sprite(const std::string &texture_tag_) :
 }
 
 Sprite::~Sprite() {}
+
+Color Sprite::getColorOverlay() const
+{
+	return data.colorOverlay;
+}
 
 Vec2f Sprite::getImgRes() const {
 	return data.imgRes;
@@ -54,6 +59,15 @@ const ImgData & Sprite::getImgData() const {
 	return data;
 }
 
+float Sprite::getOverlayAmount() const
+{
+	return data.a;
+}
+
+void Sprite::setColorOverlay(const Color& c) {
+	data.colorOverlay = c;
+}
+
 void Sprite::setImgRes(Vec2f res_) {
 	data.imgRes = res_;
 }
@@ -84,6 +98,12 @@ void Sprite::setAngle(float angle_) {
 
 void Sprite::setDepth(float depth_) {
 	data.depth = depth_;
+}
+
+void Sprite::setOverlayAmount(float a_) {
+	if (a_ > 1.0f) a_ = 1.0f;
+	if (a_ < 0.0f) a_ = 0.0f;
+	data.a = a_;
 }
 
 int Sprite::getChannels() const {

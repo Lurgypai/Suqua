@@ -8,6 +8,7 @@ uniform bool flip_vertically = true;
 
 struct ImgData
 {
+    vec4 colorOverlay;
 	vec2 objPos;
 	ivec2 imgRes;
 	ivec2 imgOffset;
@@ -16,6 +17,7 @@ struct ImgData
 	vec2 scale;
 	float angle;
     float depth;
+    float a;
 };
 
 layout (std140, binding = 0) buffer ImgDataBuffer {
@@ -25,9 +27,13 @@ layout (std140, binding = 0) buffer ImgDataBuffer {
 uniform vec2 windowRes;
 
 out vec2 FragCoord;
+out vec4 colorOverlay;
+out float a;
 
 void main() {
 	ImgData dat = data[ gl_VertexID / 6];
+    a = dat.a;
+    colorOverlay = dat.colorOverlay;
 	
 	int id = abs((gl_VertexID % 6) - 3);
     
