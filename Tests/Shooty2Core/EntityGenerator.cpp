@@ -115,12 +115,13 @@ std::vector<EntityId> EntityGenerator::SpawnBasicBullet(Scene& scene, const Vec2
 }
 
 std::vector<EntityId> EntityGenerator::SpawnPlayer(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner) {
-	auto entities = scene.addEntities(2);
+	auto entities = scene.addEntities(1);
 	EntityId playerId = entities[0];
 	MakeLivingEntity(playerId, pos, { 6, 4 }, 50.0f, TeamId::player, { -1, -11 }, { 8, 13 }, 100, owner);
 
-	EntityId gunId = entities[1];
-	MakeGun(gunId, playerId, { 3, -5 }, 13, owner);
+	auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(playerId);
+	physicsComp->setWeight(120.0);
+	physicsComp->setWeightless(false);
 	return entities;
 }
 
