@@ -12,7 +12,7 @@ ClientPlayingScene::ClientPlayingScene(SceneId id_, FlagType flags_, InputDevice
 void ClientPlayingScene::load(Game& game) {
 	PlayingScene::load(game);
 
-	GLRenderer::LoadTexture("stabbyman.png", "stabbyman");
+	GLRenderer::LoadTexture("stabbyman_full_anims.png", "stabbyman");
 
 	EntitySystem::MakeComps<RenderComponent>(1, &platformId);
 	RenderComponent* render = EntitySystem::GetComp<RenderComponent>(platformId);

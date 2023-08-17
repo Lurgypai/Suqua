@@ -14,8 +14,8 @@ using namespace PlayerData;
 
 PlayerComponent::PlayerComponent(EntityId id_) :
 	id{ id_ },
-	jumpSquatMax{ 8 },
-	landingMax{ 8 },
+	jumpSquatMax{ 32 },
+	landingMax{ 24 },
 	jumpVel{ 350 },
 	shortHopVel{ 220 },
 	moveSpeed{ 80 },

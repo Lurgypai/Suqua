@@ -11,7 +11,7 @@ PlayerGFXComponent::PlayerGFXComponent(EntityId id_) :
 		if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
 			EntitySystem::MakeComps<RenderComponent>(1, &id);
 			auto* render = EntitySystem::GetComp<RenderComponent>(id);
-			render->loadDrawable<AnimatedSprite>("stabbyman", "stabbyman.json");
+			render->loadDrawable<AnimatedSprite>("stabbyman", "stabbyman_full_anims.json");
 			render->offset = { 31, 28 };
 		}
 	}
