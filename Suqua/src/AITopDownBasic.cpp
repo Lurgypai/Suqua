@@ -20,20 +20,19 @@ AITopDownBasic::AITopDownBasic(InputDeviceId id_) :
 {}
 
 Controller AITopDownBasic::getControllerState() {
-	controller.set(ControllerBits::LEFT, randInt(0, 1));
-	controller.set(ControllerBits::RIGHT, randInt(0, 1));
-	controller.set(ControllerBits::UP, randInt(0, 1));
-	controller.set(ControllerBits::DOWN, randInt(0, 1));
+	return controller;
+}
 
+void AITopDownBasic::update() {
 	if (stateTick % 20 == 0) {
 		EntityId target = findTarget();
 		switch (state) {
 		case AIState::idle:
 		case AIState::walking:
 			if (target != 0) {
-			state = AIState::following;
-			stateTick = 0;
-			targetId = target;
+				state = AIState::following;
+				stateTick = 0;
+				targetId = target;
 			} break;
 		case AIState::following:
 		case AIState::attacking:
@@ -56,7 +55,7 @@ Controller AITopDownBasic::getControllerState() {
 			controller.stick1 = Vec2f{ 0.3f, 0.0f };
 			constexpr float PI = 3.1415926535898;
 			float randDir = randFloat(0, PI * 2);
-			controller.stick1.angle(randDir );
+			controller.stick1.angle(randDir);
 		}
 		break;
 	case AIState::walking:
@@ -83,7 +82,7 @@ Controller AITopDownBasic::getControllerState() {
 			controller.stick1 = Vec2f{ 0, 0 };
 		}
 
-		} break;
+	} break;
 	case AIState::attacking:
 		auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(entityId);
 		auto targetPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(targetId);
@@ -102,11 +101,9 @@ Controller AITopDownBasic::getControllerState() {
 	}
 
 	++stateTick;
-
-	return controller;
 }
 
-void AITopDownBasic::setTargetTeams(std::vector<TeamId> targetTeams_) {
+void AITopDownBasic::setTargetTeams(std::vector<TeamComponent::TeamId> targetTeams_) {
 	targetTeams = targetTeams_;
 }
 

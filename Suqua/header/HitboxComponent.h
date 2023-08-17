@@ -17,7 +17,7 @@ public:
 	void activate();
 	void deactivate();
 
-	TeamId getTeamId() const;
+	TeamComponent::TeamId getTeamId() const;
 
 	Vec2f offset;
 	AABB hitbox;

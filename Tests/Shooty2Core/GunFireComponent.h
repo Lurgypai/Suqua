@@ -9,7 +9,9 @@ public:
 
 	void fire(Scene* currScene);
 	void update(Scene* currScene);
-private:
+	Vec2f getFiringPos();
+
 	float offset;
+private:
 	EntityId id;
 };

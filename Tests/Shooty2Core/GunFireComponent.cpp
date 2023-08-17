@@ -13,6 +13,7 @@
 #include "BasicDamageCalculator.h"
 #include "EntityBaseComponent.h"
 #include "HealthComponent.h"
+#include "EntityGenerator.h"
 
 GunFireComponent::GunFireComponent(EntityId id_) :
 	id{ id_ },
@@ -27,47 +28,20 @@ EntityId GunFireComponent::getId() const {
 // why ref go away?
 void GunFireComponent::fire(Scene* currScene)
 {
-	EntityId bulletId = currScene->addEntities(1)[0];
-	EntitySystem::MakeComps<PhysicsComponent>(1, &bulletId);
-	EntitySystem::MakeComps<RenderComponent>(1, &bulletId);
-	EntitySystem::MakeComps<HitboxComponent>(1, &bulletId);
-	EntitySystem::MakeComps<TeamComponent>(1, &bulletId);
-	EntitySystem::MakeComps<NetworkOwnerComponent>(1, &bulletId);
-	EntitySystem::MakeComps<LifeTimeComponent>(1, &bulletId);
-	EntitySystem::MakeComps<DamageComponent>(1, &bulletId);
 
-	auto render = EntitySystem::GetComp<RenderComponent>(bulletId);
-	render->loadDrawable<RectDrawable>(RectDrawable{ Color{0.0, 1.0, 0.0, 1.0}, true, -0.1, AABB{{0, 0 }, {4, 4}} });
+	auto firingPos = getFiringPos();
+	auto bullets = EntityGenerator::SpawnBasicBullet(*currScene, firingPos, NetworkOwnerComponent::Owner::local);
+	EntityId bulletId = bullets[0];
 
 	auto directionComp = EntitySystem::GetComp<DirectionComponent>(id);
-
 	Vec2f directionVector{ 1.0, 0.0 };
 	directionVector.angle(directionComp->getDir());
+	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(bulletId);
+	physicsComp->setVel(directionVector * 130);
 
-	auto physics = EntitySystem::GetComp<PhysicsComponent>(bulletId);
-	physics->setVel(directionVector * 120);
-	physics->setCollideable(false);
-
-	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-
-	Vec2f offset{ 1.0, 0.0 };
-	offset.angle(directionComp->getDir());
-	physics->teleport(posComp->getPos() + (directionVector * 13));
-	
-	auto hitComp = EntitySystem::GetComp<HitboxComponent>(bulletId);
-	hitComp->hitbox = { {0, 0}, {4, 4} };
-
-	auto teamComponent = EntitySystem::GetComp<TeamComponent>(bulletId);
-	teamComponent->teamId = 0;
-
-	auto netOwnerComp = EntitySystem::GetComp<NetworkOwnerComponent>(bulletId);
-	netOwnerComp->owner = NetworkOwnerComponent::Owner::local;
-
-	auto lifeTimeComp = EntitySystem::GetComp<LifeTimeComponent>(bulletId);
-	lifeTimeComp->setRemainingLife(480);
-
-	auto damageComp = EntitySystem::GetComp<DamageComponent>(bulletId);
-	damageComp->setDamageCalculator<BasicDamageCalculator>(10);
+	EntitySystem::MakeComps<RenderComponent>(1, &bulletId);
+	auto render = EntitySystem::GetComp<RenderComponent>(bulletId);
+	render->loadDrawable<RectDrawable>(RectDrawable{ Color{0.0, 1.0, 0.0, 1.0}, true, -0.1, AABB{{0, 0 }, {4, 4}} });
 }
 
 void GunFireComponent::update(Scene* currScene)
@@ -81,4 +55,13 @@ void GunFireComponent::update(Scene* currScene)
 			fire(currScene);
 		}
 	}
+}
+
+Vec2f GunFireComponent::getFiringPos() {
+	auto directionComp = EntitySystem::GetComp<DirectionComponent>(id);
+	Vec2f directionVector{ 1.0, 0.0 };
+	directionVector.angle(directionComp->getDir());
+	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
+	auto firingPos = posComp->getPos() + (directionVector * offset);
+	return firingPos;
 }

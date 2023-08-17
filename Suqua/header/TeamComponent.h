@@ -1,12 +1,17 @@
 #pragma once
 #include "ComponentMacros.h"
 
-using TeamId = std::uint64_t;
-
 class TeamComponent {
 	CompMembers(TeamComponent);
 
+
 public:
+	enum class TeamId {
+	neutral,
+	player,
+	enemy,
+	};
+
 	TeamId teamId;
 };
 

@@ -105,6 +105,9 @@ private:
 	void cleanScenes();
 
 	void serverStep();
+	void clientStep();
+
+	void tickInputDevices();
 
 	Tick renderTick;
 	Tick gameTick;

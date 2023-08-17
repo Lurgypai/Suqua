@@ -9,6 +9,7 @@
 #include "DamageComponent.h"
 #include "BasicDamageCalculator.h"
 #include "HealthComponent.h"
+#include "NetworkOwnerComponent.h"
 
 BasicAttackComponent::BasicAttackComponent(EntityId id_) :
 	id{ id_ },
@@ -24,6 +25,7 @@ BasicAttackComponent::BasicAttackComponent(EntityId id_) :
 		EntitySystem::MakeComps<HitboxComponent>(1, &hitboxId);
 		EntitySystem::MakeComps<ParentComponent>(1, &hitboxId);
 		EntitySystem::MakeComps<DamageComponent>(1, &hitboxId);
+		EntitySystem::MakeComps<NetworkOwnerComponent>(1, &hitboxId);
 
 		auto hitboxComp = EntitySystem::GetComp<HitboxComponent>(hitboxId);
 		hitboxComp->collisionsMax = 1;
@@ -44,6 +46,8 @@ BasicAttackComponent::BasicAttackComponent(EntityId id_) :
 		damageComp->setDamageCalculator<BasicDamageCalculator>(30);
 
 		EntitySystem::GetComp<EntityBaseComponent>(hitboxId)->isActive = false;
+
+		EntitySystem::GetComp<NetworkOwnerComponent>(hitboxId)->owner = NetworkOwnerComponent::Owner::local;
 	}
 }
 

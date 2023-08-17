@@ -6,8 +6,9 @@ class AITopDownBasic : public InputDevice {
 public:
 	AITopDownBasic(InputDeviceId id_);
 	virtual Controller getControllerState() override;
+	virtual void update() override;
 
-	void setTargetTeams(std::vector<TeamId> targetTeams_);
+	void setTargetTeams(std::vector<TeamComponent::TeamId> targetTeams_);
 
 	enum class AIState {
 		idle,
@@ -26,7 +27,7 @@ private:
 	// the controller is copied by the getControllerState function
 	Controller controller;
 
-	std::vector<TeamId> targetTeams;
+	std::vector<TeamComponent::TeamId> targetTeams;
 	EntityId targetId;
 	AIState state;
 

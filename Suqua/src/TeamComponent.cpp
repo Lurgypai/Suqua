@@ -2,5 +2,5 @@
 
 TeamComponent::TeamComponent(EntityId id_) :
 	id{id_},
-	teamId{ 0 }
+	teamId{ TeamId::neutral }
 {}

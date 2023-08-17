@@ -57,36 +57,43 @@ void ClientWorldScene::load(Game& game)
 	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 
-	gunInput = game.loadInputDevice<IDKeyboardMouse>();
-	static_cast<IDKeyboardMouse&>(game.getInputDevice(gunInput)).camera = camId;
-
-	myPlayerId = addEntities(1)[0];
-	myGunId = addEntities(1)[0];
-	EntityGenerator::MakePlayer(myPlayerId, myGunId, 1);
+	auto playerAndGunId = EntityGenerator::SpawnPlayer(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
+	myPlayerId = playerAndGunId[0];
 	EntitySystem::MakeComps<CharacterGFXComponent>(1, &myPlayerId);
 	EntitySystem::GetComp<CharacterGFXComponent>(myPlayerId)->loadSpriteSheet("hero", "stranded/Hero/Hero/Hero.json", Vec2f{ -13, -24 });
 	EntitySystem::GetComp<CharacterGFXComponent>(myPlayerId)->setHasUpDown(true);
-	// EntitySystem::GetComp<CharacterGFXComponent>(myPlayerId)->loadSpriteSheet("enemy:warrior", "stranded/Enemies/Warrior/warrior.json", Vec2f{ -13, -24 });
 	EntitySystem::MakeComps<OnHitComponent>(1, &myPlayerId);
-	EntitySystem::MakeComps<GunGFXComponent>(1, &myGunId);
-	addEntityInputs({ {myPlayerId, playerInput}, {myGunId, gunInput} });
-	EntitySystem::GetComp<PhysicsComponent>(myPlayerId)->teleport({ 64, 64 });
 
-	
+	EntitySystem::MakeComps<RespawnComponent>(1, &myPlayerId);
+	EntitySystem::GetComp<RespawnComponent>(myPlayerId)->spawnPos = { 720 / 4, 405 / 4 };
+
+	myGunId = playerAndGunId[1];
+	EntitySystem::MakeComps<GunGFXComponent>(1, &myGunId);
+	addEntityInputs({ {myPlayerId, playerInput}, {myGunId, playerInput} });
+
+
 	// dummy ai
-	
-	dummy = addEntities(1)[0];
-	EntityGenerator::MakeEnemy(dummy, 2);
+	auto dummyEntities = EntityGenerator::SpawnEnemy(*this, { 720 / 2, 405 / 2 }, NetworkOwnerComponent::Owner::local);
+	dummy = dummyEntities[0];
 	EntitySystem::MakeComps<CharacterGFXComponent>(1, &dummy);
 	EntitySystem::GetComp<CharacterGFXComponent>(dummy)->loadSpriteSheet("enemy:warrior", "stranded/Enemies/Warrior/warrior.json", Vec2f{ -13, -24 });
 	EntitySystem::MakeComps<OnHitComponent>(1, &dummy);
+
+	EntitySystem::MakeComps<RespawnComponent>(1, &dummy);
+	EntitySystem::GetComp<RespawnComponent>(dummy)->spawnPos = { 720 / 2, 405 / 2 };
+
+
 	dummyAI = game.loadInputDevice<AITopDownBasic>();
 	addEntityInputs({ { dummy, dummyAI } });
 	auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
 	ai.entityId = dummy;
-	ai.setTargetTeams({ 1 });
-	EntitySystem::GetComp<PhysicsComponent>(dummy)->teleport({ 720 / 2, 405 / 2 });
+	ai.setTargetTeams({ TeamComponent::TeamId::player });
+
 	
+	EntityId dummyGun = addEntities(1)[0];
+	EntityGenerator::MakeGun(dummyGun, dummy, { 3, -5 }, 13, NetworkOwnerComponent::Owner::local);
+	EntitySystem::MakeComps<GunGFXComponent>(1, &dummyGun);
+	addEntityInputs({ {{dummyGun, dummyAI} } });
 	
 
 	// load level
@@ -96,19 +103,19 @@ void ClientWorldScene::load(Game& game)
 
 void ClientWorldScene::physicsStep(Game& game)
 {
-	Updater::UpdateAll<TopDownMoverComponent>();
-	Updater::UpdateAll<PlayerComponent>();
-	Updater::UpdateAll<BasicAttackComponent>();
-	Updater::UpdateAll<ParentComponent>();
-	Updater::UpdateAll<AimToLStickComponent>();
-	Updater::UpdateAll<GunFireComponent>(this);
+	Updater::UpdateOwned<TopDownMoverComponent>();
+	Updater::UpdateOwned<PlayerComponent>();
+	Updater::UpdateOwned<BasicAttackComponent>();
+	Updater::UpdateOwned<ParentComponent>();
+	Updater::UpdateOwned<AimToLStickComponent>();
+	Updater::UpdateOwned<GunFireComponent>(this);
 	Updater::UpdateAll<HurtboxComponent>();
-	Updater::UpdateAll<LifeTimeComponent>();
-	Updater::UpdateAll<HealthWatcherComponent>();
+	Updater::UpdateOwned<LifeTimeComponent>();
+	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateAll<RespawnComponent>();
 	Updater::UpdateAll<OnHitComponent>();
 
-	if(EntitySystem::Contains<HitboxComponent>()) Updater::UpdateAll<HitboxComponent>();
+	if(EntitySystem::Contains<HitboxComponent>()) Updater::UpdateOwned<HitboxComponent>();
 
 	combat.checkClientCollisions(&game.host);
 
@@ -118,8 +125,6 @@ void ClientWorldScene::physicsStep(Game& game)
 	auto& playerInputDevice = static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput));
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
 	playerInputDevice.entityPos = plrPhysicsComp->center();
-	auto& gunInputDevice = static_cast<IDKeyboardMouse&>(game.getInputDevice(gunInput));
-	gunInputDevice.entityPos = plrPhysicsComp->center();
 }
 
 void ClientWorldScene::renderUpdateStep(Game& game)
@@ -131,16 +136,27 @@ void ClientWorldScene::renderUpdateStep(Game& game)
 void ClientWorldScene::renderStep(Game& game)
 {
 	/* ---------- DEBUG LINES ----------- */
-	DebugIO::setLine(0, "Player ID: " + std::to_string(myPlayerId));
+	DebugIO::setLine(0, "Entity Count: " + std::to_string(EntitySystem::GetPool<EntityBaseComponent>().size()));
+	DebugIO::setLine(1, "Player ID: " + std::to_string(myPlayerId));
 
 	auto plrHealthComp = EntitySystem::GetComp<HealthComponent>(myPlayerId);
-	DebugIO::setLine(1, "Player Health: " + std::to_string(plrHealthComp->getHealth()));
+	DebugIO::setLine(2, "Player Health: " + std::to_string(plrHealthComp->getHealth()));
 
 
 	screenBuffer.bind();
 	glClearColor(78.0f / 255, 59.0f / 255, 61.0f / 255, 1.0f);
 	GLRenderer::Clear();
 	drawScene(game.getRender());
+
+	/*
+	auto gunPos = EntitySystem::GetComp<PositionComponent>(myGunId);
+	auto gunFireComp = EntitySystem::GetComp<GunFireComponent>(myGunId);
+	auto firingPos = gunFireComp->getFiringPos();
+	RectDrawable rect{ Color{1, 0, 0, 1}, true, -1.0f, {firingPos - Vec2f{0.5, 0.5}, {2, 2}}};
+	rect.draw();
+	rect = { Color{0.5f, 0, 0, 1}, true, -1.0f, {gunPos->getPos() - Vec2f{0.5, 0.5}, {2, 2}}};
+	rect.draw();
+	*/
 
 	/*
 	if(EntitySystem::Contains<HitboxComponent>())

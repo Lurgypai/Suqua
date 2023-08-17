@@ -108,6 +108,12 @@ Vec2f PhysicsComponent::center() {
 	return collider.center();
 }
 
+void PhysicsComponent::center(const Vec2f& center_) {
+	collider.center(center_);
+	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
+	posComp->setPos(collider.pos);
+}
+
 Vec2f PhysicsComponent::getRes() const {
 	return collider.res;
 }

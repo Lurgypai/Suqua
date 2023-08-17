@@ -24,6 +24,7 @@ public:
 	Vec2f position() const;
 
 	Vec2f center();
+	void center(const Vec2f& center_);
 
 	Vec2f getRes() const;
 	void setRes(const Vec2f & res_);

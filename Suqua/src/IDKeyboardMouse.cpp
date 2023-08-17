@@ -9,6 +9,10 @@ IDKeyboardMouse::IDKeyboardMouse(InputDeviceId id_) :
 {}
 
 Controller IDKeyboardMouse::getControllerState() {
+	return controller;
+}
+
+void IDKeyboardMouse::update() {
 	auto mouseState = SDL_GetMouseState(&controller.pointerPos.x, &controller.pointerPos.y);
 
 	bool leftClick = mouseState & SDL_BUTTON(SDL_BUTTON_LEFT);
@@ -39,10 +43,8 @@ Controller IDKeyboardMouse::getControllerState() {
 	if (controller[ControllerBits::DOWN]) controller.stick1.y += 1;
 	controller.stick1 = controller.stick1.norm();
 
-	controller.stick2 = {1, 0};
+	controller.stick2 = { 1, 0 };
 	auto mouseWorldPos = GLRenderer::screenToWorld(controller.pointerPos, camera);
 	auto delta = mouseWorldPos - entityPos;
 	controller.stick2.angle(delta.angle());
-
-	return controller;
 }

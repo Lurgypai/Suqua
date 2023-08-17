@@ -26,61 +26,58 @@ void CombatSystem::checkClientCollisions(Host* host) {
 
 
 	for (auto& ownerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
+
+		if (ownerComp.owner != NetworkOwnerComponent::Owner::local) continue;
+
 		// find the things that we control
-		if (ownerComp.owner == NetworkOwnerComponent::Owner::local) {
-			const auto hitComp = EntitySystem::GetComp<HitboxComponent>(ownerComp.getId());
-			const auto base = EntitySystem::GetComp<EntityBaseComponent>(ownerComp.getId());
+		const auto hitComp = EntitySystem::GetComp<HitboxComponent>(ownerComp.getId());
+		const auto base = EntitySystem::GetComp<EntityBaseComponent>(ownerComp.getId());
 
-			if (!base->isActive || base->isDead) continue;
+		if (!base->isActive || base->isDead) continue;
 
-			// try to hit others
-			if (hitComp) {
-				// find other hurtboxes and run collision
-				for (const auto& otherHurtComp : EntitySystem::GetPool<HurtboxComponent>()) {
+		// try to hit others
+		if (hitComp) {
+			// find other hurtboxes and run collision
+			for (const auto& otherHurtComp : EntitySystem::GetPool<HurtboxComponent>()) {
+				if (otherHurtComp.getId() == ownerComp.getId()) continue;
 
-					auto otherBaseComp = EntitySystem::GetComp<EntityBaseComponent>(otherHurtComp.getId());
-					if (!otherBaseComp->isActive || otherBaseComp->isDead) continue;
-					auto otherHealthComp = EntitySystem::GetComp<HealthComponent>(otherHurtComp.getId());
-					if (otherHealthComp->getHealth() <= 0) continue;
+				auto otherBaseComp = EntitySystem::GetComp<EntityBaseComponent>(otherHurtComp.getId());
+				if (!otherBaseComp->isActive || otherBaseComp->isDead) continue;
+				auto otherHealthComp = EntitySystem::GetComp<HealthComponent>(otherHurtComp.getId());
+				if (otherHealthComp->getHealth() <= 0) continue;
 
-					const auto otherTeamComp = EntitySystem::GetComp<TeamComponent>(otherHurtComp.getId());
-					if (hitComp->getTeamId() != otherTeamComp->teamId) {
-						if (hitComp->hitbox.intersects(otherHurtComp.hurtbox)) {
-							if (hitComp->addHitEntity(otherHurtComp.getId())) {
-								// run the on hit code, tell the server that the entity got hit
-								damageEntity(ownerComp.getId(), otherHurtComp.getId());
-								//std::cout << "We hit something!\n";
-								//std::cout << hitComp->getId() << '\n';
+				const auto otherTeamComp = EntitySystem::GetComp<TeamComponent>(otherHurtComp.getId());
 
-							}
-						}
-					}
-				}
+				if (hitComp->getTeamId() == otherTeamComp->teamId) continue;
+				if (!hitComp->hitbox.intersects(otherHurtComp.hurtbox)) continue;
+				if (!hitComp->addHitEntity(otherHurtComp.getId())) continue;
+
+				damageEntity(ownerComp.getId(), otherHurtComp.getId());
 			}
+		}
 
-			//check if we got hit
-			auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(ownerComp.getId());
-			if (ourHealthComp != nullptr &&  ourHealthComp->getHealth() <= 0) continue;
+		//check if we got hit
+		auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(ownerComp.getId());
+		if (ourHealthComp != nullptr &&  ourHealthComp->getHealth() <= 0) continue;
 
-			const auto hurtComp = EntitySystem::GetComp<HurtboxComponent>(ownerComp.getId());
-			if (hurtComp) {
-				//if we can get hurt, we have to have a team
-				const auto teamComp = EntitySystem::GetComp<TeamComponent>(ownerComp.getId());
-				for (auto& otherHitComp : EntitySystem::GetPool<HitboxComponent>()) {
-					const auto otherBaseComp = EntitySystem::GetComp<EntityBaseComponent>(otherHitComp.getId());
-					if (!otherBaseComp->isActive) continue;
+		const auto hurtComp = EntitySystem::GetComp<HurtboxComponent>(ownerComp.getId());
+		if (hurtComp == nullptr) continue;
 
-					if (teamComp->teamId != otherHitComp.getTeamId()) {
-						if (otherHitComp.hitbox.intersects(hurtComp->hurtbox)) {
-							if (otherHitComp.addHitEntity(hurtComp->getId())) {
-								//std::cout << "We got hit >:(\n";
-								// remove health
-								damageEntity(otherHitComp.getId(), ownerComp.getId());
-							}
-						}
-					}
-				}
-			}
+		const auto teamComp = EntitySystem::GetComp<TeamComponent>(ownerComp.getId());
+		for (auto& otherHitComp : EntitySystem::GetPool<HitboxComponent>()) {
+			if (otherHitComp.getId() == ownerComp.getId()) continue;
+
+			const auto otherBaseComp = EntitySystem::GetComp<EntityBaseComponent>(otherHitComp.getId());
+			if (!otherBaseComp->isActive) continue;
+
+			const auto otherNetworkOwnerComp = EntitySystem::GetComp<NetworkOwnerComponent>(otherHitComp.getId());
+			if (otherNetworkOwnerComp->owner != NetworkOwnerComponent::Owner::foreign) continue;
+
+			if (teamComp->teamId == otherHitComp.getTeamId()) continue;
+			if (!otherHitComp.hitbox.intersects(hurtComp->hurtbox)) continue;
+			if (!otherHitComp.addHitEntity(hurtComp->getId())) continue;
+
+			damageEntity(otherHitComp.getId(), ownerComp.getId());
 		}
 	}
 }

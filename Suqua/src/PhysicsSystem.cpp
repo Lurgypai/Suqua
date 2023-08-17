@@ -3,6 +3,7 @@
 #include "NetworkDataComponent.h"
 #include "PositionComponent.h"
 #include "EntityBaseComponent.h"
+#include "NetworkOwnerComponent.h"
 
 #include <iostream>
 
@@ -22,6 +23,8 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 	if (EntitySystem::Contains<PhysicsComponent>()) {
 		auto baseComp = EntitySystem::GetComp<EntityBaseComponent>(entity);
 		if (!baseComp->isActive) return;
+		auto networkOwnerComp = EntitySystem::GetComp<NetworkOwnerComponent>(entity);
+		if (networkOwnerComp != nullptr && networkOwnerComp->owner != NetworkOwnerComponent::Owner::local) return;
 
 		PhysicsComponent* comp = EntitySystem::GetComp<PhysicsComponent>(entity);
 		PositionComponent* posComp = EntitySystem::GetComp<PositionComponent>(entity);

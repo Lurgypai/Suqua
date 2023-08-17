@@ -11,6 +11,8 @@ public:
 	virtual ~InputDevice() = 0;
 	//reads input into the ControllerComponent
 	virtual Controller getControllerState() = 0;
+	// sets the controller's previous state
+	virtual void update() = 0;
 
 	InputDeviceId getId() const;
 private:

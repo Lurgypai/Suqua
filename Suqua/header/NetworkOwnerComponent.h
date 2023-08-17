@@ -1,3 +1,4 @@
+#pragma once
 #include "EntitySystem.h"
 
 class NetworkOwnerComponent {
@@ -6,7 +7,6 @@ public:
 		unassigned,
 		local,
 		foreign,
-		server
 	};
 
 	NetworkOwnerComponent(EntityId id_ = 0);

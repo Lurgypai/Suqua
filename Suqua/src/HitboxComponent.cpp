@@ -75,7 +75,7 @@ void HitboxComponent::deactivate()
 	baseComp->isActive = false;
 }
 
-TeamId HitboxComponent::getTeamId() const
+TeamComponent::TeamId HitboxComponent::getTeamId() const
 {
 	auto teamComponent = EntitySystem::GetComp<TeamComponent>(id);
 	if (teamComponent != nullptr) return teamComponent->teamId;

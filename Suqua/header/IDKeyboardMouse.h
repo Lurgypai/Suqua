@@ -6,6 +6,7 @@ class IDKeyboardMouse : public InputDevice {
 public:
 	IDKeyboardMouse(InputDeviceId id_);
 	virtual Controller getControllerState() override;
+	virtual void update() override;
 
 	Vec2f entityPos;
 	CamId camera;

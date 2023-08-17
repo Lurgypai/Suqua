@@ -8,6 +8,8 @@
 #include "SyncState.h"
 #include "SuquaLib.h"
 #include "DebugIO.h"
+#include "NetworkOwnerComponent.h"
+#include "OnlineComponent.h"
 
 Game::Game(FlagType flags_, double physics_step, double render_step, Tick clientPingDelay_, Tick serverBroadcastDelay_) :
 	PHYSICS_STEP{ physics_step },
@@ -186,201 +188,106 @@ void Game::clearSDLEvents() {
 }
 
 void Game::serverStep() {
-	serverInputQueue.applyInputs(online, gameTick);
 	physicsUpdate();
-
-	host.handlePackets(*this);
-
-	host.sendBuffered();
-	sync.storeCurrentState(gameTick);
-
 	if (serverBroadcastCtr == serverBroadcastDelay) {
 		serverBroadcastCtr = 0;
 
 		ByteStream statePacket;
-		sync.writeStatePacket(statePacket, gameTick);
-		//std::cout << "Buffering for broadcast for tick " << gameTick << '\n';
+		statePacket << Packet::StateId;
+		for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
+			auto onlineComp = EntitySystem::GetComp<OnlineComponent>(ndc.getId());
+			statePacket << onlineComp->getNetId();
+			ndc.serializeForNetwork(statePacket);
+		}
 		host.bufferAllDataByChannel(0, statePacket);
 	}
 	else {
 		++serverBroadcastCtr;
 	}
 
-	tickTime();
-	clearSDLEvents();
+	host.handlePackets(*this);
+	host.sendBuffered();
+}
+
+void Game::clientStep() {
+	for (auto& e : events) {
+		switch (e.type) {
+		case SDL_TEXTINPUT:
+			if (DebugIO::getOpen())
+				DebugIO::addInput(e.text.text);
+			break;
+		case SDL_KEYDOWN:
+			if (e.key.keysym.sym == SDLK_BACKQUOTE)
+				DebugIO::toggleDebug();
+			else if (e.key.keysym.sym == SDLK_BACKSPACE)
+				DebugIO::backspace();
+			else if (e.key.keysym.sym == SDLK_RETURN)
+				DebugIO::enterInput();
+			break;
+		}
+	}
+
+	if (flags & Flag::input) {
+		tickInputDevices();
+		if (!DebugIO::getOpen()) inputStep();
+	}
+
+	if (flags & Flag::physics) {
+		physicsUpdate();
+		renderUpdateStep();
+	}
+
+
+	if (flags & Flag::client) {
+		// send governed entity states
+		if (EntitySystem::Contains<OnlineComponent>()) {
+			ByteStream state;
+			state << Packet::StateId;
+			for (auto& networkOwnerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
+				if (networkOwnerComp.owner == NetworkOwnerComponent::Owner::local) {
+					auto onlineComp = EntitySystem::GetComp<OnlineComponent>(networkOwnerComp.getId());
+					if (onlineComp == nullptr) continue;
+					auto ndc = EntitySystem::GetComp<NetworkDataComponent>(networkOwnerComp.getId());
+					state << onlineComp->getNetId();
+					ndc->serializeForNetwork(state);
+				}
+			}
+		}
+
+		host.handlePackets(*this);
+		host.sendBuffered();
+	}
+}
+
+void Game::tickInputDevices() {
+	for (auto& [id, inputDevice] : inputDevices) {
+		inputDevice->update();
+	}
 }
 
 void Game::loop() {
 
 	uint64_t lastPhysicsUpdate = SDL_GetPerformanceCounter();
-	uint64_t lastNetworkUpdate = SDL_GetPerformanceCounter();
 	uint64_t leftover = 0;
 	uint64_t physicsDelta = PHYSICS_STEP * SDL_GetPerformanceFrequency();
-	// uint64_t networkDelta = networkInputTimeout * SDL_GetPerformanceFrequency();
 
 	uint64_t lastGFXUpdate = SDL_GetPerformanceCounter();
 	uint64_t now;
 
 	while (true) {
-		//if we're a server, run up until the latest client input is received
-		if (flags & Flag::server) {
+		now = SDL_GetPerformanceCounter();
+		uint64_t elapsedTime = (now - lastPhysicsUpdate) + leftover;
 
+		pollSDLEvents();
 
-			now = SDL_GetPerformanceCounter();
-			uint64_t elapsedTime = (now - lastNetworkUpdate) + leftover;
+		lastPhysicsUpdate = now;
+		for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
+			if (flags & Flag::server) serverStep();
+			else clientStep();
 
-			pollSDLEvents();
-			
-			lastNetworkUpdate = now;
-			for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
-				serverStep();
-			}
-			leftover = elapsedTime;
-
-			/*
-			if (serverInputQueue.allReceived(host, gameTick)) {
-				lastNetworkUpdate = now;
-				
-				// std::cout << "Received inputs for tick " << gameTick << '\n';
-				serverStep();
-			}
-			*/
-
-			// add a toggle for prediction
-			// test just delayed netcode
-
-			// this might not be the issue!
-			// it looks like there might be a clogging issue
-			/*
-			* When another player dcs,
-			* this hits the maximum over and over until the server realized they've dc'd
-			* this in turn causes the server to slow down significantly
-			* when the client then pings the server,
-			* they realize they're ahead
-			* so they jump backwards
-			* causing them to repeatedly jump backwards.
-			*/
-
-			/*
-			else {
-				// if we hit the delay, run the update anyway.
-				if (networkDelta != 0 && elapsedTime >= networkDelta) {
-					lastNetworkUpdate = now;
-
-					std::cout << "Server waited " << networkInputTimeout << " second(s) and was still missing inputs for time " << gameTick << ", skipping missed inputs.\n";
-
-					serverStep();
-				}
-				else {
-					//std::cout << "Have not received inputs for tick " << gameTick << '\n';
-					host.handlePackets(*this);
-					host.sendBuffered();
-				}
-			}
-			*/
+			clearSDLEvents();
 		}
-
-		//if we're not a server, operate like client or non-online client
-		else {
-			now = SDL_GetPerformanceCounter();
-			uint64_t elapsedTime = (now - lastPhysicsUpdate) + leftover;
-			lastPhysicsUpdate = now;
-			for (; elapsedTime >= physicsDelta; elapsedTime -= physicsDelta) {
-				pollSDLEvents();
-				for (auto& e : events) {
-					switch (e.type) {
-					case SDL_TEXTINPUT:
-						if (DebugIO::getOpen())
-							DebugIO::addInput(e.text.text);
-						break;
-					case SDL_KEYDOWN:
-						if (e.key.keysym.sym == SDLK_BACKQUOTE)
-							DebugIO::toggleDebug();
-						else if (e.key.keysym.sym == SDLK_BACKSPACE)
-							DebugIO::backspace();
-						else if (e.key.keysym.sym == SDLK_RETURN)
-							DebugIO::enterInput();
-						break;
-					}
-				}
-
-				/*
-				* INPUT CODE
-				* inputStep():
-				*	Poll inputs.
-				*   Store them for the correct time in the future.
-				*	Apply current inputs
-				* 
-				* Send current inputs to server
-				*/
-
-				if (flags & Flag::input) {
-
-					if(!DebugIO::getOpen())	inputStep();
-
-					/*
-					if (flags & Flag::client) {
-
-						// send all current inputs
-						for (auto&& scene : scenes) {
-							if (scene->flags & Scene::Flag::input) {
-								const auto* currInputs = scene->getInputsAtTime(gameTick + networkInputDelay);
-								if (currInputs) {
-									for (NetworkId ownedNetId : ownedNetIds) {
-										ByteStream inputPacket;
-										inputPacket << Packet::InputId;
-										inputPacket << gameTick + networkInputDelay;
-										inputPacket << ownedNetId;
-
-										//don't like these copies, may be an issue
-										Controller cont = currInputs->find(online.getEntity(ownedNetId))->second;
-										cont.serialize(inputPacket);
-										std::cout << "Sent inputs for tick " << gameTick + networkInputDelay << " on tick " << gameTick << ".\n";
-										host.bufferAllDataByChannel(1, inputPacket);
-									}
-								}
-							}
-						}
-					}
-					*/
-				}
-
-				if (flags & Flag::physics) {
-					physicsUpdate();
-					renderUpdateStep();
-					//std::cout << "currentTick: " << gameTick << '\n';
-					//if (flags & Flag::client) sync.interpolate(gameTick - (2 * serverBroadcastDelay));
-				}
-
-
-				if (flags & Flag::client) {
-					// send governed entity states
-
-					host.handlePackets(*this);
-					host.sendBuffered();
-					// sync.storeCurrentState(gameTick);
-				}
-
-				/*
-				if (flags & Flag::client) {
-					if (clientPingCtr < clientPingDelay) ++clientPingCtr;
-					else {
-						clientPingCtr = 0;
-						ByteStream pingPacket;
-						pingPacket << Packet::PingId;
-						pingPacket << gameTick;
-						host.bufferAllDataByChannel(0, pingPacket);
-						// std::cout << "Client pinging server...\n";
-					}
-				}
-				*/
-
-				clearSDLEvents();
-
-				tickTime();
-			}
-			leftover = elapsedTime;
-		}
+		leftover = elapsedTime;
 
 		if (flags & Flag::render) {
 			now = SDL_GetPerformanceCounter();
@@ -394,6 +301,8 @@ void Game::loop() {
 				lastGFXUpdate = now;
 			}
 		}
+
+		tickTime();
 
 		cleanScenes();
 		EntitySystem::FreeDeadEntities();

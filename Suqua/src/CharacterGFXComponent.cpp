@@ -101,8 +101,6 @@ void CharacterGFXComponent::doDefaultAnimations() {
 		if (currCharacterDirDeg >= 0 && currCharacterDirDeg <= 180) currCardinalDir = 1;
 	}
 
-	DebugIO::setLine(7, "EntityDir: " + std::to_string(currCardinalDir));
-
 	if (currCharacterVel != Vec2f{0, 0}) {
 		if (currCardinalDir == 0) sprite->setAnimation("down");
 		else if (currCardinalDir == 1) {
@@ -144,7 +142,6 @@ void CharacterGFXComponent::playDefaultAnimations()
 		if (currCharacterDirDeg < 0) currCharacterDirDeg += 360;
 		if (currCharacterDirDeg >= 0 && currCharacterDirDeg <= 180) currCardinalDir = 1;
 	}
-
 
 	//changed facing, update animations
 	if (prevCardinalDir != currCardinalDir) {

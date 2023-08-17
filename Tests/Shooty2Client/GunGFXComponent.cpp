@@ -13,10 +13,10 @@ GunGFXComponent::GunGFXComponent(EntityId id_) :
 
 		auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
 		renderComp->loadDrawable<Sprite>("gun");
-		renderComp->offset = {2.5, 2};
+		renderComp->offset = {-1.0, -2};
 		
 		auto sprite = renderComp->getDrawable<Sprite>();
-		sprite->setOrigin({ 1, 1});
+		sprite->setOrigin({ 1, 1.5});
 	}
 }
 
