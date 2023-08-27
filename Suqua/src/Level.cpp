@@ -36,7 +36,7 @@ void Level::load(Scene& scene) {
 
 	// we're just gonna load the first level for now.
 	const json& topLayer = worldJson["levels"][0]["layerInstances"][0];
-	int gridSize = worldJson["defaultGridSize"];
+	int gridSize = topLayer["__gridSize"];
 	Vec2i res{ gridSize, gridSize };
 	// std::cout << "res: " << res << '\n';
 

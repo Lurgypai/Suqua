@@ -4,11 +4,11 @@
 
 void RectDrawable::draw() {
 	if (!filled) {
-		Primitive p{ { shape.pos, {shape.pos.x + shape.res.x - 1, shape.pos.y}, shape.pos + shape.res - Vec2f{1, 1}, {shape.pos.x, shape.pos.y + shape.res.y - 1}}, depth, c};
+		Primitive p{ { shape.pos + Vec2f{1, 0}, {shape.pos.x + shape.res.x, shape.pos.y}, shape.pos + shape.res, {shape.pos.x, shape.pos.y + shape.res.y - 1}}, depth, c};
 		GLRenderer::DrawPrimitive(p);
 	}
 	else {
-		Primitive p{ { shape.pos, {shape.pos.x + shape.res.x - 1, shape.pos.y}, {shape.pos.x, shape.pos.y + shape.res.y - 1}, shape.pos + shape.res - Vec2f{1, 1} }, depth, c };
+		Primitive p{ { shape.pos, {shape.pos.x + shape.res.x, shape.pos.y}, {shape.pos.x, shape.pos.y + shape.res.y}, shape.pos + shape.res}, depth, c};
 		GLRenderer::DrawFilledPrimitive(p);
 	}
 }

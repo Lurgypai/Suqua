@@ -67,6 +67,8 @@ void HitboxComponent::activate()
 	for (auto& [_, hits] : hitEntities) {
 		hits = 0;
 	}
+	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
+	hitbox.pos = posComp->getPos() + offset;
 }
 
 void HitboxComponent::deactivate()
