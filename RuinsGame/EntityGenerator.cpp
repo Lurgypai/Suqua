@@ -22,8 +22,7 @@
 using TeamId = TeamComponent::TeamId;
 
 void EntityGenerator::MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& colliderRes, float moveSpeed,
-										TeamId team, Vec2f hurtboxOffset, Vec2f hurtboxRes, std::uint32_t health,
-										NetworkOwnerComponent::Owner owner) {
+										TeamId team, Vec2f hurtboxOffset, Vec2f hurtboxRes, std::uint32_t health) {
 	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
 	EntitySystem::MakeComps<TeamComponent>(1, &id);
 	EntitySystem::MakeComps<HurtboxComponent>(1, &id);
@@ -47,12 +46,6 @@ void EntityGenerator::MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& coll
 
 	auto healthComp = EntitySystem::GetComp<HealthComponent>(id);
 	healthComp->setHealth(health);
-
-	auto netOwnerComp = EntitySystem::GetComp<NetworkOwnerComponent>(id);
-	netOwnerComp->owner = owner;
-
-	//auto topDownMoverComp = EntitySystem::GetComp<TopDownMoverComponent>(id);
-	//topDownMoverComp->setMoveSpeed(moveSpeed);
 }
 
 void EntityGenerator::MakeHitboxEntity(EntityId id, Vec2f hitboxOffset, Vec2f hitboxRes, TeamId team, int damage, NetworkOwnerComponent::Owner owner) {
@@ -119,7 +112,7 @@ std::vector<EntityId> EntityGenerator::SpawnBasicBullet(Scene& scene, const Vec2
 std::vector<EntityId> EntityGenerator::SpawnPlayer(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner) {
 	auto entities = scene.addEntities(1);
 	EntityId playerId = entities[0];
-	MakeLivingEntity(playerId, pos, { 8, 12 }, 50.0f, TeamId::player, { -1, -11 }, { 8, 15 }, 100, owner);
+	MakeLivingEntity(playerId, pos, { 8, 12 }, 50.0f, TeamId::player, { -1, -11 }, { 8, 15 }, 100);
 
 	EntitySystem::MakeComps<BatSwingComponent>(1, &playerId);
 	auto* batSwingComp = EntitySystem::GetComp<BatSwingComponent>(playerId);
@@ -142,14 +135,18 @@ std::vector<EntityId> EntityGenerator::SpawnPlayer(Scene& scene, const Vec2f& po
 std::vector<EntityId> EntityGenerator::SpawnEnemy(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner) {
 	auto entities = scene.addEntities(1);
 	EntityId enemyId = entities[0];
-	MakeLivingEntity(enemyId, pos, { 6, 4 }, 50.0f, TeamId::enemy, { -1, -11 }, { 8, 13 }, 100, owner);
+	MakeLivingEntity(enemyId, pos, { 12, 12 }, 50.0f, TeamId::enemy, { 0, 0 }, { 12, 12 }, 100);
 
-	EntitySystem::MakeComps<BasicAttackComponent>(1, &enemyId);
-	auto attackComp = EntitySystem::GetComp<BasicAttackComponent>(enemyId);
-	attackComp->delay = 30;
-	attackComp->duration = 95;
-	attackComp->duration = 30;
-
+	auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(enemyId);
+	physicsComp->setWeight(5.0);
+	physicsComp->setWeightless(false);
+	
+	constexpr float MoveSpeed = 50.0f;
+	auto* sideScrollComp = EntitySystem::GetComp<SideScrollMoverComponent>(enemyId);
+	sideScrollComp->moveSpeed = MoveSpeed;
+	sideScrollComp->accelAirborn = 0;
+	sideScrollComp->accelGrounded = MoveSpeed;
+	sideScrollComp->decel = MoveSpeed;
 
 	return entities;
 }

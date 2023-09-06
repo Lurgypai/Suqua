@@ -5,14 +5,14 @@ class SideScrollMoverComponent {
 
 public:
 	void update();
-private:
+
 	float moveSpeed;
 	float jumpSpeed;
 
 	float decel;
 	float accelGrounded;
 	float accelAirborn;
-
+private:
 	int jumpsMax;
 	int jumpsRemaining;
 

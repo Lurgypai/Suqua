@@ -54,6 +54,7 @@ void WorldScene::load(Game& game)
 	// textures
 	GLRenderer::LoadTexture("entities/stabbyman.png", "stabbyman");
 	GLRenderer::LoadTexture("entities/player.png", "player");
+	GLRenderer::LoadTexture("entities/ball.png", "enemy:ball");
 	GLRenderer::LoadTexture("levels/temp_tileset.png", "tileset");
 
 	/* ---------------- LOAD ENTITIES ----------------- */
@@ -61,16 +62,19 @@ void WorldScene::load(Game& game)
 	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 
-	auto playerAndGunId = EntityGenerator::SpawnPlayer(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
-	myPlayerId = playerAndGunId[0];
+	// auto playerId = EntityGenerator::SpawnPlayer(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
+	auto playerId = EntityGenerator::SpawnEnemy(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
+	myPlayerId = playerId[0];
 	EntitySystem::MakeComps<SideScrollGFXComponent>(1, &myPlayerId);
-	EntitySystem::GetComp<SideScrollGFXComponent>(myPlayerId)->loadSpriteSheet("player", "entities/player.json", Vec2f{ -28, -36 });
+	//EntitySystem::GetComp<SideScrollGFXComponent>(myPlayerId)->loadSpriteSheet("player", "entities/player.json", Vec2f{ -28, -36 });
+	EntitySystem::GetComp<SideScrollGFXComponent>(myPlayerId)->loadSpriteSheet("enemy:ball", "entities/ball.json", Vec2f{ -26, -36 });
 	// EntitySystem::MakeComps<OnHitComponent>(1, &myPlayerId);
 
 	EntitySystem::MakeComps<RespawnComponent>(1, &myPlayerId);
 	EntitySystem::GetComp<RespawnComponent>(myPlayerId)->spawnPos = { 720 / 4, 405 / 4 };
 
 	addEntityInputs({ {myPlayerId, playerInput} });
+
 	
 
 	// load level
