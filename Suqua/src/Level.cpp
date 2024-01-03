@@ -47,8 +47,19 @@ void Level::load(Scene& scene) {
 		throw std::exception{};
 	}
 
+    const json& entityLayer = worldJson["levels"][0]["layerInstances"][0];
+    for(auto& entityJson : entityLayer["entityInstances"]) {
+        std::string identifier = entityJson["__identifier"];
+        
+        float width = entityJson["width"];
+        Vec2f spawnPos = Vec2f{entityJson["__worldX"], entityJson["__worldY"]} + 
+            Vec2f{width / 2.f, entityJson["height"]};
+
+        entities.emplace_back(LevelEntity{identifier, spawnPos});
+    }
+
 	// we're just gonna load the first level for now.
-	const json& topLayer = worldJson["levels"][0]["layerInstances"][0];
+	const json& topLayer = worldJson["levels"][0]["layerInstances"][1];
 	int gridSize = topLayer["__gridSize"];
 	Vec2i res{ gridSize, gridSize };
     tileSize = gridSize;
@@ -108,4 +119,8 @@ bool Level::hasTile(Vec2f pos) const {
     Vec2i tilePos = Vec2i{static_cast<int>(pos.x / tileSize), static_cast<int>(pos.y / tileSize)};
     int index = tilePos.y * levelRes.x + tilePos.x;
     return grid[index];
+}
+
+const std::vector<Level::LevelEntity>& Level::getEntities() const {
+    return entities;
 }

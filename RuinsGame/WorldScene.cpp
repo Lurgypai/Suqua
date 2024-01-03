@@ -43,8 +43,6 @@ WorldScene::WorldScene(SceneId id_, Scene::FlagType flags_) :
     level{}
 {}
 
-static InputDeviceId enemyInput;
-
 void WorldScene::load(Game& game)
 {
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
@@ -67,39 +65,18 @@ void WorldScene::load(Game& game)
 	GLRenderer::LoadTexture("levels/tileset.png", "tileset");
     GLRenderer::LoadTexture("entities/bouncing_ball.png", "bounce_ball");
 
+	/* ---------------- LEVEL ----------------- */
+	// load level
+	level.load("tileset", "levels/test.ldtk", *this);
+    EntityGenerator::TargetLevel = &level;
+
 	/* ---------------- LOAD ENTITIES ----------------- */
 	// player
-
-	auto playerId = EntityGenerator::SpawnPlayer(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
-	myPlayerId = playerId[0];
-	EntitySystem::MakeComps<SideScrollGFXComponent>(1, &myPlayerId);
-	EntitySystem::GetComp<SideScrollGFXComponent>(myPlayerId)->loadSpriteSheet("player", "entities/player.json", Vec2f{ -28, -36 });
-	EntitySystem::MakeComps<OnHitComponent>(1, &myPlayerId);
-
-
-	EntitySystem::MakeComps<RespawnComponent>(1, &myPlayerId);
-	EntitySystem::GetComp<RespawnComponent>(myPlayerId)->spawnPos = { 720 / 4, 405 / 4 };
+    myPlayerId = EntityGenerator::SpawnEntities(*this, level);
 
 	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
-    
-
 	addEntityInputs({ {myPlayerId, playerInput} });
-
-	// load level
-	level.load("tileset", "levels/test.ldtk", *this);
-
-    // spawn dummy enemy
-    EntityId enemyId = EntityGenerator::SpawnEnemy(*this, { 720 / 4 + 50, 405 / 4 }, NetworkOwnerComponent::Owner::local)[0];
-	EntitySystem::MakeComps<SideScrollGFXComponent>(1, &enemyId);
-	EntitySystem::GetComp<SideScrollGFXComponent>(enemyId)->loadSpriteSheet("enemy:ball", "entities/ball.json", Vec2f{ -26, -36 });
-
-    auto enemyAi = EntitySystem::GetComp<AIBallComponent>(enemyId);
-    enemyAi->left = {-2.f, 0.f};
-    enemyAi->right = {13.f, 0.f};
-    enemyAi->downleft = {-2.f, 16.f};
-    enemyAi->downright = {13.f, 16.f};
-    enemyAi->level = &level;
 }
 
 void WorldScene::physicsStep(Game& game)
