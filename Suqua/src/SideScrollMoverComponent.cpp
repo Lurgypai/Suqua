@@ -2,6 +2,7 @@
 #include "ControllerComponent.h"
 #include "PhysicsComponent.h"
 #include "DirectionComponent.h"
+#include "AngleUtil.h"
 
 SideScrollMoverComponent::SideScrollMoverComponent(EntityId id_) :
 	id{ id_ },
@@ -30,7 +31,7 @@ void SideScrollMoverComponent::update() {
 
 		auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 		if (dir < 0) dirComp->setDir(0);
-		else if (dir > 0) dirComp->setDir(-3.1415926535898);
+		else if (dir > 0) dirComp->setDir(-PI);
 
 		// if moving, accelerate
 		if (dir != 0.0f) {

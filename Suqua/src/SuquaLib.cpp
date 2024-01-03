@@ -55,6 +55,7 @@ int SuquaLib::SuquaInit(const std::string& windowName, const std::string& settin
 		enet_initialize();
 	}
 
+    SDL_StopTextInput();
 	return 0;
 }
 

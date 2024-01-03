@@ -70,7 +70,7 @@ void Level::load(Scene& scene) {
 		auto renderComp = EntitySystem::GetComp<RenderComponent>(tile);
 
 		posComp->setPos(worldPos);
-		physicsComp->setCollideable(true);
+        physicsComp->setDoesCollide(false);
 		physicsComp->setRes(res);
 
 		renderComp->loadDrawable<Sprite>(textureTag);

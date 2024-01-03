@@ -1,16 +1,12 @@
 #pragma once
 #include "Level.h"
-#include "InputDevice.h"
-#include "TeamComponent.h"
+#include "ComponentMacros.h"
 
-class AIBall : public InputDevice {
+class AIBallComponent {
+    CompMembers(AIBallComponent);
+
 public:
-	AIBall(InputDeviceId id_);
-	virtual Controller getControllerState() override;
-	virtual void update() override;
-
-	// id of the entity that is controlled by this controller
-	EntityId entityId;
+	void update();
 
     Vec2f left;
     Vec2f right;
@@ -19,11 +15,5 @@ public:
 
     Level* level;
 private:
-	// this needs a local copy of the controller so we can maintain a proper previous state
-	// the controller is copied by the getControllerState function
-	Controller controller;
-
-
-
     float dir;
 };

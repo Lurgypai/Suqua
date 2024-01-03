@@ -59,18 +59,18 @@ public:
 	char flags;
 
 	std::vector<EntityId> addEntities(unsigned int count);
-protected:
+
 	using EntityInputSet = std::set<std::pair<EntityId, InputDeviceId>>;
 	using EntityInputMap = std::unordered_map<EntityId, InputDeviceId>;
+
+	void addEntityInputs(const EntityInputSet& inputs);
+	void removeEntityInputs(EntityId id);
+protected:
 
 	SceneId id;
 	CamId camId;
 
 	void removeEntities(const std::vector<EntityId>& entities);
-
-	// only supporting one input at a time atm
-	void addEntityInputs(const EntityInputSet& inputs);
-	void removeEntityInputs(EntityId id);
 private:
 	void storeInputs(Game& game);
 	void applyInputs(Game& game);

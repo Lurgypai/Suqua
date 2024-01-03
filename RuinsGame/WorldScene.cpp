@@ -21,6 +21,7 @@
 #include "IDKeyboardMouse.h"
 #include "HealthComponent.h"
 #include "AABB.h"
+#include "ExitCommand.h"
 
 #include "BasicAttackComponent.h"
 #include "RespawnComponent.h"
@@ -32,6 +33,7 @@
 #include "FeelerComponent.h"
 #include "AIBall.h"
 
+
 constexpr unsigned int ScreenWidth = 1920 / 4;
 constexpr unsigned int ScreenHeight = 1080 / 4;
 
@@ -41,8 +43,11 @@ WorldScene::WorldScene(SceneId id_, Scene::FlagType flags_) :
     level{}
 {}
 
+static InputDeviceId enemyInput;
+
 void WorldScene::load(Game& game)
 {
+    DebugIO::getCommandManager().registerCommand<ExitCommand>();
 	/* ------------------ SET UP RENDERING -------------------- */
 	// down scale buffer
 	screenBuffer.bind();
@@ -60,16 +65,15 @@ void WorldScene::load(Game& game)
 	GLRenderer::LoadTexture("entities/player.png", "player");
 	GLRenderer::LoadTexture("entities/ball.png", "enemy:ball");
 	GLRenderer::LoadTexture("levels/tileset.png", "tileset");
+    GLRenderer::LoadTexture("entities/bouncing_ball.png", "bounce_ball");
 
 	/* ---------------- LOAD ENTITIES ----------------- */
 	// player
 
-	auto playerId = EntityGenerator::SpawnPlayer(*this, { 720 / 4 + 50, 405 / 4 }, NetworkOwnerComponent::Owner::local);
-	// auto playerId = EntityGenerator::SpawnEnemy(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
+	auto playerId = EntityGenerator::SpawnPlayer(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
 	myPlayerId = playerId[0];
 	EntitySystem::MakeComps<SideScrollGFXComponent>(1, &myPlayerId);
 	EntitySystem::GetComp<SideScrollGFXComponent>(myPlayerId)->loadSpriteSheet("player", "entities/player.json", Vec2f{ -28, -36 });
-	// EntitySystem::GetComp<SideScrollGFXComponent>(myPlayerId)->loadSpriteSheet("enemy:ball", "entities/ball.json", Vec2f{ -26, -36 });
 	EntitySystem::MakeComps<OnHitComponent>(1, &myPlayerId);
 
 
@@ -79,21 +83,23 @@ void WorldScene::load(Game& game)
 	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
     
-    /*
-    playerInput = game.loadInputDevice<AIBall>();
-    auto& enemyAI = static_cast<AIBall&>(game.getInputDevice(playerInput));
-    enemyAI.left = {-1.f, 0.f};
-    enemyAI.right = {12.f, 0.f};
-    enemyAI.downleft = {-1.f, 16.f};
-    enemyAI.downright = {12.f, 16.f};
-    enemyAI.entityId = myPlayerId;
-    enemyAI.level = &level;
-    */
 
 	addEntityInputs({ {myPlayerId, playerInput} });
 
 	// load level
 	level.load("tileset", "levels/test.ldtk", *this);
+
+    // spawn dummy enemy
+    EntityId enemyId = EntityGenerator::SpawnEnemy(*this, { 720 / 4 + 50, 405 / 4 }, NetworkOwnerComponent::Owner::local)[0];
+	EntitySystem::MakeComps<SideScrollGFXComponent>(1, &enemyId);
+	EntitySystem::GetComp<SideScrollGFXComponent>(enemyId)->loadSpriteSheet("enemy:ball", "entities/ball.json", Vec2f{ -26, -36 });
+
+    auto enemyAi = EntitySystem::GetComp<AIBallComponent>(enemyId);
+    enemyAi->left = {-2.f, 0.f};
+    enemyAi->right = {13.f, 0.f};
+    enemyAi->downleft = {-2.f, 16.f};
+    enemyAi->downright = {13.f, 16.f};
+    enemyAi->level = &level;
 }
 
 void WorldScene::physicsStep(Game& game)
@@ -109,10 +115,14 @@ void WorldScene::physicsStep(Game& game)
 	Updater::UpdateAll<GolfSwingComponent>();
 	Updater::UpdateAll<ParentComponent>();
 	Updater::UpdateAll<HitboxComponent>();
+    Updater::UpdateAll<AIBallComponent>();
+
 
 	//combat.checkClientCollisions(&game.host);
 
 	physics.runPhysics(game.PHYSICS_STEP);
+
+    wackable.update(*this);
 
 	// update inputs for next frame
     /*
@@ -156,55 +166,21 @@ void WorldScene::renderStep(Game& game)
 	GLRenderer::Clear();
 	drawScene(game.getRender());
 	//GLRenderer::setCamera(camId);
-
-	/*
-	auto gunPos = EntitySystem::GetComp<PositionComponent>(myGunId);
-	auto gunFireComp = EntitySystem::GetComp<GunFireComponent>(myGunId);
-	auto firingPos = gunFireComp->getFiringPos();
-	RectDrawable rect{ Color{1, 0, 0, 1}, true, -1.0f, {firingPos - Vec2f{0.5, 0.5}, {2, 2}}};
-	rect.draw();
-	rect = { Color{0.5f, 0, 0, 1}, true, -1.0f, {gunPos->getPos() - Vec2f{0.5, 0.5}, {2, 2}}};
-	rect.draw();
-	*/
-
 	
-	//if(EntitySystem::Contains<HitboxComponent>())
-	//for (auto& hitComp : EntitySystem::GetPool<HitboxComponent>()) {
-	//	auto baseComp = EntitySystem::GetComp<EntityBaseComponent>(hitComp.getId());
-	//	if (!baseComp->isActive) continue;
-
-	//	RectDrawable rect{ Color{1, 0, 0, 1}, false, -1.0f, hitComp.hitbox};
-	//	rect.draw();
-	//}
-	
-	
-
-	//for (auto& hurtComp : EntitySystem::GetPool<HurtboxComponent>()) {
-	//	RectDrawable rect{ Color{0, 0, 1, 1}, false, -1.0f, hurtComp.hurtbox };
-	//	rect.draw();
-	//}
-	
-
-	
-	//for (auto& physicsComp : EntitySystem::GetPool<PhysicsComponent>()) {
-	//	RectDrawable rect{ Color{1, 0, 1, 1}, false, -1.0f, physicsComp.getCollider() };
-	//	rect.draw();
-	//}
-	
-
-	/*
-	auto& aIInput = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
-	auto dummyPhysics = EntitySystem::GetComp<PhysicsComponent>(dummy);
-	GLRenderer::DrawCircle(dummyPhysics->position(), -0.9, aIInput.followRadius, Color{
-		aIInput.getState() == AITopDownBasic::AIState::attacking ? 1.0f : 0.0f,
-		1.0f,
-		aIInput.getState() == AITopDownBasic::AIState::following ? 1.0f : 0.0f,
-		1.0f });
-		*/
-
     /*
-    auto& aIInput = static_cast<AIBall&>(game.getInputDevice(playerInput));
-    Vec2f startPos = EntitySystem::GetComp<PositionComponent>(myPlayerId)->getPos();
+	if(EntitySystem::Contains<HitboxComponent>())
+	for (auto& hitComp : EntitySystem::GetPool<HitboxComponent>()) {
+		auto baseComp = EntitySystem::GetComp<EntityBaseComponent>(hitComp.getId());
+		if (!baseComp->isActive) continue;
+
+		RectDrawable rect{ Color{1, 0, 0, 1}, false, -1.0f, hitComp.hitbox};
+		rect.draw();
+	}
+    */
+	
+    /*
+    auto& aIInput = static_cast<AIBall&>(game.getInputDevice(enemyInput));
+    Vec2f startPos = EntitySystem::GetComp<PositionComponent>(aIInput.entityId)->getPos();
     Vec2f aILeft = startPos + aIInput.left;
     Vec2f aIRight = startPos + aIInput.right;
     Vec2f aIDownLeft = startPos + aIInput.downleft;
@@ -223,8 +199,12 @@ void WorldScene::renderStep(Game& game)
     GLRenderer::DrawPrimitive(Primitive{{startPos, aIDownLeft}, -0.5, downLeftColor});
     GLRenderer::DrawPrimitive(Primitive{{startPos, aIDownRight}, -0.5, downRightColor});
     */
-    
 
+	//for (auto& hurtComp : EntitySystem::GetPool<HurtboxComponent>()) {
+	//	RectDrawable rect{ Color{0, 0, 1, 1}, false, -1.0f, hurtComp.hurtbox };
+	//	rect.draw();
+	//}
+	
 	Framebuffer::unbind();
 	GLRenderer::DrawOverScreen(screenBuffer.getTexture(0).id);
 }

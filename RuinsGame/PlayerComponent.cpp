@@ -26,7 +26,7 @@ PlayerComponent::PlayerComponent(EntityId id_) : id { id_ }
 		auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 		physicsComp->setRes({ 6, 4 });
 		physicsComp->teleport({ 0, 0 });
-		physicsComp->setCollideable(true);
+		physicsComp->setCollidedWith(false);
 
 		auto ndc = EntitySystem::GetComp<NDC>(id);
 		ndc->set<std::uint32_t>(playerStateVarId, static_cast<uint32_t>(State::idle));

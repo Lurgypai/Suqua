@@ -1,23 +1,20 @@
 #include "AIBall.h"
 #include "PositionComponent.h"
+#include "ControllerComponent.h"
 
-AIBall::AIBall(InputDeviceId id_) :
-    InputDevice{ id_ },
-    controller{},
+AIBallComponent::AIBallComponent(EntityId id_) :
+    id{id_},
     dir{1.f},
     level{nullptr}
 {}
 
-Controller AIBall::getControllerState() {
-    return controller;
-}
 
-void AIBall::update() {
+void AIBallComponent::update() {
     // get the entity
     // check the map to see if there is a tile in front
     // if not turn around
 
-    auto position = EntitySystem::GetComp<PositionComponent>(entityId)->getPos();
+    auto position = EntitySystem::GetComp<PositionComponent>(id)->getPos();
 
     if(level != nullptr) {
         if(dir > 0.f) {
@@ -35,5 +32,6 @@ void AIBall::update() {
         std::cout << "ENEMY AI MISSING LEVEL DATA!!!\n";
     }
     
-    controller.stick1 = {dir, 0.f};
+    auto contComp = EntitySystem::GetComp<ControllerComponent>(id);
+    contComp->getController().stick1 = {dir, 0.f};
 }

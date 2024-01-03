@@ -3,6 +3,7 @@
 #include "Level.h"
 #include "PhysicsSystem.h"
 #include "CombatSystem.h"
+#include "WackableSystem.h"
 
 class WorldScene : public Scene {
 public:
@@ -23,6 +24,8 @@ private:
 	InputDeviceId playerInput;
 	PhysicsSystem physics;
 	CombatSystem combat;
+    WackableSystem wackable;
+
 
 	Framebuffer screenBuffer;
 

@@ -19,6 +19,8 @@
 #include "BatSwingComponent.h"
 #include "GolfSwingComponent.h"
 #include "BounceCollisionHandler.h"
+#include "WackableComponent.h"
+#include "AIBall.h"
 
 using TeamId = TeamComponent::TeamId;
 
@@ -36,7 +38,7 @@ void EntityGenerator::MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& coll
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 	physicsComp->setRes(colliderRes);
 	physicsComp->teleport(pos);
-	physicsComp->setCollideable(true);
+    physicsComp->setCollidedWith(false);
 
 	auto teamComp = EntitySystem::GetComp<TeamComponent>(id);
 	teamComp->teamId = team;
@@ -152,6 +154,9 @@ std::vector<EntityId> EntityGenerator::SpawnEnemy(Scene& scene, const Vec2f& pos
 	sideScrollComp->accelGrounded = MoveSpeed;
 	sideScrollComp->decel = MoveSpeed;
 
+    EntitySystem::MakeComps<WackableComponent>(1, &enemyId);
+    EntitySystem::MakeComps<AIBallComponent>(1, &enemyId);
+
 	return entities;
 }
 
@@ -172,6 +177,5 @@ std::vector<EntityId> EntityGenerator::SpawnBall(Scene& scene, const Vec2f& pos)
 	// sideScrollComp->accelAirborn = 0;
 	// sideScrollComp->accelGrounded = MoveSpeed;
 	sideScrollComp->decel = 0;
-
     return entities;
 }

@@ -71,6 +71,8 @@ inline ByteStream& ByteStream::operator<< <Vec2f>(const Vec2f& t) {
 	auto yCpy = s_hton(t.y);
 	std::memcpy(_data.data() + end, &xCpy, sizeof(xCpy));
 	std::memcpy(_data.data() + end, &yCpy, sizeof(yCpy));
+
+    return *this;
 }
 
 template<typename T>

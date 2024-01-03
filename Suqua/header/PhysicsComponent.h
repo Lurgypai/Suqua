@@ -10,7 +10,8 @@ public:
 
 	PhysicsComponent(EntityId id_ = 0,
             AABB collider = AABB{ {0, 0}, {0, 0} },
-            float weight_ = 0, Vec2f vel = {0, 0}, bool collideable_ = false);
+            float weight_ = 0, Vec2f vel = {0, 0},
+            bool collideable_ = true, bool collideableWith_ = true);
 	EntityId getId() const;
 	
 	const AABB & getCollider() const;
@@ -48,8 +49,11 @@ public:
 
 	bool isGrounded() const;
 
-	bool isCollideable() const;
-	void setCollideable(bool newCollideable);
+	bool doesCollide() const;
+	void setDoesCollide(bool newCollideable);
+
+    bool isCollidedWith() const;
+    void setCollidedWith(bool newCollideable);
 
 	bool isWeightless() const;
 	void setWeightless(bool newWeigtless);
@@ -71,7 +75,8 @@ protected:
 	bool* grounded;
 	bool* frozen;
 	bool* weightless;
-	bool* collideable;
+	bool* collides;
+	bool* collidesWith;
 	float* xRes;
 	float* yRes;
 
