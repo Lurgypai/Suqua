@@ -175,7 +175,7 @@ T Vec2<T>::magn() const {
 
 template<typename T>
 float Vec2<T>::angle() const {
-	return std::atan2f(static_cast<float>(y), static_cast<float>(x));
+	return atan2f(static_cast<float>(y), static_cast<float>(x));
 }
 
 template<typename T>

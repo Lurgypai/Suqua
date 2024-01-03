@@ -219,6 +219,10 @@ void Game::clientStep() {
 		case SDL_KEYDOWN:
 			if (e.key.keysym.sym == SDLK_BACKQUOTE)
 				DebugIO::toggleDebug();
+            else if (e.key.keysym.sym == SDLK_SLASH) {
+                DebugIO::toggleDebug();
+                DebugIO::addInput("/");
+            }
 			else if (e.key.keysym.sym == SDLK_BACKSPACE)
 				DebugIO::backspace();
 			else if (e.key.keysym.sym == SDLK_RETURN)

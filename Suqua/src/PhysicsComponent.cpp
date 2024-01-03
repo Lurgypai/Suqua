@@ -8,7 +8,9 @@
 using NDC = NetworkDataComponent;
 using namespace PhysicsData;
 
-PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, Vec2f vel_, bool collideable_) :
+PhysicsComponent::PhysicsComponent(EntityId id_,
+        AABB collider_, float weight_, Vec2f vel_,
+        bool collideable_, bool collideableWith_) :
 	id{ id_ },
 	collider{collider_},
 	weight{nullptr},
@@ -17,12 +19,12 @@ PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, 
 	grounded{nullptr},
 	frozen{nullptr},
 	weightless{nullptr},
-	collideable{nullptr}
+	collides{nullptr},
+	collidesWith{nullptr}
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
-		}
+			EntitySystem::MakeComps<PositionComponent>(1, &id); }
 
 		NDC* dataComp = EntitySystem::GetComp<NDC>(id);
 
@@ -38,8 +40,13 @@ PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, 
 		frozen = &dataComp->get<bool>(FROZEN);
 		dataComp->set(WEIGHTLESS, false);
 		weightless = &dataComp->get<bool>(WEIGHTLESS);
+
 		dataComp->set(COLLIDEABLE, collideable_);
-		collideable = &dataComp->get<bool>(COLLIDEABLE);
+		collides = &dataComp->get<bool>(COLLIDEABLE);
+        
+		dataComp->set(COLLIDEABLE_WITH, collideableWith_);
+		collidesWith = &dataComp->get<bool>(COLLIDEABLE_WITH);
+
 		dataComp->set(XRES, collider.res.x);
 		xRes = &dataComp->get<float>(XRES);
 		dataComp->set(YRES, collider.res.y);
@@ -157,12 +164,20 @@ float PhysicsComponent::getWeight() const {
 	return *weight;
 }
 
-bool PhysicsComponent::isCollideable() const {
-	return *collideable;
+bool PhysicsComponent::doesCollide() const {
+	return *collides;
 }
 
-void PhysicsComponent::setCollideable(bool newCollideable) {
-	*collideable = newCollideable;
+void PhysicsComponent::setDoesCollide(bool newCollideable) {
+	*collides = newCollideable;
+}
+
+bool PhysicsComponent::isCollidedWith() const {
+    return *collidesWith;
+}
+
+void PhysicsComponent::setCollidedWith(bool newCollideable) {
+    *collidesWith = newCollideable;
 }
 
 bool PhysicsComponent::isWeightless() const {
@@ -179,4 +194,25 @@ bool PhysicsComponent::isGrounded() const {
 
 void PhysicsComponent::setGrounded(bool newGrounded) {
 	*grounded = newGrounded;
+}
+
+void PhysicsComponent::onCollide(CollisionDir dir) {
+    if(collisionHandler) {
+        collisionHandler->onCollide(*this, dir);
+    }
+    else {
+        switch(dir) {
+            case CollisionDir::left:
+            case CollisionDir::right:
+                *xVel = 0;
+                break;
+            case CollisionDir::down:
+                *grounded = true;
+            case CollisionDir::up:
+                *yVel = 0;
+                break;
+            default:
+                break;
+        }
+    }
 }

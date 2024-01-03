@@ -43,10 +43,10 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 			Vec2f vel = comp->getVel();
 			Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
 			
-			if (comp->isCollideable()) {
+			if (comp->doesCollide()) {
 				//handle collisions with the stage
 				for (auto& otherComp : EntitySystem::GetPool<PhysicsComponent>()) {
-					if (otherComp.id != comp->id && otherComp.isCollideable()) {
+					if (otherComp.id != comp->id && otherComp.isCollidedWith()) {
 						auto& collider = otherComp.getCollider();
 						Vec2f res = comp->getRes();
 						//place we are updating too
@@ -88,28 +88,32 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 
 							//horizontal collision
 							if (overlap.x != 0.0f && overlap.y == 0.0f) {
-								vel.x = 0.0f;
+                                if (vel.x < 0) comp->onCollide(CollisionDir::left);
+                                else if (vel.x > 0) comp->onCollide(CollisionDir::right);
 							}
 							//vertical collision
 							else if (overlap.x == 0.0f && overlap.y != 0.0f) {
-								if (vel.y > 0) comp->setGrounded(true);
-								vel.y = 0.0f;
+                                if (vel.y < 0) comp->onCollide(CollisionDir::up);
+                                else if (vel.y > 0) comp->onCollide(CollisionDir::down);
 							}
+
 							//corner collision
 							else if (overlap.x != 0.0f && overlap.y != 0.0f) {
 								if (std::abs(vel.x) > std::abs(vel.y)) {
 									//this means don't resolve collisions allong the x axis
 									overlap.x = 0;
-									//and stop moving along the y axis
-									vel.y = 0;
-									comp->setGrounded(true);
+
+									//and handle collision allong the y axis
+                                    if (vel.y < 0) comp->onCollide(CollisionDir::up);
+                                    else if (vel.y > 0) comp->onCollide(CollisionDir::down);
 								}
 								else {
 									overlap.y = 0;
-									vel.x = 0;
+                                    if (vel.x < 0) comp->onCollide(CollisionDir::left);
+                                    else if (vel.x > 0) comp->onCollide(CollisionDir::right);
 								}
 							}
-							comp->setVel(vel);
+							// comp->setVel(vel);
 							newPos -= overlap;
 						}
 					}

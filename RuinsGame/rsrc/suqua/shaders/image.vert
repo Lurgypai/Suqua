@@ -64,9 +64,9 @@ void main() {
 	pixelPos += dat.origin;
     
 	//position
-	pixelPos += (dat.objPos - camPos);
+	pixelPos += (dat.objPos - round(camPos));
     
-	vec2 windowPos = ceil(pixelPos) / (vec2(camRes) / zoom);
+	vec2 windowPos = pixelPos / (vec2(camRes) / zoom);
     if(flip_vertically)
         windowPos.y = (-windowPos.y) + 1;
 	windowPos = 2 * (windowPos) - 1;

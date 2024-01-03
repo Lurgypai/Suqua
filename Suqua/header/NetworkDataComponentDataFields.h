@@ -20,18 +20,19 @@ namespace PhysicsData {
 	constexpr NetworkDataComponent::DataId FROZEN = 8;			//bool
 	constexpr NetworkDataComponent::DataId WEIGHTLESS = 9;		//bool
 	constexpr NetworkDataComponent::DataId COLLIDEABLE = 10;	//bool
-	constexpr NetworkDataComponent::DataId XRES = 11;			//float
-	constexpr NetworkDataComponent::DataId YRES = 12;			//float
+	constexpr NetworkDataComponent::DataId COLLIDEABLE_WITH = 11;	//bool
+	constexpr NetworkDataComponent::DataId XRES = 12;			//float
+	constexpr NetworkDataComponent::DataId YRES = 13;			//float
 }
 
 namespace MovementData {
-	constexpr NetworkDataComponent::DataId MOVE_SPEED = 13;
+	constexpr NetworkDataComponent::DataId MOVE_SPEED = 14;
 }
 
 namespace LifeTimeData {
-	constexpr NetworkDataComponent::DataId LIFE_TIME = 14;
+	constexpr NetworkDataComponent::DataId LIFE_TIME = 15;
 }
 
 namespace HealthData {
-	constexpr NetworkDataComponent::DataId HEALTH = 15;			//uint32_t
+	constexpr NetworkDataComponent::DataId HEALTH = 16;			//uint32_t
 }
