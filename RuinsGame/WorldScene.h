@@ -1,5 +1,6 @@
 #pragma once
 #include "Scene.h"
+#include "Level.h"
 #include "PhysicsSystem.h"
 #include "CombatSystem.h"
 
@@ -24,4 +25,6 @@ private:
 	CombatSystem combat;
 
 	Framebuffer screenBuffer;
+
+    Level level;
 };

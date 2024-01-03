@@ -1,17 +1,23 @@
 #pragma once
 #include "AABB.h"
 #include "PhysicsSystem.h"
+#include "CollisionHandler.h"
+#include <memory>
 
 class PhysicsComponent {
 	friend class PhysicsSystem;
 public:
 
-	PhysicsComponent(EntityId id_ = 0, AABB collider = AABB{ {0, 0}, {0, 0} }, float weight_ = 0, Vec2f vel = {0, 0}, bool collideable_ = false);
+	PhysicsComponent(EntityId id_ = 0,
+            AABB collider = AABB{ {0, 0}, {0, 0} },
+            float weight_ = 0, Vec2f vel = {0, 0}, bool collideable_ = false);
 	EntityId getId() const;
 	
 	const AABB & getCollider() const;
 
 	void refreshPos();
+    template <typename Handler, typename... Args>
+    void loadCollisionHandler(Args... args);
 
 	bool intersects(const AABB & other);
 
@@ -47,6 +53,8 @@ public:
 
 	bool isWeightless() const;
 	void setWeightless(bool newWeigtless);
+    
+    void onCollide(CollisionDir dir);
 
 private:
 
@@ -66,4 +74,11 @@ protected:
 	bool* collideable;
 	float* xRes;
 	float* yRes;
+
+    std::unique_ptr<CollisionHandler> collisionHandler;
 };
+
+template<typename Handler, typename... Args>
+void PhysicsComponent::loadCollisionHandler(Args... args) {
+    collisionHandler = std::make_unique<Handler>(args...);
+}

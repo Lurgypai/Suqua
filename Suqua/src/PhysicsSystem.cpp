@@ -88,11 +88,19 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 
 							//horizontal collision
 							if (overlap.x != 0.0f && overlap.y == 0.0f) {
+                                if(vel.x < 0) comp->onCollide(CollisionDir::left);
+                                else if (vel.x > 0) comp->onCollide(CollisionDir::right);
 								vel.x = 0.0f;
 							}
 							//vertical collision
 							else if (overlap.x == 0.0f && overlap.y != 0.0f) {
-								if (vel.y > 0) comp->setGrounded(true);
+                                if(vel.y < 0) {
+                                    comp->onCollide(CollisionDir::up);
+                                }
+                                else if (vel.y > 0) {
+                                    comp->onCollide(CollisionDir::down);
+                                    comp->setGrounded(true);
+                                }
 								vel.y = 0.0f;
 							}
 							//corner collision

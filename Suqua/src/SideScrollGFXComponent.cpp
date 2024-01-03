@@ -59,15 +59,15 @@ void SideScrollGFXComponent::startDefaultAnimations() {
 	auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 	int currCardinalDir = dirComp->getCardinalDir();
 
-	std::cout << "STARTING\n";
+	// std::cout << "STARTING\n";
 	if (currCharacterVel != Vec2f{ 0, 0 }) {
 		if ((currCharacterVel.x < 0 && currCardinalDir == 1) || (currCharacterVel.x > 0 && currCardinalDir == 3)) {
 			sprite->setAnimation("turn");
-			std::cout << "TURNING\n";
+			// std::cout << "TURNING\n";
 		}
 		else {
 			sprite->setAnimation("left_right");
-			std::cout << "WALKING\n";
+			// std::cout << "WALKING\n";
 		}
 
 		if (currCardinalDir == 1) {
@@ -79,7 +79,7 @@ void SideScrollGFXComponent::startDefaultAnimations() {
 	}
 	else {
 		sprite->setAnimation("idle");
-		std::cout << "IDLE\n";
+		// std::cout << "IDLE\n";
 	}
 }
 

@@ -18,6 +18,7 @@
 #include "HealthWatcherComponent.h"
 #include "BatSwingComponent.h"
 #include "GolfSwingComponent.h"
+#include "BounceCollisionHandler.h"
 
 using TeamId = TeamComponent::TeamId;
 
@@ -129,6 +130,9 @@ std::vector<EntityId> EntityGenerator::SpawnPlayer(Scene& scene, const Vec2f& po
 	auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(playerId);
 	physicsComp->setWeight(5.0);
 	physicsComp->setWeightless(false);
+
+	// auto* sideScrollComp = EntitySystem::GetComp<SideScrollMoverComponent>(playerId);
+	// sideScrollComp->moveSpeed = 10.0;
 	return entities;
 }
 
@@ -149,4 +153,25 @@ std::vector<EntityId> EntityGenerator::SpawnEnemy(Scene& scene, const Vec2f& pos
 	sideScrollComp->decel = MoveSpeed;
 
 	return entities;
+}
+
+std::vector<EntityId> EntityGenerator::SpawnBall(Scene& scene, const Vec2f& pos) {
+    auto entities = scene.addEntities(1);
+    EntityId ballId = entities[0];
+    MakeLivingEntity(ballId, pos, {12, 12}, 50.0f, TeamId::player, { 0, 0 }, { 12, 12 }, 100); 
+
+    
+	auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(ballId);
+	physicsComp->setWeight(5.0);
+	physicsComp->setWeightless(false);
+    physicsComp->loadCollisionHandler<BounceCollisionHandler>();
+
+	constexpr float MoveSpeed = 50.0f;
+	auto* sideScrollComp = EntitySystem::GetComp<SideScrollMoverComponent>(ballId);
+	// sideScrollComp->moveSpeed = MoveSpeed;
+	// sideScrollComp->accelAirborn = 0;
+	// sideScrollComp->accelGrounded = MoveSpeed;
+	sideScrollComp->decel = 0;
+
+    return entities;
 }

@@ -8,7 +8,8 @@
 using NDC = NetworkDataComponent;
 using namespace PhysicsData;
 
-PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, Vec2f vel_, bool collideable_) :
+PhysicsComponent::PhysicsComponent(EntityId id_,
+        AABB collider_, float weight_, Vec2f vel_, bool collideable_) :
 	id{ id_ },
 	collider{collider_},
 	weight{nullptr},
@@ -21,8 +22,7 @@ PhysicsComponent::PhysicsComponent(EntityId id_, AABB collider_, float weight_, 
 {
 	if (id != 0) {
 		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
-		}
+			EntitySystem::MakeComps<PositionComponent>(1, &id); }
 
 		NDC* dataComp = EntitySystem::GetComp<NDC>(id);
 
@@ -179,4 +179,10 @@ bool PhysicsComponent::isGrounded() const {
 
 void PhysicsComponent::setGrounded(bool newGrounded) {
 	*grounded = newGrounded;
+}
+
+void PhysicsComponent::onCollide(CollisionDir dir) {
+    if(collisionHandler) {
+        collisionHandler->onCollide(*this, dir);
+    }
 }

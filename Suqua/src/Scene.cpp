@@ -57,7 +57,7 @@ void Scene::storeInputs(Game& game) {
 
 const std::unordered_map<EntityId, Controller>* Scene::getInputsAtTime(Tick time) const
 {
-	auto& pair = futureEntityInputs.find(time);
+	const auto& pair = futureEntityInputs.find(time);
 	if (pair != futureEntityInputs.end()) {
 		return &pair->second;
 	}
@@ -67,7 +67,7 @@ const std::unordered_map<EntityId, Controller>* Scene::getInputsAtTime(Tick time
 void Scene::applyInputs(Game& game) {
 
 	// if the future entity input map (mapping entity to controller ) exists
-	auto& mapForTick = futureEntityInputs.find(game.getGameTick());
+	const auto& mapForTick = futureEntityInputs.find(game.getGameTick());
 	if (mapForTick != futureEntityInputs.end()) {
 		// for every 
 		for (auto&& [id, controller] : mapForTick->second) {

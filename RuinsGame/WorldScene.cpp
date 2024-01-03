@@ -20,6 +20,7 @@
 #include "DebugIO.h"
 #include "IDKeyboardMouse.h"
 #include "HealthComponent.h"
+#include "AABB.h"
 
 #include "BasicAttackComponent.h"
 #include "RespawnComponent.h"
@@ -28,13 +29,16 @@
 #include "SideScrollMoverComponent.h"
 #include "BatSwingComponent.h"
 #include "GolfSwingComponent.h"
+#include "FeelerComponent.h"
+#include "AIBall.h"
 
 constexpr unsigned int ScreenWidth = 1920 / 4;
 constexpr unsigned int ScreenHeight = 1080 / 4;
 
 WorldScene::WorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{ id_, flags_ },
-	playerInput{ 0 }
+	playerInput{ 0 },
+    level{}
 {}
 
 void WorldScene::load(Game& game)
@@ -55,31 +59,41 @@ void WorldScene::load(Game& game)
 	GLRenderer::LoadTexture("entities/stabbyman.png", "stabbyman");
 	GLRenderer::LoadTexture("entities/player.png", "player");
 	GLRenderer::LoadTexture("entities/ball.png", "enemy:ball");
-	GLRenderer::LoadTexture("levels/temp_tileset.png", "tileset");
+	GLRenderer::LoadTexture("levels/tileset.png", "tileset");
 
 	/* ---------------- LOAD ENTITIES ----------------- */
 	// player
-	playerInput = game.loadInputDevice<IDKeyboardMouse>();
-	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 
-	// auto playerId = EntityGenerator::SpawnPlayer(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
-	auto playerId = EntityGenerator::SpawnEnemy(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
+	auto playerId = EntityGenerator::SpawnPlayer(*this, { 720 / 4 + 50, 405 / 4 }, NetworkOwnerComponent::Owner::local);
+	// auto playerId = EntityGenerator::SpawnEnemy(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
 	myPlayerId = playerId[0];
 	EntitySystem::MakeComps<SideScrollGFXComponent>(1, &myPlayerId);
-	//EntitySystem::GetComp<SideScrollGFXComponent>(myPlayerId)->loadSpriteSheet("player", "entities/player.json", Vec2f{ -28, -36 });
-	EntitySystem::GetComp<SideScrollGFXComponent>(myPlayerId)->loadSpriteSheet("enemy:ball", "entities/ball.json", Vec2f{ -26, -36 });
-	// EntitySystem::MakeComps<OnHitComponent>(1, &myPlayerId);
+	EntitySystem::GetComp<SideScrollGFXComponent>(myPlayerId)->loadSpriteSheet("player", "entities/player.json", Vec2f{ -28, -36 });
+	// EntitySystem::GetComp<SideScrollGFXComponent>(myPlayerId)->loadSpriteSheet("enemy:ball", "entities/ball.json", Vec2f{ -26, -36 });
+	EntitySystem::MakeComps<OnHitComponent>(1, &myPlayerId);
+
 
 	EntitySystem::MakeComps<RespawnComponent>(1, &myPlayerId);
 	EntitySystem::GetComp<RespawnComponent>(myPlayerId)->spawnPos = { 720 / 4, 405 / 4 };
 
+	playerInput = game.loadInputDevice<IDKeyboardMouse>();
+	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
+    
+    /*
+    playerInput = game.loadInputDevice<AIBall>();
+    auto& enemyAI = static_cast<AIBall&>(game.getInputDevice(playerInput));
+    enemyAI.left = {-1.f, 0.f};
+    enemyAI.right = {12.f, 0.f};
+    enemyAI.downleft = {-1.f, 16.f};
+    enemyAI.downright = {12.f, 16.f};
+    enemyAI.entityId = myPlayerId;
+    enemyAI.level = &level;
+    */
+
 	addEntityInputs({ {myPlayerId, playerInput} });
 
-	
-
 	// load level
-	Level test{ "tileset", "levels/test.ldtk" };
-	test.load(*this);
+	level.load("tileset", "levels/test.ldtk", *this);
 }
 
 void WorldScene::physicsStep(Game& game)
@@ -101,9 +115,11 @@ void WorldScene::physicsStep(Game& game)
 	physics.runPhysics(game.PHYSICS_STEP);
 
 	// update inputs for next frame
+    /*
 	auto& playerInputDevice = static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput));
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
 	playerInputDevice.entityPos = plrPhysicsComp->center();
+    */
 }
 
 void WorldScene::renderUpdateStep(Game& game)
@@ -132,11 +148,11 @@ void WorldScene::renderStep(Game& game)
 	auto mouseState = SDL_GetMouseState(&mousePos.x, &mousePos.y);
 
 	auto worldPos = GLRenderer::screenToWorld(mousePos, camId);
-	DebugIO::setLine(3, "Mouse Pos: " + std::to_string(worldPos.x) + ", " + std::to_string(worldPos.y));
+	DebugIO::setLine(4, "Mouse Pos: " + std::to_string(worldPos.x) + ", " + std::to_string(worldPos.y));
 
 
 	screenBuffer.bind();
-	glClearColor(78.0f / 255, 59.0f / 255, 61.0f / 255, 1.0f);
+	// glClearColor(78.0f / 255, 59.0f / 255, 61.0f / 255, 1.0f);
 	GLRenderer::Clear();
 	drawScene(game.getRender());
 	//GLRenderer::setCamera(camId);
@@ -185,8 +201,29 @@ void WorldScene::renderStep(Game& game)
 		aIInput.getState() == AITopDownBasic::AIState::following ? 1.0f : 0.0f,
 		1.0f });
 		*/
-	
-	
+
+    /*
+    auto& aIInput = static_cast<AIBall&>(game.getInputDevice(playerInput));
+    Vec2f startPos = EntitySystem::GetComp<PositionComponent>(myPlayerId)->getPos();
+    Vec2f aILeft = startPos + aIInput.left;
+    Vec2f aIRight = startPos + aIInput.right;
+    Vec2f aIDownLeft = startPos + aIInput.downleft;
+    Vec2f aIDownRight = startPos + aIInput.downright;
+
+    Color leftColor{0.0, 1.0, 0.0, 1.0};
+    if(level.hasTile(aILeft)) leftColor.r = 1.0;
+    Color rightColor{0.0, 1.0, 0.0, 1.0};
+    if(level.hasTile(aIRight)) rightColor.r = 1.0;
+    Color downLeftColor{0.0, 1.0, 0.0, 1.0};
+    if(!level.hasTile(aIDownLeft)) downLeftColor.r = 1.0;
+    Color downRightColor{0.0, 1.0, 0.0, 1.0};
+    if(!level.hasTile(aIDownRight)) downRightColor.r = 1.0;
+    GLRenderer::DrawPrimitive(Primitive{{startPos, aILeft}, -0.5, leftColor});
+    GLRenderer::DrawPrimitive(Primitive{{startPos, aIRight}, -0.5, rightColor});
+    GLRenderer::DrawPrimitive(Primitive{{startPos, aIDownLeft}, -0.5, downLeftColor});
+    GLRenderer::DrawPrimitive(Primitive{{startPos, aIDownRight}, -0.5, downRightColor});
+    */
+    
 
 	Framebuffer::unbind();
 	GLRenderer::DrawOverScreen(screenBuffer.getTexture(0).id);

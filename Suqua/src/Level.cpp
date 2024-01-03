@@ -16,7 +16,19 @@ using namespace nlohmann;
 Level::Level(const std::string& textureTag_, const std::string& fileName_) :
 	textureTag{textureTag_},
 	fileName{fileName_},
-	tiles{}
+	tiles{},
+    grid{},
+    levelRes{},
+    tileSize{}
+{}
+
+Level::Level() :
+	textureTag{},
+	fileName{},
+	tiles{},
+    grid{},
+    levelRes{},
+    tileSize{}
 {}
 
 void Level::load(Scene& scene) {
@@ -27,7 +39,8 @@ void Level::load(Scene& scene) {
 	}
 
 	json worldJson{};
-	worldJson << file;
+    file >> worldJson;
+	//worldJson << file;
 
 	if (!worldJson.contains("levels")) {
 		std::cout << "ldtk is missing \"levels\"!\n";
@@ -38,7 +51,12 @@ void Level::load(Scene& scene) {
 	const json& topLayer = worldJson["levels"][0]["layerInstances"][0];
 	int gridSize = topLayer["__gridSize"];
 	Vec2i res{ gridSize, gridSize };
+    tileSize = gridSize;
 	// std::cout << "res: " << res << '\n';
+    
+    grid = topLayer["intGridCsv"].get<std::vector<int>>();
+    levelRes.x = topLayer["__cWid"];
+    levelRes.y = topLayer["__cHei"];
 
 	for (auto& tileJson : topLayer["autoLayerTiles"]) {
 		Vec2f worldPos{ tileJson["px"][0], tileJson["px"][1] };
@@ -58,6 +76,7 @@ void Level::load(Scene& scene) {
 		renderComp->loadDrawable<Sprite>(textureTag);
 
 		auto sprite = renderComp->getDrawable<Sprite>();
+        // std::cout << "texture offset: " << texOffset << '\n';
 		sprite->setImgOffset(texOffset);
 		sprite->setObjRes(res);
 		unsigned int f = tileJson["f"];
@@ -67,6 +86,14 @@ void Level::load(Scene& scene) {
 
 		tiles.emplace_back(tile);
 	}
+
+}
+
+void Level::load(const std::string& textureTag_, const std::string& fileName_, Scene& scene) {
+    textureTag = textureTag_;
+    fileName  = fileName_;
+
+    load(scene);
 }
 
 void Level::unload(Scene& scene) {
@@ -75,4 +102,10 @@ void Level::unload(Scene& scene) {
 		baseComp->isDead = true;
 	}
 	tiles.clear();
+}
+
+bool Level::hasTile(Vec2f pos) const {
+    Vec2i tilePos = Vec2i{static_cast<int>(pos.x / tileSize), static_cast<int>(pos.y / tileSize)};
+    int index = tilePos.y * levelRes.x + tilePos.x;
+    return grid[index];
 }
