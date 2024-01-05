@@ -47,6 +47,9 @@ void Level::load(Scene& scene) {
 		throw std::exception{};
 	}
 
+	const json& level = worldJson["levels"][0];
+	camBoxes.emplace_back(CameraBox{ AABB{ {level["worldX"], level["worldY"]}, {level["pxWid"], level["pxHei"]}} });
+
     const json& entityLayer = worldJson["levels"][0]["layerInstances"][0];
     for(auto& entityJson : entityLayer["entityInstances"]) {
         std::string identifier = entityJson["__identifier"];
@@ -123,4 +126,11 @@ bool Level::hasTile(Vec2f pos) const {
 
 const std::vector<Level::LevelEntity>& Level::getEntities() const {
     return entities;
+}
+
+const Level::CameraBox* Level::getCamBox(const Vec2f& pos) const {
+	for (auto& camBox : camBoxes) {
+		if (camBox.box.contains(pos)) return &camBox;
+	}
+	return nullptr;
 }

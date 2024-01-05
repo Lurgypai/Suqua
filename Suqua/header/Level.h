@@ -18,6 +18,10 @@ public:
         Vec2f pos;
     };
 
+    struct CameraBox {
+        AABB box;
+    };
+
     Level();
 	Level(const std::string& textureTag_, const std::string& fileName_);
 	void load(Scene& scene);
@@ -27,6 +31,8 @@ public:
     bool hasTile(Vec2f pos) const;
 
     const std::vector<LevelEntity>& getEntities() const;
+
+    const CameraBox* getCamBox(const Vec2f& pos) const;
 private:
 	std::string textureTag;
 	std::string fileName;
@@ -39,4 +45,5 @@ private:
     Vec2i levelRes;
     int tileSize;
 
+    std::vector<CameraBox> camBoxes;
 };

@@ -117,6 +117,21 @@ void WorldScene::renderUpdateStep(Game& game)
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
 	auto& cam = GLRenderer::getCamera(camId);
 	cam.center(plrPhysicsComp->center());
+	auto camBox = level.getCamBox(cam.center());
+	if (camBox != nullptr) {
+		float leftOverlap = camBox->box.pos.x - cam.pos.x;
+		float rightOverlap = (camBox->box.pos.x + camBox->box.res.x) - (cam.pos.x + cam.res.x);
+		float topOverlap = camBox->box.pos.y - cam.pos.y;
+		float bottomOverlap = (camBox->box.pos.y + camBox->box.res.y) - (cam.pos.y + cam.res.y);
+		
+		Vec2f offset{ 0,0 };
+		if (leftOverlap > 0) offset.x = leftOverlap;
+		if (rightOverlap < 0) offset.x = rightOverlap;
+		if (topOverlap > 0) offset.y = topOverlap;
+		if (bottomOverlap < 0) offset.y = bottomOverlap;
+
+		cam.move(offset);
+	}
 }
 
 void WorldScene::renderStep(Game& game)
@@ -181,6 +196,8 @@ void WorldScene::renderStep(Game& game)
 	//	RectDrawable rect{ Color{0, 0, 1, 1}, false, -1.0f, hurtComp.hurtbox };
 	//	rect.draw();
 	//}
+
+
 	
 	Framebuffer::unbind();
 	GLRenderer::DrawOverScreen(screenBuffer.getTexture(0).id);
