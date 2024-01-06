@@ -13,7 +13,6 @@
 #include "Updater.h"
 #include "PositionComponent.h"
 #include "LifeTimeComponent.h"
-#include "Level.h"
 #include "EntityGenerator.h"
 #include "TopDownMoverComponent.h"
 #include "AITopDownBasic.h"
@@ -40,7 +39,7 @@ constexpr unsigned int ScreenHeight = 1080 / 4;
 WorldScene::WorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{ id_, flags_ },
 	playerInput{ 0 },
-    level{}
+    world{}
 {}
 
 void WorldScene::load(Game& game)
@@ -67,12 +66,12 @@ void WorldScene::load(Game& game)
 
 	/* ---------------- LEVEL ----------------- */
 	// load level
-	level.load("tileset", "levels/test.ldtk", *this);
-    EntityGenerator::TargetLevel = &level;
+	world.load("tileset", "levels/test.ldtk", *this);
+    EntityGenerator::TargetLevel = &world;
 
 	/* ---------------- LOAD ENTITIES ----------------- */
 	// player
-    myPlayerId = EntityGenerator::SpawnEntities(*this, level);
+    myPlayerId = EntityGenerator::SpawnEntities(*this, world);
 
 	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
@@ -116,13 +115,15 @@ void WorldScene::renderUpdateStep(Game& game)
 
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
 	auto& cam = GLRenderer::getCamera(camId);
-	cam.center(plrPhysicsComp->center());
-	auto camBox = level.getCamBox(cam.center());
+
+	Vec2f targetPos = plrPhysicsComp->center() - Vec2f{ cam.res.x / 2.f, cam.res.y / 2.f };
+
+	auto camBox = world.getCamBox(plrPhysicsComp->center());
 	if (camBox != nullptr) {
-		float leftOverlap = camBox->box.pos.x - cam.pos.x;
-		float rightOverlap = (camBox->box.pos.x + camBox->box.res.x) - (cam.pos.x + cam.res.x);
-		float topOverlap = camBox->box.pos.y - cam.pos.y;
-		float bottomOverlap = (camBox->box.pos.y + camBox->box.res.y) - (cam.pos.y + cam.res.y);
+		float leftOverlap = camBox->box.pos.x - targetPos.x;
+		float rightOverlap = (camBox->box.pos.x + camBox->box.res.x) - (targetPos.x + cam.res.x);
+		float topOverlap = camBox->box.pos.y - targetPos.y;
+		float bottomOverlap = (camBox->box.pos.y + camBox->box.res.y) - (targetPos.y + cam.res.y);
 		
 		Vec2f offset{ 0,0 };
 		if (leftOverlap > 0) offset.x = leftOverlap;
@@ -130,8 +131,12 @@ void WorldScene::renderUpdateStep(Game& game)
 		if (topOverlap > 0) offset.y = topOverlap;
 		if (bottomOverlap < 0) offset.y = bottomOverlap;
 
-		cam.move(offset);
+		targetPos += offset;
 	}
+
+	Vec2f distance = targetPos - cam.pos;
+	if (distance.magn() < 1.0f) cam.pos = targetPos;
+	else cam.pos += distance / 10.f;
 }
 
 void WorldScene::renderStep(Game& game)

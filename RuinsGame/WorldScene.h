@@ -1,6 +1,6 @@
 #pragma once
 #include "Scene.h"
-#include "Level.h"
+#include "World.h"
 #include "PhysicsSystem.h"
 #include "CombatSystem.h"
 #include "WackableSystem.h"
@@ -29,5 +29,5 @@ private:
 
 	Framebuffer screenBuffer;
 
-    Level level;
+    World world;
 };

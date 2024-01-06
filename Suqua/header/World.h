@@ -11,7 +11,7 @@ Important, needs to be changed to handle like multiple levels and a world. Chang
 for now just loading the whole thing
 */
 
-class Level {
+class World {
 public:
     struct LevelEntity {
         std::string id;
@@ -20,10 +20,12 @@ public:
 
     struct CameraBox {
         AABB box;
+        std::vector<int> grid;
+        int tileSize;
     };
 
-    Level();
-	Level(const std::string& textureTag_, const std::string& fileName_);
+    World();
+	World(const std::string& textureTag_, const std::string& fileName_);
 	void load(Scene& scene);
 	void load(const std::string& textureTag_, const std::string& fileName_, Scene& scene);
 	void unload(Scene& scene);
@@ -40,10 +42,6 @@ private:
 	std::vector<EntityId> tiles;
     std::vector<LevelEntity> entities;
 
-    // a tilemap dictating what tiles are solid for easy querying
-    std::vector<int> grid;
-    Vec2i levelRes;
-    int tileSize;
 
     std::vector<CameraBox> camBoxes;
 };

@@ -8,7 +8,7 @@ FeelerComponent::FeelerComponent(EntityId id_) :
     id{id_}
 {}
 
-void FeelerComponent::update(const Level& level) {
+void FeelerComponent::update(const World& level) {
     std::string isTile = "False";
 
     auto posComp = EntitySystem::GetComp<PositionComponent>(id);

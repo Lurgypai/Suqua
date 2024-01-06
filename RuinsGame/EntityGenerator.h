@@ -6,10 +6,10 @@
 #include "TeamComponent.h"
 #include "NetworkOwnerComponent.h"
 #include "Scene.h"
-#include "Level.h"
+#include "World.h"
 
 namespace EntityGenerator {
-    extern Level* TargetLevel;
+    extern World* TargetLevel;
 
 	void MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& colliderRes, float moveSpeed,
 							TeamComponent::TeamId team, Vec2f hurtboxOffset, Vec2f hurtboxRes, std::uint32_t health); // A thing with a hurtbox and health that can be controlled
@@ -18,5 +18,5 @@ namespace EntityGenerator {
 	std::vector<EntityId> SpawnEnemy(Scene& scene, const Vec2f& pos); // based off of living entity
     std::vector<EntityId> SpawnBall(Scene& scene, const Vec2f& pos);
 
-    EntityId SpawnEntities(Scene& scene, const Level& level);
+    EntityId SpawnEntities(Scene& scene, const World& level);
 }

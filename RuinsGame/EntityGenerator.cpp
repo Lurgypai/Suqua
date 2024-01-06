@@ -24,7 +24,7 @@
 
 using TeamId = TeamComponent::TeamId;
 
-Level* EntityGenerator::TargetLevel = nullptr;
+World* EntityGenerator::TargetLevel = nullptr;
 
 void EntityGenerator::MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& colliderRes, float moveSpeed,
 										TeamId team, Vec2f hurtboxOffset, Vec2f hurtboxRes, std::uint32_t health) {
@@ -136,7 +136,7 @@ std::vector<EntityId> EntityGenerator::SpawnBall(Scene& scene, const Vec2f& pos)
     return entities;
 }
 
-EntityId EntityGenerator::SpawnEntities(Scene& scene, const Level& level) {
+EntityId EntityGenerator::SpawnEntities(Scene& scene, const World& level) {
     EntityId player = 0;
 
     for(auto& levelEntity : level.getEntities()) {

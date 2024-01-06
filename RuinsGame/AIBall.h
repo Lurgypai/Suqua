@@ -1,5 +1,5 @@
 #pragma once
-#include "Level.h"
+#include "World.h"
 #include "ComponentMacros.h"
 
 class AIBallComponent {
@@ -13,7 +13,7 @@ public:
     Vec2f downleft;
     Vec2f downright;
 
-    Level* level;
+    World* level;
 private:
     float dir;
 };
