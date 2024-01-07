@@ -136,16 +136,18 @@ std::vector<EntityId> EntityGenerator::SpawnBall(Scene& scene, const Vec2f& pos)
     return entities;
 }
 
-EntityId EntityGenerator::SpawnEntities(Scene& scene, const World& level) {
+EntityId EntityGenerator::SpawnEntities(Scene& scene, const World& world) {
     EntityId player = 0;
 
-    for(auto& levelEntity : level.getEntities()) {
-        if(levelEntity.id == "PlayerSpawn") {
-            player = SpawnPlayer(scene, levelEntity.pos)[0];
-        }
-        else if (levelEntity.id == "EnemyBall") {
-            SpawnEnemy(scene, levelEntity.pos);
-        }
-    }
+	for (auto& level : world.getLevels()) {
+		for (auto& levelEntity : level.getEntities()) {
+			if (levelEntity.id == "PlayerSpawn") {
+				player = SpawnPlayer(scene, levelEntity.pos)[0];
+			}
+			else if (levelEntity.id == "EnemyBall") {
+				SpawnEnemy(scene, levelEntity.pos);
+			}
+		}
+	}
     return player;
 }

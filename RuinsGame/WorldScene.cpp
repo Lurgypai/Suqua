@@ -117,13 +117,14 @@ void WorldScene::renderUpdateStep(Game& game)
 	auto& cam = GLRenderer::getCamera(camId);
 
 	Vec2f targetPos = plrPhysicsComp->center() - Vec2f{ cam.res.x / 2.f, cam.res.y / 2.f };
+	auto* level = world.getActiveLevel(plrPhysicsComp->center());
 
-	auto camBox = world.getCamBox(plrPhysicsComp->center());
-	if (camBox != nullptr) {
-		float leftOverlap = camBox->box.pos.x - targetPos.x;
-		float rightOverlap = (camBox->box.pos.x + camBox->box.res.x) - (targetPos.x + cam.res.x);
-		float topOverlap = camBox->box.pos.y - targetPos.y;
-		float bottomOverlap = (camBox->box.pos.y + camBox->box.res.y) - (targetPos.y + cam.res.y);
+	if (level != nullptr) {
+		auto& boundingBox = level->getBoundingBox();
+		float leftOverlap = boundingBox.pos.x - targetPos.x;
+		float rightOverlap = (boundingBox.pos.x + boundingBox.res.x) - (targetPos.x + cam.res.x);
+		float topOverlap = boundingBox.pos.y - targetPos.y;
+		float bottomOverlap = (boundingBox.pos.y + boundingBox.res.y) - (targetPos.y + cam.res.y);
 		
 		Vec2f offset{ 0,0 };
 		if (leftOverlap > 0) offset.x = leftOverlap;
@@ -133,6 +134,7 @@ void WorldScene::renderUpdateStep(Game& game)
 
 		targetPos += offset;
 	}
+
 
 	Vec2f distance = targetPos - cam.pos;
 	if (distance.magn() < 1.0f) cam.pos = targetPos;
