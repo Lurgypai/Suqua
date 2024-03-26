@@ -18,7 +18,7 @@ public:
 	World(const std::string& textureTag_, const std::string& fileName_);
 	void load(Scene& scene);
 	void load(const std::string& textureTag_, const std::string& fileName_, Scene& scene);
-
+	
 	const std::vector<Level>& getLevels() const;
 	const Level* getActiveLevel(const Vec2f& pos) const;
     bool hasTile(Vec2f pos) const;
@@ -28,3 +28,8 @@ private:
 	
 	std::vector<Level> levels;
 };
+
+// keep track of neighboring levels on load, store in level
+// add default spawn for now, with additional spawns for each room that get triggered on overlap
+// for now don't worry about level search times
+// 
