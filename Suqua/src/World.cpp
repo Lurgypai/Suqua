@@ -68,3 +68,7 @@ bool World::hasTile(Vec2f pos) const {
 const std::vector<Level>& World::getLevels() const {
 	return levels;
 }
+
+std::vector<Level>& World::getLevels() {
+    return levels;
+}

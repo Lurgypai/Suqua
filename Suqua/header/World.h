@@ -20,6 +20,7 @@ public:
 	void load(const std::string& textureTag_, const std::string& fileName_, Scene& scene);
 	
 	const std::vector<Level>& getLevels() const;
+    std::vector<Level>& getLevels();
 	const Level* getActiveLevel(const Vec2f& pos) const;
     bool hasTile(Vec2f pos) const;
 private:

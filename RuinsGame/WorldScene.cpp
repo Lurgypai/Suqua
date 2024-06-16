@@ -31,6 +31,8 @@
 #include "GolfSwingComponent.h"
 #include "FeelerComponent.h"
 #include "AIBall.h"
+#include "ActiveEntityComponent.h"
+#include "ActiveEntityZoneComponent.h"
 
 
 constexpr unsigned int ScreenWidth = 1920 / 4;
@@ -71,7 +73,7 @@ void WorldScene::load(Game& game)
 
 	/* ---------------- LOAD ENTITIES ----------------- */
 	// player
-    myPlayerId = EntityGenerator::SpawnEntities(*this, world);
+    myPlayerId = EntityGenerator::PlaceEntities(*this, world);
 
 	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
@@ -80,6 +82,13 @@ void WorldScene::load(Game& game)
 
 void WorldScene::physicsStep(Game& game)
 {
+    for(auto& level : world.getLevels()) {
+        auto& bounding = level.getBoundingBox();
+        auto playerActiveZone = EntitySystem::GetComp<ActiveEntityZoneComponent>(myPlayerId);
+        if(!level.isActive() && bounding.intersects(playerActiveZone->inactiveBox)) level.activate();
+        else if (level.isActive() && !bounding.intersects(playerActiveZone->inactiveBox)) level.deactivate();
+    }
+
 	Updater::UpdateAll<TopDownMoverComponent>();
 	Updater::UpdateAll<BasicAttackComponent>();
 	Updater::UpdateAll<HurtboxComponent>();
@@ -92,6 +101,8 @@ void WorldScene::physicsStep(Game& game)
 	Updater::UpdateAll<ParentComponent>();
 	Updater::UpdateAll<HitboxComponent>();
     Updater::UpdateAll<AIBallComponent>();
+    Updater::UpdateAll<ActiveEntityComponent>();
+    Updater::UpdateAll<ActiveEntityZoneComponent>();
 
 
 	//combat.checkClientCollisions(&game.host);
@@ -204,6 +215,19 @@ void WorldScene::renderStep(Game& game)
 	//	rect.draw();
 	//}
 
+    /*
+	for (auto& physicsComp : EntitySystem::GetPool<PhysicsComponent>()) {
+		RectDrawable rect{ Color{0, 0, 1, 1}, false, -1.0f, physicsComp.getCollider() };
+		rect.draw();
+	}
+    */
+
+    for (auto& activeComp : EntitySystem::GetPool<ActiveEntityZoneComponent>()) {
+		RectDrawable rect{ Color{0, 0, 1, 1}, false, -1.0f, activeComp.activeBox};
+		RectDrawable rect2{ Color{1, 0, 0, 1}, false, -1.0f, activeComp.inactiveBox};
+		rect.draw();
+		rect2.draw();
+    }
 
 	
 	Framebuffer::unbind();

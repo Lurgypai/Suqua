@@ -17,6 +17,7 @@ void WackableSystem::update(Scene& scene) {
     for(auto& wackableComp : EntitySystem::GetPool<WackableComponent>()) {
         auto otherBaseComp = EntitySystem::GetComp<EntityBaseComponent>(wackableComp.getId());
         if(otherBaseComp->isDead) continue;
+        if(!otherBaseComp->isActive) continue;
 
         auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(wackableComp.getId());
 

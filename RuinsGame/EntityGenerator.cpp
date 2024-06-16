@@ -21,6 +21,8 @@
 #include "WackableComponent.h"
 #include "AIBall.h"
 #include "SideScrollGFXComponent.h"
+#include "ActiveEntityComponent.h"
+#include "ActiveEntityZoneComponent.h"
 
 using TeamId = TeamComponent::TeamId;
 
@@ -56,7 +58,7 @@ void EntityGenerator::MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& coll
 std::vector<EntityId> EntityGenerator::SpawnPlayer(Scene& scene, const Vec2f& pos) {
 	auto entities = scene.addEntities(1);
 	EntityId playerId = entities[0];
-	MakeLivingEntity(playerId, pos, { 8, 12 }, 50.0f, TeamId::player, { -1, -11 }, { 8, 15 }, 100);
+	MakeLivingEntity(playerId, pos, { 6, 12 }, 50.0f, TeamId::player, { -1, -11 }, { 8, 15 }, 100);
 
 	EntitySystem::MakeComps<BatSwingComponent>(1, &playerId);
 	auto* batSwingComp = EntitySystem::GetComp<BatSwingComponent>(playerId);
@@ -74,14 +76,23 @@ std::vector<EntityId> EntityGenerator::SpawnPlayer(Scene& scene, const Vec2f& po
 	physicsComp->setWeight(5.0);
 	physicsComp->setWeightless(false);
 
-	// auto* sideScrollComp = EntitySystem::GetComp<SideScrollMoverComponent>(playerId);
-	// sideScrollComp->moveSpeed = 10.0;
+	auto* sideScrollComp = EntitySystem::GetComp<SideScrollMoverComponent>(playerId);
+	sideScrollComp->accelGrounded = 2.0f;
+	sideScrollComp->decel = 1.0f;
+	sideScrollComp->accelAirborn = 0.5f;
 
 	EntitySystem::MakeComps<SideScrollGFXComponent>(1, &playerId);
-	EntitySystem::GetComp<SideScrollGFXComponent>(playerId)->loadSpriteSheet("player", "entities/player.json", Vec2f{ -28, -36 });
+	EntitySystem::GetComp<SideScrollGFXComponent>(playerId)->loadSpriteSheet("player", "entities/player.json", Vec2f{ -29, -36 });
 
 	EntitySystem::MakeComps<RespawnComponent>(1, &playerId);
 	EntitySystem::GetComp<RespawnComponent>(playerId)->spawnPos = pos;
+
+
+    EntitySystem::MakeComps<ActiveEntityZoneComponent>(1, &playerId);
+    auto spawnZone = EntitySystem::GetComp<ActiveEntityZoneComponent>(playerId);
+    spawnZone->activeBox = AABB{{0, 0}, {480 * 2, 270 * 2}};
+    spawnZone->inactiveBox = AABB{{0, 0}, {480 * 2 + 16, 270 * 2 + 16}};
+
 	return entities;
 }
 
@@ -116,6 +127,14 @@ std::vector<EntityId> EntityGenerator::SpawnEnemy(Scene& scene, const Vec2f& pos
 	return entities;
 }
 
+void EntityGenerator::PlaceEnemy(Scene& scene, const Vec2f& pos) {
+    auto id = SpawnEnemy(scene, pos)[0];
+    EntitySystem::MakeComps<ActiveEntityComponent>(1, &id);
+    auto activeComp = EntitySystem::GetComp<ActiveEntityComponent>(id);
+    activeComp->spawnPos = pos;
+    activeComp->deactivate();
+}
+
 std::vector<EntityId> EntityGenerator::SpawnBall(Scene& scene, const Vec2f& pos) {
     auto entities = scene.addEntities(1);
     EntityId ballId = entities[0];
@@ -136,17 +155,29 @@ std::vector<EntityId> EntityGenerator::SpawnBall(Scene& scene, const Vec2f& pos)
     return entities;
 }
 
-EntityId EntityGenerator::SpawnEntities(Scene& scene, const World& world) {
+std::vector<EntityId> EntityGenerator::SpawnEntity(Scene& scene, const std::string& tag, const Vec2f& pos) {
+    auto spawnFuncIter = SpawnFunctions.find(tag);
+    if(spawnFuncIter == SpawnFunctions.end()) return {};
+    else return spawnFuncIter->second(scene, pos);
+}
+
+void EntityGenerator::PlaceEntity(Scene& scene, const std::string& tag, const Vec2f& pos) {
+    auto spawnFuncIter = PlaceFunctions.find(tag);
+    if(spawnFuncIter == PlaceFunctions.end()) return;
+    else return spawnFuncIter->second(scene, pos);
+}
+
+EntityId EntityGenerator::PlaceEntities(Scene& scene, const World& world) {
     EntityId player = 0;
 
 	for (auto& level : world.getLevels()) {
 		for (auto& levelEntity : level.getEntities()) {
 			if (levelEntity.id == "PlayerSpawn") {
-				player = SpawnPlayer(scene, levelEntity.pos)[0];
+				player = SpawnEntity(scene, "Player", levelEntity.pos)[0];
 			}
-			else if (levelEntity.id == "EnemyBall") {
-				SpawnEnemy(scene, levelEntity.pos);
-			}
+            else {
+                PlaceEntity(scene, levelEntity.id, levelEntity.pos);
+            }
 		}
 	}
     return player;

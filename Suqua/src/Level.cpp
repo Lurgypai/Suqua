@@ -11,7 +11,8 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 	entities{},
 	boundingBox{},
 	grid{},
-	tileSize{}
+	tileSize{},
+    isActive_{true}
 {
 	Vec2f levelOffset = { levelJson["worldX"], levelJson["worldY"] };
 	boundingBox = AABB{ levelOffset, {levelJson["pxWid"], levelJson["pxHei"]} };
@@ -22,11 +23,11 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 			for (auto& entityJson : layerJson["entityInstances"]) {
 				std::string identifier = entityJson["__identifier"];
 
-				float width = entityJson["width"];
+                Vec2f res = {entityJson["width"], entityJson["height"]};
 				Vec2f spawnPos = Vec2f{ entityJson["__worldX"], entityJson["__worldY"]} +
-					Vec2f{ width / 2.f, entityJson["height"] };
+					Vec2f{ res.x / 2.f, res.y };
 
-				entities.emplace_back(LevelEntity{ identifier, spawnPos });
+				entities.emplace_back(LevelEntity{ identifier, spawnPos, res });
 			}
 		}
 		else if (identifier == "Tiles") {
@@ -66,6 +67,22 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 	}
 }
 
+void Level::activate() {
+    for(auto& tile : tiles) {
+        auto* baseComp = EntitySystem::GetComp<EntityBaseComponent>(tile);
+        baseComp->isActive = true;
+    } 
+    isActive_ = true;
+}
+
+void Level::deactivate() {
+    for(auto& tile : tiles) {
+        auto* baseComp = EntitySystem::GetComp<EntityBaseComponent>(tile);
+        baseComp->isActive = false;
+    }
+    isActive_ = false;
+}
+
 const AABB& Level::getBoundingBox() const {
 	return boundingBox;
 }
@@ -80,3 +97,8 @@ bool Level::hasTile(const Vec2f& pos) const {
     int index = tilePos.y * (boundingBox.res.x / tileSize) + tilePos.x;
     return grid[index];
 }
+
+bool Level::isActive() const {
+    return isActive_;
+}
+
