@@ -8,8 +8,7 @@ class RespawnComponent {
 public:
 	void update();
 	void respawn();
-	
-	Vec2f spawnPos;
+    EntityId spawnZoneId;
 private:
 	int tick;
 	int respawnDelay;

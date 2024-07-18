@@ -108,7 +108,6 @@ void WorldScene::physicsStep(Game& game)
 	//combat.checkClientCollisions(&game.host);
 
 	physics.runPhysics(game.PHYSICS_STEP);
-
     wackable.update(*this);
 
 	// update inputs for next frame

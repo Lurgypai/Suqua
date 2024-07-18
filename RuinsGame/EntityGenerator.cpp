@@ -85,8 +85,6 @@ std::vector<EntityId> EntityGenerator::SpawnPlayer(Scene& scene, const Vec2f& po
 	EntitySystem::GetComp<SideScrollGFXComponent>(playerId)->loadSpriteSheet("player", "entities/player.json", Vec2f{ -29, -36 });
 
 	EntitySystem::MakeComps<RespawnComponent>(1, &playerId);
-	EntitySystem::GetComp<RespawnComponent>(playerId)->spawnPos = pos;
-
 
     EntitySystem::MakeComps<ActiveEntityZoneComponent>(1, &playerId);
     auto spawnZone = EntitySystem::GetComp<ActiveEntityZoneComponent>(playerId);

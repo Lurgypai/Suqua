@@ -3,15 +3,20 @@
 #include "PhysicsComponent.h"
 #include "CharacterGFXComponent.h"
 #include "EntityBaseComponent.h"
+#include "RespawnZoneComponent.h"
 
 RespawnComponent::RespawnComponent(EntityId id_) :
 	id{ id_ },
 	tick{ 0 },
-	respawnDelay{ 120 },
-	spawnPos{ 0, 0 }
+	respawnDelay{ 120 }
 {}
 
 void RespawnComponent::update() {
+    auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
+    for(auto& respawnComp : EntitySystem::GetPool<RespawnZoneComponent>()) {
+        if(respawnComp.zone.contains(physicsComp->position())) spawnZoneId = respawnComp.getId();
+    }
+
 	auto healthComp = EntitySystem::GetComp<HealthComponent>(id);
 	if (healthComp->getHealth() <= 0) {
 		if (tick < respawnDelay) {
@@ -37,9 +42,10 @@ void RespawnComponent::update() {
 
 void RespawnComponent::respawn() {
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-	physicsComp->teleport(spawnPos);
+    auto targetRespawnComp = EntitySystem::GetComp<RespawnZoneComponent>(spawnZoneId);
+    physicsComp->teleport(targetRespawnComp->zone.center());
 	physicsComp->setVel({ 0, 0 });
 
 	auto healthComponent = EntitySystem::GetComp<HealthComponent>(id);
-	healthComponent->setHealth(100);
+	healthComponent->setHealth(2);
 }
