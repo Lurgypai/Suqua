@@ -1,7 +1,7 @@
 #pragma once
 #include "EntitySystem.h"
 
-#define CompCtor(comp) comp##(EntityId id_ = 0)
+#define CompCtor(comp) comp(EntityId id_ = 0)
 #define CompGetId EntityId getId() const { return id; }
 
 #define CompMembers(comp) public: CompCtor(comp); CompGetId; private: EntityId id;

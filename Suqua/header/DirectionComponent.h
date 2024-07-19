@@ -7,6 +7,7 @@ public:
 
 	float getDir() const;
 	void setDir(float newDir);
+	int getCardinalDir() const;
 	
 	bool isLocked();
 	void setLocked(bool locked);
@@ -14,4 +15,5 @@ private:
 	EntityId id;
 	bool isLocked_;
 	float* dir;
+	int cardinalDir;
 };

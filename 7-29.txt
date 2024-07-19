@@ -1,0 +1,57 @@
+7-29
+add respawning
+    leave player "dead" for n frames
+    respawn
+
+7-30
+add monster spawner
+    update()
+        tick
+        if tick > delay
+            if alive < max
+                spawn
+
+future weekend
+add basic networking
+on boot go into connecting scene
+on connection go into playing scene
+
+future week
+add gun system
+    guns
+        ammo
+        reload time
+        fire rate
+        clip size
+        
+        onFire(self, owner)
+        onReload(self, owner)
+        update(self, owner)
+        
+    bullets
+        damage
+        crit chance
+        crit damage
+        move Speed
+        hitbox
+            size
+        hits
+            
+        update(self, owner)
+        onSpawn(self, owner)
+        onCollide(self, owner, target)
+        onDespawn(self, owner)
+        
+        damage(target): reduce target health using our stats, reduce our remaining hits
+        
+    effects
+        onStart(cause, recipient)
+        onTick(cause, recipient)
+        onEnd(cause, recipient)
+        
+    entity
+        health
+        shields
+        overhealth
+        damage reduction
+    

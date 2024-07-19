@@ -1,25 +1,34 @@
 #pragma once
-#include <string>
-#include <vector>
+#include "nlohmann/json.hpp"
 
 #include "Scene.h"
-#include "EntitySystem.h"
-
-/*
-Levels are imported from ldtk projects. super simple for now, specify a texture to use, and load all of the tiles in as entities
-Important, needs to be changed to handle like multiple levels and a world. Change this to a "world" and all of the levels separately or something
-for now just loading the whole thing
-*/
+#include "AABB.h"
+#include "Vec2.h"
 
 class Level {
 public:
-	Level(const std::string& textureTag_, const std::string& fileName_);
-	void load(Scene& scene);
-	void unload(Scene& scene);
+    struct LevelEntity {
+        std::string id;
+        Vec2f pos;
+        Vec2f res;
+    };
 
+	Level(const nlohmann::json& levelJson, Scene& scene, const std::string& textureTag);
+
+    const std::vector<LevelEntity>& getEntities() const;
+    const AABB& getBoundingBox() const;
+    bool hasTile(const Vec2f& pos) const;
+
+    void activate();
+    void deactivate();
+
+    bool isActive() const;
 private:
-	std::string textureTag;
-	std::string fileName;
-
 	std::vector<EntityId> tiles;
+    std::vector<LevelEntity> entities;
+
+	AABB boundingBox;
+	std::vector<int> grid;
+	int tileSize;
+    bool isActive_;
 };

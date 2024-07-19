@@ -29,11 +29,13 @@ void DebugIO::startDebug(std::string fontFile) {
 
 void DebugIO::openDebug() {
 	isOpen = true;
+    SDL_StartTextInput();
 }
 
 void DebugIO::closeDebug() {
 	inputText = "";
 	isOpen = false;
+    SDL_StopTextInput();
 }
 
 void DebugIO::toggleDebug() {

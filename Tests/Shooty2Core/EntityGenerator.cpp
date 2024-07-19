@@ -34,7 +34,7 @@ void EntityGenerator::MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& coll
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 	physicsComp->setRes(colliderRes);
 	physicsComp->teleport(pos);
-	physicsComp->setCollideable(true);
+    physicsComp->setDoesCollide(true);
 
 	auto teamComp = EntitySystem::GetComp<TeamComponent>(id);
 	teamComp->teamId = team;

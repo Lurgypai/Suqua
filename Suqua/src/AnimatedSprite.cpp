@@ -25,7 +25,7 @@ AnimatedSprite::AnimatedSprite(const std::string& texture_tag, const std::string
 		throw std::exception{};
 	}
 	json data{};
-	data << file;
+	file >> data;
 	if (!data.contains("frames")) {
 		throw std::exception();
 	}

@@ -26,6 +26,8 @@
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
 #include "../Shooty2Core/OnHitComponent.h"
+#include "World.h"
+#include "ExitCommand.h"
 
 ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{ id_, flags_ },
@@ -34,6 +36,8 @@ ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 
 void ClientWorldScene::load(Game& game)
 {
+    DebugIO::getCommandManager().registerCommand<ExitCommand>();
+
 	/* ------------------ SET UP RENDERING -------------------- */
 	// down scale buffer
 	screenBuffer.bind();
@@ -89,16 +93,17 @@ void ClientWorldScene::load(Game& game)
 	ai.entityId = dummy;
 	ai.setTargetTeams({ TeamComponent::TeamId::player });
 
-	
+	//
 	EntityId dummyGun = addEntities(1)[0];
 	EntityGenerator::MakeGun(dummyGun, dummy, { 3, -5 }, 13, NetworkOwnerComponent::Owner::local);
 	EntitySystem::MakeComps<GunGFXComponent>(1, &dummyGun);
 	addEntityInputs({ {{dummyGun, dummyAI} } });
-	
+
 
 	// load level
-	Level test{ "tileset", "levels/basic_test.ldtk" };
+	World test{ "tileset", "levels/basic_test.ldtk" };
 	test.load(*this);
+    test.getLevels()[0].activate();
 }
 
 void ClientWorldScene::physicsStep(Game& game)

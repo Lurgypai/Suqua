@@ -220,6 +220,7 @@ void FontData::loadDataFile(const std::string & fontDataFile) {
 }
 
 Character FontData::getCharacter(unsigned char c) const {
-	if(c != '\0')
-	return chars.at(c);
+	if(c != '\0') return chars.at(c);
+
+    throw std::exception{};
 }
