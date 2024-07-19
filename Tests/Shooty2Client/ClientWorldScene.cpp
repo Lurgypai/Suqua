@@ -26,6 +26,8 @@
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
 #include "../Shooty2Core/OnHitComponent.h"
+#include "World.h"
+#include "ExitCommand.h"
 
 ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{ id_, flags_ },
@@ -34,6 +36,8 @@ ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 
 void ClientWorldScene::load(Game& game)
 {
+    DebugIO::getCommandManager().registerCommand<ExitCommand>();
+
 	/* ------------------ SET UP RENDERING -------------------- */
 	// down scale buffer
 	screenBuffer.bind();
@@ -73,32 +77,33 @@ void ClientWorldScene::load(Game& game)
 
 
 	// dummy ai
-	//auto dummyEntities = EntityGenerator::SpawnEnemy(*this, { 720 / 2, 405 / 2 }, NetworkOwnerComponent::Owner::local);
-	//dummy = dummyEntities[0];
-	//EntitySystem::MakeComps<CharacterGFXComponent>(1, &dummy);
-	//EntitySystem::GetComp<CharacterGFXComponent>(dummy)->loadSpriteSheet("enemy:warrior", "stranded/Enemies/Warrior/warrior.json", Vec2f{ -13, -24 });
-	//EntitySystem::MakeComps<OnHitComponent>(1, &dummy);
+	auto dummyEntities = EntityGenerator::SpawnEnemy(*this, { 720 / 2, 405 / 2 }, NetworkOwnerComponent::Owner::local);
+	dummy = dummyEntities[0];
+	EntitySystem::MakeComps<CharacterGFXComponent>(1, &dummy);
+	EntitySystem::GetComp<CharacterGFXComponent>(dummy)->loadSpriteSheet("enemy:warrior", "stranded/Enemies/Warrior/warrior.json", Vec2f{ -13, -24 });
+	EntitySystem::MakeComps<OnHitComponent>(1, &dummy);
 
-	//EntitySystem::MakeComps<RespawnComponent>(1, &dummy);
-	//EntitySystem::GetComp<RespawnComponent>(dummy)->spawnPos = { 720 / 2, 405 / 2 };
+	EntitySystem::MakeComps<RespawnComponent>(1, &dummy);
+	EntitySystem::GetComp<RespawnComponent>(dummy)->spawnPos = { 720 / 2, 405 / 2 };
 
 
-	//dummyAI = game.loadInputDevice<AITopDownBasic>();
-	//addEntityInputs({ { dummy, dummyAI } });
-	//auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
-	//ai.entityId = dummy;
-	//ai.setTargetTeams({ TeamComponent::TeamId::player });
+	dummyAI = game.loadInputDevice<AITopDownBasic>();
+	addEntityInputs({ { dummy, dummyAI } });
+	auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
+	ai.entityId = dummy;
+	ai.setTargetTeams({ TeamComponent::TeamId::player });
 
 	//
-	//EntityId dummyGun = addEntities(1)[0];
-	//EntityGenerator::MakeGun(dummyGun, dummy, { 3, -5 }, 13, NetworkOwnerComponent::Owner::local);
-	//EntitySystem::MakeComps<GunGFXComponent>(1, &dummyGun);
-	//addEntityInputs({ {{dummyGun, dummyAI} } });
-	
+	EntityId dummyGun = addEntities(1)[0];
+	EntityGenerator::MakeGun(dummyGun, dummy, { 3, -5 }, 13, NetworkOwnerComponent::Owner::local);
+	EntitySystem::MakeComps<GunGFXComponent>(1, &dummyGun);
+	addEntityInputs({ {{dummyGun, dummyAI} } });
+
 
 	// load level
-	Level test{ "tileset", "levels/basic_test.ldtk" };
+	World test{ "tileset", "levels/basic_test.ldtk" };
 	test.load(*this);
+    test.getLevels()[0].activate();
 }
 
 void ClientWorldScene::physicsStep(Game& game)
