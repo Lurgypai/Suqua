@@ -557,6 +557,11 @@ void GLRenderer::setCamera(CamId id) {
 }
 
 Camera& GLRenderer::getCamera(CamId id) {
+    if(id < 0 || id >= cameras.size()) {
+        // add more
+        std::exception e{};
+        throw e;
+    };
 	return cameras[id];
 }
 
@@ -566,7 +571,7 @@ void GLRenderer::bindCurrShader() {
 
 Vec2f GLRenderer::screenToWorld(Vec2f point, int camId) {
 
-	Camera& cam = cameras[camId];
+	Camera& cam = getCamera(camId);
 	
 	point.x /= windowRes.x;
 	point.y /= windowRes.y;
