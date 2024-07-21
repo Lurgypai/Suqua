@@ -19,5 +19,6 @@ namespace EntityGenerator {
 	
 	std::vector<EntityId> SpawnBasicBullet(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner);
 	std::vector<EntityId> SpawnPlayer(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner); //based off of living entity
+    std::vector<EntityId> SpawnPlayerPuppet(Scene& scene);
 	std::vector<EntityId> SpawnEnemy(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner); // based off of living entity
 }

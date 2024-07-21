@@ -28,13 +28,13 @@ Game::Game(FlagType flags_, double physics_step, double render_step, Tick client
 	if (flags & client) {
 		host.createClient(1, 10);
 		loadPacketHandler<PHClientPing>(Packet::PingId);
-		loadPacketHandler<PHSyncState>(Packet::StateId);
-		loadPacketHandler<PHOOSPacket>(Packet::OOSId);
+		// loadPacketHandler<PHSyncState>(Packet::StateId);
+		// loadPacketHandler<PHOOSPacket>(Packet::OOSId);
 	}
 	if (flags & server) {
 		host.createServer(25565, 10, 10);
 		loadPacketHandler<PHServerPing>(Packet::PingId);
-		loadPacketHandler<PHServerInputPacket>(Packet::InputId);
+		// loadPacketHandler<PHServerInputPacket>(Packet::InputId);
 	}
 }
 
@@ -192,14 +192,15 @@ void Game::serverStep() {
 	if (serverBroadcastCtr == serverBroadcastDelay) {
 		serverBroadcastCtr = 0;
 
-		ByteStream statePacket;
-		statePacket << Packet::StateId;
-		for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
-			auto onlineComp = EntitySystem::GetComp<OnlineComponent>(ndc.getId());
-			statePacket << onlineComp->getNetId();
-			ndc.serializeForNetwork(statePacket);
-		}
-		host.bufferAllDataByChannel(0, statePacket);
+        if(EntitySystem::Contains<NetworkDataComponent>()) {
+            ByteStream statePacket;
+            for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
+                auto onlineComp = EntitySystem::GetComp<OnlineComponent>(ndc.getId());
+                statePacket << onlineComp->getNetId();
+                ndc.serializeForNetwork(statePacket);
+            }
+            host.bufferAllDataByChannel(0, statePacket);
+        }
 	}
 	else {
 		++serverBroadcastCtr;

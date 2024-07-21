@@ -4,15 +4,14 @@
 #include "nlohmann/json.hpp"
 
 #include "SuquaLib.h"
-#include "IDKeyboardMouse.h"
+#include "LobbyScene.h"
 
 using json = nlohmann::json;
 
 int main(int argc, char** argv) {
-	SuquaLib::SuquaInit("Shooty2", "settings.json", SuquaLib::all);
-	GLRenderer::LoadTexture("suqua/images/none.png", "none");
+	SuquaLib::SuquaInit("Shooty2", "settings.json", SuquaLib::network);
 
-	Game game{ Game::client_flags };
+	Game game{ Game::server_flags };
 	game.serverBroadcastDelay = 0;
 	game.clientPingDelay = 120;
 
@@ -23,19 +22,14 @@ int main(int argc, char** argv) {
 		file.close();
 	}
 
-	std::string ip = "127.0.0.1";
-	if (settings.contains("ip")) {
-		ip = settings["ip"];
-	}
-
 	if (settings.contains("networkInputDelay")) {
 		game.networkInputDelay = settings["networkInputDelay"];
 	}
 
-	std::cout << "The target ip is " << ip << ".\n";
 	std::cout << "The network input delay is " << game.networkInputDelay << ".\n";
 
-	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all);
+    SceneId playingId = 0;
+	SceneId lobbyScene = game.loadScene<LobbyScene>(Scene::Flag::all, playingId, 2);
 
 	SuquaLib::RunGame(game);
 

@@ -1,7 +1,7 @@
 #include "LobbyScene.h"
-#include "../Stabby2Core/PlayingScene.h"
 #include "Game.h"
-#include "../Stabby2Core/Stabby2Packet.h"
+#include "../Shooty2Core/EntityGenerator.h"
+#include "../Shooty2Core/Shooty2Packet.h"
 #include <iostream>
 
 LobbyScene::LobbyScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_, int minPlayerCount_) :
@@ -18,11 +18,11 @@ void LobbyScene::load(Game& game)
 
 void LobbyScene::physicsStep(Game& game) {
 	//std::cout << currPlayerCount << " / " << minPlayerCount << '\n';
-	if (currPlayerCount >= minPlayerCount) {
-		game.sceneOff(id);
-		game.sceneOn(playingScene);
-		std::cout << "Activated Playing Scene!\n";
-	}
+	// if (currPlayerCount >= minPlayerCount) {
+		// game.sceneOff(id);
+		// game.sceneOn(playingScene);
+		// std::cout << "Activated Playing Scene!\n";
+	// }
 }
 
 void LobbyScene::renderUpdateStep(Game& game)
@@ -41,35 +41,25 @@ void LobbyScene::onConnect(Game& game, PeerId connectingId) {
 	std::cout << "Peer " << connectingId << " connected.\n";
 	++currPlayerCount;
 
-	PlayingScene& ps = game.getScene<PlayingScene>(playingScene);
-	EntityId newPlayerId = ps.addPlayer();
+    EntityId newPlayerId = EntityGenerator::SpawnPlayerPuppet(*this)[0];
 	game.online.addOnlineComponent(newPlayerId);
 	OnlineComponent* onlineComp = EntitySystem::GetComp<OnlineComponent>(newPlayerId);
-	game.host.addNetIdToPeer(connectingId, onlineComp->getNetId());
 
 	ByteStream joinPacket{};
-	joinPacket << Stabby2Packet::JoinPacket;
+	joinPacket << Shooty2Packet::JoinPacket;
 	joinPacket << onlineComp->getNetId();
 
-	// tell peers about new player
 	game.host.bufferAllDataByChannel(1, joinPacket);
 
-	// tell new player about peers
 	for (auto& online : EntitySystem::GetPool<OnlineComponent>()) {
 		if (online.getNetId() != onlineComp->getNetId()) {
 			ByteStream joinPacket2{};
-			joinPacket2 << Stabby2Packet::JoinPacket;
+			joinPacket2 << Shooty2Packet::JoinPacket;
 			joinPacket2 << online.getNetId();
 
 			game.host.bufferData(connectingId, joinPacket2);
 		}
 	}
-
-	ByteStream ownedNetIdPacket{};
-	ownedNetIdPacket << Stabby2Packet::OwnedNetIdPacket;
-	ownedNetIdPacket << onlineComp->getNetId();
-
-	game.host.bufferDataToChannel(connectingId, 1, ownedNetIdPacket);
 }
 
 void LobbyScene::onDisconnect(Game& game, PeerId disconnectedPeer) {

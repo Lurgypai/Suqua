@@ -124,6 +124,17 @@ std::vector<EntityId> EntityGenerator::SpawnPlayer(Scene& scene, const Vec2f& po
 	return entities;
 }
 
+std::vector<EntityId> EntityGenerator::SpawnPlayerPuppet(Scene& scene) {
+	auto entities = scene.addEntities(2);
+	EntityId playerId = entities[0];
+	MakeLivingEntity(playerId, {0, 0}, { 6, 4 }, 50.0f,
+            TeamId::player, { -1, -11 }, { 8, 13 }, 100, NetworkOwnerComponent::Owner::foreign);
+
+	// EntityId gunId = entities[1];
+	// MakeGun(gunId, playerId, { 3, -5 }, 13, NetworkOwnerComponent::Owner::foreign);
+	return entities;
+}
+
 std::vector<EntityId> EntityGenerator::SpawnEnemy(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner) {
 	auto entities = scene.addEntities(1);
 	EntityId enemyId = entities[0];

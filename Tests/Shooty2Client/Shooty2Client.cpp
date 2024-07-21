@@ -36,6 +36,7 @@ int main(int argc, char** argv) {
 	std::cout << "The target ip is " << ip << ".\n";
 	std::cout << "The network input delay is " << game.networkInputDelay << ".\n";
 
+    game.host.tryConnect(ip, 25565, 10);
 	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all);
 
 	SuquaLib::RunGame(game);
