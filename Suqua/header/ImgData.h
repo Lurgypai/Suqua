@@ -1,4 +1,5 @@
 #pragma once
+#include "Vec2.h"
 #include "Color.h"
 
 struct ImgData {

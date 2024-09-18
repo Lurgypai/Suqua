@@ -1,4 +1,5 @@
 #include "Level.h"
+#include "Sprite.h"
 #include "EntitySystem.h"
 #include "PhysicsComponent.h"
 #include "PositionComponent.h"

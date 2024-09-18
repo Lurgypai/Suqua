@@ -1,10 +1,9 @@
 #include "GLRenderer.h"
 #include "ImgData.h"
 #include "Particle.h"
-#include "RandomUtil.h"
-#include "DebugIO.h"
 #include "stb_image.h"
 #include "FileNotFoundException.h"
+#include <exception>
 #include <iostream>
 #include <filesystem>
 
@@ -214,14 +213,7 @@ void GLRenderer::DrawTextureAtlas() {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void GLRenderer::BufferImgData(const ImgData& data) {
-	imgData.push_back(data);
-}
-
-void GLRenderer::BufferImgData(ImgData&& data) {
-	imgData.emplace_back(std::forward<ImgData>(data));
-}
-
+/*
 void GLRenderer::DrawImage(ImgData data, const std::string& tag) {
 	GLRenderer::SetDefShader(ImageShader);
 
@@ -253,6 +245,45 @@ void GLRenderer::DrawImage(ImgData data, const std::string& tag) {
 
 	//draw. 6 vertices (should) make a rectangle
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+*/
+
+void GLRenderer::DrawBufferedImages() {
+	GLRenderer::SetDefShader(ImageShader);
+
+	Camera& cam = cameras[currentCam];
+	currentShader->use();
+	currentShader->uniform2f("camPos", cam.pos.x, cam.pos.y);
+	currentShader->uniform2i("camRes", cam.res.x, cam.res.y);
+	currentShader->uniform2f("zoom", cam.camScale, cam.camScale);
+	currentShader->uniform1i("flip_vertically", true);
+
+	glViewport(0, 0, cam.res.x, cam.res.y);
+	glBindVertexArray(IMG_VAO);
+	glDisableVertexAttribArray(0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureAtlas->getTexture(0).id);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6 * bufferedImageCount); // you can probably change to an indexed triangle_strip draw
+    bufferedImageCount = 0;
+}
+
+void GLRenderer::BufferImage(ImgData data, const std::string& tag) {
+	Vec2f atlasRes = textureAtlas->getTexture(0).res;
+	AtlasTextureData textureData = textures[tag];
+	data.imgOffset.x += textureData.offset.x;
+	data.imgOffset.y += textureData.offset.y;
+	data.imgRes = atlasRes;
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ImgDataBuffer);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, bufferedImageCount * sizeof(ImgData), sizeof(ImgData), &data);
+
+    ++bufferedImageCount;
+    if(bufferedImageCount >= IMG_DATA_BUFFER_SIZE) {
+        std::cerr << "ERROR: Out of image buffer space\n";
+        throw std::exception{}; //TODO: add real error here
+    }
 }
 
 void GLRenderer::SetShader(unsigned int id) {
@@ -378,7 +409,7 @@ void GLRenderer::DrawPrimitive(const Primitive& p) {
 
 	glDrawArrays(GL_LINE_LOOP, 0, p.points.size());
 
-	glBindVertexArray(0);
+	// glBindVertexArray(0);
 }
 
 void GLRenderer::DrawPrimitives(const std::vector<Primitive>& primitives) {
@@ -407,7 +438,7 @@ void GLRenderer::DrawFilledPrimitive(const Primitive& p) {
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, p.points.size());
 
-	glBindVertexArray(0);
+	// glBindVertexArray(0);
 }
 
 void GLRenderer::DrawFilledPrimitives(const std::vector<Primitive>& primitives) {
@@ -614,6 +645,6 @@ std::unique_ptr<Framebuffer> GLRenderer::textureAtlas{};
 Vec2i GLRenderer::textureAtlasPos{};
 unsigned int GLRenderer::textureAtlasDropdown{};
 std::unordered_map<std::string, AtlasTextureData> GLRenderer::textures{};
-std::vector<ImgData> GLRenderer::imgData{};
+int GLRenderer::bufferedImageCount = 0;
 
 const std::string GLRenderer::Folder{"suqua/"};

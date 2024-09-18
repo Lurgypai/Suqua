@@ -3,7 +3,6 @@
 #include "RenderComponent.h"
 #include "RectDrawable.h"
 #include "Game.h"
-#include "AnimatedSprite.h"
 #include "RectDrawable.h"
 #include "DirectionComponent.h"
 #include "Updater.h"
@@ -151,6 +150,7 @@ void WorldScene::renderStep(Game& game)
 	GLRenderer::Clear();
     // draw this scene using the render system
 	drawScene(game.getRender());
+    GLRenderer::DrawBufferedImages();
 
     // this is some helper code that causes outlines of colliders to be drawn
     /*

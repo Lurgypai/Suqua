@@ -1,5 +1,4 @@
 #pragma once
-#include "SDL.h"
 #include <deque>
 #include "RenderSystem.h"
 #include "Scene.h"
@@ -90,6 +89,9 @@ public:
 	Tick serverBroadcastDelay;
 
 	FlagType getFlags();
+    /* DEBUG */
+    RenderSystem renderSystem;
+    /* END DEBUG */
 private:
 	void pollSDLEvents();
 	void clearSDLEvents();
@@ -115,7 +117,7 @@ private:
 	Tick serverBroadcastCtr;
 	EventQueue events;
 
-	RenderSystem renderSystem;
+	// RenderSystem renderSystem;
 	std::vector<ScenePtr> scenes;
 	std::unordered_map<InputDeviceId, InputDevicePtr> inputDevices;
 	FlagType flags;

@@ -2,7 +2,6 @@
 #include "EntitySystem.h"
 #include "IDrawable.h"
 #include "FileNotFoundException.h"
-#include "GLRenderer.h"
 
 #include <iostream>
 

@@ -2,9 +2,6 @@
 #include "Packet.h"
 #include "PHClientPing.h"
 #include "PHServerPing.h"
-#include "PHSyncState.h"
-#include "PHServerInputPacket.h"
-#include "PHOOSPacket.h"
 #include "SyncState.h"
 #include "SuquaLib.h"
 #include "DebugIO.h"
@@ -218,15 +215,17 @@ void Game::clientStep() {
 				DebugIO::addInput(e.text.text);
 			break;
 		case SDL_KEYDOWN:
-			if (e.key.keysym.sym == SDLK_BACKQUOTE)
+            if (e.key.keysym.sym == SDLK_BACKQUOTE)
 				DebugIO::toggleDebug();
             else if (e.key.keysym.sym == SDLK_SLASH) {
-                DebugIO::toggleDebug();
-                DebugIO::addInput("/");
+                if(!DebugIO::getOpen()) {
+                    DebugIO::openDebug();
+                    DebugIO::addInput("/");
+                }
             }
-			else if (e.key.keysym.sym == SDLK_BACKSPACE)
+            else if (e.key.keysym.sym == SDLK_BACKSPACE)
 				DebugIO::backspace();
-			else if (e.key.keysym.sym == SDLK_RETURN)
+            else if (e.key.keysym.sym == SDLK_RETURN)
 				DebugIO::enterInput();
 			break;
 		}

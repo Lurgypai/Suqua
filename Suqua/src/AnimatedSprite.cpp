@@ -1,10 +1,7 @@
 #include "AnimatedSprite.h"
-#include "DebugIO.h"
 #include "nlohmann/json.hpp"
 #include "GLRenderer.h"
 #include <fstream>
-
-#include <iostream>
 
 using json = nlohmann::json;
 
@@ -138,7 +135,7 @@ void AnimatedSprite::draw() {
 	data.objRes.x = std::abs(data.objRes.x) * mult;
 	mult = verticalFlip ? -1 : 1;
 	data.objRes.y = std::abs(data.objRes.y) * mult;
-	GLRenderer::DrawImage(data, textureTag);
+	GLRenderer::BufferImage(data, textureTag);
 }
 
 void AnimatedSprite::setPos(Vec2f pos) {

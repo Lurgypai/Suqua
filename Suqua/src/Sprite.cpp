@@ -1,9 +1,7 @@
 #include "Sprite.h"
 #include "GLRenderer.h"
-#include "FileNotFoundException.h"
 #include "stb_image.h"
 #include "glad/glad.h"
-#include "SDL.h"
 
 Sprite::Sprite(const std::string &texture_tag_) :
 	texture_tag{texture_tag_},
@@ -115,7 +113,7 @@ void Sprite::draw() {
 	data.objRes.x = std::abs(data.objRes.x) * mult;
 	mult = verticalFlip ? -1 : 1;
 	data.objRes.y = std::abs(data.objRes.y) * mult;
-	GLRenderer::DrawImage(data, texture_tag);
+	GLRenderer::BufferImage(data, texture_tag);
 }
 
 IDrawable* Sprite::clone() {

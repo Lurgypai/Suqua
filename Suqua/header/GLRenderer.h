@@ -2,21 +2,16 @@
 #include <glad/glad.h>
 #include <SDL.h>
 
-#include <list>
 #include <unordered_map>
 #include <memory>
 
-#include "Sprite.h"
 #include "Shader.h"
 #include "Framebuffer.h"
-#include "Texture.h"
 #include "ImgData.h"
 #include "Particle.h"
-#include "Pool.h"
 #include "Particle.h"
 #include "ComputeShader.h"
 #include "ParticleSystem.h"
-#include "AABB.h"
 #include "Color.h"
 
 #define IMG_DATA_BUFFER_SIZE 1000
@@ -114,10 +109,10 @@ public:
 	static AtlasTextureData GetTextureData(const std::string& tag);
 	static void DrawTextureAtlas();
 
-	static void BufferImgData(const ImgData& data);
-	static void BufferImgData(ImgData&& data);
-
-	static void DrawImage(ImgData data, const std::string& tag);
+	// static void DrawImage(ImgData data, const std::string& tag);
+    // needs to copy because it modifies. Maybe add another data field for the offset into the texture atlass
+    static void BufferImage(ImgData data, const std::string& tag);
+    static void DrawBufferedImages();
 
 	//Sets the shader to use, when data is buffered.
 	static void SetShader(unsigned int id);
@@ -184,10 +179,10 @@ private:
 	//how much to move down once we hit the end of the line;
 	static unsigned int textureAtlasDropdown;
 	static std::unordered_map<std::string, AtlasTextureData> textures;
-	static std::vector<ImgData> imgData;
 
 	static const std::string Folder;
 	static ParticleSystem particleSystem;
+    static int bufferedImageCount;
 };
 
 /*

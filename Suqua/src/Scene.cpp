@@ -1,6 +1,4 @@
 #include "Scene.h"
-#include <algorithm>
-#include <iterator>
 #include <iostream>
 #include "Game.h"
 #include "InputDevice.h"
