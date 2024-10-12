@@ -7,7 +7,6 @@
 #include "Tick.h"
 #include "OnlineSystem.h"
 #include "SyncSystem.h"
-#include "ServerInputQueue.h"
 
 #include <unordered_map>
 #include <vector>
@@ -82,7 +81,6 @@ public:
 	Host host;
 	OnlineSystem online;
     SyncSystem sync;
-	ServerInputQueue serverInputQueue;
 	//how often, in game ticks, the client pings the server
 	Tick clientPingDelay;
 	//how many new states to wait before sending an update

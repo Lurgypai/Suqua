@@ -1,20 +1,13 @@
 #include "EntityGenerator.h"
-#include "PlayerComponent.h"
 #include "AimToLStickComponent.h"
-#include "ParentComponent.h"
 #include "TeamComponent.h"
 #include "HurtboxComponent.h"
-#include "BasicAttackComponent.h"
 #include "PhysicsComponent.h"
 #include "SideScrollMoverComponent.h"
 #include "HealthComponent.h"
-#include "DamageComponent.h"
-#include "BasicDamageCalculator.h"
 #include "NetworkOwnerComponent.h"
-#include "HitboxComponent.h"
 #include "LifeTimeComponent.h"
 #include "RespawnComponent.h"
-#include "HealthWatcherComponent.h"
 #include "BatSwingComponent.h"
 #include "GolfSwingComponent.h"
 #include "BounceCollisionHandler.h"
@@ -23,6 +16,7 @@
 #include "SideScrollGFXComponent.h"
 #include "ActiveEntityComponent.h"
 #include "ActiveEntityZoneComponent.h"
+#include "ControllerComponent.h"
 
 using TeamId = TeamComponent::TeamId;
 

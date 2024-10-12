@@ -1,22 +1,23 @@
-#include "LobbyScene.h"
+#include "ServerWorldScene.h"
 #include "Game.h"
-#include "../Shooty2Core/EntityGenerator.h"
 #include "../Shooty2Core/Shooty2Packet.h"
 #include <iostream>
+#include "PHServerRequestPlayerNetId.h"
+#include "PHServerState.h"
 
-LobbyScene::LobbyScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_, int minPlayerCount_) :
+ServerWorldScene::ServerWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{id_, flags_},
-	playingScene{playingScene_},
-	minPlayerCount{minPlayerCount_},
 	currPlayerCount{ 0 }
 {
 }
 
-void LobbyScene::load(Game& game)
+void ServerWorldScene::load(Game& game)
 {
+    game.loadPacketHandler<PHServerRequestPlayerNetId>(Shooty2Packet::RequestPlayerNetId);
+    game.loadPacketHandler<PHServerState>(Packet::StateId);
 }
 
-void LobbyScene::physicsStep(Game& game) {
+void ServerWorldScene::physicsStep(Game& game) {
 	//std::cout << currPlayerCount << " / " << minPlayerCount << '\n';
 	// if (currPlayerCount >= minPlayerCount) {
 		// game.sceneOff(id);
@@ -25,22 +26,23 @@ void LobbyScene::physicsStep(Game& game) {
 	// }
 }
 
-void LobbyScene::renderUpdateStep(Game& game)
+void ServerWorldScene::renderUpdateStep(Game& game)
 {
 }
 
-void LobbyScene::renderStep(Game& game)
+void ServerWorldScene::renderStep(Game& game)
 {
 }
 
-void LobbyScene::unload(Game& game)
+void ServerWorldScene::unload(Game& game)
 {
 }
 
-void LobbyScene::onConnect(Game& game, PeerId connectingId) {
+void ServerWorldScene::onConnect(Game& game, PeerId connectingId) {
 	std::cout << "Peer " << connectingId << " connected.\n";
 	++currPlayerCount;
 
+    /*
     EntityId newPlayerId = EntityGenerator::SpawnPlayerPuppet(*this)[0];
 	game.online.addOnlineComponent(newPlayerId);
 	OnlineComponent* onlineComp = EntitySystem::GetComp<OnlineComponent>(newPlayerId);
@@ -60,9 +62,10 @@ void LobbyScene::onConnect(Game& game, PeerId connectingId) {
 			game.host.bufferData(connectingId, joinPacket2);
 		}
 	}
+    */
 }
 
-void LobbyScene::onDisconnect(Game& game, PeerId disconnectedPeer) {
+void ServerWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer) {
 	std::cout << "Peer " << disconnectedPeer << " disconnected.\n";
 	--currPlayerCount;
 }

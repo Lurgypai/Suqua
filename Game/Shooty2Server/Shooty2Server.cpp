@@ -4,7 +4,7 @@
 #include "nlohmann/json.hpp"
 
 #include "SuquaLib.h"
-#include "LobbyScene.h"
+#include "ServerWorldScene.h"
 
 using json = nlohmann::json;
 
@@ -28,8 +28,7 @@ int main(int argc, char** argv) {
 
 	std::cout << "The network input delay is " << game.networkInputDelay << ".\n";
 
-    SceneId playingId = 0;
-	SceneId lobbyScene = game.loadScene<LobbyScene>(Scene::Flag::all, playingId, 2);
+	SceneId lobbyScene = game.loadScene<ServerWorldScene>(Scene::Flag::physics);
 
 	SuquaLib::RunGame(game);
 

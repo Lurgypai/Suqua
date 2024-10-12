@@ -186,6 +186,7 @@ void Game::clearSDLEvents() {
 
 void Game::serverStep() {
 	physicsUpdate();
+    /*
 	if (serverBroadcastCtr == serverBroadcastDelay) {
 		serverBroadcastCtr = 0;
 
@@ -202,6 +203,7 @@ void Game::serverStep() {
 	else {
 		++serverBroadcastCtr;
 	}
+    */
 
 	host.handlePackets(*this);
 	host.sendBuffered();
@@ -241,19 +243,20 @@ void Game::clientStep() {
 		renderUpdateStep();
 	}
 
-
 	if (flags & Flag::client) {
 		// send governed entity states
 		if (EntitySystem::Contains<OnlineComponent>()) {
-			ByteStream state;
-			state << Packet::StateId;
 			for (auto& networkOwnerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
 				if (networkOwnerComp.owner == NetworkOwnerComponent::Owner::local) {
 					auto onlineComp = EntitySystem::GetComp<OnlineComponent>(networkOwnerComp.getId());
 					if (onlineComp == nullptr) continue;
 					auto ndc = EntitySystem::GetComp<NetworkDataComponent>(networkOwnerComp.getId());
+
+                    ByteStream state;
+                    state << Packet::StateId;
 					state << onlineComp->getNetId();
 					ndc->serializeForNetwork(state);
+                    host.bufferAllDataByChannel(0, state);
 				}
 			}
 		}

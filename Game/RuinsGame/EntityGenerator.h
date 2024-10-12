@@ -6,7 +6,6 @@
 #include "Vec2.h"
 #include "EntitySystem.h"
 #include "TeamComponent.h"
-#include "NetworkOwnerComponent.h"
 #include "Scene.h"
 #include "World.h"
 

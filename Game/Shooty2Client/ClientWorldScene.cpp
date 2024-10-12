@@ -1,33 +1,36 @@
-#include "ClientWorldScene.h"
-#include "CharacterGFXComponent.h"
+#include "DebugIO.h"
 #include "Game.h"
-#include "AnimatedSprite.h"
+#include "Packet.h"
+#include "Updater.h"
+#include "ClientWorldScene.h"
+#include "IDKeyboardMouse.h"
+#include "World.h"
+#include "ExitCommand.h"
+
+#include "PHClientState.h"
+#include "PHClientMakePlayerPuppet.h"
+#include "PHClientRequestPlayerNetId.h"
+
+#include "EntityBaseComponent.h"
+#include "HealthComponent.h"
+#include "HitboxComponent.h"
+#include "TopDownMoverComponent.h"
+#include "LifeTimeComponent.h"
 #include "AimToLStickComponent.h"
-#include "../Shooty2Core/PlayerComponent.h"
 #include "ParentComponent.h"
 #include "GunGFXComponent.h"
-#include "RectDrawable.h"
 #include "DirectionComponent.h"
-#include "HitboxComponent.h"
-#include "TeamComponent.h"
 #include "HurtboxComponent.h"
-#include "Updater.h"
-#include "PositionComponent.h"
-#include "LifeTimeComponent.h"
-#include "Level.h"
+#include "CharacterGFXComponent.h"
+
+#include "../Shooty2Core/PlayerComponent.h"
 #include "../Shooty2Core/EntityGenerator.h"
 #include "../Shooty2Core/GunFireComponent.h"
-#include "TopDownMoverComponent.h"
-#include "AITopDownBasic.h"
-#include "DebugIO.h"
-#include "IDKeyboardMouse.h"
 #include "../Shooty2Core/BasicAttackComponent.h"
-#include "HealthComponent.h"
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
 #include "../Shooty2Core/OnHitComponent.h"
-#include "World.h"
-#include "ExitCommand.h"
+#include "../Shooty2Core/Shooty2Packet.h"
 
 ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{ id_, flags_ },
@@ -38,7 +41,7 @@ void ClientWorldScene::load(Game& game)
 {
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
 
-	/* ------------------ SET UP RENDERING -------------------- */
+	/* ------------------ SET UP RENDERING ------------------- */
 	// down scale buffer
 	screenBuffer.bind();
 	screenBuffer.addTexture2D(720, 405, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
@@ -61,7 +64,7 @@ void ClientWorldScene::load(Game& game)
 	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 
-	auto playerAndGunId = EntityGenerator::SpawnPlayer(*this, { 720 / 4, 405 / 4 }, NetworkOwnerComponent::Owner::local);
+	auto playerAndGunId = EntityGenerator::SpawnPlayer(*this, { 720.f / 4, 405.f / 4 }, NetworkOwnerComponent::Owner::local);
 	myPlayerId = playerAndGunId[0];
 	EntitySystem::MakeComps<CharacterGFXComponent>(1, &myPlayerId);
 	EntitySystem::GetComp<CharacterGFXComponent>(myPlayerId)->loadSpriteSheet("hero", "stranded/Hero/Hero/Hero.json", Vec2f{ -13, -24 });
@@ -69,22 +72,23 @@ void ClientWorldScene::load(Game& game)
 	EntitySystem::MakeComps<OnHitComponent>(1, &myPlayerId);
 
 	EntitySystem::MakeComps<RespawnComponent>(1, &myPlayerId);
-	EntitySystem::GetComp<RespawnComponent>(myPlayerId)->spawnPos = { 720 / 4, 405 / 4 };
+	EntitySystem::GetComp<RespawnComponent>(myPlayerId)->spawnPos = { 720.f / 4, 405.f / 4 };
 
 	myGunId = playerAndGunId[1];
 	EntitySystem::MakeComps<GunGFXComponent>(1, &myGunId);
 	addEntityInputs({ {myPlayerId, playerInput}, {myGunId, playerInput} });
 
 
+    /*
 	// dummy ai
-	auto dummyEntities = EntityGenerator::SpawnEnemy(*this, { 720 / 2, 405 / 2 }, NetworkOwnerComponent::Owner::local);
+	auto dummyEntities = EntityGenerator::SpawnEnemy(*this, { 720.f / 2, 405.f / 2 }, NetworkOwnerComponent::Owner::local);
 	dummy = dummyEntities[0];
 	EntitySystem::MakeComps<CharacterGFXComponent>(1, &dummy);
 	EntitySystem::GetComp<CharacterGFXComponent>(dummy)->loadSpriteSheet("enemy:warrior", "stranded/Enemies/Warrior/warrior.json", Vec2f{ -13, -24 });
 	EntitySystem::MakeComps<OnHitComponent>(1, &dummy);
 
 	EntitySystem::MakeComps<RespawnComponent>(1, &dummy);
-	EntitySystem::GetComp<RespawnComponent>(dummy)->spawnPos = { 720 / 2, 405 / 2 };
+	EntitySystem::GetComp<RespawnComponent>(dummy)->spawnPos = { 720.f / 2, 405.f / 2 };
 
 
 	dummyAI = game.loadInputDevice<AITopDownBasic>();
@@ -92,18 +96,25 @@ void ClientWorldScene::load(Game& game)
 	auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
 	ai.entityId = dummy;
 	ai.setTargetTeams({ TeamComponent::TeamId::player });
-
-	//
-	EntityId dummyGun = addEntities(1)[0];
-	EntityGenerator::MakeGun(dummyGun, dummy, { 3, -5 }, 13, NetworkOwnerComponent::Owner::local);
-	EntitySystem::MakeComps<GunGFXComponent>(1, &dummyGun);
-	addEntityInputs({ {{dummyGun, dummyAI} } });
-
+    */
 
 	// load level
 	World test{ "tileset", "levels/basic_test.ldtk" };
 	test.load(*this);
     test.getLevels()[0].activate();
+
+
+    /* ------------------ NETWORKING ------------------ */
+    game.loadPacketHandler<PHClientMakePlayerPuppet>(Shooty2Packet::MakePlayerPuppet, this);
+    game.loadPacketHandler<PHClientState>(Packet::StateId, this);
+    game.loadPacketHandler<PHClientRequestPlayerNetId>(Shooty2Packet::RequestPlayerNetId, myPlayerId);
+
+    game.host.tryConnect("127.0.0.1", 25565, 10);
+
+    // request a netid for the player
+    ByteStream joinPacket;
+    joinPacket << Shooty2Packet::RequestPlayerNetId;
+    game.host.bufferAllDataByChannel(0, joinPacket);
 }
 
 void ClientWorldScene::physicsStep(Game& game)

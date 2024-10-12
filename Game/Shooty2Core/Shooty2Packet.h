@@ -1,6 +1,6 @@
 #include "Packet.h"
 
 namespace Shooty2Packet {
-    constexpr PacketId JoinPacket = 10;
-    constexpr PacketId QuitPacket = 11;
+    constexpr PacketId RequestPlayerNetId = 10;
+    constexpr PacketId MakePlayerPuppet = 11;
 };

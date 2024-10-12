@@ -1,10 +1,10 @@
 #pragma once
 #include "Scene.h"
 
-class LobbyScene : public Scene {
+class ServerWorldScene : public Scene {
 public:
 	// Inherited via Scene
-	LobbyScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_, int minPlayerCount_ = 2);
+	ServerWorldScene(SceneId id_, Scene::FlagType flags_);
 
 	virtual void load(Game& game) override;
 	virtual void physicsStep(Game& game) override;
@@ -14,7 +14,5 @@ public:
 	virtual void onConnect(Game& game, PeerId connectingId) override;
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) override;
 private:
-	int minPlayerCount;
 	int currPlayerCount;
-	SceneId playingScene;
 };

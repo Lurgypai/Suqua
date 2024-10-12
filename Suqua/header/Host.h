@@ -1,13 +1,11 @@
 #pragma once
 #include "enet/enet.h"
-#include "Pool.h"
 #include "ByteStream.h"
 #include "PeerId.h"
 #include "PacketHandler.h"
 #include "DynamicBitset.h"
 
 #include <string>
-#include <deque>
 #include <unordered_map>
 #include <functional>
 #include <vector>
@@ -75,12 +73,10 @@ public:
 	void setConnectCallback(std::function<ConnectCallback> callback);
 	void setDisconnectCallback(std::function<DisconnectCallback> callback);
 
-	void addNetIdToPeer(PeerId peerId, NetworkId netId);
-	void removeNetIdFromPeer(PeerId peerId, NetworkId netId);
-
 	const std::vector<NetworkId>& getPeerOwnedNetIds(PeerId id);
 	bool isPeerConnected(PeerId id);
 	size_t getConnectedPeerCount();
+    std::vector<PeerId> getConnectedPeers() const;
 	size_t getPeerCount();
 private:
 	ENetHost * host;
@@ -92,10 +88,9 @@ private:
 	bool clientConnected;
 	std::function<ConnectCallback> connectCallback;
 	std::function<DisconnectCallback> disconnectCallback;
-	std::vector<std::vector<NetworkId>> ownedNetIds;
 
 	Type type;
-	DynamicBitset connectedPeers;
+    std::vector<bool> connectedPeers;
 };
 
 //add owning entities

@@ -1,5 +1,4 @@
 #include "EntityGenerator.h"
-#include "PlayerComponent.h"
 #include "AimToLStickComponent.h"
 #include "ParentComponent.h"
 #include "GunFireComponent.h"
@@ -14,8 +13,10 @@
 #include "NetworkOwnerComponent.h"
 #include "HitboxComponent.h"
 #include "LifeTimeComponent.h"
-#include "RespawnComponent.h"
 #include "HealthWatcherComponent.h"
+#include "ControllerComponent.h"
+
+#include "CHKill.h"
 
 using TeamId = TeamComponent::TeamId;
 
@@ -35,6 +36,7 @@ void EntityGenerator::MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& coll
 	physicsComp->setRes(colliderRes);
 	physicsComp->teleport(pos);
     physicsComp->setDoesCollide(true);
+    physicsComp->setCollidedWith(false);
 
 	auto teamComp = EntitySystem::GetComp<TeamComponent>(id);
 	teamComp->teamId = team;
@@ -76,9 +78,12 @@ void EntityGenerator::MakeHitboxEntity(EntityId id, Vec2f hitboxOffset, Vec2f hi
 void EntityGenerator::MakeBullet(EntityId id, Vec2f pos, Vec2f colliderRes, TeamId team, int damage, NetworkOwnerComponent::Owner owner) {
 	MakeHitboxEntity(id, { 0, 0 }, colliderRes, team, damage, owner);
 	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
+
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 	physicsComp->setRes(colliderRes);
 	physicsComp->center(pos);
+    physicsComp->loadCollisionHandler<CHKill>();
+    physicsComp->setCollidedWith(false);
 }
 
 void EntityGenerator::MakeGun(EntityId id, EntityId parent, const Vec2f& offset, float length, NetworkOwnerComponent::Owner owner) {
