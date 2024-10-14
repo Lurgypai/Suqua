@@ -5,8 +5,6 @@
 #include "EntityBaseComponent.h"
 #include "NetworkOwnerComponent.h"
 
-#include <iostream>
-
 using NDC = NetworkDataComponent;
 
 PhysicsSystem::PhysicsSystem() {}
@@ -17,6 +15,17 @@ void PhysicsSystem::runPhysics(double timeDelta) {
 			runPhysics(timeDelta, rawComp.id);
 		}
 	}
+}
+
+void PhysicsSystem::runPhysicsOnOwned(double timeDelta) {
+    if(EntitySystem::Contains<NetworkOwnerComponent>()) {
+        for(const auto& owner : EntitySystem::GetPool<NetworkOwnerComponent>()) {
+            if(owner.owner != NetworkOwnerComponent::Owner::local) continue;
+            auto* rawComp = EntitySystem::GetComp<PhysicsComponent>(owner.getId());
+            if(!rawComp) continue;
+            runPhysics(timeDelta, rawComp->id);
+        }
+    }
 }
 
 void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {

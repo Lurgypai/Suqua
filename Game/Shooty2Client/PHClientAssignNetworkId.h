@@ -2,10 +2,8 @@
 #include "PacketHandler.h"
 #include "Scene.h"
 
-class PHClientRequestPlayerNetId : public PacketHandler {
+class PHClientAssignNetworkId : public PacketHandler {
 public:
-	PHClientRequestPlayerNetId(PacketId id_, EntityId playerId_);
+	PHClientAssignNetworkId(PacketId id_);
 	virtual void handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) override;
-private:
-    EntityId playerId;
 };

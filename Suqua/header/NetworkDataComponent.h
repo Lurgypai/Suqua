@@ -81,6 +81,7 @@ private:
 
 public:
 	using DataId = uint32_t;
+    using DataType = Data::DataType;
 
 	NetworkDataComponent(EntityId id_ = 0);
 	NetworkDataComponent(NetworkDataComponent&& other) = default;

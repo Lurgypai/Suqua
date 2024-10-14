@@ -8,9 +8,11 @@ class RespawnComponent {
 public:
 	void update();
 	void respawn();
+    const int getTick() const;
+    const int getRespawnDelay() const;
 	
 	Vec2f spawnPos;
 private:
-	int tick;
+    uint32_t* tick;
 	int respawnDelay;
 };

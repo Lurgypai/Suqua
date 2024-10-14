@@ -3,6 +3,9 @@
 #include "Game.h"
 #include "InputDevice.h"
 #include "EntityBaseComponent.h"
+#include "Packet.h"
+#include "OnlineComponent.h"
+#include "ControllerComponent.h"
 
 std::vector<EntityId> Scene::addEntities(unsigned int count) {
 	std::vector<EntityId> ids = std::vector<EntityId>(count, 0);
@@ -18,6 +21,21 @@ void Scene::removeEntities(const std::vector<EntityId>& entities_) {
 	for (auto&& id : entities_) {
 		entities.erase(entities.find(id));
 	}
+}
+
+void Scene::broadcastDeadEntities(Host& host) {
+    if(!EntitySystem::Contains<OnlineComponent>()) return;
+
+    ByteStream deadEntityPacket;
+    deadEntityPacket << Packet::DeadEntities;
+
+    for(auto& entity : entities) {
+        EntityBaseComponent* base = EntitySystem::GetComp<EntityBaseComponent>(entity);
+        OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(entity);
+        if(base && online && base->isDead)  deadEntityPacket << online->getNetId();
+    }
+
+    host.bufferAllDataByChannel(0, deadEntityPacket);
 }
 
 Scene::Scene(SceneId id_, FlagType flags_) : 

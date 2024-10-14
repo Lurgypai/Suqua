@@ -1,6 +1,5 @@
 #pragma once
 #include "ComponentMacros.h"
-#include "Vec2.h"
 
 class RespawnComponent {
 	CompMembers(RespawnComponent);
@@ -8,6 +7,7 @@ class RespawnComponent {
 public:
 	void update();
 	void respawn();
+    const int getTick() const;
     EntityId spawnZoneId;
 private:
 	int tick;

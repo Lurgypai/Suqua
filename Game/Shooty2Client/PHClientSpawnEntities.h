@@ -2,9 +2,9 @@
 #include "PacketHandler.h"
 #include "Scene.h"
 
-class PHClientMakePlayerPuppet : public PacketHandler {
+class PHClientSpawnEntities : public PacketHandler {
 public:
-	PHClientMakePlayerPuppet(PacketId id_, Scene* scene_);
+	PHClientSpawnEntities(PacketId id_, Scene* scene_);
 	virtual void handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) override;
 private:
     Scene* scene;

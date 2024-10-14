@@ -6,11 +6,6 @@
 
 #include "nlohmann/json.hpp"
 
-#include "PhysicsComponent.h"
-#include "RenderComponent.h"
-#include "PositionComponent.h"
-#include "EntityBaseComponent.h"
-
 using namespace nlohmann;
 
 World::World(const std::string& textureTag_, const std::string& fileName_) :

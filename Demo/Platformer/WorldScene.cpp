@@ -12,6 +12,7 @@
 #include "AABB.h"
 #include "ExitCommand.h"
 #include "SideScrollMoverComponent.h"
+#include "ControllerComponent.h"
 
 
 constexpr unsigned int ScreenWidth = 1920 / 4;

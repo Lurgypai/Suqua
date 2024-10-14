@@ -8,7 +8,6 @@
 #include "HealthComponent.h"
 #include "DamageComponent.h"
 #include "PhysicsComponent.h"
-#include <iostream>
 
 static inline void damageEntity(EntityId cause, EntityId receiver) {
 	auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(receiver);
@@ -18,6 +17,8 @@ static inline void damageEntity(EntityId cause, EntityId receiver) {
 	auto targetPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(receiver);
 	targetPhysicsComp->setVel(Vec2f{ 0, 0 });
 }
+
+using TeamId = TeamComponent::TeamId;
 
 void CombatSystem::checkClientCollisions(Host* host) {
 
@@ -48,7 +49,9 @@ void CombatSystem::checkClientCollisions(Host* host) {
 
 				const auto otherTeamComp = EntitySystem::GetComp<TeamComponent>(otherHurtComp.getId());
 
-				if (hitComp->getTeamId() == otherTeamComp->teamId) continue;
+				if (hitComp->getTeamId() != TeamId::neutral &&
+                    otherTeamComp->teamId != TeamId::neutral &&
+                    hitComp->getTeamId() == otherTeamComp->teamId) continue;
 				if (!hitComp->hitbox.intersects(otherHurtComp.hurtbox)) continue;
 				if (!hitComp->addHitEntity(otherHurtComp.getId())) continue;
 
@@ -73,7 +76,9 @@ void CombatSystem::checkClientCollisions(Host* host) {
 			const auto otherNetworkOwnerComp = EntitySystem::GetComp<NetworkOwnerComponent>(otherHitComp.getId());
 			if (otherNetworkOwnerComp->owner != NetworkOwnerComponent::Owner::foreign) continue;
 
-			if (teamComp->teamId == otherHitComp.getTeamId()) continue;
+			if (teamComp->teamId != TeamId::neutral &&
+                otherHitComp.getTeamId() != TeamId::neutral && 
+                teamComp->teamId == otherHitComp.getTeamId()) continue;
 			if (!otherHitComp.hitbox.intersects(hurtComp->hurtbox)) continue;
 			if (!otherHitComp.addHitEntity(hurtComp->getId())) continue;
 

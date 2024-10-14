@@ -51,3 +51,7 @@ void RespawnComponent::respawn() {
 	auto healthComponent = EntitySystem::GetComp<HealthComponent>(id);
 	healthComponent->setHealth(2);
 }
+
+const int RespawnComponent::getTick() const {
+    return tick;
+}

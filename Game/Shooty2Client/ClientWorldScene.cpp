@@ -6,10 +6,12 @@
 #include "IDKeyboardMouse.h"
 #include "World.h"
 #include "ExitCommand.h"
+#include "ClientEntityGenerator.h"
 
 #include "PHClientState.h"
-#include "PHClientMakePlayerPuppet.h"
-#include "PHClientRequestPlayerNetId.h"
+#include "PHClientSpawnEntities.h"
+#include "PHClientAssignNetworkId.h"
+#include "PHClientDeadEntities.h"
 
 #include "EntityBaseComponent.h"
 #include "HealthComponent.h"
@@ -22,15 +24,17 @@
 #include "DirectionComponent.h"
 #include "HurtboxComponent.h"
 #include "CharacterGFXComponent.h"
+#include "PhysicsComponent.h"
+#include "RespawnGFXComponent.h"
 
 #include "../Shooty2Core/PlayerComponent.h"
-#include "../Shooty2Core/EntityGenerator.h"
 #include "../Shooty2Core/GunFireComponent.h"
 #include "../Shooty2Core/BasicAttackComponent.h"
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
 #include "../Shooty2Core/OnHitComponent.h"
 #include "../Shooty2Core/Shooty2Packet.h"
+#include "../Shooty2Core/EntitySpawnSystem.h"
 
 ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{ id_, flags_ },
@@ -40,6 +44,13 @@ ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 void ClientWorldScene::load(Game& game)
 {
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
+    /* ------------------ NETWORKING ------------------ */
+    game.loadPacketHandler<PHClientSpawnEntities>(Shooty2Packet::SpawnEntities, this);
+    game.loadPacketHandler<PHClientState>(Packet::StateId, this);
+    game.loadPacketHandler<PHClientAssignNetworkId>(Shooty2Packet::AssignNetworkId);
+    game.loadPacketHandler<PHClientDeadEntities>(Packet::DeadEntities);
+
+    game.host.tryConnect("127.0.0.1", 25565, 10);
 
 	/* ------------------ SET UP RENDERING ------------------- */
 	// down scale buffer
@@ -60,22 +71,15 @@ void ClientWorldScene::load(Game& game)
 	GLRenderer::LoadTexture("stranded/Tileset/custom_top_down.png", "tileset");
 
 	/* ---------------- LOAD ENTITIES ----------------- */
+    EntitySpawnSystem::Init<ClientEntityGenerator>(&game.host);
 	// player
 	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 
-	auto playerAndGunId = EntityGenerator::SpawnPlayer(*this, { 720.f / 4, 405.f / 4 }, NetworkOwnerComponent::Owner::local);
+	auto playerAndGunId = EntitySpawnSystem::SpawnEntity("player.basic", *this, { 720.f / 4, 405.f / 4 }, NetworkOwnerComponent::Owner::local, true);
 	myPlayerId = playerAndGunId[0];
-	EntitySystem::MakeComps<CharacterGFXComponent>(1, &myPlayerId);
-	EntitySystem::GetComp<CharacterGFXComponent>(myPlayerId)->loadSpriteSheet("hero", "stranded/Hero/Hero/Hero.json", Vec2f{ -13, -24 });
-	EntitySystem::GetComp<CharacterGFXComponent>(myPlayerId)->setHasUpDown(true);
-	EntitySystem::MakeComps<OnHitComponent>(1, &myPlayerId);
-
-	EntitySystem::MakeComps<RespawnComponent>(1, &myPlayerId);
-	EntitySystem::GetComp<RespawnComponent>(myPlayerId)->spawnPos = { 720.f / 4, 405.f / 4 };
 
 	myGunId = playerAndGunId[1];
-	EntitySystem::MakeComps<GunGFXComponent>(1, &myGunId);
 	addEntityInputs({ {myPlayerId, playerInput}, {myGunId, playerInput} });
 
 
@@ -102,19 +106,6 @@ void ClientWorldScene::load(Game& game)
 	World test{ "tileset", "levels/basic_test.ldtk" };
 	test.load(*this);
     test.getLevels()[0].activate();
-
-
-    /* ------------------ NETWORKING ------------------ */
-    game.loadPacketHandler<PHClientMakePlayerPuppet>(Shooty2Packet::MakePlayerPuppet, this);
-    game.loadPacketHandler<PHClientState>(Packet::StateId, this);
-    game.loadPacketHandler<PHClientRequestPlayerNetId>(Shooty2Packet::RequestPlayerNetId, myPlayerId);
-
-    game.host.tryConnect("127.0.0.1", 25565, 10);
-
-    // request a netid for the player
-    ByteStream joinPacket;
-    joinPacket << Shooty2Packet::RequestPlayerNetId;
-    game.host.bufferAllDataByChannel(0, joinPacket);
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -125,28 +116,32 @@ void ClientWorldScene::physicsStep(Game& game)
 	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
 	Updater::UpdateOwned<GunFireComponent>(this);
-	Updater::UpdateAll<HurtboxComponent>();
 	Updater::UpdateOwned<LifeTimeComponent>();
 	Updater::UpdateOwned<HealthWatcherComponent>();
-	Updater::UpdateAll<RespawnComponent>();
-	Updater::UpdateAll<OnHitComponent>();
+	Updater::UpdateOwned<RespawnComponent>();
 
-	if(EntitySystem::Contains<HitboxComponent>()) Updater::UpdateOwned<HitboxComponent>();
+    // combat is done entirely client side
+	Updater::UpdateAll<HurtboxComponent>(); // Hurtboxes need to be moved to where the ndc says they are
+	if(EntitySystem::Contains<HitboxComponent>()) Updater::UpdateAll<HitboxComponent>();
 
 	combat.checkClientCollisions(&game.host);
 
-	physics.runPhysics(game.PHYSICS_STEP);
+	physics.runPhysicsOnOwned(game.PHYSICS_STEP);
 
 	// update inputs for next frame
 	auto& playerInputDevice = static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput));
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
 	playerInputDevice.entityPos = plrPhysicsComp->center();
+
+    broadcastDeadEntities(game.host);
 }
 
 void ClientWorldScene::renderUpdateStep(Game& game)
 {
 	Updater::UpdateAll<CharacterGFXComponent>(game.PHYSICS_STEP * 1000);
 	Updater::UpdateAll<GunGFXComponent>();
+    Updater::UpdateAll<OnHitComponent>();
+    Updater::UpdateAll<RespawnGFXComponent>();
 }
 
 void ClientWorldScene::renderStep(Game& game)

@@ -1,24 +1,25 @@
 #pragma once
+#include <unordered_map>
 #include <vector>
 
+#include "EntitySpawnSystem.h"
 #include "Vec2.h"
 #include "EntitySystem.h"
-#include "TeamComponent.h"
-#include "NetworkOwnerComponent.h"
 #include "Scene.h"
 
-namespace EntityGenerator {
-	void MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& colliderRes, float moveSpeed,
-							TeamComponent::TeamId team, Vec2f hurtboxOffset, Vec2f hurtboxRes, std::uint32_t health,
-							NetworkOwnerComponent::Owner owner); // A thing with a hurtbox and health that can be controlled
+class EntityGenerator : public EntitySpawnSystem::Generator {
+public:
+    using SpawnFunction = std::function<std::vector<EntityId>(Scene&, const Vec2f&)>;
 
-	void MakeHitboxEntity(EntityId id, Vec2f hitboxOffset, Vec2f hitboxRes, TeamComponent::TeamId team, int damage, NetworkOwnerComponent::Owner owner); // a hitbox with a team and network owner and damage component
-	void MakeBullet(EntityId id, Vec2f pos, Vec2f colliderRes, TeamComponent::TeamId team, int damage, NetworkOwnerComponent::Owner owner); // A hitbox entity with a physics component
+    EntityGenerator() = default;
+    virtual ~EntityGenerator() = default;
+    virtual void RegisterSpawnFunctions() override;
+    virtual std::vector<EntityId> SpawnEntity(const std::string& tag, Scene& targetScene, const Vec2f& targetPos, NetworkOwnerComponent::Owner owner, bool shared) override;
 
-	void MakeGun(EntityId id, EntityId parent, const Vec2f& offset, float length, NetworkOwnerComponent::Owner owner); // make a gun linked to an entity
-	
-	std::vector<EntityId> SpawnBasicBullet(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner);
-	std::vector<EntityId> SpawnPlayer(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner); //based off of living entity
-    std::vector<EntityId> SpawnPlayerPuppet(Scene& scene);
-	std::vector<EntityId> SpawnEnemy(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner); // based off of living entity
-}
+private:
+    std::unordered_map<std::string, SpawnFunction> SpawnFunctions; 
+};
+
+
+//
+//

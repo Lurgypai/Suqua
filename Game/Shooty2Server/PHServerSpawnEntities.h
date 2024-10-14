@@ -1,8 +1,8 @@
 #pragma once
 #include "PacketHandler.h"
 
-class PHSyncState : public PacketHandler {
+class PHServerSpawnEntities : public PacketHandler {
 public:
-	PHSyncState(PeerId id_);
+	PHServerSpawnEntities(PacketId id_);
 	virtual void handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) override;
 };

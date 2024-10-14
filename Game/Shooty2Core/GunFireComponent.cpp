@@ -1,14 +1,12 @@
 #include "GunFireComponent.h"
 #include "PhysicsComponent.h"
-#include "RectDrawable.h"
 #include "DirectionComponent.h"
 #include "ControllerComponent.h"
 #include "PositionComponent.h"
-#include "NetworkOwnerComponent.h"
 #include "LifeTimeComponent.h"
 #include "EntityBaseComponent.h"
 #include "HealthComponent.h"
-#include "EntityGenerator.h"
+#include "EntitySpawnSystem.h"
 
 GunFireComponent::GunFireComponent(EntityId id_) :
 	id{ id_ },
@@ -24,8 +22,10 @@ EntityId GunFireComponent::getId() const {
 void GunFireComponent::fire(Scene* currScene)
 {
 
+    // TODO
+    // Separate client and server entity generators, and add a generic entity generator interface that is called
 	auto firingPos = getFiringPos();
-	auto bullets = EntityGenerator::SpawnBasicBullet(*currScene, firingPos, NetworkOwnerComponent::Owner::local);
+	auto bullets = EntitySpawnSystem::SpawnEntity("bullet.basic", *currScene, firingPos, NetworkOwnerComponent::Owner::local, true);
 	EntityId bulletId = bullets[0];
 
 	auto directionComp = EntitySystem::GetComp<DirectionComponent>(id);
@@ -33,10 +33,6 @@ void GunFireComponent::fire(Scene* currScene)
 	directionVector.angle(directionComp->getDir());
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(bulletId);
 	physicsComp->setVel(directionVector * 130);
-
-	EntitySystem::MakeComps<RenderComponent>(1, &bulletId);
-	auto render = EntitySystem::GetComp<RenderComponent>(bulletId);
-	render->loadDrawable<RectDrawable>(RectDrawable{ Color{0.0, 1.0, 0.0, 1.0}, true, -0.1, AABB{{0, 0 }, {4, 4}} });
 }
 
 void GunFireComponent::update(Scene* currScene)

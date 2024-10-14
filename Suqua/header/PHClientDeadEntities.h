@@ -1,8 +1,8 @@
 #pragma once
 #include "PacketHandler.h"
 
-class PHServerRequestPlayerNetId : public PacketHandler {
+class PHClientDeadEntities : public PacketHandler {
 public:
-	PHServerRequestPlayerNetId(PacketId id_);
+	PHClientDeadEntities(PacketId id_);
 	virtual void handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) override;
 };

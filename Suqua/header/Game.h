@@ -6,7 +6,7 @@
 #include "Host.h"
 #include "Tick.h"
 #include "OnlineSystem.h"
-#include "SyncSystem.h"
+#include "NetworkEntityOwnershipSystem.h"
 
 #include <unordered_map>
 #include <vector>
@@ -14,9 +14,7 @@
 using EventQueue = std::deque<SDL_Event>;
 
 class Game {
-
 friend class SuquaLib;
-
 public:
 	using FlagType = char;
 	enum Flag : FlagType {
@@ -74,22 +72,19 @@ public:
     void physicsUpdate();
 	void onConnect(PeerId id);
 	void onDisconnect(PeerId id);
-	void addOwnedNetId(NetworkId id);
-	void removeOwnedNetId(NetworkId id);
-	const std::vector<NetworkId>& getOwnedNetIds() const;
 
 	Host host;
 	OnlineSystem online;
-    SyncSystem sync;
+    NetworkEntityOwnershipSystem networkEntityOwnershipSystem;
 	//how often, in game ticks, the client pings the server
 	Tick clientPingDelay;
 	//how many new states to wait before sending an update
 	Tick serverBroadcastDelay;
 
 	FlagType getFlags();
-    /* DEBUG */
-    RenderSystem renderSystem;
-    /* END DEBUG */
+    // map peerid to type/netid sets
+    // std::unordered_map<PeerId
+    
 private:
 	void pollSDLEvents();
 	void clearSDLEvents();
@@ -115,13 +110,10 @@ private:
 	Tick serverBroadcastCtr;
 	EventQueue events;
 
-	// RenderSystem renderSystem;
+    RenderSystem renderSystem;
 	std::vector<ScenePtr> scenes;
 	std::unordered_map<InputDeviceId, InputDevicePtr> inputDevices;
 	FlagType flags;
-
-	//for a client, the network ids we own
-	std::vector<NetworkId> ownedNetIds;
 };
 
 template<typename S, typename ... Args>

@@ -2,10 +2,10 @@
 #include "Packet.h"
 #include "PHClientPing.h"
 #include "PHServerPing.h"
-#include "SyncState.h"
 #include "SuquaLib.h"
 #include "DebugIO.h"
 #include "NetworkOwnerComponent.h"
+#include "NetworkDataComponent.h"
 #include "OnlineComponent.h"
 
 Game::Game(FlagType flags_, double physics_step, double render_step, Tick clientPingDelay_, Tick serverBroadcastDelay_) :
@@ -246,19 +246,19 @@ void Game::clientStep() {
 	if (flags & Flag::client) {
 		// send governed entity states
 		if (EntitySystem::Contains<OnlineComponent>()) {
+            ByteStream state;
+            state << Packet::StateId;
 			for (auto& networkOwnerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
 				if (networkOwnerComp.owner == NetworkOwnerComponent::Owner::local) {
 					auto onlineComp = EntitySystem::GetComp<OnlineComponent>(networkOwnerComp.getId());
 					if (onlineComp == nullptr) continue;
 					auto ndc = EntitySystem::GetComp<NetworkDataComponent>(networkOwnerComp.getId());
 
-                    ByteStream state;
-                    state << Packet::StateId;
 					state << onlineComp->getNetId();
 					ndc->serializeForNetwork(state);
-                    host.bufferAllDataByChannel(0, state);
 				}
 			}
+            host.bufferAllDataByChannel(0, state);
 		}
 
 		host.handlePackets(*this);
@@ -326,18 +326,6 @@ void Game::onDisconnect(PeerId id) {
 	for (auto& scenePtr : scenes) {
 		scenePtr->onDisconnect(*this, id);
 	}
-}
-
-void Game::addOwnedNetId(NetworkId id) {
-	ownedNetIds.emplace_back(id);
-}
-
-void Game::removeOwnedNetId(NetworkId id) {
-	ownedNetIds.erase(std::remove(ownedNetIds.begin(), ownedNetIds.end(), id), ownedNetIds.end());
-}
-
-const std::vector<NetworkId>& Game::getOwnedNetIds() const {
-	return ownedNetIds;
 }
 
 const RenderSystem& Game::getRender() {

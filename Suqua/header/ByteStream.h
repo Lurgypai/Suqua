@@ -31,6 +31,7 @@ public:
     std::string getData();
 
 	void setReadPos(size_t readPos_);
+    void moveReadPos(size_t offset);
 
 	bool hasMoreData();
 	const Byte* data() const;

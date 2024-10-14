@@ -15,14 +15,17 @@
 #include "LifeTimeComponent.h"
 #include "HealthWatcherComponent.h"
 #include "ControllerComponent.h"
+#include "RespawnComponent.h"
+
+#include "SpawnFunctionNotFoundException.h"
 
 #include "CHKill.h"
+#include <unordered_map>
 
 using TeamId = TeamComponent::TeamId;
 
-void EntityGenerator::MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& colliderRes, float moveSpeed,
-										TeamId team, Vec2f hurtboxOffset, Vec2f hurtboxRes, std::uint32_t health,
-										NetworkOwnerComponent::Owner owner) {
+static void MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& colliderRes, float moveSpeed,
+										TeamId team, Vec2f hurtboxOffset, Vec2f hurtboxRes, std::uint32_t health) {
 	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
 	EntitySystem::MakeComps<TeamComponent>(1, &id);
 	EntitySystem::MakeComps<HurtboxComponent>(1, &id);
@@ -48,14 +51,11 @@ void EntityGenerator::MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& coll
 	auto healthComp = EntitySystem::GetComp<HealthComponent>(id);
 	healthComp->setHealth(health);
 
-	auto netOwnerComp = EntitySystem::GetComp<NetworkOwnerComponent>(id);
-	netOwnerComp->owner = owner;
-
 	auto topDownMoverComp = EntitySystem::GetComp<TopDownMoverComponent>(id);
 	topDownMoverComp->setMoveSpeed(moveSpeed);
 }
 
-void EntityGenerator::MakeHitboxEntity(EntityId id, Vec2f hitboxOffset, Vec2f hitboxRes, TeamId team, int damage, NetworkOwnerComponent::Owner owner) {
+static void MakeHitboxEntity(EntityId id, Vec2f hitboxOffset, Vec2f hitboxRes, TeamId team, int damage) {
 	EntitySystem::MakeComps<TeamComponent>(1, &id);
 	EntitySystem::MakeComps<HitboxComponent>(1, &id);
 	EntitySystem::MakeComps<DamageComponent>(1, &id);
@@ -70,13 +70,10 @@ void EntityGenerator::MakeHitboxEntity(EntityId id, Vec2f hitboxOffset, Vec2f hi
 
 	auto damageComp = EntitySystem::GetComp<DamageComponent>(id);
 	damageComp->setDamageCalculator<BasicDamageCalculator>(damage);
-
-	auto ownerComp = EntitySystem::GetComp<NetworkOwnerComponent>(id);
-	ownerComp->owner = owner;
 }
 
-void EntityGenerator::MakeBullet(EntityId id, Vec2f pos, Vec2f colliderRes, TeamId team, int damage, NetworkOwnerComponent::Owner owner) {
-	MakeHitboxEntity(id, { 0, 0 }, colliderRes, team, damage, owner);
+static void MakeBullet(EntityId id, Vec2f pos, Vec2f colliderRes, TeamId team, int damage) {
+	MakeHitboxEntity(id, { 0, 0 }, colliderRes, team, damage);
 	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
 
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
@@ -86,7 +83,7 @@ void EntityGenerator::MakeBullet(EntityId id, Vec2f pos, Vec2f colliderRes, Team
     physicsComp->setCollidedWith(false);
 }
 
-void EntityGenerator::MakeGun(EntityId id, EntityId parent, const Vec2f& offset, float length, NetworkOwnerComponent::Owner owner) {
+static void MakeGun(EntityId id, EntityId parent, const Vec2f& offset, float length) {
 	EntitySystem::MakeComps<AimToLStickComponent>(1, &id);
 	EntitySystem::MakeComps<ParentComponent>(1, &id);
 	EntitySystem::MakeComps<GunFireComponent>(1, &id);
@@ -100,17 +97,14 @@ void EntityGenerator::MakeGun(EntityId id, EntityId parent, const Vec2f& offset,
 	auto healthWatcherComp = EntitySystem::GetComp<HealthWatcherComponent>(id);
 	healthWatcherComp->parentId = parent;
 
-	auto networkOwnerComp = EntitySystem::GetComp<NetworkOwnerComponent>(id);
-	networkOwnerComp->owner = owner;
-
 	auto gunFireComp = EntitySystem::GetComp<GunFireComponent>(id);
 	gunFireComp->offset = length;
 }
 
-std::vector<EntityId> EntityGenerator::SpawnBasicBullet(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner)
+static std::vector<EntityId> SpawnBasicBullet(Scene& scene, const Vec2f& pos)
 {
 	auto entities = scene.addEntities(1);
-	MakeBullet(entities[0], pos, { 4, 4 }, TeamId::neutral, 10, owner);
+	MakeBullet(entities[0], pos, { 4, 4 }, TeamId::neutral, 10);
 
 	EntitySystem::MakeComps<LifeTimeComponent>(1, &entities[0]);
 	auto lifeTimeComp = EntitySystem::GetComp<LifeTimeComponent>(entities[0]);
@@ -119,31 +113,22 @@ std::vector<EntityId> EntityGenerator::SpawnBasicBullet(Scene& scene, const Vec2
 	return entities;
 }
 
-std::vector<EntityId> EntityGenerator::SpawnPlayer(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner) {
+static std::vector<EntityId> SpawnPlayer(Scene& scene, const Vec2f& pos) {
 	auto entities = scene.addEntities(2);
 	EntityId playerId = entities[0];
-	MakeLivingEntity(playerId, pos, { 6, 4 }, 50.0f, TeamId::player, { -1, -11 }, { 8, 13 }, 100, owner);
+	MakeLivingEntity(playerId, pos, { 6, 4 }, 50.0f, TeamId::neutral, { -1, -11 }, { 8, 13 }, 100);
+	EntitySystem::MakeComps<RespawnComponent>(1, &playerId);
+	EntitySystem::GetComp<RespawnComponent>(playerId)->spawnPos = { 720.f / 4, 405.f / 4 };
 
 	EntityId gunId = entities[1];
-	MakeGun(gunId, playerId, { 3, -5 }, 13, owner);
+	MakeGun(gunId, playerId, { 3, -5 }, 13);
 	return entities;
 }
 
-std::vector<EntityId> EntityGenerator::SpawnPlayerPuppet(Scene& scene) {
-	auto entities = scene.addEntities(2);
-	EntityId playerId = entities[0];
-	MakeLivingEntity(playerId, {0, 0}, { 6, 4 }, 50.0f,
-            TeamId::player, { -1, -11 }, { 8, 13 }, 100, NetworkOwnerComponent::Owner::foreign);
-
-	// EntityId gunId = entities[1];
-	// MakeGun(gunId, playerId, { 3, -5 }, 13, NetworkOwnerComponent::Owner::foreign);
-	return entities;
-}
-
-std::vector<EntityId> EntityGenerator::SpawnEnemy(Scene& scene, const Vec2f& pos, NetworkOwnerComponent::Owner owner) {
+static std::vector<EntityId> SpawnEnemy(Scene& scene, const Vec2f& pos) {
 	auto entities = scene.addEntities(1);
 	EntityId enemyId = entities[0];
-	MakeLivingEntity(enemyId, pos, { 6, 4 }, 50.0f, TeamId::enemy, { -1, -11 }, { 8, 13 }, 100, owner);
+	MakeLivingEntity(enemyId, pos, { 6, 4 }, 50.0f, TeamId::enemy, { -1, -11 }, { 8, 13 }, 100);
 
 	EntitySystem::MakeComps<BasicAttackComponent>(1, &enemyId);
 	auto attackComp = EntitySystem::GetComp<BasicAttackComponent>(enemyId);
@@ -153,4 +138,21 @@ std::vector<EntityId> EntityGenerator::SpawnEnemy(Scene& scene, const Vec2f& pos
 
 
 	return entities;
+}
+
+std::vector<EntityId> EntityGenerator::SpawnEntity(const std::string& tag, Scene& targetScene, const Vec2f& targetPos, NetworkOwnerComponent::Owner owner, bool shared) {
+    if(EntityGenerator::SpawnFunctions.find(tag) == EntityGenerator::SpawnFunctions.end()) throw SpawnFunctionNotFoundException{tag};
+
+    auto entities = EntityGenerator::SpawnFunctions.at(tag)(targetScene, targetPos);
+    EntitySystem::MakeComps<NetworkOwnerComponent>(entities.size(), entities.data());
+    for(const auto& entityId : entities) {
+        EntitySystem::GetComp<NetworkOwnerComponent>(entityId)->owner = owner;
+    }
+    return entities;
+}
+
+void EntityGenerator::RegisterSpawnFunctions() {
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("player.basic", SpawnPlayer));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("enemy.basic", SpawnEnemy));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("bullet.basic", SpawnBasicBullet));
 }

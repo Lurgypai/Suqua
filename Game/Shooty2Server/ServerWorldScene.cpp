@@ -2,8 +2,14 @@
 #include "Game.h"
 #include "../Shooty2Core/Shooty2Packet.h"
 #include <iostream>
-#include "PHServerRequestPlayerNetId.h"
+#include "PHServerSpawnEntities.h"
 #include "PHServerState.h"
+#include "PHServerDeadEntities.h"
+#include "NetworkEntityOwnershipSystem.h"
+
+#include "../Shooty2Core/EntityGenerator.h"
+#include "../Shooty2Core/EntitySpawnSystem.h"
+#include "Packet.h"
 
 ServerWorldScene::ServerWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{id_, flags_},
@@ -13,8 +19,12 @@ ServerWorldScene::ServerWorldScene(SceneId id_, Scene::FlagType flags_) :
 
 void ServerWorldScene::load(Game& game)
 {
-    game.loadPacketHandler<PHServerRequestPlayerNetId>(Shooty2Packet::RequestPlayerNetId);
+
+    EntitySpawnSystem::Init<EntityGenerator>();
+
+    game.loadPacketHandler<PHServerSpawnEntities>(Shooty2Packet::SpawnEntities);
     game.loadPacketHandler<PHServerState>(Packet::StateId);
+    game.loadPacketHandler<PHServerDeadEntities>(Packet::DeadEntities);
 }
 
 void ServerWorldScene::physicsStep(Game& game) {
@@ -24,6 +34,7 @@ void ServerWorldScene::physicsStep(Game& game) {
 		// game.sceneOn(playingScene);
 		// std::cout << "Activated Playing Scene!\n";
 	// }
+    broadcastDeadEntities(game.host);
 }
 
 void ServerWorldScene::renderUpdateStep(Game& game)
@@ -38,34 +49,42 @@ void ServerWorldScene::unload(Game& game)
 {
 }
 
-void ServerWorldScene::onConnect(Game& game, PeerId connectingId) {
-	std::cout << "Peer " << connectingId << " connected.\n";
+void ServerWorldScene::onConnect(Game& game, PeerId connectingPeer) {
 	++currPlayerCount;
+    std::cout << "Peer " << connectingPeer << " connection received."
+        " Sending existing entities.\n";
+    ByteStream spawnPacket;
+    spawnPacket << Shooty2Packet::SpawnEntities;
+    for(const auto& [peer, entities] : game.networkEntityOwnershipSystem.getOwnedEntities()) {
+        for(const auto& entity : entities) {
+            spawnPacket << entity.tag;
+            spawnPacket << Vec2f{0.f, 0.f};
+            spawnPacket << entity.netIds[0];
+            spawnPacket << NetworkOwnerComponent::Owner::foreign;
+            for(int i = 1; i != entity.netIds.size(); ++i) {
+                spawnPacket << entity.netIds[i];
+            }
+        }
+    }
 
-    /*
-    EntityId newPlayerId = EntityGenerator::SpawnPlayerPuppet(*this)[0];
-	game.online.addOnlineComponent(newPlayerId);
-	OnlineComponent* onlineComp = EntitySystem::GetComp<OnlineComponent>(newPlayerId);
-
-	ByteStream joinPacket{};
-	joinPacket << Shooty2Packet::JoinPacket;
-	joinPacket << onlineComp->getNetId();
-
-	game.host.bufferAllDataByChannel(1, joinPacket);
-
-	for (auto& online : EntitySystem::GetPool<OnlineComponent>()) {
-		if (online.getNetId() != onlineComp->getNetId()) {
-			ByteStream joinPacket2{};
-			joinPacket2 << Shooty2Packet::JoinPacket;
-			joinPacket2 << online.getNetId();
-
-			game.host.bufferData(connectingId, joinPacket2);
-		}
-	}
-    */
+    game.host.bufferDataToChannel(connectingPeer, 0, spawnPacket);
 }
 
 void ServerWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer) {
 	std::cout << "Peer " << disconnectedPeer << " disconnected.\n";
 	--currPlayerCount;
+
+    const auto& owned = game.networkEntityOwnershipSystem.getOwnedEntities();
+    auto disconnectedEntities = owned.find(disconnectedPeer);
+    if(disconnectedEntities == owned.end()) return;
+
+    ByteStream dead;
+    dead << Packet::DeadEntities;
+    for(const auto& entity : disconnectedEntities->second) {
+        for(auto netId : entity.netIds) {
+            dead << netId;
+        }
+    }
+
+    game.host.bufferAllDataByChannel(0, dead);
 }

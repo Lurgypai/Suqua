@@ -16,4 +16,11 @@ namespace Packet {
 	//notifies a client that it is out of sync, and needs to send a ping
 	//id
 	constexpr PacketId OOSId = 4;
+
+    constexpr PacketId DeadEntities = 5;
+    /*
+     * DeadEntities:
+     * Client->server / server->client
+     *  NetworkId netId
+     */
 }
