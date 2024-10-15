@@ -1,5 +1,6 @@
 #pragma once
 #include "ComponentMacros.h"
+#include <cstdint>
 
 class HealthWatcherComponent {
 	CompMembers(HealthWatcherComponent);

@@ -1,6 +1,8 @@
 #include "EntitySystem.h"
 #include "ComponentMacros.h"
 
+#include <cstdint>
+
 class LifeTimeComponent {
 	// generate component members
 	CompMembers(LifeTimeComponent);

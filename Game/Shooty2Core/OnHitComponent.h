@@ -1,6 +1,7 @@
 #pragma once
 #include "ComponentMacros.h"
 #include "Color.h"
+#include <cstdint>
 
 class OnHitComponent {
 	CompMembers(OnHitComponent);

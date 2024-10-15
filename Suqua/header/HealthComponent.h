@@ -1,5 +1,7 @@
 #include "ComponentMacros.h"
 
+#include <cstdint>
+
 class HealthComponent {
 	CompMembers(HealthComponent);
 public:
