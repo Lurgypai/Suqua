@@ -256,6 +256,8 @@ void Game::clientStep() {
 
 					state << onlineComp->getNetId();
 					ndc->serializeForNetwork(state);
+
+                    ndc->storePrev();
 				}
 			}
             host.bufferAllDataByChannel(0, state);

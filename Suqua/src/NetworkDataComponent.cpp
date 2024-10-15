@@ -1,19 +1,23 @@
 #include "NetworkDataComponent.h"
 #include <cstring>
+#include <memory>
 
 NetworkDataComponent::NetworkDataComponent(EntityId id_) :
 	id{ id_ },
-	dataPtr{ new DataMap{} }
+	dataPtr{ new DataMap{} },
+    prevDataPtr{ new DataMap{} }
 {}
 
 NetworkDataComponent::NetworkDataComponent(const NetworkDataComponent& other) :
 	id{ other.id },
-	dataPtr{new DataMap{ *other.dataPtr }}
+	dataPtr{new DataMap{ *other.dataPtr }},
+    prevDataPtr{ new DataMap{ *other.dataPtr }}
 {}
 
 NetworkDataComponent& NetworkDataComponent::operator=(const NetworkDataComponent& other) {
 	id = other.id;
 	dataPtr = std::make_unique<DataMap>(*other.dataPtr);
+    prevDataPtr = std::make_unique<DataMap>(*other.prevDataPtr);
 	return *this;
 }
 
@@ -37,17 +41,24 @@ void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {
 	//add the ability to allocate bytestream space, and overwrite at position
 	size_t writeCount = 0;
 	for (const auto& pair : *dataPtr) {
-		if (pair.second.mode != SyncMode::NONE) {
-			++writeCount;
-		}
+		if (pair.second.mode == SyncMode::NONE) continue;
+        
+        // skip unchanged values
+        auto prevPair = prevDataPtr->find(pair.first);
+        if(prevPair != prevDataPtr->end() && prevPair->second == pair.second) continue;
+        ++writeCount;
 	}
 
 	stream << writeCount;
 	for (auto&& pair : *dataPtr) {
-		if (pair.second.mode != SyncMode::NONE) {
-			stream << pair.first;
-			pair.second.write(stream);
-		}
+		if (pair.second.mode == SyncMode::NONE) continue;
+
+        // skip unchanged values
+        auto prevPair = prevDataPtr->find(pair.first);
+        if(prevPair != prevDataPtr->end() && prevPair->second == pair.second) continue;
+        
+        stream << pair.first;
+        pair.second.write(stream);
 	}
 }
 
@@ -202,4 +213,10 @@ void NetworkDataComponent::interp(const NetworkDataComponent& start, const Netwo
 			}
 		}
 	}
+}
+
+void NetworkDataComponent::storePrev() {
+    for(auto& [id, data] : *dataPtr) {
+        (*prevDataPtr)[id] = data;     
+    }
 }

@@ -4,7 +4,6 @@
 #include <string>
 #include <unordered_map>
 #include "ByteStream.h"
-#include "ByteOrder.h"
 #include "EntitySystem.h"
 #include <memory>
 
@@ -89,6 +88,9 @@ public:
 	NetworkDataComponent(const NetworkDataComponent& other);
     NetworkDataComponent& operator=(const NetworkDataComponent& other);
 
+    // NOTE
+    // this doesn't compare previous states
+    // I don't think it needs to but if a bug comes up with weird ndc behaviour see this note please
     bool operator==(const NetworkDataComponent& other) const;
     bool operator!=(const NetworkDataComponent& other) const;
 
@@ -115,11 +117,15 @@ public:
 	//const DataMap& data();
 
 	EntityId getId() const;
+
+    // stores the current data in the prevDataPtr
+    void storePrev();
 private:
 	using DataMap = std::unordered_map<DataId, Data>;
 	using DataMapPtr = std::unique_ptr<DataMap>;
 
 	DataMapPtr dataPtr;
+    DataMapPtr prevDataPtr;
 	EntityId id;
 };
 
