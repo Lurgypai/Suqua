@@ -74,5 +74,6 @@ void PHClientState::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer
 
         NetworkDataComponent* ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
         if(ndc) ndc->unserialize(data);
+        else skipData(data);
     }
 }

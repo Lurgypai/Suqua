@@ -3,7 +3,6 @@
 #include "ByteStream.h"
 #include "PeerId.h"
 #include "PacketHandler.h"
-#include "DynamicBitset.h"
 
 #include <string>
 #include <unordered_map>
@@ -39,20 +38,9 @@ public:
 	void createClient(size_t peerCount, size_t channels = 0, enet_uint32 incomingBandwidth = 0, enet_uint32 outgoingBandwidth = 0);
 	void createServer(int port, size_t peerCount, size_t channels = 0, enet_uint32 incomingBandwidth = 0, enet_uint32 outgoingBandwidth = 0);
 
-    //send to data to all peers
-	void sendAllData(const ByteStream& data);
-    //send to data to all peers using specified channel
 	void sendAllDataByChannel(enet_uint8 channel, const ByteStream& data);
-
-    //buffer to data to all peers
-	void bufferAllData(const ByteStream& data);
-    //buffer data to all peers using specified channel;
 	void bufferAllDataByChannel(enet_uint8 channel, const ByteStream& data);
-
-	void sendData(PeerId id, const ByteStream& data);
 	void sendDataByChannel(PeerId id, enet_uint8 channel, const ByteStream& data);
-
-	void bufferData(PeerId id, const ByteStream& data);
 	void bufferDataToChannel(PeerId id, enet_uint8 channel, const ByteStream& data);
 
 	void sendBuffered();

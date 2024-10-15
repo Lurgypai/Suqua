@@ -1,6 +1,5 @@
 #include "NetworkDataComponent.h"
 #include <cstring>
-#include <iostream>
 
 NetworkDataComponent::NetworkDataComponent(EntityId id_) :
 	id{ id_ },

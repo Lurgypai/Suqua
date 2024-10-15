@@ -18,6 +18,8 @@ void PHClientDeadEntities::handlePacket(Game& game, ByteStream& data, PeerId sou
         if(id == 0) continue;
 
         auto* base = EntitySystem::GetComp<EntityBaseComponent>(id);
-        base->isDead = true;
+        if(base) base->isDead = true;
+
+        game.online.freeNetId(netId);
     }
 }

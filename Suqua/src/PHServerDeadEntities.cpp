@@ -19,6 +19,8 @@ void PHServerDeadEntities::handlePacket(Game& game, ByteStream& data, PeerId sou
 
         auto* base = EntitySystem::GetComp<EntityBaseComponent>(id);
         base->isDead = true;
+
+        game.online.freeNetId(netId);
     }
 
     data.setReadPos(0);

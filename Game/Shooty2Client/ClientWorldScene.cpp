@@ -50,8 +50,6 @@ void ClientWorldScene::load(Game& game)
     game.loadPacketHandler<PHClientAssignNetworkId>(Shooty2Packet::AssignNetworkId);
     game.loadPacketHandler<PHClientDeadEntities>(Packet::DeadEntities);
 
-    game.host.tryConnect("127.0.0.1", 25565, 10);
-
 	/* ------------------ SET UP RENDERING ------------------- */
 	// down scale buffer
 	screenBuffer.bind();

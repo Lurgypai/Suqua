@@ -37,6 +37,7 @@ int main(int argc, char** argv) {
 
 	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all);
 
+    game.host.tryConnect(ip, 25565, 10);
 	SuquaLib::RunGame(game);
 
 	return 0;
