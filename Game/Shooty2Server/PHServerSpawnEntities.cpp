@@ -1,12 +1,14 @@
 #include "PHServerSpawnEntities.h"
 #include "Game.h"
+#include "../Shooty2Core/EntitySpawnSystem.h"
 
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "NetworkOwnerComponent.h"
 #include <exception>
 
-PHServerSpawnEntities::PHServerSpawnEntities(PacketId id_) :
-	PacketHandler{ id_ }
+PHServerSpawnEntities::PHServerSpawnEntities(PacketId id_, Scene* scene_) :
+	PacketHandler{ id_ },
+    scene{scene_}
 {}
 
 void PHServerSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) {
@@ -17,7 +19,6 @@ void PHServerSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId so
     std::string tag;
     EntityId targetEntity;
     Vec2f pos;
-    uint32_t subCount;
 
     ByteStream assignNetId;
     assignNetId << Shooty2Packet::AssignNetworkId;
@@ -31,34 +32,31 @@ void PHServerSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId so
 
         // read the parent entity
         data >> tag;
-        data >> targetEntity;
-        data >> pos.x;
-        data >> pos.y;
+        data >> pos;
 
-        // assign net id to parent
-        assignNetId << targetEntity;
-        assignedNetIds.push_back(game.online.getFreeNetworkId());
-        assignNetId << assignedNetIds.back();
+        // spawn locally for ai and whatnot to know about
+        auto entities = EntitySpawnSystem::SpawnEntity(tag, *scene, pos, NetworkOwnerComponent::Owner::foreign, false);
+        for(auto& entity : entities) {
+            game.online.addOnlineComponent(entity);
+            auto* netComp = EntitySystem::GetComp<OnlineComponent>(entity);
+            assignedNetIds.push_back(netComp->getNetId());
+        }
 
-        // prepare spawn packet for parent
+        // prepare spawn packet
         spawn << tag;
-        spawn << pos.x;
-        spawn << pos.y;
-        spawn << assignedNetIds.back();
+        spawn << pos;
         spawn << NetworkOwnerComponent::Owner::foreign;
 
-        data >> subCount;
         // should crash out if subcount is bad
-        for(int i = 0; i != subCount; ++i) {
+        for(const auto& netId : assignedNetIds) {
             if(!data.hasMoreData()) throw std::exception{};
-            // assign netID for child
             data >> targetEntity;
+
             assignNetId << targetEntity;
-            assignedNetIds.push_back(game.online.getFreeNetworkId());
-            assignNetId << assignedNetIds.back();
+            assignNetId << netId;
 
             // prepare spawn packet for child
-            spawn << assignedNetIds.back();
+            spawn << netId;
         }
 
         game.networkEntityOwnershipSystem.addOwnedEntity(sourcePeer, tag, std::move(assignedNetIds));

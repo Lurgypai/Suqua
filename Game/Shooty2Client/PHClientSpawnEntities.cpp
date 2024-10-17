@@ -21,20 +21,16 @@ void PHClientSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId so
 
     while(data.hasMoreData()) {
         data >> tag;
-        data >> pos.x;
-        data >> pos.y;
-        data >> netId;
+        data >> pos;
         data >> owner;
 
         auto entities = EntitySpawnSystem::SpawnEntity(tag, *scene, pos, owner, false);
         // set the parent's net Id
-        game.online.registerOnlineComponent(entities[0], netId);
 
-        for(int i = 1; i < entities.size(); ++i) {
-            //TODO real exception, we expect more entity desctiptions here
+        for(const auto& entity : entities) {
             if(!data.hasMoreData()) throw std::exception{}; 
             data >> netId;
-            game.online.registerOnlineComponent(entities[i], netId);
+            game.online.registerOnlineComponent(entity, netId);
         }
     }
 }

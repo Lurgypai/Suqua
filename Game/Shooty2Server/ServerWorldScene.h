@@ -1,5 +1,6 @@
 #pragma once
 #include "Scene.h"
+#include "PhysicsSystem.h"
 
 class ServerWorldScene : public Scene {
 public:
@@ -15,4 +16,8 @@ public:
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) override;
 private:
 	int currPlayerCount;
+
+    EntityId dummy;
+
+    PhysicsSystem physics;
 };

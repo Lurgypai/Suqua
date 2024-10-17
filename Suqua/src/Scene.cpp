@@ -23,7 +23,7 @@ void Scene::removeEntities(const std::vector<EntityId>& entities_) {
 	}
 }
 
-void Scene::broadcastDeadEntities(Host& host) {
+void Scene::broadcastDeadEntities(Game& game) {
     if(!EntitySystem::Contains<OnlineComponent>()) return;
 
     ByteStream deadEntityPacket;
@@ -32,10 +32,15 @@ void Scene::broadcastDeadEntities(Host& host) {
     for(auto& entity : entities) {
         EntityBaseComponent* base = EntitySystem::GetComp<EntityBaseComponent>(entity);
         OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(entity);
-        if(base && online && base->isDead)  deadEntityPacket << online->getNetId();
+        if(!base || !online || !base->isDead) continue;
+
+        deadEntityPacket << online->getNetId();
+        game.networkEntityOwnershipSystem.removeLocalEntity(online->getNetId());
+
+        game.online.freeNetId(online->getNetId());
     }
 
-    host.bufferAllDataByChannel(0, deadEntityPacket);
+    game.host.bufferAllDataByChannel(0, deadEntityPacket);
 }
 
 Scene::Scene(SceneId id_, FlagType flags_) : 

@@ -12,6 +12,7 @@ namespace Packet {
 	//id
 	//gametime
 	//input state
+
 	constexpr PacketId InputId = 3;
 	//notifies a client that it is out of sync, and needs to send a ping
 	//id

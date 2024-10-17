@@ -5,19 +5,18 @@ namespace Shooty2Packet {
     /* SpawnEntity:
      * Client->Server
      *  string EntityTag
-     *  EntityId targetEntity
      *  float x
      *  float y
-     *  uint32_t subEntityCount
-     *    EntityId target
+     *  EntityId targetEntity
+     *    EntityId subEntity
      *
      *
      * Server->Client
      *   string EntityTag
      *   float x
      *   float y
-     *   NetworkId netId
      *   NetworkOwnerComponent::Owner owner
+     *   NetworkId netId
      *     NetworkID netId
      *
      * NOTE:
@@ -34,4 +33,12 @@ namespace Shooty2Packet {
      *   NetworkId netId
      */
 
+    constexpr PacketId Damage = 12;
+    /*
+     * Damage:
+     * Client->server
+     *  NetworkId netId
+     *  uint32_t damage
+     *  
+     */
 };

@@ -26,7 +26,4 @@ private:
 	CombatSystem combat;
 
 	Framebuffer screenBuffer;
-
-	InputDeviceId dummyAI;
-	EntityId dummy;
 };

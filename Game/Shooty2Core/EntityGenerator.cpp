@@ -99,12 +99,25 @@ static void MakeGun(EntityId id, EntityId parent, const Vec2f& offset, float len
 
 	auto gunFireComp = EntitySystem::GetComp<GunFireComponent>(id);
 	gunFireComp->offset = length;
+    gunFireComp->bulletTag = "bullet.player.basic";
 }
 
-static std::vector<EntityId> SpawnBasicBullet(Scene& scene, const Vec2f& pos)
+static std::vector<EntityId> SpawnBulletPlayerBasic(Scene& scene, const Vec2f& pos)
 {
 	auto entities = scene.addEntities(1);
-	MakeBullet(entities[0], pos, { 4, 4 }, TeamId::neutral, 10);
+	MakeBullet(entities[0], pos, { 4, 4 }, TeamId::player, 10);
+
+	EntitySystem::MakeComps<LifeTimeComponent>(1, &entities[0]);
+	auto lifeTimeComp = EntitySystem::GetComp<LifeTimeComponent>(entities[0]);
+	lifeTimeComp->setRemainingLife(480);
+
+	return entities;
+}
+
+static std::vector<EntityId> SpawnBulletEnemyBasic(Scene& scene, const Vec2f& pos)
+{
+	auto entities = scene.addEntities(1);
+	MakeBullet(entities[0], pos, { 4, 4 }, TeamId::enemy, 10);
 
 	EntitySystem::MakeComps<LifeTimeComponent>(1, &entities[0]);
 	auto lifeTimeComp = EntitySystem::GetComp<LifeTimeComponent>(entities[0]);
@@ -116,7 +129,7 @@ static std::vector<EntityId> SpawnBasicBullet(Scene& scene, const Vec2f& pos)
 static std::vector<EntityId> SpawnPlayer(Scene& scene, const Vec2f& pos) {
 	auto entities = scene.addEntities(2);
 	EntityId playerId = entities[0];
-	MakeLivingEntity(playerId, pos, { 6, 4 }, 50.0f, TeamId::neutral, { -1, -11 }, { 8, 13 }, 100);
+	MakeLivingEntity(playerId, pos, { 6, 4 }, 50.0f, TeamId::player, { -1, -11 }, { 8, 13 }, 100);
 	EntitySystem::MakeComps<RespawnComponent>(1, &playerId);
 	EntitySystem::GetComp<RespawnComponent>(playerId)->spawnPos = { 720.f / 4, 405.f / 4 };
 
@@ -130,12 +143,21 @@ static std::vector<EntityId> SpawnEnemy(Scene& scene, const Vec2f& pos) {
 	EntityId enemyId = entities[0];
 	MakeLivingEntity(enemyId, pos, { 6, 4 }, 50.0f, TeamId::enemy, { -1, -11 }, { 8, 13 }, 100);
 
+	EntitySystem::MakeComps<GunFireComponent>(1, &enemyId);
+    auto fire = EntitySystem::GetComp<GunFireComponent>(enemyId);
+    fire->offset = 0;
+    fire->bulletTag = "bullet.enemy.basic";
+
+
+	EntitySystem::MakeComps<RespawnComponent>(1, &enemyId);
+	EntitySystem::GetComp<RespawnComponent>(enemyId)->spawnPos = { 720.f / 2, 405.f / 2 };
+    /*
 	EntitySystem::MakeComps<BasicAttackComponent>(1, &enemyId);
 	auto attackComp = EntitySystem::GetComp<BasicAttackComponent>(enemyId);
 	attackComp->delay = 30;
 	attackComp->duration = 95;
 	attackComp->duration = 30;
-
+    */
 
 	return entities;
 }
@@ -154,5 +176,6 @@ std::vector<EntityId> EntityGenerator::SpawnEntity(const std::string& tag, Scene
 void EntityGenerator::RegisterSpawnFunctions() {
     EntityGenerator::SpawnFunctions.insert(std::make_pair("player.basic", SpawnPlayer));
     EntityGenerator::SpawnFunctions.insert(std::make_pair("enemy.basic", SpawnEnemy));
-    EntityGenerator::SpawnFunctions.insert(std::make_pair("bullet.basic", SpawnBasicBullet));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("bullet.player.basic", SpawnBulletPlayerBasic));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("bullet.enemy.basic", SpawnBulletEnemyBasic));
 }

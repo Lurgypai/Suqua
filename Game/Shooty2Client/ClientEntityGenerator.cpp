@@ -3,6 +3,7 @@
 #include "RespawnGFXComponent.h"
 #include "GunGFXComponent.h"
 #include "RectDrawable.h"
+#include "AttackGFXComponent.h"
 #include "../Shooty2Core/OnHitComponent.h"
 
 #include "../Shooty2Core/Shooty2Packet.h"
@@ -26,7 +27,7 @@ static void AddPlayerGFX(const std::vector<EntityId>& entities) {
 	EntitySystem::MakeComps<GunGFXComponent>(1, &gunId);
 }
 
-static void AddBulletGFX(const std::vector<EntityId>& entities) {
+static void AddBulletPlayerBasicGFX(const std::vector<EntityId>& entities) {
     EntityId bulletId = entities[0];
 
 	EntitySystem::MakeComps<RenderComponent>(1, &bulletId);
@@ -35,6 +36,22 @@ static void AddBulletGFX(const std::vector<EntityId>& entities) {
 }
 
 static void AddEnemyGFX(const std::vector<EntityId>& entities) {
+    auto enemyId = entities[0];
+	EntitySystem::MakeComps<CharacterGFXComponent>(1, &enemyId);
+	EntitySystem::GetComp<CharacterGFXComponent>(enemyId)->loadSpriteSheet(
+            "enemy:basic", "enemy/basic.json", Vec2f{ -13, -24 });
+    EntitySystem::MakeComps<OnHitComponent>(1, &enemyId);
+    EntitySystem::MakeComps<RespawnGFXComponent>(1, &enemyId);
+
+    EntitySystem::MakeComps<AttackGFXComponent>(1, &enemyId);
+}
+
+static void AddBulletEnemyBasicGFX(const std::vector<EntityId>& entities) {
+    EntityId bulletId = entities[0];
+
+	EntitySystem::MakeComps<RenderComponent>(1, &bulletId);
+	auto render = EntitySystem::GetComp<RenderComponent>(bulletId);
+	render->loadDrawable<RectDrawable>(RectDrawable{ Color{0.675, 0.196, 0.196, 1.0}, true, -0.1, AABB{{0, 0 }, {4, 4}} });
 }
 
 void ClientEntityGenerator::RegisterSpawnFunctions() {
@@ -42,7 +59,8 @@ void ClientEntityGenerator::RegisterSpawnFunctions() {
     
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("player.basic", AddPlayerGFX));
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("enemy.basic", AddEnemyGFX));
-    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("bullet.basic", AddBulletGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("bullet.player.basic", AddBulletPlayerBasicGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("bullet.enemy.basic", AddBulletEnemyBasicGFX));
 }
 
 std::vector<EntityId> ClientEntityGenerator::SpawnEntity(const std::string& tag, Scene& targetScene,
@@ -54,12 +72,9 @@ std::vector<EntityId> ClientEntityGenerator::SpawnEntity(const std::string& tag,
     ByteStream spawn;
     spawn << Shooty2Packet::SpawnEntities;
     spawn << tag;
-    spawn << entities[0];
     spawn << pos;
-    std::uint32_t count = entities.size() - 1;
-    spawn << count;
-    for(int i = 1; i != entities.size(); ++i) {
-        spawn << entities[i];
+    for(auto& entity : entities) {
+        spawn << entity;
     }
     host->bufferAllDataByChannel(0, spawn);
 

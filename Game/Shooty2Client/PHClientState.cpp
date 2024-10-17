@@ -62,7 +62,6 @@ void PHClientState::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer
 
     NetworkId netId;
 
-    NetworkDataComponent dummy;
     while(data.hasMoreData()) {
         data >> netId;
 

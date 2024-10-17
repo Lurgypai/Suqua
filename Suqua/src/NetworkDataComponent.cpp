@@ -82,13 +82,13 @@ void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {
 
 void NetworkDataComponent::unserialize(ByteStream& stream) {
 
-	DataId id;
+	DataId dataId;
 	size_t size;
 	stream >> size;
 
 	for (size_t i = 0; i != size; ++i) {
-		if (stream >> id) {
-			dataPtr->at(id).read(stream);
+		if (stream >> dataId) {
+			dataPtr->at(dataId).read(stream);
 		}
 		else {
 			//we should have more elements to read

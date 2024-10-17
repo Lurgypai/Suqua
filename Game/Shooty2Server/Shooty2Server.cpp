@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 
 	std::cout << "The network input delay is " << game.networkInputDelay << ".\n";
 
-	SceneId lobbyScene = game.loadScene<ServerWorldScene>(Scene::Flag::physics);
+	SceneId lobbyScene = game.loadScene<ServerWorldScene>(Scene::Flag::physics | Scene::Flag::input);
 
 	SuquaLib::RunGame(game);
 

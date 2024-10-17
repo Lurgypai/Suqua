@@ -12,6 +12,7 @@ public:
 	Vec2f getFiringPos();
 
 	float offset;
+    std::string bulletTag;
 private:
 	EntityId id;
 };

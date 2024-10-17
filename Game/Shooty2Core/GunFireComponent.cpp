@@ -10,7 +10,8 @@
 
 GunFireComponent::GunFireComponent(EntityId id_) :
 	id{ id_ },
-	offset{ 5 }
+	offset{ 5 },
+    bulletTag{}
 {}
 
 EntityId GunFireComponent::getId() const {
@@ -21,18 +22,15 @@ EntityId GunFireComponent::getId() const {
 // why ref go away?
 void GunFireComponent::fire(Scene* currScene)
 {
-
-    // TODO
-    // Separate client and server entity generators, and add a generic entity generator interface that is called
 	auto firingPos = getFiringPos();
-	auto bullets = EntitySpawnSystem::SpawnEntity("bullet.basic", *currScene, firingPos, NetworkOwnerComponent::Owner::local, true);
+	auto bullets = EntitySpawnSystem::SpawnEntity(bulletTag, *currScene, firingPos, NetworkOwnerComponent::Owner::local, true);
 	EntityId bulletId = bullets[0];
 
 	auto directionComp = EntitySystem::GetComp<DirectionComponent>(id);
 	Vec2f directionVector{ 1.0, 0.0 };
 	directionVector.angle(directionComp->getDir());
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(bulletId);
-	physicsComp->setVel(directionVector * 130);
+	physicsComp->setVel(directionVector * 260);
 }
 
 void GunFireComponent::update(Scene* currScene)

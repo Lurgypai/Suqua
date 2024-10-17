@@ -71,7 +71,7 @@ inline ByteStream& ByteStream::operator<< <Vec2f>(const Vec2f& t) {
 	auto xCpy = s_hton(t.x);
 	auto yCpy = s_hton(t.y);
 	std::memcpy(_data.data() + end, &xCpy, sizeof(xCpy));
-	std::memcpy(_data.data() + end, &yCpy, sizeof(yCpy));
+	std::memcpy(_data.data() + end + sizeof(xCpy), &yCpy, sizeof(yCpy));
 
     return *this;
 }
@@ -116,7 +116,9 @@ inline bool ByteStream::operator >> <Vec2f>(Vec2f& v) {
 	if (readPos + sizeof(v) > _data.size()) return false;
 
 	std::memcpy(&v.x, _data.data() + readPos, sizeof(v.x));
+    readPos += sizeof(v.x);
 	std::memcpy(&v.y, _data.data() + readPos, sizeof(v.y));
+    readPos += sizeof(v.y);
 
 	v.x = s_ntoh(v.x);
 	v.y = s_ntoh(v.y);

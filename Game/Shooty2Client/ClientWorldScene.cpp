@@ -26,10 +26,10 @@
 #include "CharacterGFXComponent.h"
 #include "PhysicsComponent.h"
 #include "RespawnGFXComponent.h"
+#include "AttackGFXComponent.h"
+#include "AITopDownBasic.h"
 
-#include "../Shooty2Core/PlayerComponent.h"
 #include "../Shooty2Core/GunFireComponent.h"
-#include "../Shooty2Core/BasicAttackComponent.h"
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
 #include "../Shooty2Core/OnHitComponent.h"
@@ -67,6 +67,7 @@ void ClientWorldScene::load(Game& game)
 	GLRenderer::LoadTexture("stranded/Enemies/Warrior/warrior.png", "enemy:warrior");
 	GLRenderer::LoadTexture("stranded/Hero/Hero/green_gun.png", "gun");
 	GLRenderer::LoadTexture("stranded/Tileset/custom_top_down.png", "tileset");
+    GLRenderer::LoadTexture("enemy/basic.png", "enemy:basic");
 
 	/* ---------------- LOAD ENTITIES ----------------- */
     EntitySpawnSystem::Init<ClientEntityGenerator>(&game.host);
@@ -80,20 +81,11 @@ void ClientWorldScene::load(Game& game)
 	myGunId = playerAndGunId[1];
 	addEntityInputs({ {myPlayerId, playerInput}, {myGunId, playerInput} });
 
-
     /*
-	// dummy ai
-	auto dummyEntities = EntityGenerator::SpawnEnemy(*this, { 720.f / 2, 405.f / 2 }, NetworkOwnerComponent::Owner::local);
-	dummy = dummyEntities[0];
-	EntitySystem::MakeComps<CharacterGFXComponent>(1, &dummy);
-	EntitySystem::GetComp<CharacterGFXComponent>(dummy)->loadSpriteSheet("enemy:warrior", "stranded/Enemies/Warrior/warrior.json", Vec2f{ -13, -24 });
-	EntitySystem::MakeComps<OnHitComponent>(1, &dummy);
+	auto dummyEntities = EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2, 405.f / 2 }, NetworkOwnerComponent::Owner::local, true);
+	auto dummy = dummyEntities[0];
 
-	EntitySystem::MakeComps<RespawnComponent>(1, &dummy);
-	EntitySystem::GetComp<RespawnComponent>(dummy)->spawnPos = { 720.f / 2, 405.f / 2 };
-
-
-	dummyAI = game.loadInputDevice<AITopDownBasic>();
+	auto dummyAI = game.loadInputDevice<AITopDownBasic>();
 	addEntityInputs({ { dummy, dummyAI } });
 	auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
 	ai.entityId = dummy;
@@ -109,8 +101,6 @@ void ClientWorldScene::load(Game& game)
 void ClientWorldScene::physicsStep(Game& game)
 {
 	Updater::UpdateOwned<TopDownMoverComponent>();
-	Updater::UpdateOwned<PlayerComponent>();
-	Updater::UpdateOwned<BasicAttackComponent>();
 	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
 	Updater::UpdateOwned<GunFireComponent>(this);
@@ -131,7 +121,7 @@ void ClientWorldScene::physicsStep(Game& game)
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
 	playerInputDevice.entityPos = plrPhysicsComp->center();
 
-    broadcastDeadEntities(game.host);
+    broadcastDeadEntities(game);
 }
 
 void ClientWorldScene::renderUpdateStep(Game& game)
@@ -140,6 +130,7 @@ void ClientWorldScene::renderUpdateStep(Game& game)
 	Updater::UpdateAll<GunGFXComponent>();
     Updater::UpdateAll<OnHitComponent>();
     Updater::UpdateAll<RespawnGFXComponent>();
+    Updater::UpdateAll<AttackGFXComponent>();
 }
 
 void ClientWorldScene::renderStep(Game& game)

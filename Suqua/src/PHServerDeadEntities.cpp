@@ -21,6 +21,7 @@ void PHServerDeadEntities::handlePacket(Game& game, ByteStream& data, PeerId sou
         base->isDead = true;
 
         game.online.freeNetId(netId);
+        game.networkEntityOwnershipSystem.removeEntity(netId);
     }
 
     data.setReadPos(0);

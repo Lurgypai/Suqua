@@ -20,10 +20,14 @@ void PhysicsSystem::runPhysics(double timeDelta) {
 void PhysicsSystem::runPhysicsOnOwned(double timeDelta) {
     if(EntitySystem::Contains<NetworkOwnerComponent>()) {
         for(const auto& owner : EntitySystem::GetPool<NetworkOwnerComponent>()) {
-            if(owner.owner != NetworkOwnerComponent::Owner::local) continue;
             auto* rawComp = EntitySystem::GetComp<PhysicsComponent>(owner.getId());
             if(!rawComp) continue;
-            runPhysics(timeDelta, rawComp->id);
+            if(owner.owner != NetworkOwnerComponent::Owner::local) {
+                auto* posComp = EntitySystem::GetComp<PositionComponent>(rawComp->getId());
+                rawComp->collider.pos = posComp->getPos();
+            } else {
+                runPhysics(timeDelta, rawComp->id);
+            }
         }
     }
 }

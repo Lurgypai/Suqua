@@ -3,19 +3,29 @@
 #include "HurtboxComponent.h"
 #include "HitboxComponent.h"
 #include "NetworkOwnerComponent.h"
+#include "Packet.h"
 #include "TeamComponent.h"
 #include "EntityBaseComponent.h"
 #include "HealthComponent.h"
 #include "DamageComponent.h"
 #include "PhysicsComponent.h"
+#include "Shooty2Packet.h"
+#include "NetworkDataComponent.h"
 
-static inline void damageEntity(EntityId cause, EntityId receiver) {
+static inline void damageEntity(EntityId cause, EntityId receiver, ByteStream& packet) {
 	auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(receiver);
 	auto otherDamageComp = EntitySystem::GetComp<DamageComponent>(cause);
 	ourHealthComp->damage(otherDamageComp->getDamage());
 
 	auto targetPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(receiver);
 	targetPhysicsComp->setVel(Vec2f{ 0, 0 });
+
+    auto onlineComp = EntitySystem::GetComp<OnlineComponent>(receiver);
+    if(!onlineComp) return;
+    auto ndc = EntitySystem::GetComp<NetworkDataComponent>(receiver);
+    if(!ndc) return;
+    packet << onlineComp->getNetId();
+    ndc->serializeForNetwork(packet);
 }
 
 using TeamId = TeamComponent::TeamId;
@@ -25,6 +35,9 @@ void CombatSystem::checkClientCollisions(Host* host) {
 	if (!EntitySystem::Contains<NetworkOwnerComponent>() || !EntitySystem::Contains<HitboxComponent>())
 		return;
 
+
+    ByteStream damagePacket;
+    damagePacket << Packet::StateId;
 
 	for (auto& ownerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
 
@@ -55,7 +68,7 @@ void CombatSystem::checkClientCollisions(Host* host) {
 				if (!hitComp->hitbox.intersects(otherHurtComp.hurtbox)) continue;
 				if (!hitComp->addHitEntity(otherHurtComp.getId())) continue;
 
-				damageEntity(ownerComp.getId(), otherHurtComp.getId());
+				damageEntity(ownerComp.getId(), otherHurtComp.getId(), damagePacket);
 			}
 		}
 
@@ -82,7 +95,9 @@ void CombatSystem::checkClientCollisions(Host* host) {
 			if (!otherHitComp.hitbox.intersects(hurtComp->hurtbox)) continue;
 			if (!otherHitComp.addHitEntity(hurtComp->getId())) continue;
 
-			damageEntity(otherHitComp.getId(), ownerComp.getId());
+			damageEntity(otherHitComp.getId(), ownerComp.getId(), damagePacket);
 		}
 	}
+
+    host->bufferAllDataByChannel(0, damagePacket);
 }

@@ -6,10 +6,22 @@
 #include "PHServerState.h"
 #include "PHServerDeadEntities.h"
 #include "NetworkEntityOwnershipSystem.h"
+#include "Updater.h"
+#include "PositionComponent.h"
+#include "EntityBaseComponent.h"
 
-#include "../Shooty2Core/EntityGenerator.h"
 #include "../Shooty2Core/EntitySpawnSystem.h"
 #include "Packet.h"
+#include "AITopDownBasic.h"
+
+#include "TopDownMoverComponent.h"
+#include "ParentComponent.h"
+#include "AimToLStickComponent.h"
+#include "../Shooty2Core/GunFireComponent.h"
+#include "LifeTimeComponent.h"
+#include "../Shooty2Core/HealthWatcherComponent.h"
+#include "../Shooty2Core/RespawnComponent.h"
+#include "ServerEntityGenerator.h"
 
 ServerWorldScene::ServerWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{id_, flags_},
@@ -20,21 +32,35 @@ ServerWorldScene::ServerWorldScene(SceneId id_, Scene::FlagType flags_) :
 void ServerWorldScene::load(Game& game)
 {
 
-    EntitySpawnSystem::Init<EntityGenerator>();
+    EntitySpawnSystem::Init<ServerEntityGenerator>(&game);
 
-    game.loadPacketHandler<PHServerSpawnEntities>(Shooty2Packet::SpawnEntities);
+    game.loadPacketHandler<PHServerSpawnEntities>(Shooty2Packet::SpawnEntities, this);
     game.loadPacketHandler<PHServerState>(Packet::StateId);
     game.loadPacketHandler<PHServerDeadEntities>(Packet::DeadEntities);
+ 
+	// dummy ai
+	auto dummyEntities = EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2, 405.f / 2 }, NetworkOwnerComponent::Owner::local, true);
+	dummy = dummyEntities[0];
+
+	auto dummyAI = game.loadInputDevice<AITopDownBasic>();
+	addEntityInputs({ { dummy, dummyAI } });
+	auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
+	ai.entityId = dummy;
+	ai.setTargetTeams({ TeamComponent::TeamId::player });
 }
 
 void ServerWorldScene::physicsStep(Game& game) {
-	//std::cout << currPlayerCount << " / " << minPlayerCount << '\n';
-	// if (currPlayerCount >= minPlayerCount) {
-		// game.sceneOff(id);
-		// game.sceneOn(playingScene);
-		// std::cout << "Activated Playing Scene!\n";
-	// }
-    broadcastDeadEntities(game.host);
+	Updater::UpdateOwned<TopDownMoverComponent>();
+	Updater::UpdateOwned<ParentComponent>();
+	Updater::UpdateOwned<AimToLStickComponent>();
+	Updater::UpdateOwned<GunFireComponent>(this);
+	Updater::UpdateOwned<LifeTimeComponent>();
+	Updater::UpdateOwned<HealthWatcherComponent>();
+	Updater::UpdateOwned<RespawnComponent>();
+
+	physics.runPhysicsOnOwned(game.PHYSICS_STEP);
+
+    broadcastDeadEntities(game);
 }
 
 void ServerWorldScene::renderUpdateStep(Game& game)
@@ -56,14 +82,26 @@ void ServerWorldScene::onConnect(Game& game, PeerId connectingPeer) {
     ByteStream spawnPacket;
     spawnPacket << Shooty2Packet::SpawnEntities;
     for(const auto& [peer, entities] : game.networkEntityOwnershipSystem.getOwnedEntities()) {
+        if(peer == connectingPeer) continue;
+
         for(const auto& entity : entities) {
+            std::cout << "Sending spawn request for tag " << entity.tag << '\n';
             spawnPacket << entity.tag;
             spawnPacket << Vec2f{0.f, 0.f};
-            spawnPacket << entity.netIds[0];
             spawnPacket << NetworkOwnerComponent::Owner::foreign;
-            for(int i = 1; i != entity.netIds.size(); ++i) {
-                spawnPacket << entity.netIds[i];
+            for(const auto & netId : entity.netIds) {
+                spawnPacket << netId;
             }
+        }
+    }
+
+    for(const auto& entityDescriptor : game.networkEntityOwnershipSystem.getLocalEntities()) {
+        std::cout << "Sending spawn request for tag " << entityDescriptor.tag << '\n';
+        spawnPacket<< entityDescriptor.tag;
+        spawnPacket << Vec2f{0.f, 0.f};
+        spawnPacket << NetworkOwnerComponent::Owner::foreign;
+        for(const auto& netId : entityDescriptor.netIds) {
+            spawnPacket<< netId;
         }
     }
 
@@ -78,11 +116,19 @@ void ServerWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer) {
     auto disconnectedEntities = owned.find(disconnectedPeer);
     if(disconnectedEntities == owned.end()) return;
 
+    game.networkEntityOwnershipSystem.removePeer(disconnectedPeer);
+
     ByteStream dead;
     dead << Packet::DeadEntities;
     for(const auto& entity : disconnectedEntities->second) {
         for(auto netId : entity.netIds) {
             dead << netId;
+
+            EntityId entity = game.online.getEntity(netId);
+            if(!entity) continue;
+
+            auto* base = EntitySystem::GetComp<EntityBaseComponent>(entity);
+            base->isDead = true;
         }
     }
 

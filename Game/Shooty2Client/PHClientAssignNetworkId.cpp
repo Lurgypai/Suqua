@@ -8,7 +8,6 @@ PHClientAssignNetworkId::PHClientAssignNetworkId(PacketId id_) :
 {}
 
 void PHClientAssignNetworkId::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) {
-    std::cout << "Client received approval of Network Id request." << std::endl;
     PacketId packetId;
     data >> packetId;
 

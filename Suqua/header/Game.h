@@ -24,7 +24,7 @@ public:
 		client = 1 << 3,
 		input =  1 << 4,
 		client_flags = render | physics | client | input,
-		server_flags = physics | server,
+		server_flags = physics | server | input,
 		none = 0
 	};
 

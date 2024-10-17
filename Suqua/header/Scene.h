@@ -70,7 +70,7 @@ protected:
 	CamId camId;
 
 	void removeEntities(const std::vector<EntityId>& entities);
-    void broadcastDeadEntities(Host& host);
+    void broadcastDeadEntities(Game& game);
 private:
 	void storeInputs(Game& game);
 	void applyInputs(Game& game);
