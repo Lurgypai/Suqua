@@ -14,8 +14,8 @@ RespawnComponent::RespawnComponent(EntityId id_) :
     if(id != 0) {
         auto* data = EntitySystem::GetComp<NetworkDataComponent>(id);
 
-        data->set<std::uint32_t>(RespawnData::RESPAWN_TICK, 0);
-        tick = &data->get<std::uint32_t>(RespawnData::RESPAWN_TICK);
+        data->set<std::int32_t>(RespawnData::RESPAWN_TICK, 0);
+        tick = &data->get<std::int32_t>(RespawnData::RESPAWN_TICK);
     }
 }
 

@@ -1,6 +1,4 @@
 #include "WorldScene.h"
-#include "PlayerComponent.h"
-#include "PhysicsComponent.h"
 #include "Game.h"
 
 void WorldScene::load(Game& game)

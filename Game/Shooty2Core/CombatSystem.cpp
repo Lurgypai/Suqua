@@ -38,6 +38,7 @@ void CombatSystem::checkClientCollisions(Host* host) {
 
     ByteStream damagePacket;
     damagePacket << Packet::StateId;
+    damagePacket << false;
 
 	for (auto& ownerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
 

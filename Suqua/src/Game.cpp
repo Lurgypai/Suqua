@@ -188,6 +188,7 @@ static inline void broadcastOwnedStates(Host& host) {
     if (EntitySystem::Contains<OnlineComponent>()) {
         ByteStream state;
         state << Packet::StateId;
+        state << true;
         for (auto& networkOwnerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
             if (networkOwnerComp.owner != NetworkOwnerComponent::Owner::local) continue;
             

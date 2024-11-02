@@ -8,10 +8,9 @@ namespace Packet {
 	//server game tick
 	constexpr PacketId PingId = 1;
 	constexpr PacketId StateId = 2;
-	//stores a client input
-	//id
-	//gametime
-	//input state
+    // flag propogate
+    // NetworkID id
+    // serialized NDC state
 
 	constexpr PacketId InputId = 3;
 	//notifies a client that it is out of sync, and needs to send a ping

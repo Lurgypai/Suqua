@@ -68,6 +68,8 @@ EntityId OnlineSystem::getEntity(NetworkId netId) const{
 }
 
 void OnlineSystem::freeNetId(NetworkId id) {
-    ids.erase(id);
+    auto iter = ids.find(id);
+    if(iter == ids.end()) return;
+    ids.erase(iter);
     freeIds.push_back(id);
 }

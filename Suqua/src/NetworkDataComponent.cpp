@@ -1,6 +1,7 @@
 #include "NetworkDataComponent.h"
 #include <cstring>
 #include <memory>
+#include <utility>
 
 NetworkDataComponent::NetworkDataComponent(EntityId id_) :
 	id{ id_ },
@@ -97,33 +98,57 @@ void NetworkDataComponent::unserialize(ByteStream& stream) {
 	}
 }
 
+void NetworkDataComponent::MoveStreamPast(ByteStream& stream) {
+    DataId id;
+    DataType type;
+    size_t size;
+    stream >> size;
+    for(size_t i = 0; i != size; ++i) {
+        if(stream >> id) {
+            stream >> type;
+            switch(type) {
+            case DataType::BOOL:
+                stream.moveReadPos(sizeof(bool));
+                break;
+            case DataType::UBYTE:
+                stream.moveReadPos(sizeof(std::uint8_t));
+                break;
+            case DataType::INT_32:
+                stream.moveReadPos(sizeof(std::int32_t));
+                break;
+            case DataType::FLOAT:
+                stream.moveReadPos(sizeof(float));
+                break;
+            case DataType::STRING:
+                size_t strSize;
+                stream >> strSize;
+                stream.moveReadPos(strSize);
+                break;
+            default:
+                break;
+            }
+        }
+        else {
+            throw std::exception{};
+        }
+    }
+}
+
 void NetworkDataComponent::Data::write(ByteStream& s) {
 	s << static_cast<char>(type);
 	switch (type)
 	{
-	case NetworkDataComponent::Data::DataType::BYTE:
-		s << get<char>();
+	case NetworkDataComponent::Data::DataType::UBYTE:
+		s << get<uint8_t>();
 		break;
 	case NetworkDataComponent::Data::DataType::BOOL:
 		s << get<bool>();
 		break;
-	case NetworkDataComponent::Data::DataType::UINT_32:
-		s << get<uint32_t>();
-		break;
 	case NetworkDataComponent::Data::DataType::INT_32:
 		s << get<int32_t>();
 		break;
-	case NetworkDataComponent::Data::DataType::UINT_64:
-		s << get<uint64_t>();
-		break;
-	case NetworkDataComponent::Data::DataType::INT_64:
-		s << get<int64_t>();
-		break;
 	case NetworkDataComponent::Data::DataType::FLOAT:
 		s << get<float>();
-		break;
-	case NetworkDataComponent::Data::DataType::DOUBLE:
-		s << get<double>();
 		break;
 	case NetworkDataComponent::Data::DataType::STRING:
 		s << get<std::string>();
@@ -137,29 +162,17 @@ inline void NetworkDataComponent::Data::read(ByteStream& s) {
 	s >> type;
 	switch (type)
 	{
-	case NetworkDataComponent::Data::DataType::BYTE:
-		s >> get<char>();
+	case NetworkDataComponent::Data::DataType::UBYTE:
+		s >> get<uint8_t>();
 		break;
 	case NetworkDataComponent::Data::DataType::BOOL:
 		s >> get<bool>();
 		break;
-	case NetworkDataComponent::Data::DataType::UINT_32:
-		s >> get<uint32_t>();
-		break;
 	case NetworkDataComponent::Data::DataType::INT_32:
 		s >> get<int32_t>();
 		break;
-	case NetworkDataComponent::Data::DataType::UINT_64:
-		s >> get<uint64_t>();
-		break;
-	case NetworkDataComponent::Data::DataType::INT_64:
-		s >> get<int64_t>();
-		break;
 	case NetworkDataComponent::Data::DataType::FLOAT:
 		s >> get<float>();
-		break;
-	case NetworkDataComponent::Data::DataType::DOUBLE:
-		s >> get<double>();
 		break;
 	case NetworkDataComponent::Data::DataType::STRING:
 		s >> get<std::string>();
@@ -186,27 +199,15 @@ void NetworkDataComponent::interp(const NetworkDataComponent& start, const Netwo
 		if (pair.second.mode == SyncMode::INTERPOLATED) {
 			switch (pair.second.type)
 			{
-			case NetworkDataComponent::Data::DataType::BYTE:
-				pair.second.get<char>() = start.get<char>(pair.first) + (end.get<char>(pair.first) - start.get<char>(pair.first)) * ratio;
-				break;
-			case NetworkDataComponent::Data::DataType::UINT_32:
-				pair.second.get<uint32_t>() = start.get<uint32_t>(pair.first) + (end.get<uint32_t>(pair.first) - start.get<uint32_t>(pair.first)) * ratio;
+			case NetworkDataComponent::Data::DataType::UBYTE:
+				pair.second.get<uint8_t>() = start.get<uint8_t>(pair.first) + (end.get<uint8_t>(pair.first) - start.get<uint8_t>(pair.first)) * ratio;
 				break;
 			case NetworkDataComponent::Data::DataType::INT_32:
 				pair.second.get<int32_t>() = start.get<int32_t>(pair.first) + (end.get<int32_t>(pair.first) - start.get<int32_t>(pair.first)) * ratio;
 				break;
-			case NetworkDataComponent::Data::DataType::UINT_64:
-				pair.second.get<uint64_t>() = start.get<uint64_t>(pair.first) + (end.get<uint64_t>(pair.first) - start.get<uint64_t>(pair.first)) * ratio;
-				break;
-			case NetworkDataComponent::Data::DataType::INT_64:
-				pair.second.get<int64_t>() = start.get<int64_t>(pair.first) + (end.get<int64_t>(pair.first) - start.get<int64_t>(pair.first)) * ratio;
-				break;
 			case NetworkDataComponent::Data::DataType::FLOAT:
 				//std::cout << "start value: " << start.get<float>(pair.first) << ", end value: " << end.get<float>(pair.first) << ", interpolated value " << start.get<float>(pair.first) + (end.get<float>(pair.first) - start.get<float>(pair.first)) * ratio << '\n';
 				pair.second.get<float>() = start.get<float>(pair.first) + (end.get<float>(pair.first) - start.get<float>(pair.first)) * ratio;
-				break;
-			case NetworkDataComponent::Data::DataType::DOUBLE:
-				pair.second.get<double>() = start.get<double>(pair.first) + (end.get<double>(pair.first) - start.get<double>(pair.first)) * ratio;
 				break;
 			default:
 				break;

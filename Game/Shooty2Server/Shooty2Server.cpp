@@ -11,7 +11,7 @@ using json = nlohmann::json;
 int main(int argc, char** argv) {
 	SuquaLib::SuquaInit("Shooty2", "settings.json", SuquaLib::network);
 
-	Game game{ Game::server_flags };
+	Game game{ Game::server_flags, 1.f / 30.f};
 	game.serverBroadcastDelay = 0;
 	game.clientPingDelay = 120;
 

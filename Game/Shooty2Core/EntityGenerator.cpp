@@ -4,7 +4,6 @@
 #include "GunFireComponent.h"
 #include "TeamComponent.h"
 #include "HurtboxComponent.h"
-#include "BasicAttackComponent.h"
 #include "PhysicsComponent.h"
 #include "TopDownMoverComponent.h"
 #include "HealthComponent.h"
