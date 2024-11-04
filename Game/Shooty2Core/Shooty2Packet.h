@@ -5,16 +5,14 @@ namespace Shooty2Packet {
     /* SpawnEntity:
      * Client->Server
      *  string EntityTag
-     *  float x
-     *  float y
+     *  Vec2f pos
      *  EntityId targetEntity
      *    EntityId subEntity
      *
      *
      * Server->Client
      *   string EntityTag
-     *   float x
-     *   float y
+     *   Vec2f pos
      *   NetworkOwnerComponent::Owner owner
      *   NetworkId netId
      *     NetworkID netId
