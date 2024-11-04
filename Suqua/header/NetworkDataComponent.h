@@ -113,7 +113,7 @@ public:
 	void setSyncMode(DataId id, SyncMode mode);
 
 	//sets this entity to the interpolation between the two targets
-	void interp(const NetworkDataComponent& first, const NetworkDataComponent& second, float ratio);
+	// void interp(const NetworkDataComponent& first, const NetworkDataComponent& second, float ratio);
 
 	//const DataMap& data();
 
@@ -121,6 +121,7 @@ public:
 
     // stores the current data in the prevDataPtr
     void storePrev();
+    void storePrev(DataId field);
 private:
 	using DataMap = std::unordered_map<DataId, Data>;
 	using DataMapPtr = std::unique_ptr<DataMap>;

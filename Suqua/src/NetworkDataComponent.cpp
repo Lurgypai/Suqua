@@ -194,6 +194,7 @@ void NetworkDataComponent::setSyncMode(DataId id, SyncMode mode) {
 	dataPtr->at(id).mode = mode;
 }
 
+/*
 void NetworkDataComponent::interp(const NetworkDataComponent& start, const NetworkDataComponent& end, float ratio) {
 	for (auto&& pair : *dataPtr) {
 		if (pair.second.mode == SyncMode::INTERPOLATED) {
@@ -215,9 +216,14 @@ void NetworkDataComponent::interp(const NetworkDataComponent& start, const Netwo
 		}
 	}
 }
+*/
 
 void NetworkDataComponent::storePrev() {
     for(auto& [id, data] : *dataPtr) {
         (*prevDataPtr)[id] = data;     
     }
+}
+
+void NetworkDataComponent::storePrev(DataId id) {
+    (*prevDataPtr)[id] = dataPtr->at(id);
 }

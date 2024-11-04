@@ -11,6 +11,7 @@
 #include "PhysicsComponent.h"
 #include "Shooty2Packet.h"
 #include "NetworkDataComponent.h"
+#include "NetworkDataComponentDataFields.h"
 
 static inline void damageEntity(EntityId cause, EntityId receiver, ByteStream& packet) {
 	auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(receiver);
@@ -24,6 +25,11 @@ static inline void damageEntity(EntityId cause, EntityId receiver, ByteStream& p
     if(!onlineComp) return;
     auto ndc = EntitySystem::GetComp<NetworkDataComponent>(receiver);
     if(!ndc) return;
+
+    // store these so no change will be observed, preventing them from being sent
+    ndc->storePrev(PositionData::X);
+    ndc->storePrev(PositionData::Y);
+
     packet << onlineComp->getNetId();
     ndc->serializeForNetwork(packet);
 }
