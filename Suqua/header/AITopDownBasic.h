@@ -20,6 +20,7 @@ public:
 	// id of the entity that is controlled by this controller
 	EntityId entityId;
 	float followRadius;
+    float avoidRadius;
 
 	AIState getState() const;
 private:
@@ -36,6 +37,8 @@ private:
 	int idleTickMax;
 	int followTickMax;
 	int attackTickMax;
+
+    bool moveLeft;
 
 	EntityId findTarget();
 };

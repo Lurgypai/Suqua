@@ -7,6 +7,18 @@ OnlineSystem::OnlineSystem() :
 	freeIds{}
 {}
 
+NetworkId OnlineSystem::getFreeNetworkId() {
+	NetworkId netId = currId;
+	if (!freeIds.empty()) {
+		netId = freeIds.back();
+		freeIds.pop_back();
+	}
+	else {
+		++currId;
+	}
+    return netId;
+}
+
 void OnlineSystem::registerOnlineComponent(EntityId id, NetworkId netId) {
 
 	if (netId >= currId) {
@@ -41,14 +53,7 @@ void OnlineSystem::addOnlineComponent(EntityId id) {
 	if (!EntitySystem::Contains<OnlineComponent>() || EntitySystem::GetComp<OnlineComponent>(id) == nullptr)
 		EntitySystem::MakeComps<OnlineComponent>(1, &id);
 
-	NetworkId netId = currId;
-	if (!freeIds.empty()) {
-		netId = freeIds.back();
-		freeIds.pop_back();
-	}
-	else {
-		++currId;
-	}
+	NetworkId netId = getFreeNetworkId();
 
 	EntitySystem::GetComp<OnlineComponent>(id)->netId = netId;
 	ids[netId] = id;
@@ -60,4 +65,11 @@ EntityId OnlineSystem::getEntity(NetworkId netId) const{
 		return id->second;
 	else
 		return 0;
+}
+
+void OnlineSystem::freeNetId(NetworkId id) {
+    auto iter = ids.find(id);
+    if(iter == ids.end()) return;
+    ids.erase(iter);
+    freeIds.push_back(id);
 }

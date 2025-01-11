@@ -2,13 +2,10 @@
 #include "Packet.h"
 #include "PHClientPing.h"
 #include "PHServerPing.h"
-#include "PHSyncState.h"
-#include "PHServerInputPacket.h"
-#include "PHOOSPacket.h"
-#include "SyncState.h"
 #include "SuquaLib.h"
 #include "DebugIO.h"
 #include "NetworkOwnerComponent.h"
+#include "NetworkDataComponent.h"
 #include "OnlineComponent.h"
 
 Game::Game(FlagType flags_, double physics_step, double render_step, Tick clientPingDelay_, Tick serverBroadcastDelay_) :
@@ -28,13 +25,13 @@ Game::Game(FlagType flags_, double physics_step, double render_step, Tick client
 	if (flags & client) {
 		host.createClient(1, 10);
 		loadPacketHandler<PHClientPing>(Packet::PingId);
-		loadPacketHandler<PHSyncState>(Packet::StateId);
-		loadPacketHandler<PHOOSPacket>(Packet::OOSId);
+		// loadPacketHandler<PHSyncState>(Packet::StateId);
+		// loadPacketHandler<PHOOSPacket>(Packet::OOSId);
 	}
 	if (flags & server) {
 		host.createServer(25565, 10, 10);
 		loadPacketHandler<PHServerPing>(Packet::PingId);
-		loadPacketHandler<PHServerInputPacket>(Packet::InputId);
+		// loadPacketHandler<PHServerInputPacket>(Packet::InputId);
 	}
 }
 
@@ -187,23 +184,55 @@ void Game::clearSDLEvents() {
 	events.clear();
 }
 
+static inline void broadcastOwnedStates(Host& host) {
+    if (EntitySystem::Contains<OnlineComponent>()) {
+        ByteStream state;
+        state << Packet::StateId;
+        state << true;
+        for (auto& networkOwnerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
+            if (networkOwnerComp.owner != NetworkOwnerComponent::Owner::local) continue;
+            
+            auto onlineComp = EntitySystem::GetComp<OnlineComponent>(networkOwnerComp.getId());
+            if (onlineComp == nullptr) continue;
+
+            auto ndc = EntitySystem::GetComp<NetworkDataComponent>(networkOwnerComp.getId());
+            state << onlineComp->getNetId();
+            ndc->serializeForNetwork(state);
+            ndc->storePrev();
+        }
+        host.bufferAllDataByChannel(0, state);
+    }
+}
+
 void Game::serverStep() {
-	physicsUpdate();
+	if (flags & Flag::input) {
+		tickInputDevices();
+		inputStep();
+	}
+
+    if(flags & Flag::physics) {
+        physicsUpdate();
+    }
+    /*
 	if (serverBroadcastCtr == serverBroadcastDelay) {
 		serverBroadcastCtr = 0;
 
-		ByteStream statePacket;
-		statePacket << Packet::StateId;
-		for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
-			auto onlineComp = EntitySystem::GetComp<OnlineComponent>(ndc.getId());
-			statePacket << onlineComp->getNetId();
-			ndc.serializeForNetwork(statePacket);
-		}
-		host.bufferAllDataByChannel(0, statePacket);
+        if(EntitySystem::Contains<NetworkDataComponent>()) {
+            ByteStream statePacket;
+            for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
+                auto onlineComp = EntitySystem::GetComp<OnlineComponent>(ndc.getId());
+                statePacket << onlineComp->getNetId();
+                ndc.serializeForNetwork(statePacket);
+            }
+            host.bufferAllDataByChannel(0, statePacket);
+        }
 	}
 	else {
 		++serverBroadcastCtr;
 	}
+    */
+
+    broadcastOwnedStates(host);
 
 	host.handlePackets(*this);
 	host.sendBuffered();
@@ -217,15 +246,17 @@ void Game::clientStep() {
 				DebugIO::addInput(e.text.text);
 			break;
 		case SDL_KEYDOWN:
-			if (e.key.keysym.sym == SDLK_BACKQUOTE)
+            if (e.key.keysym.sym == SDLK_BACKQUOTE)
 				DebugIO::toggleDebug();
             else if (e.key.keysym.sym == SDLK_SLASH) {
-                DebugIO::toggleDebug();
-                DebugIO::addInput("/");
+                if(!DebugIO::getOpen()) {
+                    DebugIO::openDebug();
+                    DebugIO::addInput("/");
+                }
             }
-			else if (e.key.keysym.sym == SDLK_BACKSPACE)
+            else if (e.key.keysym.sym == SDLK_BACKSPACE)
 				DebugIO::backspace();
-			else if (e.key.keysym.sym == SDLK_RETURN)
+            else if (e.key.keysym.sym == SDLK_RETURN)
 				DebugIO::enterInput();
 			break;
 		}
@@ -241,22 +272,8 @@ void Game::clientStep() {
 		renderUpdateStep();
 	}
 
-
 	if (flags & Flag::client) {
-		// send governed entity states
-		if (EntitySystem::Contains<OnlineComponent>()) {
-			ByteStream state;
-			state << Packet::StateId;
-			for (auto& networkOwnerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
-				if (networkOwnerComp.owner == NetworkOwnerComponent::Owner::local) {
-					auto onlineComp = EntitySystem::GetComp<OnlineComponent>(networkOwnerComp.getId());
-					if (onlineComp == nullptr) continue;
-					auto ndc = EntitySystem::GetComp<NetworkDataComponent>(networkOwnerComp.getId());
-					state << onlineComp->getNetId();
-					ndc->serializeForNetwork(state);
-				}
-			}
-		}
+        broadcastOwnedStates(host);
 
 		host.handlePackets(*this);
 		host.sendBuffered();
@@ -323,18 +340,6 @@ void Game::onDisconnect(PeerId id) {
 	for (auto& scenePtr : scenes) {
 		scenePtr->onDisconnect(*this, id);
 	}
-}
-
-void Game::addOwnedNetId(NetworkId id) {
-	ownedNetIds.emplace_back(id);
-}
-
-void Game::removeOwnedNetId(NetworkId id) {
-	ownedNetIds.erase(std::remove(ownedNetIds.begin(), ownedNetIds.end(), id), ownedNetIds.end());
-}
-
-const std::vector<NetworkId>& Game::getOwnedNetIds() const {
-	return ownedNetIds;
 }
 
 const RenderSystem& Game::getRender() {

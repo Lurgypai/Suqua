@@ -70,6 +70,7 @@ CamId SuquaLib::getDebugCamId() {
 void SuquaLib::DrawConsole() {
 	GLRenderer::setCamera(debugCamId);
 	DebugIO::drawLines();
+    GLRenderer::DrawBufferedImages();
 }
 
 CamId SuquaLib::debugCamId{};

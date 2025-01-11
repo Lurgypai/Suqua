@@ -41,7 +41,7 @@ void TextDrawable::draw() {
 			depth,	//depth
 			0.0f	//a, how much the color overlay is applied
 		};
-		GLRenderer::DrawImage(data, "test_font");
+		GLRenderer::BufferImage(data, "test_font");
 		pos.x += glyph.advance * scale.x;
 	}
 	pos.x = displayOffset.x;

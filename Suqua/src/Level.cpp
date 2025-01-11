@@ -1,8 +1,10 @@
 #include "Level.h"
+#include "Sprite.h"
 #include "EntitySystem.h"
 #include "PhysicsComponent.h"
 #include "PositionComponent.h"
 #include "EntityBaseComponent.h"
+#include "NetworkOwnerComponent.h"
 
 using namespace nlohmann;
 
@@ -41,10 +43,12 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 				EntityId tile = scene.addEntities(1)[0];
 				EntitySystem::MakeComps<PhysicsComponent>(1, &tile);
 				EntitySystem::MakeComps<RenderComponent>(1, &tile);
+                EntitySystem::MakeComps<NetworkOwnerComponent>(1, &tile);
 
 				auto posComp = EntitySystem::GetComp<PositionComponent>(tile);
 				auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(tile);
 				auto renderComp = EntitySystem::GetComp<RenderComponent>(tile);
+                auto ownerComp = EntitySystem::GetComp<NetworkOwnerComponent>(tile);
 
 				posComp->setPos(levelOffset + worldPos);
 				physicsComp->setDoesCollide(false);
@@ -60,6 +64,8 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 				// std::cout << "px: " << worldPos << ", f: " << f << '\n';
 				sprite->horizontalFlip = f & 1;
 				sprite->verticalFlip = f & 2;
+
+                ownerComp->owner = NetworkOwnerComponent::Owner::local;
 
 				tiles.emplace_back(tile);
 			}

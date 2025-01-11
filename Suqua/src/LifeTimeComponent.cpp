@@ -9,16 +9,16 @@ LifeTimeComponent::LifeTimeComponent(EntityId id_) : id{ id_ } {
 		}
 
 		auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-		ndc->set<uint32_t>(LifeTimeData::LIFE_TIME, 0);
-		remainingLife = &ndc->get<std::uint32_t>(LifeTimeData::LIFE_TIME);
+		ndc->set<int32_t>(LifeTimeData::LIFE_TIME, 0);
+		remainingLife = &ndc->get<std::int32_t>(LifeTimeData::LIFE_TIME);
 	}
 };
 
-std::uint32_t LifeTimeComponent::getRemainingLife() const {
+std::int32_t LifeTimeComponent::getRemainingLife() const {
 	return *remainingLife;
 }
 
-void LifeTimeComponent::setRemainingLife(std::uint32_t remainingLife_) {
+void LifeTimeComponent::setRemainingLife(std::int32_t remainingLife_) {
 	*remainingLife = remainingLife_;
 }
 

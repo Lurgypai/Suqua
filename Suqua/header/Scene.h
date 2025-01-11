@@ -1,6 +1,5 @@
 #pragma once
 #include <cstdint>
-#include <optional>
 #include <memory>
 #include <unordered_map>
 #include "EntitySystem.h"
@@ -71,6 +70,7 @@ protected:
 	CamId camId;
 
 	void removeEntities(const std::vector<EntityId>& entities);
+    void broadcastDeadEntities(Game& game);
 private:
 	void storeInputs(Game& game);
 	void applyInputs(Game& game);

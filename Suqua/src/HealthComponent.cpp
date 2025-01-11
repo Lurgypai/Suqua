@@ -9,20 +9,20 @@ HealthComponent::HealthComponent(EntityId id_) : id{ id_ }
 		}
 
 		auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-		ndc->set<uint32_t>(HealthData::HEALTH, 0);
-		health = &ndc->get<uint32_t>(HealthData::HEALTH);
+		ndc->set<int32_t>(HealthData::HEALTH, 0);
+		health = &ndc->get<int32_t>(HealthData::HEALTH);
 	}
 }
 
-uint32_t HealthComponent::getHealth() const {
+int32_t HealthComponent::getHealth() const {
 	return *health;
 }
 
-void HealthComponent::setHealth(std::uint32_t health_) {
+void HealthComponent::setHealth(std::int32_t health_) {
 	*health = health_;
 }
 
-void HealthComponent::damage(std::uint32_t amount) {
+void HealthComponent::damage(std::int32_t amount) {
 	if (amount > *health) {
 		*health = 0;
 		return;

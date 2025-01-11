@@ -1,10 +1,11 @@
 #pragma once
+#include <algorithm>
+#include <concepts>
 #include <variant>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
 #include "ByteStream.h"
-#include "ByteOrder.h"
 #include "EntitySystem.h"
 #include <memory>
 
@@ -12,6 +13,8 @@
 //where do you want to store the SyncMode (none, immediate, interpolated)?
 
 // as it is, the NDC is not cache friendly. A major overhaul would be needed to improve cache friendliness, with a custom backing structure, and packing of the data elements, to conserve space while keeping data local.
+template<typename T>
+concept IsDataValueType = std::same_as<T, bool> || std::same_as<T, std::uint8_t> || std::same_as<T, int32_t> || std::same_as<T, float> || std::same_as<T, std::string>;
 
 class NetworkDataComponent {
 public:
@@ -25,20 +28,15 @@ public:
 private:
 	class Data {
 	public:
-		using DataValue = std::variant<char, bool, uint32_t, int32_t, uint64_t, int64_t, float, double, std::string, Vec2f>;
+		using DataValue = std::variant<bool, std::uint8_t, int32_t, float, std::string>;
 
 		enum class DataType : char {
 			NONE,
 			BOOL,
-			BYTE,
-			UINT_32,
+			UBYTE,
 			INT_32,
-			UINT_64,
-			INT_64,
 			FLOAT,
-			DOUBLE,
 			STRING,
-			VEC2F,
 		} type;
 		SyncMode mode;
 
@@ -51,19 +49,19 @@ private:
 		Data& operator=(Data&& other) = default;
 		*/
 
-		template<typename T>
+		template<IsDataValueType T>
 		T& get();
 
-		template<typename T>
+		template<IsDataValueType T>
 		const T& getConst() const;
 
-		template<typename T>
+		template<IsDataValueType T>
 		void set(T& t);
 
-		template<typename T>
+		template<IsDataValueType T>
 		void set(T&& t);
 
-		template<typename T>
+		template<IsDataValueType T>
 		void set(const T& t);
 
 		void write(ByteStream& s);
@@ -75,12 +73,13 @@ private:
 
 		DataValue value;
 
-		template<typename T>
+		template<IsDataValueType T>
 		constexpr DataType getDataType();
 	};
 
 public:
 	using DataId = uint32_t;
+    using DataType = Data::DataType;
 
 	NetworkDataComponent(EntityId id_ = 0);
 	NetworkDataComponent(NetworkDataComponent&& other) = default;
@@ -88,112 +87,117 @@ public:
 	NetworkDataComponent(const NetworkDataComponent& other);
     NetworkDataComponent& operator=(const NetworkDataComponent& other);
 
+    // NOTE
+    // this doesn't compare previous states
+    // I don't think it needs to but if a bug comes up with weird ndc behaviour see this note please
     bool operator==(const NetworkDataComponent& other) const;
     bool operator!=(const NetworkDataComponent& other) const;
 
 	void serializeForNetwork(ByteStream& stream);
 	//void serializeForNetwork(ByteStream& stream, const std::map<DataId, Data>& prevData);
 	void unserialize(ByteStream& stream);
+    // skip an ndc in the stream without reading
+    static void MoveStreamPast(ByteStream& stream);
 	
-	template<typename T>
+	template<IsDataValueType T>
 	void set(DataId id, T& t);
-	template<typename T>
+	template<IsDataValueType T>
 	void set(DataId id, T&& t);
-	template<typename T>
+	template<IsDataValueType T>
 	void set(DataId id, const T& t);
-	template<typename T>
+	template<IsDataValueType T>
 	T& get(DataId id);
-    template<typename T>
+    template<IsDataValueType T>
     const T& get(DataId id) const;
 
 	void setSyncMode(DataId id, SyncMode mode);
 
 	//sets this entity to the interpolation between the two targets
-	void interp(const NetworkDataComponent& first, const NetworkDataComponent& second, float ratio);
+	// void interp(const NetworkDataComponent& first, const NetworkDataComponent& second, float ratio);
 
 	//const DataMap& data();
 
 	EntityId getId() const;
+
+    // stores the current data in the prevDataPtr
+    void storePrev();
+    void storePrev(DataId field);
 private:
 	using DataMap = std::unordered_map<DataId, Data>;
 	using DataMapPtr = std::unique_ptr<DataMap>;
 
 	DataMapPtr dataPtr;
+    DataMapPtr prevDataPtr;
 	EntityId id;
 };
 
 
-template<typename T>
+template<IsDataValueType T>
 inline T& NetworkDataComponent::Data::get() {
 	return std::get<T>(value);
 }
 
-template<typename T>
+template<IsDataValueType T>
 inline const T& NetworkDataComponent::Data::getConst() const {
 	return std::get<T>(value);
 }
 
-template<typename T>
+template<IsDataValueType T>
 inline void NetworkDataComponent::Data::set(T& t) {
 	type = getDataType<T>();
 	value = t;
 }
 
-template<typename T>
+template<IsDataValueType T>
 inline void NetworkDataComponent::Data::set(T&& t) {
 	type = getDataType<T>();
 	value = std::move(t);
 }
 
-template<typename T>
+template<IsDataValueType T>
 inline void NetworkDataComponent::Data::set(const T& t) {
 	type = getDataType<T>();
 	value = t;
 }
 
-template<typename T>
+template<IsDataValueType T>
 inline void NetworkDataComponent::set(DataId id, T& t) {
 	(*dataPtr)[id].set(t);
 }
 
-template<typename T>
+template<IsDataValueType T>
 inline void NetworkDataComponent::set(DataId id, T&& t) {
 	(*dataPtr)[id].set(std::forward<T&&>(t));
 }
 
-template<typename T>
+template<IsDataValueType T>
 inline void NetworkDataComponent::set(DataId id, const T& t) {
 	(*dataPtr)[id].set(t);
 }
 
-template<typename T>
+template<IsDataValueType T>
 T& NetworkDataComponent::get(DataId id) {
 	return dataPtr->at(id).get<T>();
 }
 
-template<typename T>
+template<IsDataValueType T>
 inline const T& NetworkDataComponent::get(DataId id) const {
 	return dataPtr->at(id).getConst<T>();
 }
 
-template<typename T>
+template<IsDataValueType T>
 constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType() {
 	return NetworkDataComponent::Data::DataType::NONE;
 }
 
 template<>
-constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<char>() {
-	return NetworkDataComponent::Data::DataType::BYTE;
+constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<uint8_t>() {
+	return NetworkDataComponent::Data::DataType::UBYTE;
 }
 
 template<>
 constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<bool>() {
 	return NetworkDataComponent::Data::DataType::BOOL;
-}
- 
-template<>
-constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<uint32_t>() {
-	return NetworkDataComponent::Data::DataType::UINT_32;
 }
 
 template<>
@@ -202,23 +206,8 @@ constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data
 }
 
 template<>
-constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<uint64_t>() {
-	return NetworkDataComponent::Data::DataType::UINT_64;
-}
-
-template<>
-constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<int64_t>() {
-	return NetworkDataComponent::Data::DataType::INT_64;
-}
-
-template<>
 constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<float>() {
 	return NetworkDataComponent::Data::DataType::FLOAT;
-}
-
-template<>
-constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<double>() {
-	return NetworkDataComponent::Data::DataType::DOUBLE;
 }
 
 template<>
@@ -226,7 +215,3 @@ constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data
 	return NetworkDataComponent::Data::DataType::STRING;
 }
 
-template<>
-constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data::getDataType<Vec2f>() {
-	return NetworkDataComponent::Data::DataType::VEC2F;
-}

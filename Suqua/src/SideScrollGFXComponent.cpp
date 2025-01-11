@@ -62,7 +62,8 @@ void SideScrollGFXComponent::startDefaultAnimations() {
 	// std::cout << "STARTING\n";
 	if (currCharacterVel != Vec2f{ 0, 0 }) {
 		if ((currCharacterVel.x < 0 && currCardinalDir == 1) || (currCharacterVel.x > 0 && currCardinalDir == 3)) {
-			sprite->setAnimation("turn");
+            if(sprite->hasAnimation("turn")) sprite->setAnimation("turn");
+            else sprite->setAnimation("left_right");
 			// std::cout << "TURNING\n";
 		}
 		else {

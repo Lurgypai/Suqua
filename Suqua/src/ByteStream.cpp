@@ -21,6 +21,10 @@ void ByteStream::setReadPos(size_t readPos_) {
 	readPos = readPos_;
 }
 
+void ByteStream::moveReadPos(size_t offset) {
+    readPos += offset;
+}
+
 void ByteStream::putData(void* data, size_t len) {
 	auto start = _data.size();
 	_data.resize(start + len);

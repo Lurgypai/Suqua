@@ -20,7 +20,7 @@ public:
 	bool operator>>(T& t);
 
 	template<typename T>
-	bool peek(T& t);
+	bool peek(T& t) const;
 
 	bool operator==(const ByteStream& other);
 	bool operator!=(const ByteStream& other);
@@ -31,6 +31,7 @@ public:
     std::string getData();
 
 	void setReadPos(size_t readPos_);
+    void moveReadPos(size_t offset);
 
 	bool hasMoreData();
 	const Byte* data() const;
@@ -70,7 +71,7 @@ inline ByteStream& ByteStream::operator<< <Vec2f>(const Vec2f& t) {
 	auto xCpy = s_hton(t.x);
 	auto yCpy = s_hton(t.y);
 	std::memcpy(_data.data() + end, &xCpy, sizeof(xCpy));
-	std::memcpy(_data.data() + end, &yCpy, sizeof(yCpy));
+	std::memcpy(_data.data() + end + sizeof(xCpy), &yCpy, sizeof(yCpy));
 
     return *this;
 }
@@ -115,7 +116,9 @@ inline bool ByteStream::operator >> <Vec2f>(Vec2f& v) {
 	if (readPos + sizeof(v) > _data.size()) return false;
 
 	std::memcpy(&v.x, _data.data() + readPos, sizeof(v.x));
+    readPos += sizeof(v.x);
 	std::memcpy(&v.y, _data.data() + readPos, sizeof(v.y));
+    readPos += sizeof(v.y);
 
 	v.x = s_ntoh(v.x);
 	v.y = s_ntoh(v.y);
@@ -124,7 +127,7 @@ inline bool ByteStream::operator >> <Vec2f>(Vec2f& v) {
 }
 
 template<typename T>
-inline bool ByteStream::peek(T& t) {
+inline bool ByteStream::peek(T& t) const {
 	if (readPos + sizeof(t) <= _data.size()) {
 		std::memcpy(&t, _data.data() + readPos, sizeof(t));
 		t = s_ntoh(t);
@@ -136,7 +139,7 @@ inline bool ByteStream::peek(T& t) {
 }
 
 template<>
-inline bool ByteStream::peek<std::string>(std::string& s) {
+inline bool ByteStream::peek<std::string>(std::string& s) const {
 	if (readPos + sizeof(size_t) <= _data.size()) {
 		size_t size;
 		std::memcpy(&size, _data.data() + readPos, sizeof(size_t));

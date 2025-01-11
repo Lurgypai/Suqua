@@ -1,9 +1,6 @@
 #include "DebugIO.h"
 #include "ImgData.h"
 
-#include <fstream>
-#include <sstream>
-
 #include <glad/glad.h>
 #include <SDL.h>
 #include "stb_image.h"
@@ -95,7 +92,7 @@ void DebugIO::drawLines() {
 			ImgData data{ Color{1.0, 1.0, 1.0, 1.0}, Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 				Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
 				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f, -1.0f, 0.0f};
-			GLRenderer::DrawImage(data, fontImage);
+			GLRenderer::BufferImage(data, fontImage);
 			pos.x += glyph.advance;
 		}
 		pos.x = displayOffset.x;
@@ -110,7 +107,7 @@ void DebugIO::drawLines() {
 			ImgData data{ Color{1.0, 1.0, 1.0, 1.0}, Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 				Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
 				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f, -1.0f, 0.0f };
-			GLRenderer::DrawImage(data, fontImage);
+			GLRenderer::BufferImage(data, fontImage);
 			pos.x += glyph.advance;
 		}
 		pos.x = consoleOffset.x;
@@ -123,7 +120,7 @@ void DebugIO::drawLines() {
 				ImgData data{ Color{1.0, 1.0, 1.0, 1.0}, Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 					Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
 					Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f, -1.0f, 0.0f };
-				GLRenderer::DrawImage(data, fontImage);
+				GLRenderer::BufferImage(data, fontImage);
 				pos.x += glyph.advance;
 			}
 			pos.x = consoleOffset.x;
@@ -141,7 +138,7 @@ void DebugIO::drawDebugInfo() {
 			ImgData data{ Color{1.0, 1.0, 1.0, 1.0}, Vec2i{ pos.x + glyph.offset.x, pos.y + glyph.offset.y}, Vec2f{512.0f, 256.0f},
 				Vec2f{static_cast<float>(glyph.pos.x), static_cast<float>(glyph.pos.y)},
 				Vec2f{ static_cast<float>(glyph.res.x), static_cast<float>(glyph.res.y) }, {0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f, -1.0f, 0.0f };
-			GLRenderer::DrawImage(data, fontImage);
+			GLRenderer::BufferImage(data, fontImage);
 			pos.x += glyph.advance;
 		}
 		pos.x = displayOffset.x;

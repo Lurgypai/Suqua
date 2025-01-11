@@ -2,9 +2,7 @@
 #include <string>
 #include <vector>
 #include <deque>
-#include <map>
 
-#include "Shader.h"
 #include "Vec2.h"
 #include "FontData.h"
 #include "CommandManager.h"

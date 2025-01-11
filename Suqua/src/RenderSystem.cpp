@@ -1,5 +1,4 @@
 #include "RenderSystem.h"
-#include "AnimatedSprite.h"
 #include "PositionComponent.h"
 
 void RenderSystem::drawAll() const {

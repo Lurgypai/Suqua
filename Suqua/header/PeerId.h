@@ -1,4 +1,4 @@
 #pragma once
-#include <cstdio>
+#include <cstdint>
 
 using PeerId = std::uint64_t;

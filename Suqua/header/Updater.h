@@ -1,6 +1,5 @@
 #pragma once
 #include "EntitySystem.h"
-#include "EntityBaseComponent.h"
 #include "NetworkOwnerComponent.h"
 
 namespace Updater {
