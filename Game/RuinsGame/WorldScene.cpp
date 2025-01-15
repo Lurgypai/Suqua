@@ -34,6 +34,7 @@
 #include "ActiveEntityComponent.h"
 #include "ActiveEntityZoneComponent.h"
 #include "EntityBaseComponent.h"
+#include "PhysicsComponent.h"
 
 
 constexpr unsigned int ScreenWidth = 1920 / 4;
