@@ -47,6 +47,8 @@ void ServerWorldScene::load(Game& game)
 	auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
 	ai.entityId = dummy;
 	ai.setTargetTeams({ TeamComponent::TeamId::player });
+
+    game.host.beginLogging("packets.log");
 }
 
 void ServerWorldScene::physicsStep(Game& game) {

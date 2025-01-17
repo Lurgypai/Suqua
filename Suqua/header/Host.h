@@ -9,6 +9,7 @@
 #include <functional>
 #include <vector>
 #include <OnlineComponent.h>
+#include <fstream>
 
 using ConnectCallback = void(Game& game, PeerId id);
 using DisconnectCallback = void(Game& game, PeerId id);
@@ -66,6 +67,9 @@ public:
 	size_t getConnectedPeerCount();
     std::vector<PeerId> getConnectedPeers() const;
 	size_t getPeerCount();
+
+	void beginLogging(const std::string& logfile);
+	void stopLogging();
 private:
 	ENetHost * host;
 	size_t channelCount;
@@ -79,6 +83,9 @@ private:
 
 	Type type;
     std::vector<bool> connectedPeers;
+
+	bool doLogging;
+	std::ofstream logFile;
 };
 
 //add owning entities

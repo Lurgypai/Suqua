@@ -29,8 +29,7 @@ PlayerComponent::PlayerComponent(EntityId id_) : id { id_ }
 		physicsComp->setCollidedWith(false);
 
 		auto ndc = EntitySystem::GetComp<NDC>(id);
-		ndc->set<std::uint32_t>(playerStateVarId, static_cast<uint32_t>(State::idle));
-		ndc->set<float>(playerDirVarId, 0.0f);
+		ndc->set<std::int32_t>(playerStateVarId, static_cast<int32_t>(State::idle));
 
 		auto topDownMoverComp = EntitySystem::GetComp<TopDownMoverComponent>(id);
 		topDownMoverComp->setMoveSpeed(50.0);

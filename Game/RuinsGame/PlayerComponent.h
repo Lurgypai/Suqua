@@ -8,11 +8,10 @@
 class PlayerComponent {
 public:
 	enum PlayerVars : NetworkDataComponent::DataId {
-		playerStateVarId = 30,
-		playerDirVarId = 31,
+		playerStateVarId = 30
 	};
 
-	enum class State : uint32_t {
+	enum class State : int32_t {
 		idle,
 	};
 
@@ -36,12 +35,12 @@ private:
 inline PlayerComponent::State PlayerComponent::getPlayerState() const
 {
 	auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-	return static_cast<State>(ndc->get<uint32_t>(playerStateVarId));
+	return static_cast<State>(ndc->get<int32_t>(playerStateVarId));
 }
 
 inline void PlayerComponent::setPlayerState(State newPlayerState) {
 	auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-	ndc->get<uint32_t>(playerStateVarId) = static_cast<uint32_t>(newPlayerState);
+	ndc->get<int32_t>(playerStateVarId) = static_cast<int32_t>(newPlayerState);
 }
 
 inline const Controller& PlayerComponent::getController() const {

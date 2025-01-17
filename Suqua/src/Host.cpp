@@ -8,7 +8,9 @@ Host::Host(size_t channelCount_) :
 	channelIncrementer{0},
 	clientConnected{false},
 	connectCallback{},
-	connectedPeers{}
+	connectedPeers{},
+	doLogging{false},
+	logFile{}
 {
 }
 
@@ -96,6 +98,13 @@ void Host::handlePackets(Game& game) {
 			stream.putData(e.packet->data, e.packet->dataLength);
 			PacketId id;
 			stream.peek(id);
+
+			// log id if logging is enabled
+			if (doLogging) {
+				logFile << "PacketId: " << id << '\n';
+
+			}
+
 			if (packetHandlers.find(id) != packetHandlers.end()) {
 				packetHandlers.at(id)->handlePacket(game, stream, getId(e.peer));
 			}
@@ -201,4 +210,14 @@ std::vector<PeerId> Host::getConnectedPeers() const {
 
 size_t Host::getPeerCount() {
 	return host->peerCount;
+}
+
+void Host::beginLogging(const std::string& logfile) {
+	logFile.open(logfile);
+	doLogging = true;
+}
+
+void Host::stopLogging() {
+	logFile.close();
+	doLogging = false;
 }
