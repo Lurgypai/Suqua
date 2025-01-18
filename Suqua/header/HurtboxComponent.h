@@ -1,16 +1,15 @@
 #pragma once
-#include "EntitySystem.h"
+#include "ComponentMacros.h"
+
 #include "AABB.h"
 
 class HurtboxComponent {
+    CompMembers(HurtboxComponent);
 public:
-	HurtboxComponent(EntityId id_ = 0);
-	EntityId getId() const;
+	HurtboxComponent(EntityId id_, const Vec2f& offset_, const Vec2f& res);
 
 	void update();
 
 	Vec2f offset;
 	AABB hurtbox;
-private:
-	EntityId id;
 };

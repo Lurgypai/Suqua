@@ -9,22 +9,33 @@ PositionComponent::PositionComponent(EntityId id_) :
 	xPos{ nullptr },
 	yPos{ nullptr }
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<NetworkDataComponent>() || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
-			EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
-		}
+    if (!EntitySystem::Contains<NetworkDataComponent>() || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
+        EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
+    }
 
-		auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-		ndc->set(X, 0.0f);
-		ndc->set(Y, 0.0f);
+    auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+    ndc->set(X, 0.0f);
+    ndc->set(Y, 0.0f);
 
-		xPos = &ndc->get<float>(X);
-		yPos = &ndc->get<float>(Y);
-	}
+    xPos = &ndc->get<float>(X);
+    yPos = &ndc->get<float>(Y);
 }
 
-EntityId PositionComponent::getId() const {
-	return id;
+PositionComponent::PositionComponent(EntityId id_, const Vec2f& pos) :
+	id{ id_ },
+	xPos{ nullptr },
+	yPos{ nullptr }
+{
+    if (!EntitySystem::Contains<NetworkDataComponent>() || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
+        EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
+    }
+
+    auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+    ndc->set(X, pos.x);
+    ndc->set(Y, pos.y);
+
+    xPos = &ndc->get<float>(X);
+    yPos = &ndc->get<float>(Y);
 }
 
 Vec2f PositionComponent::getPos() const {

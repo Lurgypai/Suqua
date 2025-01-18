@@ -1,7 +1,8 @@
 #pragma once
-#include "EntitySystem.h"
+#include "ComponentMacros.h"
 
 class NetworkOwnerComponent {
+    CompMembers(NetworkOwnerComponent);
 public:
 	enum class Owner {
 		unassigned,
@@ -9,10 +10,7 @@ public:
 		foreign,
 	};
 
-	NetworkOwnerComponent(EntityId id_ = 0);
-	EntityId getId() const;
-
+	NetworkOwnerComponent(EntityId id_, Owner owner_ = Owner::unassigned);
 	Owner owner;
 private:
-	EntityId id;
 };

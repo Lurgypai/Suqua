@@ -1,14 +1,15 @@
 #pragma once
 
-#include "EntitySystem.h"
+#include "ComponentMacros.h"
 #include "AABB.h"
+
 
 class MenuButtonComponent {
 	friend class Menu;
 
+    CompMembers(MenuButtonComponent);
 public:
-	MenuButtonComponent(EntityId id_ = 0);
-	EntityId getId() const;
+	MenuButtonComponent(EntityId id_, const AABB& boundingBox_, const std::string& tag_);
 
 	void update(Vec2f mousePos, bool toggled_);
 
@@ -16,8 +17,6 @@ public:
 	const AABB& getBoundingBox() const;
 	const std::string& getTag() const;
 private:
-	EntityId id;
-
 	AABB boundingBox;
 
 	std::string tag;

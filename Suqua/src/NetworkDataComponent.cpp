@@ -186,10 +186,6 @@ inline void NetworkDataComponent::Data::read(ByteStream& s) {
 //	return data_;
 //}
 
-EntityId NetworkDataComponent::getId() const {
-	return id;
-}
-
 void NetworkDataComponent::setSyncMode(DataId id, SyncMode mode) {
 	dataPtr->at(id).mode = mode;
 }

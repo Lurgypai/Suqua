@@ -8,16 +8,13 @@
 #include "HealthComponent.h"
 #include "EntitySpawnSystem.h"
 
-GunFireComponent::GunFireComponent(EntityId id_) :
+GunFireComponent::GunFireComponent(EntityId id_,
+        float offset_,
+        const std::string& bulletTag_) :
 	id{ id_ },
-	offset{ 5 },
-    bulletTag{}
+	offset{ offset_  },
+    bulletTag{ bulletTag_ }
 {}
-
-EntityId GunFireComponent::getId() const {
-
-	return id;
-}
 
 // why ref go away?
 void GunFireComponent::fire(Scene* currScene)

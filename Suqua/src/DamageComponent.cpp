@@ -1,7 +1,7 @@
 #include "DamageComponent.h"
 
-DamageComponent::DamageComponent(EntityId id_) :
-	id{ id_ }
+DamageComponent::DamageComponent(EntityId id_) : 
+    id{id_}
 {}
 
 uint32_t DamageComponent::getDamage() const {

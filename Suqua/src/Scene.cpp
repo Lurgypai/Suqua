@@ -7,6 +7,8 @@
 #include "OnlineComponent.h"
 #include "ControllerComponent.h"
 
+#include "DebugFIO.h"
+
 std::vector<EntityId> Scene::addEntities(unsigned int count) {
 	std::vector<EntityId> ids = std::vector<EntityId>(count, 0);
 	EntitySystem::GenEntities(count, ids.data());
@@ -38,6 +40,8 @@ void Scene::broadcastDeadEntities(Game& game) {
         game.networkEntityOwnershipSystem.removeLocalEntity(online->getNetId());
 
         game.online.freeNetId(online->getNetId());
+
+        DebugFIO::TimeOut("send.packet.log") << online->getId() << " dead\n";
     }
 
     game.host.bufferAllDataByChannel(0, deadEntityPacket);

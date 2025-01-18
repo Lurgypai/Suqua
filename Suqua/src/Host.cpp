@@ -1,5 +1,8 @@
 #include "Host.h"
 #include "Game.h"
+#include "RandomUtil.h"
+
+#include <chrono>
 #include <iostream>
 
 Host::Host(size_t channelCount_) :
@@ -9,10 +12,11 @@ Host::Host(size_t channelCount_) :
 	clientConnected{false},
 	connectCallback{},
 	connectedPeers{},
-	doLogging{false},
-	logFile{}
-{
-}
+    doDelay{false},
+    delayedPackets{},
+    minDelay{0},
+    delayVariation{0}
+{}
 
 Host::~Host() {
 	enet_host_destroy(host);
@@ -42,7 +46,8 @@ void Host::createServer(int port, size_t peerCount, size_t channels, enet_uint32
 }
 
 void Host::sendAllDataByChannel(enet_uint8 channel, const ByteStream& data) {
-	enet_host_broadcast(host, channel, enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE));
+	// enet_host_broadcast(host, channel, enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE));
+    broadcastPacket(channel, enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE));
 }
 
 void Host::bufferAllDataByChannel(enet_uint8 channel, const ByteStream& data) {
@@ -50,7 +55,8 @@ void Host::bufferAllDataByChannel(enet_uint8 channel, const ByteStream& data) {
 }
 
 void Host::sendDataByChannel(PeerId id, enet_uint8 channel, const ByteStream& data) {
-	enet_peer_send(host->peers + id, channel, enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE));
+	// enet_peer_send(host->peers + id, channel, enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE));
+    sendPacket(id, channel, enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE));
 }
 
 void Host::bufferDataToChannel(PeerId id, enet_uint8 channel, const ByteStream& data) {
@@ -60,10 +66,13 @@ void Host::bufferDataToChannel(PeerId id, enet_uint8 channel, const ByteStream& 
 void Host::sendBuffered() {
 	for (auto& packet : idDestinedPackets) {
 		if (packet.broadcast) {
-			enet_host_broadcast(host, packet.channel, packet.packet);
+			// enet_host_broadcast(host, packet.channel, packet.packet);
+            broadcastPacket(packet.channel, packet.packet);
 		}
+
 		else {
-			enet_peer_send(host->peers + packet.id, packet.channel, packet.packet);
+			// enet_peer_send(host->peers + packet.id, packet.channel, packet.packet);
+            sendPacket(packet.id, packet.channel, packet.packet);
 		}
 	}
 	idDestinedPackets.clear();
@@ -98,12 +107,6 @@ void Host::handlePackets(Game& game) {
 			stream.putData(e.packet->data, e.packet->dataLength);
 			PacketId id;
 			stream.peek(id);
-
-			// log id if logging is enabled
-			if (doLogging) {
-				logFile << "PacketId: " << id << '\n';
-
-			}
 
 			if (packetHandlers.find(id) != packetHandlers.end()) {
 				packetHandlers.at(id)->handlePacket(game, stream, getId(e.peer));
@@ -212,12 +215,66 @@ size_t Host::getPeerCount() {
 	return host->peerCount;
 }
 
-void Host::beginLogging(const std::string& logfile) {
-	logFile.open(logfile);
-	doLogging = true;
+void Host::enableDelay(int minDelay_, int variation) {
+    minDelay = minDelay_;
+    delayVariation = variation;
+    doDelay = true;
 }
 
-void Host::stopLogging() {
-	logFile.close();
-	doLogging = false;
+void Host::disableDelay() {
+    doDelay = false;
+}
+
+void Host::updateDelayed() {
+    auto now = std::chrono::steady_clock::now();
+    for(auto iter = delayedPackets.begin(); iter != delayedPackets.end();) {
+        auto& packet = *iter;
+        auto elapsed = now - packet.origin;
+        if(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed) < packet.delay) {
+            ++iter;
+            continue;
+        }
+
+		if (packet.broadcast) enet_host_broadcast(host, packet.channel, packet.packet);
+		else enet_peer_send(host->peers + packet.id, packet.channel, packet.packet);
+
+        // enet_packet_destroy(packet.packet);
+        iter = delayedPackets.erase(iter);
+    }
+}
+
+void Host::broadcastPacket(enet_uint8 channel, ENetPacket* packet) {
+    if(!doDelay) {
+        enet_host_broadcast(host, channel, packet);
+        // enet_packet_destroy(packet);
+    }
+    else {
+        // std::cout << "Queuing a delayed packet\n";
+        delayedPackets.push_back(DelayedPacket{
+            true,
+            0,
+            std::chrono::steady_clock::now(),
+            std::chrono::milliseconds{randInt(minDelay, minDelay + delayVariation)},
+            packet,
+            channel
+        });
+    }
+}
+
+void Host::sendPacket(PeerId id, enet_uint8 channel, ENetPacket* packet) {
+    if(!doDelay) {
+        enet_peer_send(host->peers + id, channel, packet);
+        // enet_packet_destroy(packet);
+    }
+    else {
+        // std::cout << "Queuing a delayed packet\n";
+        delayedPackets.push_back(DelayedPacket{
+            false,
+            id,
+            std::chrono::steady_clock::now(),
+            std::chrono::milliseconds{randInt(minDelay, minDelay + delayVariation)},
+            packet,
+            channel
+        });
+    }
 }

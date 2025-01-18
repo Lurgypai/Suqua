@@ -18,7 +18,7 @@ struct Resource {
 class IPool {
 public:
 	virtual ~IPool() {};
-	virtual bool free(size_t index) = 0;
+	virtual bool free(std::size_t index) = 0;
 };
 
 template<typename T>
@@ -30,7 +30,7 @@ public:
 	class PoolIterator {
 	public:
 		PoolIterator() : size{ 0 }, pos{ 0 }, current{ nullptr } {}
-		explicit PoolIterator(size_t pos_, size_t size_, Resource<U> * start) : size{ size_ }, pos{ pos_ }, current{ start } {
+		explicit PoolIterator(std::size_t pos_, std::size_t size_, Resource<U> * start) : size{ size_ }, pos{ pos_ }, current{ start } {
 			while (pos < size && current->isFree) {
 				++current;
 				++pos;
@@ -52,8 +52,8 @@ public:
 		T& operator*() { return current->val; }
 		T* operator->() { return &current->val; }
 	private:
-		size_t size;
-		size_t pos;
+		std::size_t size;
+		std::size_t pos;
 		Resource<T> * current;
 	};
 
@@ -94,7 +94,7 @@ public:
 	}
 
 	template <typename U>
-	inline void add(size_t pos, U&& r) {
+	inline void add(std::size_t pos, U&& r) {
 		if (resources.size() > pos) {
 			if (resources[pos].isFree)
 				--freeIndices_;
@@ -102,7 +102,7 @@ public:
 		}
 		else {
 			//add in betweens
-			size_t start = resources.size();
+			std::size_t start = resources.size();
 			resize(pos);
 			free(start, pos);
 			//place us on end
@@ -110,12 +110,12 @@ public:
 		}
 	}
 
-	inline void add(size_t pos) {
+	inline void add(std::size_t pos) {
 		if (resources.size() > pos) {
 			resources[pos] = Resource<T>(T{}, false);
 		}
 		else {
-			size_t start = resources.size();
+			std::size_t start = resources.size();
 			resize(pos);
 			free(start, pos);
 			resources.emplace_back(T{}, false);
@@ -123,7 +123,7 @@ public:
 	}
 
 	//Frees specified indice. Returns false if the indice is out of range.
-	bool free(size_t index) override {
+	bool free(std::size_t index) override {
 		if (index < resources.size()) {
 			if (!resources[index].isFree)
 				++freeIndices_;
@@ -235,12 +235,12 @@ public:
 	}
 
 	//whether the specified indice is valid to pull data from.
-	bool contains(size_t pos) {
+	bool contains(std::size_t pos) {
 		return pos >= 0 && pos < resources.size() && !resources[pos].isFree;
 	}
 
 
-	Resource<T> & getResource(size_t pos) {
+	Resource<T> & getResource(std::size_t pos) {
 		return resources[pos];
 	}
 private:

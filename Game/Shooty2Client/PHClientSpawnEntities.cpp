@@ -1,5 +1,6 @@
 #include "PHClientSpawnEntities.h"
 #include "Game.h"
+#include "DebugFIO.h"
 
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/EntitySpawnSystem.h"
@@ -10,7 +11,7 @@ PHClientSpawnEntities::PHClientSpawnEntities(PacketId id_, Scene* scene_) :
 {}
 
 void PHClientSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) {
-    std::cout << "Client received spawn entities command\n";
+    // std::cout << "Client received spawn entities command\n";
     PacketId packetId;
     data >> packetId;
 
@@ -31,6 +32,8 @@ void PHClientSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId so
             if(!data.hasMoreData()) throw std::exception{}; 
             data >> netId;
             game.online.registerOnlineComponent(entity, netId);
+
+            DebugFIO::Out("packet.log") << netId << " spawn\n";
         }
     }
 }

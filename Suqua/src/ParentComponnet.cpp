@@ -3,22 +3,20 @@
 #include "DirectionComponent.h"
 #include "EntityBaseComponent.h"
 
-ParentComponent::ParentComponent(EntityId id_) :
+ParentComponent::ParentComponent(EntityId id_,
+        OffsetMode offsetMode_,
+        EntityId parentId_,
+        const Vec2f& baseOffset_,
+        const Vec2f& effectedOffset_) :
 	id{ id_ },
-	parentId{ 0 },
-	baseOffset{},
-	effectedOffset{},
-	offsetMode{OffsetMode::none}
+	offsetMode{offsetMode_},
+	parentId{ parentId_ },
+	baseOffset{ baseOffset_ },
+	effectedOffset{effectedOffset_}
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
-		}
-	}
-}
-
-EntityId ParentComponent::getId() const {
-	return id;
+    if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
+        EntitySystem::MakeComps<PositionComponent>(1, &id);
+    }
 }
 
 void ParentComponent::update() {
@@ -47,5 +45,7 @@ void ParentComponent::update() {
 		posComp->setPos(pos);
 	}
 	break;
+    default:
+    break;
 	}
 }

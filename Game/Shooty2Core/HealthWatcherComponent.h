@@ -6,6 +6,8 @@ class HealthWatcherComponent {
 	CompMembers(HealthWatcherComponent);
 
 public:
+    HealthWatcherComponent(EntityId id_, EntityId parentId_);
+
 	void update();
 	EntityId parentId;
 private:

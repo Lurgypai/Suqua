@@ -3,12 +3,13 @@
 #include "CharacterGFXComponent.h"
 #include "ControllerComponent.h"
 
-AttackGFXComponent::AttackGFXComponent(EntityId id_) :
+AttackGFXComponent::AttackGFXComponent(EntityId id_,
+        int maxEffectTick_) :
 	id{ id_ },
 	prevButtonDown{ false },
 	playingEffect{ false },
 	tick{ 0 },
-	maxEffectTick{ 80 }
+	maxEffectTick{ maxEffectTick_ }
 {
 }
 

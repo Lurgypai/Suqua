@@ -1,16 +1,15 @@
-#include "EntitySystem.h"
+#include "ComponentMacros.h"
 #include "StringTree.h"
 #include "AABB.h"
 
 #include <vector>
 
 class MenuGridComponent {
-
 	friend class Menu;
+    CompMembers(MenuGridComponent);
 
 public:
-	MenuGridComponent(EntityId id_ = 0);
-	EntityId getId() const;
+	MenuGridComponent(EntityId id_);
 
 	void update(Vec2f mousePos, bool toggled_);
 	void setPrefix(const std::string& s);
@@ -30,7 +29,6 @@ public:
 private:
 	AABB boundingBox;
 	StringTree buttons;
-	EntityId id;
 
 	bool isActive;
 	bool wasActive;

@@ -4,24 +4,18 @@
 #include "NetworkDataComponentDataFields.h"
 #include "PhysicsComponent.h"
 
-TopDownMoverComponent::TopDownMoverComponent(EntityId id_) :
+TopDownMoverComponent::TopDownMoverComponent(EntityId id_, float moveSpeed_) :
 	id{ id_ },
 	moveSpeed{nullptr}
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<NetworkDataComponent>() || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
-			EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
-		}
+    if (!EntitySystem::Contains<NetworkDataComponent>()
+            || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
+        EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
+    }
 
-		// generate the field
-		auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-		ndc->set<float>(MovementData::MOVE_SPEED, 0.0f);
-		moveSpeed = &ndc->get<float>(MovementData::MOVE_SPEED);
-	}
-}
-
-EntityId TopDownMoverComponent::getId() const {
-	return id;
+    auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+    ndc->set<float>(MovementData::MOVE_SPEED, moveSpeed_);
+    moveSpeed = &ndc->get<float>(MovementData::MOVE_SPEED);
 }
 
 void TopDownMoverComponent::update() {

@@ -7,6 +7,11 @@ class BasicAttackComponent {
 	CompMembers(BasicAttackComponent);
 
 public:
+    BasicAttackComponent(EntityId id_,
+            int delay_,
+            int duration_,
+            int lag_);
+
 	void update();
 
 	Vec2f getHitBoxPos() const;

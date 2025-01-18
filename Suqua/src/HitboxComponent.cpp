@@ -3,20 +3,16 @@
 #include "EntityBaseComponent.h"
 #include "ParentComponent.h"
 
-HitboxComponent::HitboxComponent(EntityId id_) :
+HitboxComponent::HitboxComponent(EntityId id_, const Vec2f& offset_, const Vec2f& res) :
 	id{ id_ },
-	hitbox {},
-	offset{},
+	hitbox{{}, res},
+	offset{offset_},
 	collisions{ 0 },
 	collisionsMax{ 1 },
 	reHitDelay{ 0 },
 	multipleHits{false},
 	hitEntities{}
 {}
-
-EntityId HitboxComponent::getId() const {
-	return id;
-}
 
 void HitboxComponent::update() {
 	if (collisionsMax > 0) {

@@ -13,15 +13,9 @@ MenuTextBoxComponent::MenuTextBoxComponent(EntityId id_) :
 	tag{},
 	textWasEntered{false}
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<NDC>() || !EntitySystem::GetComp<NDC>(id)) {
-			EntitySystem::MakeComps<NDC>(1, &id);
-		}
-	}
-}
-
-EntityId MenuTextBoxComponent::getId() const {
-	return id;
+    if (!EntitySystem::Contains<NDC>() || !EntitySystem::GetComp<NDC>(id)) {
+        EntitySystem::MakeComps<NDC>(1, &id);
+    }
 }
 
 void MenuTextBoxComponent::update(Vec2f mousePos, bool toggled_) {

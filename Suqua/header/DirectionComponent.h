@@ -1,9 +1,10 @@
-#include "EntitySystem.h"
+#pragma once
+#include "ComponentMacros.h"
 
 class DirectionComponent {
+    CompMembers(DirectionComponent);
 public:
-	DirectionComponent(EntityId id_ = 0);
-	EntityId getId() const;
+	DirectionComponent(EntityId id_);
 
 	float getDir() const;
 	void setDir(float newDir);
@@ -12,7 +13,6 @@ public:
 	bool isLocked();
 	void setLocked(bool locked);
 private:
-	EntityId id;
 	bool isLocked_;
 	float* dir;
 	int cardinalDir;

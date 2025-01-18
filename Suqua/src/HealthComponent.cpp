@@ -1,17 +1,16 @@
 #include "HealthComponent.h"
 #include "NetworkDataComponentDataFields.h"
 
-HealthComponent::HealthComponent(EntityId id_) : id{ id_ }
+HealthComponent::HealthComponent(EntityId id_, int32_t health_) : id{ id_ }
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<NetworkDataComponent>() || EntitySystem::GetComp<NetworkDataComponent>(id) == nullptr) {
-			EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
-		}
+    if (!EntitySystem::Contains<NetworkDataComponent>()
+            || EntitySystem::GetComp<NetworkDataComponent>(id) == nullptr) {
+        EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
+    }
 
-		auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-		ndc->set<int32_t>(HealthData::HEALTH, 0);
-		health = &ndc->get<int32_t>(HealthData::HEALTH);
-	}
+    auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+    ndc->set<int32_t>(HealthData::HEALTH, health_);
+    health = &ndc->get<int32_t>(HealthData::HEALTH);
 }
 
 int32_t HealthComponent::getHealth() const {

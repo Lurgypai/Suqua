@@ -327,6 +327,8 @@ void Game::loop() {
 
 		cleanScenes();
 		EntitySystem::FreeDeadEntities();
+
+        host.updateDelayed();
 	}
 }
 

@@ -6,6 +6,9 @@ class RespawnComponent {
 	CompMembers(RespawnComponent);
 
 public:
+    RespawnComponent(EntityId id_,
+            const Vec2f& spawnPos_,
+            int spawnDelay_ = 120);
 	void update();
 	void respawn();
     const int getTick() const;

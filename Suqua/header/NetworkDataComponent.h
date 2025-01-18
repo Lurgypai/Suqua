@@ -5,9 +5,11 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
-#include "ByteStream.h"
-#include "EntitySystem.h"
 #include <memory>
+
+#include "ComponentMacros.h"
+#include "ByteStream.h"
+
 
 //where do you want to store previous states for interpolation?
 //where do you want to store the SyncMode (none, immediate, interpolated)?
@@ -16,7 +18,14 @@
 template<typename T>
 concept IsDataValueType = std::same_as<T, bool> || std::same_as<T, std::uint8_t> || std::same_as<T, int32_t> || std::same_as<T, float> || std::same_as<T, std::string>;
 
+// new changes
+//  add uuid
+//  add owner
+//  add shared
+
 class NetworkDataComponent {
+    CompMembers(NetworkDataComponent);
+
 public:
 	enum class SyncMode : char {
 		//the default is immediate, this is cheapest option to still allow syncing. To be changed?
@@ -81,7 +90,7 @@ public:
 	using DataId = uint32_t;
     using DataType = Data::DataType;
 
-	NetworkDataComponent(EntityId id_ = 0);
+	NetworkDataComponent(EntityId id_);
 	NetworkDataComponent(NetworkDataComponent&& other) = default;
 	NetworkDataComponent& operator=(NetworkDataComponent&& other) = default;
 	NetworkDataComponent(const NetworkDataComponent& other);
@@ -117,8 +126,6 @@ public:
 
 	//const DataMap& data();
 
-	EntityId getId() const;
-
     // stores the current data in the prevDataPtr
     void storePrev();
     void storePrev(DataId field);
@@ -128,7 +135,6 @@ private:
 
 	DataMapPtr dataPtr;
     DataMapPtr prevDataPtr;
-	EntityId id;
 };
 
 

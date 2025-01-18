@@ -1,6 +1,5 @@
 #include "MenuGridComponent.h"
 #include "PositionComponent.h"
-#include <iostream>
 
 MenuGridComponent::MenuGridComponent(EntityId id_) :
 	id{ id_ },
@@ -9,15 +8,9 @@ MenuGridComponent::MenuGridComponent(EntityId id_) :
 	toggled{ false },
 	prefix{}
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
-		}
-	}
-}
-
-EntityId MenuGridComponent::getId() const {
-	return id;
+    if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
+        EntitySystem::MakeComps<PositionComponent>(1, &id);
+    }
 }
 
 void MenuGridComponent::update(Vec2f mousePos, bool toggled_) {

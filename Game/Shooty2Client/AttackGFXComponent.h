@@ -5,6 +5,8 @@ class AttackGFXComponent {
 	CompMembers(AttackGFXComponent);
 
 public:
+    AttackGFXComponent(EntityId id_, int maxEffectTick_);
+
 	void update();
 	int maxEffectTick;
 private:

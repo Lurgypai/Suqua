@@ -2,7 +2,11 @@
 #include "HealthComponent.h"
 #include "EntityBaseComponent.h"
 
-HealthWatcherComponent::HealthWatcherComponent(EntityId id_) : id{ id_ } {}
+HealthWatcherComponent::HealthWatcherComponent(EntityId id_,
+        EntityId parentId_) :
+    id{ id_ },
+    parentId{ parentId_ }
+{}
 
 void HealthWatcherComponent::update() {
 	auto healthComp = EntitySystem::GetComp<HealthComponent>(parentId);

@@ -4,7 +4,6 @@
 class TeamComponent {
 	CompMembers(TeamComponent);
 
-
 public:
 	enum class TeamId {
 	neutral,
@@ -12,6 +11,7 @@ public:
 	enemy,
 	};
 
+    TeamComponent(EntityId id_, TeamId teamid_);
 	TeamId teamId;
 };
 

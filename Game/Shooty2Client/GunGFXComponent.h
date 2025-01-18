@@ -1,12 +1,11 @@
 #pragma once
-#include "EntitySystem.h"
+#include "ComponentMacros.h"
 
 class GunGFXComponent {
+    CompMembers(GunGFXComponent);
 public:
-	GunGFXComponent(EntityId id_ = 0);
-	EntityId getId() const;
+	GunGFXComponent(EntityId id_);
 
 	void update();
 private:
-	EntityId id;
 };

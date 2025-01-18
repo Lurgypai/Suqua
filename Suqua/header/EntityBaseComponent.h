@@ -1,19 +1,17 @@
 #pragma once
-#include "EntitySystem.h"
+#include "ComponentMacros.h"
 
 //handles the death state of entities
 
 class EntityBaseComponent {
+    CompMembers(EntityBaseComponent);
 public:
 	// cleaned up after this is set
 	bool isDead;
 	// do updates
 	bool isActive;
 
-	EntityBaseComponent(EntityId id_ = 0);
-
-	const EntityId getId() const;
+	EntityBaseComponent(EntityId id_);
 private:
-	EntityId id;
 };
 

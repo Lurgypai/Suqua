@@ -6,6 +6,11 @@
 class SideScrollGFXComponent {
 	CompMembers(SideScrollGFXComponent);
 public:
+    SideScrollGFXComponent(EntityId id_,
+            const std::string& tag,
+            const std::string& fileName,
+            const Vec2f& offset);
+
 	void loadSpriteSheet(const std::string& tag, const std::string& fileName, Vec2f offset);
 	void update(int timeDelta);
 

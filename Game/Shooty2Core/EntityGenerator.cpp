@@ -24,48 +24,38 @@
 using TeamId = TeamComponent::TeamId;
 
 static void MakeLivingEntity(EntityId id, Vec2f pos, const Vec2f& colliderRes, float moveSpeed,
-										TeamId team, Vec2f hurtboxOffset, Vec2f hurtboxRes, std::uint32_t health) {
-	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
-	EntitySystem::MakeComps<TeamComponent>(1, &id);
-	EntitySystem::MakeComps<HurtboxComponent>(1, &id);
+										TeamId team, Vec2f hurtboxOffset, Vec2f hurtboxRes, std::int32_t health) {
+	EntitySystem::MakeComps<PhysicsComponent>(1, &id,
+            pos,
+            colliderRes,
+            true,
+            false );
+
+	EntitySystem::MakeComps<TeamComponent>(1, &id, team);
+
+	EntitySystem::MakeComps<HurtboxComponent>(1, &id,
+            hurtboxOffset,
+            hurtboxRes
+            );
+
 	EntitySystem::MakeComps<ControllerComponent>(1, &id);
 	EntitySystem::MakeComps<NetworkOwnerComponent>(1, &id);
-	EntitySystem::MakeComps<HealthComponent>(1, &id);
+
+	EntitySystem::MakeComps<HealthComponent>(1, &id, health);
+
 	EntitySystem::MakeComps<AimToLStickComponent>(1, &id);
-	EntitySystem::MakeComps<TopDownMoverComponent>(1, &id);
-
-	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-	physicsComp->setRes(colliderRes);
-	physicsComp->teleport(pos);
-    physicsComp->setDoesCollide(true);
-    physicsComp->setCollidedWith(false);
-
-	auto teamComp = EntitySystem::GetComp<TeamComponent>(id);
-	teamComp->teamId = team;
-
-	auto hurtComp = EntitySystem::GetComp<HurtboxComponent>(id);
-	hurtComp->hurtbox.res = hurtboxRes;
-	hurtComp->offset = hurtboxOffset;
-
-	auto healthComp = EntitySystem::GetComp<HealthComponent>(id);
-	healthComp->setHealth(health);
-
-	auto topDownMoverComp = EntitySystem::GetComp<TopDownMoverComponent>(id);
-	topDownMoverComp->setMoveSpeed(moveSpeed);
+	EntitySystem::MakeComps<TopDownMoverComponent>(1, &id, moveSpeed);
 }
 
 static void MakeHitboxEntity(EntityId id, Vec2f hitboxOffset, Vec2f hitboxRes, TeamId team, int damage) {
-	EntitySystem::MakeComps<TeamComponent>(1, &id);
-	EntitySystem::MakeComps<HitboxComponent>(1, &id);
+	EntitySystem::MakeComps<TeamComponent>(1, &id, team);
+
+	EntitySystem::MakeComps<HitboxComponent>(1, &id,
+        hitboxOffset,
+        hitboxRes );
+
 	EntitySystem::MakeComps<DamageComponent>(1, &id);
 	EntitySystem::MakeComps<NetworkOwnerComponent>(1, &id);
-
-	auto teamComp = EntitySystem::GetComp<TeamComponent>(id);
-	teamComp->teamId = team;
-
-	auto hitComp = EntitySystem::GetComp<HitboxComponent>(id);
-	hitComp->hitbox.res = hitboxRes;
-	hitComp->offset = hitboxOffset;
 
 	auto damageComp = EntitySystem::GetComp<DamageComponent>(id);
 	damageComp->setDamageCalculator<BasicDamageCalculator>(damage);
@@ -73,32 +63,33 @@ static void MakeHitboxEntity(EntityId id, Vec2f hitboxOffset, Vec2f hitboxRes, T
 
 static void MakeBullet(EntityId id, Vec2f pos, Vec2f colliderRes, TeamId team, int damage) {
 	MakeHitboxEntity(id, { 0, 0 }, colliderRes, team, damage);
-	EntitySystem::MakeComps<PhysicsComponent>(1, &id);
+	EntitySystem::MakeComps<PhysicsComponent>(1, &id,
+            Vec2f{},
+            colliderRes,
+            true,
+            false );
 
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-	physicsComp->setRes(colliderRes);
 	physicsComp->center(pos);
     physicsComp->loadCollisionHandler<CHKill>();
-    physicsComp->setCollidedWith(false);
 }
 
 static void MakeGun(EntityId id, EntityId parent, const Vec2f& offset, float length) {
 	EntitySystem::MakeComps<AimToLStickComponent>(1, &id);
-	EntitySystem::MakeComps<ParentComponent>(1, &id);
-	EntitySystem::MakeComps<GunFireComponent>(1, &id);
-	EntitySystem::MakeComps<HealthWatcherComponent>(1, &id);
+	EntitySystem::MakeComps<ParentComponent>(1, &id,
+            ParentComponent::OffsetMode::none,
+            parent,
+            offset,
+            Vec2f{} );
+
+	EntitySystem::MakeComps<GunFireComponent>(1, &id,
+            length,
+            "bullet.player.basic" );
+
+	EntitySystem::MakeComps<HealthWatcherComponent>(1, &id,
+            parent);
+
 	EntitySystem::MakeComps<NetworkOwnerComponent>(1, &id);
-
-	auto parentComp = EntitySystem::GetComp<ParentComponent>(id);
-	parentComp->parentId = parent;
-	parentComp->baseOffset = offset;
-
-	auto healthWatcherComp = EntitySystem::GetComp<HealthWatcherComponent>(id);
-	healthWatcherComp->parentId = parent;
-
-	auto gunFireComp = EntitySystem::GetComp<GunFireComponent>(id);
-	gunFireComp->offset = length;
-    gunFireComp->bulletTag = "bullet.player.basic";
 }
 
 static std::vector<EntityId> SpawnBulletPlayerBasic(Scene& scene, const Vec2f& pos)
@@ -106,9 +97,7 @@ static std::vector<EntityId> SpawnBulletPlayerBasic(Scene& scene, const Vec2f& p
 	auto entities = scene.addEntities(1);
 	MakeBullet(entities[0], pos, { 4, 4 }, TeamId::player, 10);
 
-	EntitySystem::MakeComps<LifeTimeComponent>(1, &entities[0]);
-	auto lifeTimeComp = EntitySystem::GetComp<LifeTimeComponent>(entities[0]);
-	lifeTimeComp->setRemainingLife(480);
+	EntitySystem::MakeComps<LifeTimeComponent>(1, &entities[0], 480);
 
 	return entities;
 }
@@ -118,9 +107,7 @@ static std::vector<EntityId> SpawnBulletEnemyBasic(Scene& scene, const Vec2f& po
 	auto entities = scene.addEntities(1);
 	MakeBullet(entities[0], pos, { 4, 4 }, TeamId::enemy, 10);
 
-	EntitySystem::MakeComps<LifeTimeComponent>(1, &entities[0]);
-	auto lifeTimeComp = EntitySystem::GetComp<LifeTimeComponent>(entities[0]);
-	lifeTimeComp->setRemainingLife(480);
+	EntitySystem::MakeComps<LifeTimeComponent>(1, &entities[0], 480);
 
 	return entities;
 }
@@ -129,8 +116,8 @@ static std::vector<EntityId> SpawnPlayer(Scene& scene, const Vec2f& pos) {
 	auto entities = scene.addEntities(2);
 	EntityId playerId = entities[0];
 	MakeLivingEntity(playerId, pos, { 6, 4 }, 50.0f, TeamId::player, { -1, -11 }, { 8, 13 }, 100);
-	EntitySystem::MakeComps<RespawnComponent>(1, &playerId);
-	EntitySystem::GetComp<RespawnComponent>(playerId)->spawnPos = { 720.f / 4, 405.f / 4 };
+	EntitySystem::MakeComps<RespawnComponent>(1, &playerId, 
+        Vec2f{ 720.f / 4, 405.f / 4 } );
 
 	EntityId gunId = entities[1];
 	MakeGun(gunId, playerId, { 3, -5 }, 13);
@@ -142,14 +129,12 @@ static std::vector<EntityId> SpawnEnemy(Scene& scene, const Vec2f& pos) {
 	EntityId enemyId = entities[0];
 	MakeLivingEntity(enemyId, pos, { 6, 4 }, 50.0f, TeamId::enemy, { -1, -11 }, { 8, 13 }, 100);
 
-	EntitySystem::MakeComps<GunFireComponent>(1, &enemyId);
-    auto fire = EntitySystem::GetComp<GunFireComponent>(enemyId);
-    fire->offset = 0;
-    fire->bulletTag = "bullet.enemy.basic";
+	EntitySystem::MakeComps<GunFireComponent>(1, &enemyId,
+            0.f,
+            "bullet.enemy.basic" );
 
-
-	EntitySystem::MakeComps<RespawnComponent>(1, &enemyId);
-	EntitySystem::GetComp<RespawnComponent>(enemyId)->spawnPos = { 720.f / 2, 405.f / 2 };
+	EntitySystem::MakeComps<RespawnComponent>(1, &enemyId,
+        Vec2f{ 720.f / 2, 405.f / 2 } );
     /*
 	EntitySystem::MakeComps<BasicAttackComponent>(1, &enemyId);
 	auto attackComp = EntitySystem::GetComp<BasicAttackComponent>(enemyId);

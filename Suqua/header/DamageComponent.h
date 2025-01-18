@@ -9,6 +9,8 @@ class DamageComponent {
 	CompMembers(DamageComponent);
 
 public:
+    DamageComponent(EntityId id);
+
 	uint32_t getDamage() const;
 	template<typename T, typename... Args>
 	void setDamageCalculator(Args... args);

@@ -1,7 +1,4 @@
 #pragma once
-#include <vector>
-#include <unordered_map>
-#include <iostream>
 #include "PoolMap.h"
 
 using EntityId = uint64_t;
@@ -15,8 +12,8 @@ public:
 	template<typename T>
 	static T* GetComp(EntityId id);
 
-	template<typename T>
-	static void MakeComps(unsigned int size, EntityId* first);
+	template<typename T, typename... Args>
+	static void MakeComps(unsigned int size, EntityId* first, Args&&... args);
 
 	static void GenEntities(unsigned int num, EntityId* idStore);
 	static void FreeEntities(unsigned int num, const EntityId* idStore);
@@ -49,11 +46,11 @@ inline T* EntitySystem::GetComp(EntityId id) {
 }
 
 //TODO 
-template<typename T>
-inline void EntitySystem::MakeComps(unsigned int size, EntityId* first) {
+template<typename T, typename... Args>
+inline void EntitySystem::MakeComps(unsigned int size, EntityId* first, Args&&... args) {
 	for (int i = 0; i != size; i++) {
 		if (first[i] > 0)
-			PoolMap::add<T>(first[i] - 1, first[i]);
+			PoolMap::add<T>(first[i] - 1, T{first[i], std::forward<Args>(args)...});
 	}
 }
 

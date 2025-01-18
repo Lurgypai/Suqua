@@ -4,12 +4,12 @@
 #include "PeerId.h"
 #include "PacketHandler.h"
 
+#include <chrono>
 #include <string>
 #include <unordered_map>
 #include <functional>
 #include <vector>
 #include <OnlineComponent.h>
-#include <fstream>
 
 using ConnectCallback = void(Game& game, PeerId id);
 using DisconnectCallback = void(Game& game, PeerId id);
@@ -68,9 +68,13 @@ public:
     std::vector<PeerId> getConnectedPeers() const;
 	size_t getPeerCount();
 
-	void beginLogging(const std::string& logfile);
-	void stopLogging();
+    void enableDelay(int minDelay, int variation);
+    void disableDelay();
+    void updateDelayed();
 private:
+    void broadcastPacket(enet_uint8 channel, ENetPacket* packet);
+    void sendPacket(PeerId id, enet_uint8 channel, ENetPacket* packet);
+
 	ENetHost * host;
 	size_t channelCount;
 	size_t channelIncrementer;
@@ -84,8 +88,18 @@ private:
 	Type type;
     std::vector<bool> connectedPeers;
 
-	bool doLogging;
-	std::ofstream logFile;
+    bool doDelay;
+    struct DelayedPacket {
+        bool broadcast;
+        PeerId id;
+        std::chrono::steady_clock::time_point origin;
+        std::chrono::milliseconds delay;
+        ENetPacket* packet;
+        enet_uint8 channel;
+    };
+    std::vector<DelayedPacket> delayedPackets;
+    int minDelay;
+    int delayVariation;
 };
 
 //add owning entities

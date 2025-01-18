@@ -4,6 +4,7 @@ class SideScrollMoverComponent {
 	CompMembers(SideScrollMoverComponent);
 
 public:
+    SideScrollMoverComponent(EntityId id);
 	void update();
 
 	float moveSpeed;

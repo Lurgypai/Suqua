@@ -1,27 +1,21 @@
 #include "GunGFXComponent.h"
 #include "RenderComponent.h"
 #include "DirectionComponent.h"
-#include "DebugIO.h"
+#include "Sprite.h"
 
 GunGFXComponent::GunGFXComponent(EntityId id_) :
 	id{id_}
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
-			EntitySystem::MakeComps<RenderComponent>(1, &id);
-		}
+    if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
+        EntitySystem::MakeComps<RenderComponent>(1, &id);
+    }
 
-		auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-		renderComp->loadDrawable<Sprite>("gun");
-		renderComp->offset = {-1.0, -2};
-		
-		auto sprite = renderComp->getDrawable<Sprite>();
-		sprite->setOrigin({ 1, 1.5});
-	}
-}
-
-EntityId GunGFXComponent::getId() const {
-	return id;
+    auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
+    renderComp->loadDrawable<Sprite>("gun");
+    renderComp->offset = {-1.0, -2};
+    
+    auto sprite = renderComp->getDrawable<Sprite>();
+    sprite->setOrigin({ 1, 1.5});
 }
 
 void GunGFXComponent::update() {

@@ -7,7 +7,6 @@
 #include "PHServerDeadEntities.h"
 #include "NetworkEntityOwnershipSystem.h"
 #include "Updater.h"
-#include "PositionComponent.h"
 #include "EntityBaseComponent.h"
 
 #include "../Shooty2Core/EntitySpawnSystem.h"
@@ -47,8 +46,6 @@ void ServerWorldScene::load(Game& game)
 	auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
 	ai.entityId = dummy;
 	ai.setTargetTeams({ TeamComponent::TeamId::player });
-
-    game.host.beginLogging("packets.log");
 }
 
 void ServerWorldScene::physicsStep(Game& game) {

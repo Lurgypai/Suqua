@@ -4,6 +4,7 @@
 #include "GunGFXComponent.h"
 #include "RectDrawable.h"
 #include "AttackGFXComponent.h"
+#include "DebugFIO.h"
 #include "../Shooty2Core/OnHitComponent.h"
 
 #include "../Shooty2Core/Shooty2Packet.h"
@@ -17,8 +18,11 @@ ClientEntityGenerator::ClientEntityGenerator(Host* host_) :
 
 static void AddPlayerGFX(const std::vector<EntityId>& entities) {
     auto playerId = entities[0];
-	EntitySystem::MakeComps<CharacterGFXComponent>(1, &playerId);
-	EntitySystem::GetComp<CharacterGFXComponent>(playerId)->loadSpriteSheet("hero", "stranded/Hero/Hero/Hero.json", Vec2f{ -13, -24 });
+	EntitySystem::MakeComps<CharacterGFXComponent>(1, &playerId,
+            "hero",
+            "stranded/Hero/Hero/Hero.json",
+            Vec2f{ -13, -24 } );
+
 	EntitySystem::GetComp<CharacterGFXComponent>(playerId)->setHasUpDown(true);
 	EntitySystem::MakeComps<OnHitComponent>(1, &playerId);
     EntitySystem::MakeComps<RespawnGFXComponent>(1, &playerId);
@@ -37,13 +41,15 @@ static void AddBulletPlayerBasicGFX(const std::vector<EntityId>& entities) {
 
 static void AddEnemyGFX(const std::vector<EntityId>& entities) {
     auto enemyId = entities[0];
-	EntitySystem::MakeComps<CharacterGFXComponent>(1, &enemyId);
-	EntitySystem::GetComp<CharacterGFXComponent>(enemyId)->loadSpriteSheet(
-            "enemy:basic", "enemy/basic.json", Vec2f{ -13, -24 });
+	EntitySystem::MakeComps<CharacterGFXComponent>(1, &enemyId,
+            "enemy:basic",
+            "enemy/basic.json",
+            Vec2f{ -13, -24 } );
+
     EntitySystem::MakeComps<OnHitComponent>(1, &enemyId);
     EntitySystem::MakeComps<RespawnGFXComponent>(1, &enemyId);
 
-    EntitySystem::MakeComps<AttackGFXComponent>(1, &enemyId);
+    EntitySystem::MakeComps<AttackGFXComponent>(1, &enemyId, 80);
 }
 
 static void AddBulletEnemyBasicGFX(const std::vector<EntityId>& entities) {
@@ -75,8 +81,11 @@ std::vector<EntityId> ClientEntityGenerator::SpawnEntity(const std::string& tag,
     spawn << pos;
     for(auto& entity : entities) {
         spawn << entity;
+    DebugFIO::AddFOut("send.packet.log");
+        DebugFIO::TimeOut("send.packet.log") << entity << " spawn\n";
     }
     host->bufferAllDataByChannel(0, spawn);
+
 
     return entities;
 }

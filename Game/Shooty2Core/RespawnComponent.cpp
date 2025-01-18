@@ -5,18 +5,18 @@
 #include "NetworkDataComponent.h"
 #include "Shooty2NetworkDataFields.h"
 
-RespawnComponent::RespawnComponent(EntityId id_) :
+RespawnComponent::RespawnComponent(EntityId id_,
+        const Vec2f& spawnPos_,
+        int spawnDelay_) :
 	id{ id_ },
 	tick{ nullptr },
-	respawnDelay{ 120 },
-	spawnPos{ 0, 0 }
+	respawnDelay{ spawnDelay_ },
+	spawnPos{ spawnPos_ }
 {
-    if(id != 0) {
-        auto* data = EntitySystem::GetComp<NetworkDataComponent>(id);
+    auto* data = EntitySystem::GetComp<NetworkDataComponent>(id);
 
-        data->set<std::int32_t>(RespawnData::RESPAWN_TICK, 0);
-        tick = &data->get<std::int32_t>(RespawnData::RESPAWN_TICK);
-    }
+    data->set<std::int32_t>(RespawnData::RESPAWN_TICK, 0);
+    tick = &data->get<std::int32_t>(RespawnData::RESPAWN_TICK);
 }
 
 void RespawnComponent::update() {

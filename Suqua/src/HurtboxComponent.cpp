@@ -1,15 +1,11 @@
 #include "HurtboxComponent.h"
 #include "PositionComponent.h"
 
-HurtboxComponent::HurtboxComponent(EntityId id_) :
+HurtboxComponent::HurtboxComponent(EntityId id_, const Vec2f& offset_, const Vec2f& res) :
 	id{ id_ },
-	hurtbox{},
-	offset{}
+	hurtbox{{}, res},
+	offset{offset_ }
 {}
-
-EntityId HurtboxComponent::getId() const {
-	return id;
-}
 
 void HurtboxComponent::update() {
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);

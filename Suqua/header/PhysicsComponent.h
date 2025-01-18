@@ -1,18 +1,23 @@
 #pragma once
+#include <memory>
+
+#include "ComponentMacros.h"
 #include "AABB.h"
 #include "PhysicsSystem.h"
 #include "CollisionHandler.h"
-#include <memory>
 
 class PhysicsComponent {
 	friend class PhysicsSystem;
-public:
+    CompMembers(PhysicsComponent);
 
-	PhysicsComponent(EntityId id_ = 0,
-            AABB collider = AABB{ {0, 0}, {0, 0} },
-            float weight_ = 0, Vec2f vel = {0, 0},
-            bool collideable_ = true, bool collideableWith_ = true);
-	EntityId getId() const;
+public:
+	PhysicsComponent(EntityId id_,
+            const Vec2f& pos,
+            const Vec2f& res,
+            bool collideable_,
+            bool collideableWith_,
+            float weight_ = 0.f,
+            bool weightless_ = true);
 	
 	const AABB & getCollider() const;
 
@@ -66,8 +71,6 @@ private:
 	void setGrounded(bool newGrounded);
 
 protected:
-	EntityId id;
-
 	AABB collider;
 	float* weight;
 	float* xVel;

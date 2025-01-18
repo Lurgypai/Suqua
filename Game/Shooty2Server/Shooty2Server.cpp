@@ -1,10 +1,10 @@
 #include <fstream>
 
-#include "SDL.h"
 #include "nlohmann/json.hpp"
 
 #include "SuquaLib.h"
 #include "ServerWorldScene.h"
+#include "DebugFIO.h"
 
 using json = nlohmann::json;
 
@@ -15,6 +15,8 @@ int main(int argc, char** argv) {
 	game.serverBroadcastDelay = 0;
 	game.clientPingDelay = 120;
 
+    DebugFIO::AddFOut("send.packet.log");
+
 	json settings;
 	std::ifstream file{ "settings.json" };
 	if (file.good()) {
@@ -22,9 +24,13 @@ int main(int argc, char** argv) {
 		file.close();
 	}
 
-	if (settings.contains("networkInputDelay")) {
-		game.networkInputDelay = settings["networkInputDelay"];
-	}
+    if(settings.contains("debugNetDelay")) {
+        int delayMin = settings["debugNetDelay"]["min"];
+        int delayVar = settings["debugNetDelay"]["variation"];
+        game.host.enableDelay(delayMin, delayVar);
+
+        std::cout << "Enabled debug delay, minimum " << delayMin << ", variation " << delayVar << '\n';
+    }
 
 	std::cout << "The network input delay is " << game.networkInputDelay << ".\n";
 

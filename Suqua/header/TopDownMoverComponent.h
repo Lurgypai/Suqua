@@ -1,15 +1,14 @@
 #pragma once
-#include "EntitySystem.h"
+#include "ComponentMacros.h"
 
 class TopDownMoverComponent {
+    CompMembers(TopDownMoverComponent);
 public:
-	TopDownMoverComponent(EntityId id_ = 0);
-	EntityId getId() const;
+	TopDownMoverComponent(EntityId id_, float moveSpeed_);
 
 	void update();
 	float getMoveSpeed();
 	void setMoveSpeed(float moveSpeed);
 private:
 	float* moveSpeed;
-	EntityId id;
 };

@@ -9,10 +9,14 @@ using NDC = NetworkDataComponent;
 using namespace PhysicsData;
 
 PhysicsComponent::PhysicsComponent(EntityId id_,
-        AABB collider_, float weight_, Vec2f vel_,
-        bool collideable_, bool collideableWith_) :
+        const Vec2f& pos,
+        const Vec2f& res,
+        bool collideable_,
+        bool collideableWith_,
+        float weight_,
+        bool weightless_) :
 	id{ id_ },
-	collider{collider_},
+	collider{ {}, res},
 	weight{nullptr},
 	xVel{ nullptr },
 	yVel{nullptr},
@@ -22,43 +26,36 @@ PhysicsComponent::PhysicsComponent(EntityId id_,
 	collides{nullptr},
 	collidesWith{nullptr}
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id); }
+    if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
+        EntitySystem::MakeComps<PositionComponent>(1, &id); }
 
-		NDC* dataComp = EntitySystem::GetComp<NDC>(id);
+    NDC* dataComp = EntitySystem::GetComp<NDC>(id);
 
-		dataComp->set<float>(WEIGHT, weight_);
-		weight = &dataComp->get<float>(WEIGHT);
-		dataComp->set(XVEL, vel_.x);
-		xVel = &dataComp->get<float>(XVEL);
-		dataComp->set(YVEL, vel_.y);
-		yVel = &dataComp->get<float>(YVEL);
-		dataComp->set(GROUNDED, false);
-		grounded = &dataComp->get<bool>(GROUNDED);
-		dataComp->set(FROZEN, false);
-		frozen = &dataComp->get<bool>(FROZEN);
-		dataComp->set(WEIGHTLESS, false);
-		weightless = &dataComp->get<bool>(WEIGHTLESS);
+    dataComp->set<float>(WEIGHT, weight_);
+    weight = &dataComp->get<float>(WEIGHT);
+    dataComp->set(XVEL, 0.f);
+    xVel = &dataComp->get<float>(XVEL);
+    dataComp->set(YVEL, 0.f);
+    yVel = &dataComp->get<float>(YVEL);
+    dataComp->set(GROUNDED, false);
+    grounded = &dataComp->get<bool>(GROUNDED);
+    dataComp->set(FROZEN, false);
+    frozen = &dataComp->get<bool>(FROZEN);
+    dataComp->set(WEIGHTLESS, weightless_);
+    weightless = &dataComp->get<bool>(WEIGHTLESS);
 
-		dataComp->set(COLLIDEABLE, collideable_);
-		collides = &dataComp->get<bool>(COLLIDEABLE);
-        
-		dataComp->set(COLLIDEABLE_WITH, collideableWith_);
-		collidesWith = &dataComp->get<bool>(COLLIDEABLE_WITH);
+    dataComp->set(COLLIDEABLE, collideable_);
+    collides = &dataComp->get<bool>(COLLIDEABLE);
+    
+    dataComp->set(COLLIDEABLE_WITH, collideableWith_);
+    collidesWith = &dataComp->get<bool>(COLLIDEABLE_WITH);
 
-		dataComp->set(XRES, collider.res.x);
-		xRes = &dataComp->get<float>(XRES);
-		dataComp->set(YRES, collider.res.y);
-		yRes = &dataComp->get<float>(YRES);
+    dataComp->set(XRES, collider.res.x);
+    xRes = &dataComp->get<float>(XRES);
+    dataComp->set(YRES, collider.res.y);
+    yRes = &dataComp->get<float>(YRES);
 
-		auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-		posComp->setPos(collider.pos);
-	}
-}
-
-EntityId PhysicsComponent::getId() const {
-	return id;
+    teleport(pos);
 }
 
 const AABB & PhysicsComponent::getCollider() const {

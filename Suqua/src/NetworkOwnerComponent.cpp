@@ -1,10 +1,6 @@
 #include "NetworkOwnerComponent.h"
 
-NetworkOwnerComponent::NetworkOwnerComponent(EntityId id_) :
+NetworkOwnerComponent::NetworkOwnerComponent(EntityId id_, Owner owner_) :
 	id{id_},
-	owner{Owner::unassigned}
+	owner{owner_}
 {}
-
-EntityId NetworkOwnerComponent::getId() const {
-	return id;
-}

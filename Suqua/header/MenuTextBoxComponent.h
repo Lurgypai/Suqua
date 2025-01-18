@@ -1,13 +1,13 @@
 #pragma once
-#include "EntitySystem.h"
+#include "ComponentMacros.h"
 #include "AABB.h"
 
 class MenuTextBoxComponent {
 	friend class Menu;
+    CompMembers(MenuTextBoxComponent);
 
 public:
-	MenuTextBoxComponent(EntityId id_ = 0);
-	EntityId getId() const;
+	MenuTextBoxComponent(EntityId id_);
 
 	void update(Vec2f mousePos, bool toggled_);
 	void input(const std::string& input);
@@ -23,8 +23,6 @@ public:
 
 	const std::string& getTag() const;
 private:
-	EntityId id;
-
 	std::string tag;
 
 	std::string textBuffer;

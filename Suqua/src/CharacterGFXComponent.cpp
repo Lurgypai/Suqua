@@ -1,24 +1,26 @@
 #include "CharacterGFXComponent.h"
 #include "RenderComponent.h"
-#include "RectDrawable.h"
 #include "AnimatedSprite.h"
 #include "PhysicsComponent.h"
 #include "CharacterGFXComponent.h"
 #include "DirectionComponent.h"
-#include "DebugIO.h"
 
-CharacterGFXComponent::CharacterGFXComponent(EntityId id_) :
+CharacterGFXComponent::CharacterGFXComponent(
+        EntityId id_,
+        const std::string& tag,
+        const std::string& fileName,
+        Vec2f offset
+        ) :
 	id{ id_ },
 	prevCardinalDir{ 0 },
 	isPlayingAnimation_{false},
 	hasUpDown{false}
 {
-	if (id != 0)
-	{
-		if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
-			EntitySystem::MakeComps<RenderComponent>(1, &id);
-		}
-	}
+    if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
+        EntitySystem::MakeComps<RenderComponent>(1, &id);
+    }
+
+    loadSpriteSheet(tag, fileName, offset);
 }
 
 void CharacterGFXComponent::loadSpriteSheet(const std::string& tag, const std::string& fileName, Vec2f offset) {

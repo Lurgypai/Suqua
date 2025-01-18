@@ -11,44 +11,43 @@
 #include "HealthComponent.h"
 #include "NetworkOwnerComponent.h"
 
-BasicAttackComponent::BasicAttackComponent(EntityId id_) :
+BasicAttackComponent::BasicAttackComponent(EntityId id_,
+        int delay_,
+        int duration_,
+        int lag_
+        ) :
 	id{ id_ },
 	hitboxId{ 0 },
-	delay{ 0 },
-	duration{ 0 },
-	lag{ 0 },
+	delay{ delay_ },
+	duration{ duration_ },
+	lag{ lag_ },
 	tick{ 0 },
 	isActive_{false}
 {
-	if (id != 0) {
-		EntitySystem::GenEntities(1, &hitboxId);
-		EntitySystem::MakeComps<HitboxComponent>(1, &hitboxId);
-		EntitySystem::MakeComps<ParentComponent>(1, &hitboxId);
-		EntitySystem::MakeComps<DamageComponent>(1, &hitboxId);
-		EntitySystem::MakeComps<NetworkOwnerComponent>(1, &hitboxId);
+    EntitySystem::GenEntities(1, &hitboxId);
+    EntitySystem::MakeComps<HitboxComponent>(1, &hitboxId,
+            Vec2f{-5.f, -10.f},
+            Vec2f{10.f, 10.f} );
 
-		auto hitboxComp = EntitySystem::GetComp<HitboxComponent>(hitboxId);
-		hitboxComp->collisionsMax = 1;
-		hitboxComp->reHitDelay = -1;
-		hitboxComp->multipleHits = false;
+    EntitySystem::MakeComps<ParentComponent>(1, &hitboxId,
+            ParentComponent::OffsetMode::cardinal_left_right,
+            id,
+            Vec2f{3.f, 4.f},
+            Vec2f{8.f, 0.f} );
 
-		hitboxComp->hitbox = { {0, 0}, {10, 10} };
-		hitboxComp->deactivate();
-		hitboxComp->offset = { -5, -10 };
+    EntitySystem::MakeComps<DamageComponent>(1, &hitboxId);
+    EntitySystem::MakeComps<NetworkOwnerComponent>(1, &hitboxId, NetworkOwnerComponent::Owner::local);
 
-		auto parentComp = EntitySystem::GetComp<ParentComponent>(hitboxId);
-		parentComp->parentId = id;
-		parentComp->baseOffset = { 3, 4 };
-		parentComp->effectedOffset = { 8, 0 };
-		parentComp->offsetMode = ParentComponent::OffsetMode::cardinal_left_right;
+    auto hitboxComp = EntitySystem::GetComp<HitboxComponent>(hitboxId);
+    hitboxComp->collisionsMax = 1;
+    hitboxComp->reHitDelay = -1;
+    hitboxComp->multipleHits = false;
+    hitboxComp->deactivate();
 
-		auto damageComp = EntitySystem::GetComp<DamageComponent>(hitboxId);
-		damageComp->setDamageCalculator<BasicDamageCalculator>(30);
+    auto damageComp = EntitySystem::GetComp<DamageComponent>(hitboxId);
+    damageComp->setDamageCalculator<BasicDamageCalculator>(30);
 
-		EntitySystem::GetComp<EntityBaseComponent>(hitboxId)->isActive = false;
-
-		EntitySystem::GetComp<NetworkOwnerComponent>(hitboxId)->owner = NetworkOwnerComponent::Owner::local;
-	}
+    EntitySystem::GetComp<EntityBaseComponent>(hitboxId)->isActive = false;
 }
 
 void BasicAttackComponent::update()

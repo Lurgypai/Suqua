@@ -4,18 +4,21 @@
 #include "DirectionComponent.h"
 #include "PhysicsComponent.h"
 
-SideScrollGFXComponent::SideScrollGFXComponent(EntityId id_) :
+SideScrollGFXComponent::SideScrollGFXComponent(EntityId id_,
+        const std::string& tag,
+        const std::string& fileName,
+        const Vec2f& offset
+        ) :
 	id{ id_ },
 	isPlayingAnimation_{false},
 	prevCardinalDir{ 0 },
 	prevCharacterVel{ 0, 0 }
 {
-	if (id != 0)
-	{
-		if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
-			EntitySystem::MakeComps<RenderComponent>(1, &id);
-		}
-	}
+    if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
+        EntitySystem::MakeComps<RenderComponent>(1, &id);
+    }
+
+    loadSpriteSheet(tag, fileName, offset);
 }
 
 void SideScrollGFXComponent::loadSpriteSheet(const std::string& tag, const std::string& fileName, Vec2f offset) {

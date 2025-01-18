@@ -1,15 +1,13 @@
 #include "RenderComponent.h"
 #include "PositionComponent.h"
 
-RenderComponent::RenderComponent(EntityId id_) :
+RenderComponent::RenderComponent(EntityId id_, const Vec2f& offset_) :
 	id{id_},
-	offset{0, 0}
+	offset{offset_}
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
-		}
-	}
+    if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
+        EntitySystem::MakeComps<PositionComponent>(1, &id);
+    }
 }
 
 RenderComponent::RenderComponent(const RenderComponent & other) :
@@ -40,8 +38,4 @@ RenderComponent & RenderComponent::operator=(const RenderComponent & other) {
 		sprite = nullptr;
 	}
 	return *this;
-}
-
-EntityId RenderComponent::getId() const {
-	return id;
 }

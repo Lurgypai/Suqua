@@ -2,15 +2,15 @@
 #include "HealthComponent.h"
 #include "CharacterGFXComponent.h"
 
-OnHitComponent::OnHitComponent(EntityId id_) :
+OnHitComponent::OnHitComponent(EntityId id_,
+        const Color& c_ ) :
 	id{ id_ },
-	c{1.0f, 1.0f, 1.0f, 1.0f},
+	c{c_},
 	prevHealth{ 0 },
 	playingEffect{ false },
 	tick{ 0 },
 	maxEffectTick{ 10 }
-{
-}
+{}
 
 void OnHitComponent::update() {
 	auto healthComp = EntitySystem::GetComp<HealthComponent>(id);

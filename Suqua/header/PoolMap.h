@@ -1,11 +1,7 @@
 #pragma once
 #include "Pool.h"
 #include <memory>
-#include <set>
-#include <unordered_map>
 #include <vector>
-
-#include "PoolNotFoundException.h"
 
 using pool_ptr = IPool*;
 

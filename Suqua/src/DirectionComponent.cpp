@@ -12,15 +12,14 @@ DirectionComponent::DirectionComponent(EntityId id_) :
 	cardinalDir{ 0 },
 	isLocked_{false}
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<NetworkDataComponent>() || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
-			EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
-		}
+    if (!EntitySystem::Contains<NetworkDataComponent>()
+            || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
+        EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
+    }
 
-		auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-		ndc->set<float>(DIR, 180.0f);
-		dir = &ndc->get<float>(DIR);
-	}
+    auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+    ndc->set<float>(DIR, 180.0f);
+    dir = &ndc->get<float>(DIR);
 }
 
 float DirectionComponent::getDir() const {
@@ -51,8 +50,4 @@ bool DirectionComponent::isLocked()
 void DirectionComponent::setLocked(bool locked)
 {
 	isLocked_ = locked;
-}
-
-EntityId DirectionComponent::getId() const {
-	return id;
 }

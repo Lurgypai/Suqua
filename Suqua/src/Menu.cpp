@@ -1,15 +1,10 @@
 #include <cstring>
 
-#include "SDL.h"
-
 #include "Menu.h"
 #include "MenuButtonComponent.h"
 #include "MenuTextBoxComponent.h"
 #include "MenuGridComponent.h"
-#include "RenderComponent.h"
-#include "RectDrawable.h"
 #include "GLRenderer.h"
-#include "DebugIO.h"
 
 #include "PositionComponent.h"
 
@@ -35,6 +30,8 @@ void Menu::addMenuEntry(MenuEntryType type, const std::string& entryTag_, const 
 		break;
 	case MenuEntryType::grid:
 		makeGrid(entryTag_, boundingBox);
+    default:
+        break;
 	}
 }
 
@@ -147,14 +144,10 @@ void Menu::enterText() {
 EntityId Menu::makeButton(const std::string& entryTag_, const AABB& boundingBox) {
 	EntityId id;
 	EntitySystem::GenEntities(1, &id);
-	EntitySystem::MakeComps<MenuButtonComponent>(1, &id);
-
-	MenuButtonComponent* button = EntitySystem::GetComp<MenuButtonComponent>(id);
-	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	posComp->setPos(boundingBox.pos);
-
-	button->boundingBox = boundingBox;
-	button->tag = entryTag_;
+	EntitySystem::MakeComps<MenuButtonComponent>(1, &id,
+            boundingBox,
+            entryTag_
+            );
 
 	buttons.push_back(id);
 	return id;

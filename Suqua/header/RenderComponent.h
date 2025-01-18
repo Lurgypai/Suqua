@@ -1,5 +1,5 @@
 #pragma once
-#include "EntitySystem.h"
+#include "ComponentMacros.h"
 #include "IDrawable.h"
 #include "FileNotFoundException.h"
 
@@ -8,10 +8,11 @@
 using SpritePtr = std::unique_ptr<IDrawable>;
 
 class RenderComponent {
+    CompMembers(RenderComponent);
 public:
 	Vec2f offset;
 
-	RenderComponent(EntityId id_ = 0);
+	RenderComponent(EntityId id_, const Vec2f& offset_ = {0.f, 0.f});
 	RenderComponent(const RenderComponent & other);
 	RenderComponent(RenderComponent&& other);
 	
@@ -29,10 +30,8 @@ public:
 	template<typename T>
 	T * getDrawable();
 
-	EntityId getId() const;
 protected:
 	SpritePtr sprite;
-	EntityId id;
 
 	friend class RenderSystem;
 };

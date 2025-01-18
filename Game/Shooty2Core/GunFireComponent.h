@@ -1,11 +1,13 @@
 #pragma once
-#include "EntitySystem.h"
+#include "ComponentMacros.h"
 #include "Scene.h"
 
 class GunFireComponent {
+    CompMembers(GunFireComponent);
 public:
-	GunFireComponent(EntityId id_ = 0);
-	EntityId getId() const;
+	GunFireComponent(EntityId id_,
+            float offset_,
+            const std::string& bulletTag_);
 
 	void fire(Scene* currScene);
 	void update(Scene* currScene);
@@ -14,5 +16,4 @@ public:
 	float offset;
     std::string bulletTag;
 private:
-	EntityId id;
 };

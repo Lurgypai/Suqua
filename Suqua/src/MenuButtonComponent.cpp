@@ -1,21 +1,17 @@
 #include "MenuButtonComponent.h"
 #include "PositionComponent.h"
 
-MenuButtonComponent::MenuButtonComponent(EntityId id_) :
+MenuButtonComponent::MenuButtonComponent(EntityId id_, const AABB& boundingBox_, const std::string& tag_) :
 	id{id_},
+    boundingBox{boundingBox_},
+    tag{tag_},
 	wasActive{false},
 	isActive{false},
 	toggled{false}
 {
-	if (id != 0) {
-		if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
-			EntitySystem::MakeComps<PositionComponent>(1, &id);
-		}
-	}
-}
-
-EntityId MenuButtonComponent::getId() const {
-	return id;
+    if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
+        EntitySystem::MakeComps<PositionComponent>(1, &id, boundingBox_.pos);
+    }
 }
 
 void MenuButtonComponent::update(Vec2f mousePos, bool toggled_) {

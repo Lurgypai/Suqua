@@ -1,6 +1,7 @@
 #include "PHClientDeadEntities.h"
 #include "Game.h"
 #include "EntityBaseComponent.h"
+#include "DebugFIO.h"
 
 PHClientDeadEntities::PHClientDeadEntities(PacketId id_) :
 	PacketHandler{ id_ }
@@ -13,6 +14,7 @@ void PHClientDeadEntities::handlePacket(Game& game, ByteStream& data, PeerId sou
     while(data.hasMoreData()) {
         NetworkId netId;
         data >> netId;
+        DebugFIO::Out("packet.log") << netId << " death\n";
 
         EntityId id = game.online.getEntity(netId);
         if(id == 0) continue;
@@ -21,5 +23,6 @@ void PHClientDeadEntities::handlePacket(Game& game, ByteStream& data, PeerId sou
         if(base) base->isDead = true;
 
         game.online.freeNetId(netId);
+
     }
 }

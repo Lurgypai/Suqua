@@ -41,19 +41,21 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 				Vec2f worldPos{ tileJson["px"][0], tileJson["px"][1] };
 				Vec2f texOffset{ tileJson["src"][0], tileJson["src"][1] };
 				EntityId tile = scene.addEntities(1)[0];
-				EntitySystem::MakeComps<PhysicsComponent>(1, &tile);
+				EntitySystem::MakeComps<PhysicsComponent>(1, &tile,
+                        Vec2f{},
+                        res,
+                        false,
+                        true );
+
+
 				EntitySystem::MakeComps<RenderComponent>(1, &tile);
-                EntitySystem::MakeComps<NetworkOwnerComponent>(1, &tile);
+                EntitySystem::MakeComps<NetworkOwnerComponent>(1, &tile,
+                        NetworkOwnerComponent::Owner::local);
 
 				auto posComp = EntitySystem::GetComp<PositionComponent>(tile);
-				auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(tile);
-				auto renderComp = EntitySystem::GetComp<RenderComponent>(tile);
-                auto ownerComp = EntitySystem::GetComp<NetworkOwnerComponent>(tile);
-
 				posComp->setPos(levelOffset + worldPos);
-				physicsComp->setDoesCollide(false);
-				physicsComp->setRes(res);
 
+				auto renderComp = EntitySystem::GetComp<RenderComponent>(tile);
 				renderComp->loadDrawable<Sprite>(textureTag);
 
 				auto sprite = renderComp->getDrawable<Sprite>();
@@ -64,8 +66,6 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 				// std::cout << "px: " << worldPos << ", f: " << f << '\n';
 				sprite->horizontalFlip = f & 1;
 				sprite->verticalFlip = f & 2;
-
-                ownerComp->owner = NetworkOwnerComponent::Owner::local;
 
 				tiles.emplace_back(tile);
 			}

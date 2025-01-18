@@ -13,16 +13,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory ("Suqua")
 add_subdirectory ("enet-master")
 
-add_subdirectory("Demo/Platformer")
-add_subdirectory("Demo/TextureRender")
+# add_subdirectory("Demo/Platformer")
+# add_subdirectory("Demo/TextureRender")
 
-add_subdirectory("Game/RuinsGame")
+# add_subdirectory("Game/RuinsGame")
 
 add_subdirectory("Game/Shooty2Client")
 add_subdirectory("Game/Shooty2Core")
 add_subdirectory("Game/Shooty2Server")
 
 if (MSVC)
-    set_target_properties("Suqua" "Shooty2Core" "Shooty2Client" "Shooty2Server" "RuinsGame" PROPERTIES LINK_FLAGS "/PROFILE")
-    set_target_properties("Suqua" "Shooty2Core" "Shooty2Client" "Shooty2Server" "RuinsGame" PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set_target_properties("Suqua" "Shooty2Core" "Shooty2Client" "Shooty2Server" PROPERTIES LINK_FLAGS "/PROFILE")
+    set_target_properties("Suqua" "Shooty2Core" "Shooty2Client" "Shooty2Server" PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()

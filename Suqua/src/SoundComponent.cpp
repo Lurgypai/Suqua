@@ -4,10 +4,6 @@ SoundComponent::SoundComponent(EntityId id_) :
 	id{id_}
 {}
 
-EntityId SoundComponent::getId() const {
-	return id;
-}
-
 void SoundComponent::triggerSound(const std::string& tag) {
 	triggered.emplace_back(TriggeredSound{ false, tag, Vec2f{} });
 }
