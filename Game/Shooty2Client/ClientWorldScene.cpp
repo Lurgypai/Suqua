@@ -10,7 +10,6 @@
 
 #include "PHClientState.h"
 #include "PHClientSpawnEntities.h"
-#include "PHClientAssignNetworkId.h"
 #include "PHClientDeadEntities.h"
 
 #include "EntityBaseComponent.h"
@@ -21,13 +20,11 @@
 #include "AimToLStickComponent.h"
 #include "ParentComponent.h"
 #include "GunGFXComponent.h"
-#include "DirectionComponent.h"
 #include "HurtboxComponent.h"
 #include "CharacterGFXComponent.h"
 #include "PhysicsComponent.h"
 #include "RespawnGFXComponent.h"
 #include "AttackGFXComponent.h"
-#include "AITopDownBasic.h"
 
 #include "../Shooty2Core/GunFireComponent.h"
 #include "../Shooty2Core/RespawnComponent.h"
@@ -47,7 +44,6 @@ void ClientWorldScene::load(Game& game)
     /* ------------------ NETWORKING ------------------ */
     game.loadPacketHandler<PHClientSpawnEntities>(Shooty2Packet::SpawnEntities, this);
     game.loadPacketHandler<PHClientState>(Packet::StateId, this);
-    game.loadPacketHandler<PHClientAssignNetworkId>(Shooty2Packet::AssignNetworkId);
     game.loadPacketHandler<PHClientDeadEntities>(Packet::DeadEntities);
 
 	/* ------------------ SET UP RENDERING ------------------- */
@@ -75,10 +71,9 @@ void ClientWorldScene::load(Game& game)
 	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 
-	auto playerAndGunId = EntitySpawnSystem::SpawnEntity("player.basic", *this, { 720.f / 4, 405.f / 4 }, NetworkOwnerComponent::Owner::local, true);
+	auto playerAndGunId = EntitySpawnSystem::SpawnEntity("player.basic", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
 	myPlayerId = playerAndGunId[0];
-
-	myGunId = playerAndGunId[1];
+    myGunId = playerAndGunId[1];
 	addEntityInputs({ {myPlayerId, playerInput}, {myGunId, playerInput} });
 
     /*

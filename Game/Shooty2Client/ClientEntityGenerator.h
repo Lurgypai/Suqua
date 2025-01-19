@@ -5,7 +5,6 @@
 #include "Host.h"
 #include "Vec2.h"
 #include "EntitySystem.h"
-#include "NetworkOwnerComponent.h"
 #include "Scene.h"
 #include "../Shooty2Core/EntityGenerator.h"
 
@@ -16,7 +15,12 @@ public:
     ClientEntityGenerator(Host* host);
     virtual ~ClientEntityGenerator() = default;
     virtual void RegisterSpawnFunctions() override;
-    virtual std::vector<EntityId> SpawnEntity(const std::string& tag, Scene& targetScene, const Vec2f& targetPos, NetworkOwnerComponent::Owner owner, bool shared) override;
+    virtual std::vector<EntityId> SpawnEntity(
+            const std::string& tag,
+            Scene& targetScene,
+            const Vec2f& targetPos,
+            NetworkDataComponent::Owner owner,
+            const std::vector<UUID>& uuids = std::vector<UUID>{}) override;
 
 private:
     std::unordered_map<std::string, GFXFunction> GFXFunctions; 

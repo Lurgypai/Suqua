@@ -1,14 +1,11 @@
 #include "HealthComponent.h"
 #include "NetworkDataComponentDataFields.h"
+#include <stdexcept>
 
 HealthComponent::HealthComponent(EntityId id_, int32_t health_) : id{ id_ }
 {
-    if (!EntitySystem::Contains<NetworkDataComponent>()
-            || EntitySystem::GetComp<NetworkDataComponent>(id) == nullptr) {
-        EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
-    }
-
     auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+    if(ndc == nullptr) throw std::runtime_error{"HealthComponent: NetworkDataComponent was not initialized"};
     ndc->set<int32_t>(HealthData::HEALTH, health_);
     health = &ndc->get<int32_t>(HealthData::HEALTH);
 }

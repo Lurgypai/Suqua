@@ -8,12 +8,8 @@ TopDownMoverComponent::TopDownMoverComponent(EntityId id_, float moveSpeed_) :
 	id{ id_ },
 	moveSpeed{nullptr}
 {
-    if (!EntitySystem::Contains<NetworkDataComponent>()
-            || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
-        EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
-    }
-
     auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+    if(ndc == nullptr) throw std::runtime_error{"TopDownMoverComponent: NetworkDataComponent was not initialized."};
     ndc->set<float>(MovementData::MOVE_SPEED, moveSpeed_);
     moveSpeed = &ndc->get<float>(MovementData::MOVE_SPEED);
 }

@@ -1,10 +1,10 @@
 #include "Level.h"
+#include "NetworkDataComponent.h"
 #include "Sprite.h"
 #include "EntitySystem.h"
 #include "PhysicsComponent.h"
 #include "PositionComponent.h"
 #include "EntityBaseComponent.h"
-#include "NetworkOwnerComponent.h"
 
 using namespace nlohmann;
 
@@ -41,6 +41,8 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 				Vec2f worldPos{ tileJson["px"][0], tileJson["px"][1] };
 				Vec2f texOffset{ tileJson["src"][0], tileJson["src"][1] };
 				EntityId tile = scene.addEntities(1)[0];
+                EntitySystem::MakeComps<NetworkDataComponent>(1, &tile, UUID::GenerateUUID(), NetworkDataComponent::Owner::local_only);
+                        
 				EntitySystem::MakeComps<PhysicsComponent>(1, &tile,
                         Vec2f{},
                         res,
@@ -49,8 +51,6 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 
 
 				EntitySystem::MakeComps<RenderComponent>(1, &tile);
-                EntitySystem::MakeComps<NetworkOwnerComponent>(1, &tile,
-                        NetworkOwnerComponent::Owner::local);
 
 				auto posComp = EntitySystem::GetComp<PositionComponent>(tile);
 				posComp->setPos(levelOffset + worldPos);

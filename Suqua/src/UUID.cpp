@@ -1,6 +1,7 @@
 #include "UUID.h"
 
 #include <random>
+#include <iomanip>
 #include <cstdint>
 
 UUID UUID::GenerateUUID() {
@@ -13,4 +14,11 @@ UUID UUID::GenerateUUID() {
     uuid.data_[1] = dist(e);
 
     return uuid;
+}
+
+std::ostream& operator<<(std::ostream& left, const UUID& value) {
+    return left <<
+       std::hex << std::setw(16) << std::setfill('0') << value.data_[0]
+       << '-' 
+       << std::hex << std::setw(16) << std::setfill('0') << value.data_[1];
 }

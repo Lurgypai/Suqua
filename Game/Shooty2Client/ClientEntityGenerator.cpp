@@ -9,6 +9,7 @@
 
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/EntityGenerator.h"
+#include <cstdint>
 #include <vector>
 
 ClientEntityGenerator::ClientEntityGenerator(Host* host_) :
@@ -69,23 +70,25 @@ void ClientEntityGenerator::RegisterSpawnFunctions() {
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("bullet.enemy.basic", AddBulletEnemyBasicGFX));
 }
 
-std::vector<EntityId> ClientEntityGenerator::SpawnEntity(const std::string& tag, Scene& targetScene,
-        const Vec2f& pos, NetworkOwnerComponent::Owner owner, bool shared) {
-    auto entities = EntityGenerator::SpawnEntity(tag, targetScene, pos, owner, shared);
+std::vector<EntityId> ClientEntityGenerator::SpawnEntity(
+        const std::string& tag, Scene& targetScene,
+        const Vec2f& pos, NetworkDataComponent::Owner owner,
+        const std::vector<UUID>& uuids) {
+    auto entities = EntityGenerator::SpawnEntity(tag, targetScene, pos, owner, uuids);
     GFXFunctions.at(tag)(entities);
-    if(!shared) return entities;
+    if(!host->isConnected() || owner != NetworkDataComponent::Owner::local_shared) return entities;
 
     ByteStream spawn;
     spawn << Shooty2Packet::SpawnEntities;
     spawn << tag;
     spawn << pos;
+    spawn << static_cast<std::uint32_t>(entities.size());
     for(auto& entity : entities) {
-        spawn << entity;
-    DebugFIO::AddFOut("send.packet.log");
+        auto ndc = EntitySystem::GetComp<NetworkDataComponent>(entity);
+        spawn << ndc->getUUID();
         DebugFIO::TimeOut("send.packet.log") << entity << " spawn\n";
     }
     host->bufferAllDataByChannel(0, spawn);
-
 
     return entities;
 }

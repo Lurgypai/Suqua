@@ -1,13 +1,33 @@
 #include "NetworkDataComponent.h"
 #include <cstring>
 #include <memory>
+#include <stdexcept>
 #include <utility>
+#include <exception>
 
-NetworkDataComponent::NetworkDataComponent(EntityId id_) :
+EntityId NetworkDataComponent::GetEntityId(const UUID& id) {
+    auto found = idMap.find(id);
+    if(found == idMap.end()) return 0;
+    return found->second;
+}
+
+void NetworkDataComponent::RemoveEntity(const UUID& id) {
+    idMap.erase(id);
+}
+
+NetworkDataComponent::NetworkDataComponent(EntityId id_,
+        const UUID& uuid_,
+        NetworkDataComponent::Owner owner_) :
 	id{ id_ },
+    owner{ owner_ },
+    uuid{ uuid_ },
 	dataPtr{ new DataMap{} },
     prevDataPtr{ new DataMap{} }
-{}
+{
+    if(uuid == UUID{}) throw std::runtime_error{"Invalid UUID: Default UUID used"};
+
+    idMap.emplace(uuid, id);
+}
 
 NetworkDataComponent::NetworkDataComponent(const NetworkDataComponent& other) :
 	id{ other.id },
@@ -39,11 +59,10 @@ bool NetworkDataComponent::operator!=(const NetworkDataComponent& other) const {
 }
 
 void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {
+    stream << uuid;
 	//add the ability to allocate bytestream space, and overwrite at position
 	size_t writeCount = 0;
 	for (const auto& pair : *dataPtr) {
-		if (pair.second.mode == SyncMode::NONE) continue;
-        
         // skip unchanged values
         auto prevPair = prevDataPtr->find(pair.first);
         if(prevPair != prevDataPtr->end() && prevPair->second == pair.second) continue;
@@ -52,8 +71,6 @@ void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {
 
 	stream << writeCount;
 	for (auto&& pair : *dataPtr) {
-		if (pair.second.mode == SyncMode::NONE) continue;
-
         // skip unchanged values
         auto prevPair = prevDataPtr->find(pair.first);
         if(prevPair != prevDataPtr->end() && prevPair->second == pair.second) continue;
@@ -182,38 +199,6 @@ inline void NetworkDataComponent::Data::read(ByteStream& s) {
 	}
 }
 
-//const NetworkDataComponent::DataMap& NetworkDataComponent::data() {
-//	return data_;
-//}
-
-void NetworkDataComponent::setSyncMode(DataId id, SyncMode mode) {
-	dataPtr->at(id).mode = mode;
-}
-
-/*
-void NetworkDataComponent::interp(const NetworkDataComponent& start, const NetworkDataComponent& end, float ratio) {
-	for (auto&& pair : *dataPtr) {
-		if (pair.second.mode == SyncMode::INTERPOLATED) {
-			switch (pair.second.type)
-			{
-			case NetworkDataComponent::Data::DataType::UBYTE:
-				pair.second.get<uint8_t>() = start.get<uint8_t>(pair.first) + (end.get<uint8_t>(pair.first) - start.get<uint8_t>(pair.first)) * ratio;
-				break;
-			case NetworkDataComponent::Data::DataType::INT_32:
-				pair.second.get<int32_t>() = start.get<int32_t>(pair.first) + (end.get<int32_t>(pair.first) - start.get<int32_t>(pair.first)) * ratio;
-				break;
-			case NetworkDataComponent::Data::DataType::FLOAT:
-				//std::cout << "start value: " << start.get<float>(pair.first) << ", end value: " << end.get<float>(pair.first) << ", interpolated value " << start.get<float>(pair.first) + (end.get<float>(pair.first) - start.get<float>(pair.first)) * ratio << '\n';
-				pair.second.get<float>() = start.get<float>(pair.first) + (end.get<float>(pair.first) - start.get<float>(pair.first)) * ratio;
-				break;
-			default:
-				break;
-			}
-		}
-	}
-}
-*/
-
 void NetworkDataComponent::storePrev() {
     for(auto& [id, data] : *dataPtr) {
         (*prevDataPtr)[id] = data;     
@@ -223,3 +208,9 @@ void NetworkDataComponent::storePrev() {
 void NetworkDataComponent::storePrev(DataId id) {
     (*prevDataPtr)[id] = dataPtr->at(id);
 }
+
+const UUID& NetworkDataComponent::getUUID() const {
+    return uuid;
+}
+
+std::unordered_map<UUID, EntityId> NetworkDataComponent::idMap{};

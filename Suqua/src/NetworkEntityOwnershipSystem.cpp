@@ -3,24 +3,25 @@
 
 using OwnedEntityMap = NetworkEntityOwnershipSystem::OwnedEntityMap;
 
-NetworkEntityDescriptor::NetworkEntityDescriptor(const std::string& tag_, std::vector<NetworkId>&& netIds_) :
+NetworkEntityDescriptor::NetworkEntityDescriptor(const std::string& tag_,
+        std::vector<UUID>&& uuids_) :
     tag{tag_},
-    netIds{netIds_}
+    uuids{uuids_}
 {}
 
-void NetworkEntityOwnershipSystem::addOwnedEntity(PeerId peer, const std::string& tag, std::vector<NetworkId>&& netIds) {
-    peers[peer].emplace_back(tag, std::move(netIds));
+void NetworkEntityOwnershipSystem::addOwnedEntity(PeerId peer, const std::string& tag, std::vector<UUID>&& uuids) {
+    peers[peer].emplace_back(tag, std::move(uuids));
 }
 
-void NetworkEntityOwnershipSystem::addLocalEntity(const std::string& tag, std::vector<NetworkId>&& netIds) {
-    localEntities.emplace_back(tag, std::move(netIds));
+void NetworkEntityOwnershipSystem::addLocalEntity(const std::string& tag, std::vector<UUID>&& uuids) {
+    localEntities.emplace_back(tag, std::move(uuids));
 }
 
-void NetworkEntityOwnershipSystem::removeEntity(NetworkId id) {
+void NetworkEntityOwnershipSystem::removeEntity(UUID id) {
     for(auto iter = peers.begin(); iter != peers.end(); ++iter) {
         for(auto& entity : iter->second) {
-            for(const auto& netId : entity.netIds) {
-                if(netId != id) continue;
+            for(const auto& uuid : entity.uuids) {
+                if(uuid != id) continue;
                 peers.erase(iter);
                 return;
             }
@@ -28,10 +29,10 @@ void NetworkEntityOwnershipSystem::removeEntity(NetworkId id) {
     }
 }
 
-void NetworkEntityOwnershipSystem::removeLocalEntity(NetworkId id) {
+void NetworkEntityOwnershipSystem::removeLocalEntity(UUID id) {
     for(auto iter = localEntities.begin(); iter != localEntities.end(); ++iter) {
-        for(const auto& netId : iter->netIds) {
-            if(netId != id) continue;
+        for(const auto& uuid : iter->uuids) {
+            if(uuid != id) continue;
             localEntities.erase(iter);
             return;
         }

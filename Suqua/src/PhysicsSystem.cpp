@@ -3,7 +3,6 @@
 #include "NetworkDataComponent.h"
 #include "PositionComponent.h"
 #include "EntityBaseComponent.h"
-#include "NetworkOwnerComponent.h"
 
 using NDC = NetworkDataComponent;
 
@@ -18,18 +17,18 @@ void PhysicsSystem::runPhysics(double timeDelta) {
 }
 
 void PhysicsSystem::runPhysicsOnOwned(double timeDelta) {
-    if(EntitySystem::Contains<NetworkOwnerComponent>()) {
-        for(const auto& owner : EntitySystem::GetPool<NetworkOwnerComponent>()) {
-            auto* rawComp = EntitySystem::GetComp<PhysicsComponent>(owner.getId());
-            if(!rawComp) continue;
-            if(owner.owner != NetworkOwnerComponent::Owner::local) {
-                auto* posComp = EntitySystem::GetComp<PositionComponent>(rawComp->getId());
-                rawComp->collider.pos = posComp->getPos();
-            } else {
-                runPhysics(timeDelta, rawComp->id);
+	if (EntitySystem::Contains<PhysicsComponent>()) {
+		for (auto& rawComp : EntitySystem::GetPool<PhysicsComponent>()) {
+            auto ndc = EntitySystem::GetComp<NetworkDataComponent>(rawComp.getId());
+            if(ndc->owner == NetworkDataComponent::Owner::local_only || ndc->owner == NetworkDataComponent::Owner::local_shared) {
+                runPhysics(timeDelta, rawComp.id);
             }
-        }
-    }
+            else {
+                auto* posComp = EntitySystem::GetComp<PositionComponent>(rawComp.getId());
+                rawComp.collider.pos = posComp->getPos();
+            }
+		}
+	}
 }
 
 void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {

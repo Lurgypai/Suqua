@@ -12,11 +12,7 @@ MenuTextBoxComponent::MenuTextBoxComponent(EntityId id_) :
 	enteredText{},
 	tag{},
 	textWasEntered{false}
-{
-    if (!EntitySystem::Contains<NDC>() || !EntitySystem::GetComp<NDC>(id)) {
-        EntitySystem::MakeComps<NDC>(1, &id);
-    }
-}
+{}
 
 void MenuTextBoxComponent::update(Vec2f mousePos, bool toggled_) {
 	bool wasActive = active;

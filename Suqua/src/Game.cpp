@@ -4,9 +4,7 @@
 #include "PHServerPing.h"
 #include "SuquaLib.h"
 #include "DebugIO.h"
-#include "NetworkOwnerComponent.h"
 #include "NetworkDataComponent.h"
-#include "OnlineComponent.h"
 
 Game::Game(FlagType flags_, double physics_step, double render_step, Tick clientPingDelay_, Tick serverBroadcastDelay_) :
 	PHYSICS_STEP{ physics_step },
@@ -185,23 +183,18 @@ void Game::clearSDLEvents() {
 }
 
 static inline void broadcastOwnedStates(Host& host) {
-    if (EntitySystem::Contains<OnlineComponent>()) {
-        ByteStream state;
-        state << Packet::StateId;
-        state << true;
-        for (auto& networkOwnerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
-            if (networkOwnerComp.owner != NetworkOwnerComponent::Owner::local) continue;
-            
-            auto onlineComp = EntitySystem::GetComp<OnlineComponent>(networkOwnerComp.getId());
-            if (onlineComp == nullptr) continue;
+    ByteStream state;
+    state << Packet::StateId;
+    state << true;
+    if(!EntitySystem::Contains<NetworkDataComponent>()) return;
 
-            auto ndc = EntitySystem::GetComp<NetworkDataComponent>(networkOwnerComp.getId());
-            state << onlineComp->getNetId();
-            ndc->serializeForNetwork(state);
-            ndc->storePrev();
-        }
-        host.bufferAllDataByChannel(0, state);
+    for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
+        if (ndc.owner != NetworkDataComponent::Owner::local_shared) continue;
+
+        ndc.serializeForNetwork(state);
+        ndc.storePrev();
     }
+    host.bufferAllDataByChannel(0, state);
 }
 
 void Game::serverStep() {

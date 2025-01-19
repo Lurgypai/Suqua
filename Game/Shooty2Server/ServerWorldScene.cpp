@@ -1,6 +1,7 @@
 #include "ServerWorldScene.h"
 #include "Game.h"
 #include "../Shooty2Core/Shooty2Packet.h"
+#include <cstdint>
 #include <iostream>
 #include "PHServerSpawnEntities.h"
 #include "PHServerState.h"
@@ -12,6 +13,8 @@
 #include "../Shooty2Core/EntitySpawnSystem.h"
 #include "Packet.h"
 #include "AITopDownBasic.h"
+
+#include "PositionComponent.h"
 
 #include "TopDownMoverComponent.h"
 #include "ParentComponent.h"
@@ -38,7 +41,8 @@ void ServerWorldScene::load(Game& game)
     game.loadPacketHandler<PHServerDeadEntities>(Packet::DeadEntities);
  
 	// dummy ai
-	auto dummyEntities = EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2, 405.f / 2 }, NetworkOwnerComponent::Owner::local, true);
+    /*
+	auto dummyEntities = EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2, 405.f / 2 }, NetworkDataComponent::Owner::local_shared);
 	dummy = dummyEntities[0];
 
 	auto dummyAI = game.loadInputDevice<AITopDownBasic>();
@@ -46,6 +50,7 @@ void ServerWorldScene::load(Game& game)
 	auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
 	ai.entityId = dummy;
 	ai.setTargetTeams({ TeamComponent::TeamId::player });
+    */
 }
 
 void ServerWorldScene::physicsStep(Game& game) {
@@ -84,23 +89,26 @@ void ServerWorldScene::onConnect(Game& game, PeerId connectingPeer) {
         if(peer == connectingPeer) continue;
 
         for(const auto& entity : entities) {
-            std::cout << "Sending spawn request for tag " << entity.tag << '\n';
+            std::cout << '\t' << entity.tag << '\n';
+
             spawnPacket << entity.tag;
-            spawnPacket << Vec2f{0.f, 0.f};
-            spawnPacket << NetworkOwnerComponent::Owner::foreign;
-            for(const auto & netId : entity.netIds) {
-                spawnPacket << netId;
+            auto posComp = EntitySystem::GetComp<PositionComponent>(NetworkDataComponent::GetEntityId(entity.uuids[0]));
+            spawnPacket << posComp->getPos();
+            spawnPacket << static_cast<std::uint32_t>(entity.uuids.size());
+            for(const auto & uuid : entity.uuids) {
+                spawnPacket << uuid;
             }
         }
     }
 
     for(const auto& entityDescriptor : game.networkEntityOwnershipSystem.getLocalEntities()) {
-        std::cout << "Sending spawn request for tag " << entityDescriptor.tag << '\n';
+        std::cout << '\t' << entityDescriptor.tag << '\n';
         spawnPacket<< entityDescriptor.tag;
-        spawnPacket << Vec2f{0.f, 0.f};
-        spawnPacket << NetworkOwnerComponent::Owner::foreign;
-        for(const auto& netId : entityDescriptor.netIds) {
-            spawnPacket<< netId;
+        auto posComp = EntitySystem::GetComp<PositionComponent>(NetworkDataComponent::GetEntityId(entityDescriptor.uuids[0]));
+        spawnPacket << posComp->getPos();
+        spawnPacket << static_cast<std::uint32_t>(entityDescriptor.uuids.size());
+        for(const auto& uuid : entityDescriptor.uuids) {
+            spawnPacket<< uuid;
         }
     }
 
@@ -120,10 +128,10 @@ void ServerWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer) {
     ByteStream dead;
     dead << Packet::DeadEntities;
     for(const auto& entity : disconnectedEntities->second) {
-        for(auto netId : entity.netIds) {
-            dead << netId;
+        for(auto uuid : entity.uuids) {
+            dead << uuid;
 
-            EntityId entity = game.online.getEntity(netId);
+            EntityId entity = NetworkDataComponent::GetEntityId(uuid);
             if(!entity) continue;
 
             auto* base = EntitySystem::GetComp<EntityBaseComponent>(entity);

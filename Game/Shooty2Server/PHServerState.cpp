@@ -13,11 +13,11 @@ void PHServerState::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer
     bool propogate;
     data >> propogate;
 
-    NetworkId netId;
+    UUID uuid;
     while(data.hasMoreData()) {
-        data >> netId;
+        data >> uuid;
 
-        EntityId id = game.online.getEntity(netId);
+        EntityId id = NetworkDataComponent::GetEntityId(uuid);
         if(id == 0) {
             NetworkDataComponent::MoveStreamPast(data);
             continue;

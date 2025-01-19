@@ -2,7 +2,6 @@
 #include "EntitySystem.h"
 #include "HurtboxComponent.h"
 #include "HitboxComponent.h"
-#include "NetworkOwnerComponent.h"
 #include "Packet.h"
 #include "TeamComponent.h"
 #include "EntityBaseComponent.h"
@@ -21,8 +20,6 @@ static inline void damageEntity(EntityId cause, EntityId receiver, ByteStream& p
 	auto targetPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(receiver);
 	targetPhysicsComp->setVel(Vec2f{ 0, 0 });
 
-    auto onlineComp = EntitySystem::GetComp<OnlineComponent>(receiver);
-    if(!onlineComp) return;
     auto ndc = EntitySystem::GetComp<NetworkDataComponent>(receiver);
     if(!ndc) return;
 
@@ -30,7 +27,6 @@ static inline void damageEntity(EntityId cause, EntityId receiver, ByteStream& p
     ndc->storePrev(PositionData::X);
     ndc->storePrev(PositionData::Y);
 
-    packet << onlineComp->getNetId();
     ndc->serializeForNetwork(packet);
 }
 
@@ -38,7 +34,7 @@ using TeamId = TeamComponent::TeamId;
 
 void CombatSystem::checkClientCollisions(Host* host) {
 
-	if (!EntitySystem::Contains<NetworkOwnerComponent>() || !EntitySystem::Contains<HitboxComponent>())
+	if (!EntitySystem::Contains<HitboxComponent>())
 		return;
 
 
@@ -46,21 +42,21 @@ void CombatSystem::checkClientCollisions(Host* host) {
     damagePacket << Packet::StateId;
     damagePacket << false;
 
-	for (auto& ownerComp : EntitySystem::GetPool<NetworkOwnerComponent>()) {
+	for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
 
-		if (ownerComp.owner != NetworkOwnerComponent::Owner::local) continue;
+		if (ndc.owner != NetworkDataComponent::Owner::local_only &&
+                ndc.owner != NetworkDataComponent::Owner::local_shared) continue;
 
 		// find the things that we control
-		const auto hitComp = EntitySystem::GetComp<HitboxComponent>(ownerComp.getId());
-		const auto base = EntitySystem::GetComp<EntityBaseComponent>(ownerComp.getId());
-
+		const auto base = EntitySystem::GetComp<EntityBaseComponent>(ndc.getId());
 		if (!base->isActive || base->isDead) continue;
 
+		const auto hitComp = EntitySystem::GetComp<HitboxComponent>(ndc.getId());
 		// try to hit others
-		if (hitComp) {
+		if (hitComp != nullptr) {
 			// find other hurtboxes and run collision
 			for (const auto& otherHurtComp : EntitySystem::GetPool<HurtboxComponent>()) {
-				if (otherHurtComp.getId() == ownerComp.getId()) continue;
+				if (otherHurtComp.getId() == ndc.getId()) continue;
 
 				auto otherBaseComp = EntitySystem::GetComp<EntityBaseComponent>(otherHurtComp.getId());
 				if (!otherBaseComp->isActive || otherBaseComp->isDead) continue;
@@ -75,26 +71,26 @@ void CombatSystem::checkClientCollisions(Host* host) {
 				if (!hitComp->hitbox.intersects(otherHurtComp.hurtbox)) continue;
 				if (!hitComp->addHitEntity(otherHurtComp.getId())) continue;
 
-				damageEntity(ownerComp.getId(), otherHurtComp.getId(), damagePacket);
+				damageEntity(ndc.getId(), otherHurtComp.getId(), damagePacket);
 			}
 		}
 
 		//check if we got hit
-		auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(ownerComp.getId());
-		if (ourHealthComp != nullptr &&  ourHealthComp->getHealth() <= 0) continue;
+		auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(ndc.getId());
+		if (ourHealthComp != nullptr && ourHealthComp->getHealth() <= 0) continue;
 
-		const auto hurtComp = EntitySystem::GetComp<HurtboxComponent>(ownerComp.getId());
+		const auto hurtComp = EntitySystem::GetComp<HurtboxComponent>(ndc.getId());
 		if (hurtComp == nullptr) continue;
 
-		const auto teamComp = EntitySystem::GetComp<TeamComponent>(ownerComp.getId());
+		const auto teamComp = EntitySystem::GetComp<TeamComponent>(ndc.getId());
 		for (auto& otherHitComp : EntitySystem::GetPool<HitboxComponent>()) {
-			if (otherHitComp.getId() == ownerComp.getId()) continue;
+			if (otherHitComp.getId() == ndc.getId()) continue;
 
 			const auto otherBaseComp = EntitySystem::GetComp<EntityBaseComponent>(otherHitComp.getId());
 			if (!otherBaseComp->isActive) continue;
 
-			const auto otherNetworkOwnerComp = EntitySystem::GetComp<NetworkOwnerComponent>(otherHitComp.getId());
-			if (otherNetworkOwnerComp->owner != NetworkOwnerComponent::Owner::foreign) continue;
+			const auto otherNDC = EntitySystem::GetComp<NetworkDataComponent>(otherHitComp.getId());
+			if (otherNDC->owner != NetworkDataComponent::Owner::foreign) continue;
 
 			if (teamComp->teamId != TeamId::neutral &&
                 otherHitComp.getTeamId() != TeamId::neutral && 
@@ -102,7 +98,7 @@ void CombatSystem::checkClientCollisions(Host* host) {
 			if (!otherHitComp.hitbox.intersects(hurtComp->hurtbox)) continue;
 			if (!otherHitComp.addHitEntity(hurtComp->getId())) continue;
 
-			damageEntity(otherHitComp.getId(), ownerComp.getId(), damagePacket);
+			damageEntity(otherHitComp.getId(), ndc.getId(), damagePacket);
 		}
 	}
 

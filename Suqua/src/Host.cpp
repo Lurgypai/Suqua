@@ -152,6 +152,7 @@ void Host::tryConnect(const std::string & ip, int port, size_t channels) {
             std::cout << "Connected to host " << ip << ":" << port <<
                 " with " << channels << " channels\n";
             waitingForResponse = false;
+            clientConnected = true;
             break;
         case ENET_EVENT_TYPE_DISCONNECT:
             std::cout << "Failed to connect to host " << ip << ":" << port << ".\n";

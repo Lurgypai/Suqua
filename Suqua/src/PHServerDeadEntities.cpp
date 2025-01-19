@@ -1,6 +1,7 @@
 #include "PHServerDeadEntities.h"
 #include "Game.h"
 #include "EntityBaseComponent.h"
+#include "NetworkDataComponent.h"
 
 PHServerDeadEntities::PHServerDeadEntities(PacketId id_) :
 	PacketHandler{ id_ }
@@ -11,17 +12,16 @@ void PHServerDeadEntities::handlePacket(Game& game, ByteStream& data, PeerId sou
     data >> packet;
 
     while(data.hasMoreData()) {
-        NetworkId netId;
-        data >> netId;
+        UUID uuid;
+        data >> uuid;
 
-        EntityId id = game.online.getEntity(netId);
+        EntityId id = NetworkDataComponent::GetEntityId(uuid);
         if(id == 0) continue;
 
         auto* base = EntitySystem::GetComp<EntityBaseComponent>(id);
         base->isDead = true;
 
-        game.online.freeNetId(netId);
-        game.networkEntityOwnershipSystem.removeEntity(netId);
+        game.networkEntityOwnershipSystem.removeEntity(uuid);
     }
 
     data.setReadPos(0);

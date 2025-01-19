@@ -1,5 +1,6 @@
 #pragma once
 #include "PoolMap.h"
+#include <stdexcept>
 
 using EntityId = uint64_t;
 
@@ -37,7 +38,7 @@ private:
 template<typename T>
 inline T* EntitySystem::GetComp(EntityId id) {
 	if (id == 0)
-		throw std::exception{};
+		throw std::runtime_error{"EntitySystem: Invalid EntityId (0)"};
 	auto& pool = PoolMap::get<T>();
 	if (pool.contains(id - 1))
 		return &pool[id - 1];

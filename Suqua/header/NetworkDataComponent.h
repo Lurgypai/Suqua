@@ -9,6 +9,7 @@
 
 #include "ComponentMacros.h"
 #include "ByteStream.h"
+#include "UUID.h"
 
 
 //where do you want to store previous states for interpolation?
@@ -27,12 +28,12 @@ class NetworkDataComponent {
     CompMembers(NetworkDataComponent);
 
 public:
-	enum class SyncMode : char {
-		//the default is immediate, this is cheapest option to still allow syncing. To be changed?
-		IMMEDIATE = 0,
-		INTERPOLATED = 1,
-		NONE = 2
-	};
+    enum class Owner : char {
+        none,
+        foreign,
+        local_shared,
+        local_only
+    };
 
 private:
 	class Data {
@@ -47,7 +48,6 @@ private:
 			FLOAT,
 			STRING,
 		} type;
-		SyncMode mode;
 
 		inline Data() = default;
 		/*
@@ -90,7 +90,12 @@ public:
 	using DataId = uint32_t;
     using DataType = Data::DataType;
 
-	NetworkDataComponent(EntityId id_);
+    static EntityId GetEntityId(const UUID& id);
+    static void RemoveEntity(const UUID& id);
+
+	NetworkDataComponent(EntityId id_, 
+            const UUID& uuid_,
+            Owner owner_ = Owner::local_only );
 	NetworkDataComponent(NetworkDataComponent&& other) = default;
 	NetworkDataComponent& operator=(NetworkDataComponent&& other) = default;
 	NetworkDataComponent(const NetworkDataComponent& other);
@@ -119,8 +124,6 @@ public:
     template<IsDataValueType T>
     const T& get(DataId id) const;
 
-	void setSyncMode(DataId id, SyncMode mode);
-
 	//sets this entity to the interpolation between the two targets
 	// void interp(const NetworkDataComponent& first, const NetworkDataComponent& second, float ratio);
 
@@ -129,12 +132,18 @@ public:
     // stores the current data in the prevDataPtr
     void storePrev();
     void storePrev(DataId field);
+
+    const UUID& getUUID() const;
+    Owner owner;
 private:
 	using DataMap = std::unordered_map<DataId, Data>;
 	using DataMapPtr = std::unique_ptr<DataMap>;
 
 	DataMapPtr dataPtr;
     DataMapPtr prevDataPtr;
+
+    UUID uuid;
+    static std::unordered_map<UUID, EntityId> idMap;
 };
 
 
@@ -161,6 +170,7 @@ inline void NetworkDataComponent::Data::set(T&& t) {
 }
 
 template<IsDataValueType T>
+
 inline void NetworkDataComponent::Data::set(const T& t) {
 	type = getDataType<T>();
 	value = t;

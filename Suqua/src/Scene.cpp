@@ -4,10 +4,10 @@
 #include "InputDevice.h"
 #include "EntityBaseComponent.h"
 #include "Packet.h"
-#include "OnlineComponent.h"
 #include "ControllerComponent.h"
+#include "NetworkDataComponent.h"
 
-#include "DebugFIO.h"
+// #include "DebugFIO.h"
 
 std::vector<EntityId> Scene::addEntities(unsigned int count) {
 	std::vector<EntityId> ids = std::vector<EntityId>(count, 0);
@@ -26,22 +26,20 @@ void Scene::removeEntities(const std::vector<EntityId>& entities_) {
 }
 
 void Scene::broadcastDeadEntities(Game& game) {
-    if(!EntitySystem::Contains<OnlineComponent>()) return;
-
     ByteStream deadEntityPacket;
     deadEntityPacket << Packet::DeadEntities;
 
     for(auto& entity : entities) {
         EntityBaseComponent* base = EntitySystem::GetComp<EntityBaseComponent>(entity);
-        OnlineComponent* online = EntitySystem::GetComp<OnlineComponent>(entity);
-        if(!base || !online || !base->isDead) continue;
+        NetworkDataComponent* ndc = EntitySystem::GetComp<NetworkDataComponent>(entity);
+        if(!base || !base->isDead ||
+                !ndc || ndc->owner != NetworkDataComponent::Owner::local_shared) continue;
 
-        deadEntityPacket << online->getNetId();
-        game.networkEntityOwnershipSystem.removeLocalEntity(online->getNetId());
+        auto& uuid = ndc->getUUID();
+        game.networkEntityOwnershipSystem.removeLocalEntity(uuid);
+        deadEntityPacket << uuid;
 
-        game.online.freeNetId(online->getNetId());
-
-        DebugFIO::TimeOut("send.packet.log") << online->getId() << " dead\n";
+        // DebugFIO::TimeOut("send.packet.log") << online->getId() << " dead\n";
     }
 
     game.host.bufferAllDataByChannel(0, deadEntityPacket);
@@ -121,6 +119,11 @@ void Scene::removeDeadEntities() {
 	for (auto iter = entities.begin();;) {
 		if (iter == entities.end()) break;
 		if (isDead(*iter)) {
+            if(EntitySystem::Contains<NetworkDataComponent>()) {
+                auto ndc = EntitySystem::GetComp<NetworkDataComponent>(*iter);
+                NetworkDataComponent::RemoveEntity(ndc->getUUID());
+            }
+
 			iter = entities.erase(iter);
 		}
 		else ++iter;

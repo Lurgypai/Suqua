@@ -20,7 +20,7 @@ GunFireComponent::GunFireComponent(EntityId id_,
 void GunFireComponent::fire(Scene* currScene)
 {
 	auto firingPos = getFiringPos();
-	auto bullets = EntitySpawnSystem::SpawnEntity(bulletTag, *currScene, firingPos, NetworkOwnerComponent::Owner::local, true);
+	auto bullets = EntitySpawnSystem::SpawnEntity(bulletTag, *currScene, firingPos, NetworkDataComponent::Owner::local_shared);
 	EntityId bulletId = bullets[0];
 
 	auto directionComp = EntitySystem::GetComp<DirectionComponent>(id);

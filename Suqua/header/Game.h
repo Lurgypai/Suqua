@@ -5,11 +5,9 @@
 #include "InputDevice.h"
 #include "Host.h"
 #include "Tick.h"
-#include "OnlineSystem.h"
 #include "NetworkEntityOwnershipSystem.h"
 
 #include <unordered_map>
-#include <vector>
 
 using EventQueue = std::deque<SDL_Event>;
 
@@ -74,7 +72,6 @@ public:
 	void onDisconnect(PeerId id);
 
 	Host host;
-	OnlineSystem online;
     NetworkEntityOwnershipSystem networkEntityOwnershipSystem;
 	//how often, in game ticks, the client pings the server
 	Tick clientPingDelay;

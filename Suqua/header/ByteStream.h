@@ -2,6 +2,8 @@
 #include <vector>
 #include <cstring>
 #include <string>
+
+#include "UUID.h"
 #include "Vec2.h"
 #include "ByteOrder.h"
 
@@ -76,6 +78,18 @@ inline ByteStream& ByteStream::operator<< <Vec2f>(const Vec2f& t) {
     return *this;
 }
 
+template<>
+inline ByteStream& ByteStream::operator<< <UUID>(const UUID& t) {
+	size_t end = _data.size();
+	_data.resize(end + sizeof(t));
+	auto xCpy = s_hton(t.data_[0]);
+	auto yCpy = s_hton(t.data_[1]);
+	std::memcpy(_data.data() + end, &xCpy, sizeof(xCpy));
+	std::memcpy(_data.data() + end + sizeof(xCpy), &yCpy, sizeof(yCpy));
+
+    return *this;
+}
+
 template<typename T>
 inline bool ByteStream::operator>>(T& t) {
 	if (readPos + sizeof(t) <= _data.size()) {
@@ -122,6 +136,21 @@ inline bool ByteStream::operator >> <Vec2f>(Vec2f& v) {
 
 	v.x = s_ntoh(v.x);
 	v.y = s_ntoh(v.y);
+
+	return true;
+}
+
+template<>
+inline bool ByteStream::operator >> <UUID>(UUID& v) {
+	if (readPos + sizeof(v) > _data.size()) return false;
+
+	std::memcpy(&v.data_[0], _data.data() + readPos, sizeof(v.data_[0]));
+    readPos += sizeof(v.data_[0]);
+	std::memcpy(&v.data_[1], _data.data() + readPos, sizeof(v.data_[1]));
+    readPos += sizeof(v.data_[1]);
+
+	v.data_[0] = s_ntoh(v.data_[0]);
+	v.data_[1] = s_ntoh(v.data_[1]);
 
 	return true;
 }

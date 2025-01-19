@@ -3,6 +3,7 @@
 #include "NetworkDataComponentDataFields.h"
 
 #include "AngleUtil.h"
+#include <stdexcept>
 
 using namespace DirectionData;
 
@@ -12,12 +13,8 @@ DirectionComponent::DirectionComponent(EntityId id_) :
 	cardinalDir{ 0 },
 	isLocked_{false}
 {
-    if (!EntitySystem::Contains<NetworkDataComponent>()
-            || !EntitySystem::GetComp<NetworkDataComponent>(id)) {
-        EntitySystem::MakeComps<NetworkDataComponent>(1, &id);
-    }
-
     auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+    if(ndc == nullptr) throw std::runtime_error{"DirectionData: NetworkDataComponent was not initialized"};
     ndc->set<float>(DIR, 180.0f);
     dir = &ndc->get<float>(DIR);
 }

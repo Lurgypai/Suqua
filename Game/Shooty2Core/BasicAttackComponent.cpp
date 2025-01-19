@@ -9,7 +9,6 @@
 #include "DamageComponent.h"
 #include "BasicDamageCalculator.h"
 #include "HealthComponent.h"
-#include "NetworkOwnerComponent.h"
 
 BasicAttackComponent::BasicAttackComponent(EntityId id_,
         int delay_,
@@ -24,7 +23,12 @@ BasicAttackComponent::BasicAttackComponent(EntityId id_,
 	tick{ 0 },
 	isActive_{false}
 {
+    /* BIG WARNING
+     * This class is not ready to be used. We can't properly nest an entity inside a component being created because there is no way to assign a valid UUID
+     */
     EntitySystem::GenEntities(1, &hitboxId);
+    // EntitySystem::MakeComps<NetworkDataComponent>(1, &hitboxId,
+
     EntitySystem::MakeComps<HitboxComponent>(1, &hitboxId,
             Vec2f{-5.f, -10.f},
             Vec2f{10.f, 10.f} );
@@ -36,7 +40,6 @@ BasicAttackComponent::BasicAttackComponent(EntityId id_,
             Vec2f{8.f, 0.f} );
 
     EntitySystem::MakeComps<DamageComponent>(1, &hitboxId);
-    EntitySystem::MakeComps<NetworkOwnerComponent>(1, &hitboxId, NetworkOwnerComponent::Owner::local);
 
     auto hitboxComp = EntitySystem::GetComp<HitboxComponent>(hitboxId);
     hitboxComp->collisionsMax = 1;

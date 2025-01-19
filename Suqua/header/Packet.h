@@ -9,8 +9,7 @@ namespace Packet {
 	constexpr PacketId PingId = 1;
 	constexpr PacketId StateId = 2;
     // flag propogate
-    // NetworkID id
-    // serialized NDC state
+    // serialized NDC state (including uuid)
 
 	constexpr PacketId InputId = 3;
 	//notifies a client that it is out of sync, and needs to send a ping
@@ -20,7 +19,6 @@ namespace Packet {
     constexpr PacketId DeadEntities = 5;
     /*
      * DeadEntities:
-     * Client->server / server->client
-     *  NetworkId netId
+     *  UUID uuid
      */
 }

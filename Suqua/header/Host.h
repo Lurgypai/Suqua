@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include <functional>
 #include <vector>
-#include <OnlineComponent.h>
 
 using ConnectCallback = void(Game& game, PeerId id);
 using DisconnectCallback = void(Game& game, PeerId id);
@@ -62,7 +61,6 @@ public:
 	void setConnectCallback(std::function<ConnectCallback> callback);
 	void setDisconnectCallback(std::function<DisconnectCallback> callback);
 
-	const std::vector<NetworkId>& getPeerOwnedNetIds(PeerId id);
 	bool isPeerConnected(PeerId id);
 	size_t getConnectedPeerCount();
     std::vector<PeerId> getConnectedPeers() const;

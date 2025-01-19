@@ -1,9 +1,9 @@
 #include "PHClientSpawnEntities.h"
 #include "Game.h"
-#include "DebugFIO.h"
 
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/EntitySpawnSystem.h"
+#include <cstdint>
 
 PHClientSpawnEntities::PHClientSpawnEntities(PacketId id_, Scene* scene_) :
 	PacketHandler{ id_ },
@@ -11,29 +11,26 @@ PHClientSpawnEntities::PHClientSpawnEntities(PacketId id_, Scene* scene_) :
 {}
 
 void PHClientSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer) {
-    // std::cout << "Client received spawn entities command\n";
     PacketId packetId;
     data >> packetId;
 
     std::string tag;
-    NetworkId netId;
-    NetworkOwnerComponent::Owner owner;
     Vec2f pos;
+    std::uint32_t uuidCount;
+    UUID uuid;
 
     while(data.hasMoreData()) {
         data >> tag;
         data >> pos;
-        data >> owner;
+        data >> uuidCount;
 
-        auto entities = EntitySpawnSystem::SpawnEntity(tag, *scene, pos, owner, false);
-        // set the parent's net Id
-
-        for(const auto& entity : entities) {
-            if(!data.hasMoreData()) throw std::exception{}; 
-            data >> netId;
-            game.online.registerOnlineComponent(entity, netId);
-
-            DebugFIO::Out("packet.log") << netId << " spawn\n";
+        std::vector<UUID> uuids;
+        uuids.reserve(uuidCount);
+        for(int i = 0; i != uuidCount; ++i) {
+            data >> uuid;
+            uuids.push_back(uuid);
         }
+
+        auto entities = EntitySpawnSystem::SpawnEntity(tag, *scene, pos, NetworkDataComponent::Owner::foreign, uuids);
     }
 }

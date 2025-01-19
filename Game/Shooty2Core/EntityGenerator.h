@@ -9,12 +9,21 @@
 
 class EntityGenerator : public EntitySpawnSystem::Generator {
 public:
-    using SpawnFunction = std::function<std::vector<EntityId>(Scene&, const Vec2f&)>;
+    using SpawnFunction = std::function<std::vector<EntityId>(
+            Scene&,
+            const Vec2f&,
+            NetworkDataComponent::Owner owner,
+            std::vector<UUID> uuids )>;
 
     EntityGenerator() = default;
     virtual ~EntityGenerator() = default;
     virtual void RegisterSpawnFunctions() override;
-    virtual std::vector<EntityId> SpawnEntity(const std::string& tag, Scene& targetScene, const Vec2f& targetPos, NetworkOwnerComponent::Owner owner, bool shared) override;
+    virtual std::vector<EntityId> SpawnEntity(
+            const std::string& tag,
+            Scene& targetScene,
+            const Vec2f& targetPos,
+            NetworkDataComponent::Owner owner,
+            const std::vector<UUID>& uuids = std::vector<UUID>{}) override;
 
 private:
     std::unordered_map<std::string, SpawnFunction> SpawnFunctions; 
