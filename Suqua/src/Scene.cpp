@@ -58,51 +58,17 @@ Scene::~Scene() {};
 * It might be good to add an optimization that doesn't store inputs if the networkInputDelay is 0.
 */
 void Scene::doInputs(Game& game) {
-	//apply immediately
-	for (auto&& [entityId, inputId] : entityInputs) {
-		Controller c = game.getInputDevice(inputId).getControllerState();
-		ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(entityId);
-		cont->setController(c);
-	}
-
-	//storeInputs(game);
-	//applyInputs(game);
-}
-
-void Scene::storeInputs(Game& game) {
-	for (auto&& [entityId, inputId] : entityInputs) {
-		Controller c = game.getInputDevice(inputId).getControllerState();
-		
-		// store future input
-		futureEntityInputs[game.getGameTick() + game.networkInputDelay].emplace( entityId, c );
-	}
-}
-
-const std::unordered_map<EntityId, Controller>* Scene::getInputsAtTime(Tick time) const
-{
-	const auto& pair = futureEntityInputs.find(time);
-	if (pair != futureEntityInputs.end()) {
-		return &pair->second;
-	}
-	return nullptr;
-}
-
-void Scene::applyInputs(Game& game) {
-
-	// if the future entity input map (mapping entity to controller ) exists
-	const auto& mapForTick = futureEntityInputs.find(game.getGameTick());
-	if (mapForTick != futureEntityInputs.end()) {
-		// for every 
-		for (auto&& [id, controller] : mapForTick->second) {
-			ControllerComponent* cont = EntitySystem::GetComp<ControllerComponent>(id);
-			cont->setController(controller);
-		}
-		futureEntityInputs.erase(mapForTick);
-	}
-	else {
-		std::cout << "Unable to find inputs for time " << game.getGameTick() << '\n';
-	}
-
+    for (auto& controllerComp : EntitySystem::GetPool<ControllerComponent>()) {
+        auto entityId = controllerComp.getId();
+        auto iter = entityInputs.find(entityId);
+        if(iter != entityInputs.end()) {
+            Controller c = game.getInputDevice(iter->second).getControllerState();
+            controllerComp.setController(c);
+        }
+        else {
+            controllerComp.getController().storePrev();
+        }
+    }
 }
 
 void Scene::removeAllEntities() {

@@ -14,6 +14,7 @@
 #include "HealthWatcherComponent.h"
 #include "ControllerComponent.h"
 #include "RespawnComponent.h"
+#include "AIGunnerComponent.h"
 
 #include "SpawnFunctionNotFoundException.h"
 
@@ -210,6 +211,10 @@ static std::vector<EntityId> SpawnEnemy(
 
 	EntitySystem::MakeComps<RespawnComponent>(1, &enemyId,
         Vec2f{ 720.f / 2, 405.f / 2 } );
+
+    EntitySystem::MakeComps<AIGunnerComponent>(1, &enemyId,
+            300,
+            200 );
     /*
 	EntitySystem::MakeComps<BasicAttackComponent>(1, &enemyId);
 	auto attackComp = EntitySystem::GetComp<BasicAttackComponent>(enemyId);

@@ -32,6 +32,7 @@
 #include "../Shooty2Core/OnHitComponent.h"
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/EntitySpawnSystem.h"
+#include "../Shooty2Core/AIGunnerComponent.h"
 
 ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{ id_, flags_ },
@@ -76,17 +77,6 @@ void ClientWorldScene::load(Game& game)
     myGunId = playerAndGunId[1];
 	addEntityInputs({ {myPlayerId, playerInput}, {myGunId, playerInput} });
 
-    /*
-	auto dummyEntities = EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2, 405.f / 2 }, NetworkOwnerComponent::Owner::local, true);
-	auto dummy = dummyEntities[0];
-
-	auto dummyAI = game.loadInputDevice<AITopDownBasic>();
-	addEntityInputs({ { dummy, dummyAI } });
-	auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
-	ai.entityId = dummy;
-	ai.setTargetTeams({ TeamComponent::TeamId::player });
-    */
-
 	// load level
 	World test{ "tileset", "levels/basic_test.ldtk" };
 	test.load(*this);
@@ -95,6 +85,7 @@ void ClientWorldScene::load(Game& game)
 
 void ClientWorldScene::physicsStep(Game& game)
 {
+    Updater::UpdateOwned<AIGunnerComponent>(game.PHYSICS_STEP);
 	Updater::UpdateOwned<TopDownMoverComponent>();
 	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();

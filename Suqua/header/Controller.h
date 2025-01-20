@@ -53,6 +53,8 @@ public:
 
 	ControllerState getState() const;
 	ControllerState getPrevState() const;
+    
+    void storePrev();
 
 	void serialize(ByteStream& data) const;
 	void unserialize(ByteStream& data);

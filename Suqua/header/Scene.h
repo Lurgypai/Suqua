@@ -42,11 +42,6 @@ public:
 
 	void doInputs(Game& game);
 
-	// pointer to imply maybe existence
-	// it might not exist if the scene doesn't have any current entities that need input
-	const std::unordered_map<EntityId, Controller>* getInputsAtTime(Tick time) const;
-
-
 	void removeAllEntities();
 	void removeDeadEntities();
 	void drawScene(const RenderSystem& render) const;
@@ -72,14 +67,10 @@ protected:
 	void removeEntities(const std::vector<EntityId>& entities);
     void broadcastDeadEntities(Game& game);
 private:
-	void storeInputs(Game& game);
 	void applyInputs(Game& game);
 
 	std::set<EntityId> entities;
 	EntityInputMap entityInputs;
-
-	// entity input states to be applied at a later date.
-	std::unordered_map<Tick, std::unordered_map<EntityId, Controller>> futureEntityInputs;
 };
 
 using ScenePtr = std::unique_ptr<Scene>;

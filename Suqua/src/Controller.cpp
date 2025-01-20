@@ -1,6 +1,5 @@
 #include "Controller.h"
 #include "ByteStream.h"
-#include <vector>
 
 Controller::Controller() :
 	prevState{ 0 },
@@ -37,6 +36,7 @@ bool Controller::toggled(ControllerState ctrl_bits) const {
 }
 
 void Controller::on(ControllerState ctrl_bits) {
+    // only store the modified fields in prev
 	prevState = (prevState & ~ctrl_bits) | (state & ctrl_bits);
 	state |= ctrl_bits;
 }
@@ -65,6 +65,10 @@ ControllerState Controller::getState() const {
 
 ControllerState Controller::getPrevState() const {
 	return prevState;
+}
+
+void Controller::storePrev() {
+    prevState = state;
 }
 
 void Controller::serialize(ByteStream& stream) const {

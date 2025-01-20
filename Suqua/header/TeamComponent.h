@@ -6,9 +6,9 @@ class TeamComponent {
 
 public:
 	enum class TeamId {
-	neutral,
-	player,
-	enemy,
+        neutral,
+        player,
+        enemy,
 	};
 
     TeamComponent(EntityId id_, TeamId teamid_);

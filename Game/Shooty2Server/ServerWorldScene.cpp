@@ -11,8 +11,8 @@
 #include "EntityBaseComponent.h"
 
 #include "../Shooty2Core/EntitySpawnSystem.h"
+#include "../Shooty2Core/AIGunnerComponent.h"
 #include "Packet.h"
-#include "AITopDownBasic.h"
 
 #include "PositionComponent.h"
 
@@ -41,19 +41,14 @@ void ServerWorldScene::load(Game& game)
     game.loadPacketHandler<PHServerDeadEntities>(Packet::DeadEntities);
  
 	// dummy ai
-    /*
-	auto dummyEntities = EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2, 405.f / 2 }, NetworkDataComponent::Owner::local_shared);
-	dummy = dummyEntities[0];
-
-	auto dummyAI = game.loadInputDevice<AITopDownBasic>();
-	addEntityInputs({ { dummy, dummyAI } });
-	auto& ai = static_cast<AITopDownBasic&>(game.getInputDevice(dummyAI));
-	ai.entityId = dummy;
-	ai.setTargetTeams({ TeamComponent::TeamId::player });
-    */
+	EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2, 405.f / 2 }, NetworkDataComponent::Owner::local_shared);
+	EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2 + 50, 405.f / 2 }, NetworkDataComponent::Owner::local_shared);
+	EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2, 405.f / 2 + 50 }, NetworkDataComponent::Owner::local_shared);
+	EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2 + 50, 405.f / 2 + 50}, NetworkDataComponent::Owner::local_shared);
 }
 
 void ServerWorldScene::physicsStep(Game& game) {
+    Updater::UpdateOwned<AIGunnerComponent>(game.PHYSICS_STEP);
 	Updater::UpdateOwned<TopDownMoverComponent>();
 	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
@@ -123,8 +118,6 @@ void ServerWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer) {
     auto disconnectedEntities = owned.find(disconnectedPeer);
     if(disconnectedEntities == owned.end()) return;
 
-    game.networkEntityOwnershipSystem.removePeer(disconnectedPeer);
-
     ByteStream dead;
     dead << Packet::DeadEntities;
     for(const auto& entity : disconnectedEntities->second) {
@@ -132,12 +125,15 @@ void ServerWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer) {
             dead << uuid;
 
             EntityId entity = NetworkDataComponent::GetEntityId(uuid);
+            std::cout << "Checking UUID " << uuid << " for removal\n";
             if(!entity) continue;
 
+            std::cout << "Setting UUID " << uuid << " to dead.\n";
             auto* base = EntitySystem::GetComp<EntityBaseComponent>(entity);
             base->isDead = true;
         }
     }
-
     game.host.bufferAllDataByChannel(0, dead);
+
+    game.networkEntityOwnershipSystem.removePeer(disconnectedPeer);
 }
