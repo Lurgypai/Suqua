@@ -14,7 +14,7 @@ add_subdirectory ("Suqua")
 add_subdirectory ("enet-master")
 
 # add_subdirectory("Demo/Platformer")
-# add_subdirectory("Demo/TextureRender")
+add_subdirectory("Demo/TextureRender")
 
 # add_subdirectory("Game/RuinsGame")
 

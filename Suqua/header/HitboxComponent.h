@@ -7,7 +7,10 @@
 class HitboxComponent {
     CompMembers(HitboxComponent);
 public:
-	HitboxComponent(EntityId id_, const Vec2f& offset_, const Vec2f& res);
+	HitboxComponent(EntityId id_,
+            const Vec2f& offset_,
+            const Vec2f& res,
+            bool dieOnHit_ );
 
 	void update();
 	// returns wether or not the entity was hit, and adds it as a hit entity
@@ -28,9 +31,15 @@ public:
 	int reHitDelay;
 	// wether we can hit the same thing multiple times
 	bool multipleHits;
+
+    // whether to remove this entity when the collisions reaches the max
+    bool dieOnHit;
 private:
 	// map entities to remaining frames before they can be hit again
 	std::unordered_map<EntityId, int> hitEntities;
 	// how many times we've hit things
 	unsigned int collisions;
+
+    // whether this hitbox should do more collisions
+    bool active;
 };

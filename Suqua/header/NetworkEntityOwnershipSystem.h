@@ -8,9 +8,9 @@
 
 struct NetworkEntityDescriptor {
     std::string tag;
-    std::vector<UUID> uuids;
+    UUID uuid;
 
-    NetworkEntityDescriptor(const std::string& tag, std::vector<UUID>&& netIds);
+    NetworkEntityDescriptor(const std::string& tag, const UUID& uuid);
 };
 
 /*
@@ -22,8 +22,8 @@ struct NetworkEntityDescriptor {
 class NetworkEntityOwnershipSystem {
 public:
     using OwnedEntityMap = std::unordered_map<PeerId, std::vector<NetworkEntityDescriptor>>;
-    void addOwnedEntity(PeerId peer, const std::string& tag, std::vector<UUID>&& netIds); 
-    void addLocalEntity(const std::string& tag, std::vector<UUID>&& netIds);
+    void addOwnedEntity(PeerId peer, const std::string& tag, const UUID& uuid); 
+    void addLocalEntity(const std::string& tag, const UUID& uuid);
     // INNEFEFEINT
     void removeEntity(UUID uuid);
     void removeLocalEntity(UUID uuid);

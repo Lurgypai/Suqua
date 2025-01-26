@@ -1,5 +1,4 @@
 #include "Scene.h"
-#include <iostream>
 #include "Game.h"
 #include "InputDevice.h"
 #include "EntityBaseComponent.h"
@@ -58,6 +57,7 @@ Scene::~Scene() {};
 * It might be good to add an optimization that doesn't store inputs if the networkInputDelay is 0.
 */
 void Scene::doInputs(Game& game) {
+    if(!EntitySystem::Contains<ControllerComponent>()) return;
     for (auto& controllerComp : EntitySystem::GetPool<ControllerComponent>()) {
         auto entityId = controllerComp.getId();
         auto iter = entityInputs.find(entityId);

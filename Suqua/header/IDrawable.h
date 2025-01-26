@@ -8,4 +8,6 @@ public:
 	virtual void setPos(Vec2f pos) = 0;
 
 	virtual IDrawable* clone() = 0;
+
+    Vec2f offset;
 };

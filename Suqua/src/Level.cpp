@@ -56,16 +56,16 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 				posComp->setPos(levelOffset + worldPos);
 
 				auto renderComp = EntitySystem::GetComp<RenderComponent>(tile);
-				renderComp->loadDrawable<Sprite>(textureTag);
+				auto sprIndex = renderComp->loadDrawable<Sprite>(textureTag);
 
-				auto sprite = renderComp->getDrawable<Sprite>();
+				Sprite& sprite = renderComp->getDrawable<Sprite>(sprIndex);
 				// std::cout << "texture offset: " << texOffset << '\n';
-				sprite->setImgOffset(texOffset);
-				sprite->setObjRes(res);
+				sprite.setImgOffset(texOffset);
+				sprite.setObjRes(res);
 				unsigned int f = tileJson["f"];
 				// std::cout << "px: " << worldPos << ", f: " << f << '\n';
-				sprite->horizontalFlip = f & 1;
-				sprite->verticalFlip = f & 2;
+				sprite.horizontalFlip = f & 1;
+				sprite.verticalFlip = f & 2;
 
 				tiles.emplace_back(tile);
 			}

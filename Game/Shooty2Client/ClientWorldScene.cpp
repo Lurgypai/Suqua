@@ -72,10 +72,9 @@ void ClientWorldScene::load(Game& game)
 	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 
-	auto playerAndGunId = EntitySpawnSystem::SpawnEntity("player.basic", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
-	myPlayerId = playerAndGunId[0];
-    myGunId = playerAndGunId[1];
-	addEntityInputs({ {myPlayerId, playerInput}, {myGunId, playerInput} });
+	myPlayerId = EntitySpawnSystem::SpawnEntity("player.basic", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
+    //myGunId = playerAndGunId[1];
+	addEntityInputs({ {myPlayerId, playerInput} });
 
 	// load level
 	World test{ "tileset", "levels/basic_test.ldtk" };
@@ -89,7 +88,7 @@ void ClientWorldScene::physicsStep(Game& game)
 	Updater::UpdateOwned<TopDownMoverComponent>();
 	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
-	Updater::UpdateOwned<GunFireComponent>(this);
+	Updater::UpdateOwned<GunFireComponent>(*this);
 	Updater::UpdateOwned<LifeTimeComponent>();
 	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();

@@ -11,11 +11,13 @@ void RenderSystem::drawAll() const {
 
 inline void RenderSystem::draw(RenderComponent& render) const {
 	if (EntitySystem::Contains<RenderComponent>()) {
-		IDrawable* drawable = render.sprite.get();
-		if (drawable != nullptr) {
-			auto posComp = EntitySystem::GetComp<PositionComponent>(render.getId());
-			drawable->setPos(posComp->getPos() + render.offset);
-			drawable->draw();
-		}
+        for(auto& sprite : render.sprites) {
+            IDrawable* drawable = sprite.get();
+            if (drawable != nullptr) {
+                auto posComp = EntitySystem::GetComp<PositionComponent>(render.getId());
+                drawable->setPos(posComp->getPos() + sprite->offset);
+                drawable->draw();
+            }
+        }
 	}
 }

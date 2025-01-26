@@ -2,10 +2,10 @@
 #include "PositionComponent.h"
 #include "RenderComponent.h"
 #include "Game.h"
-#include "DirectionComponent.h"
 #include "DebugIO.h"
 #include "ExitCommand.h"
 #include "SideScrollMoverComponent.h"
+#include "NetworkDataComponent.h"
 
 
 constexpr unsigned int ScreenWidth = 1920 / 4;
@@ -35,6 +35,8 @@ void WorldScene::load(Game& game)
 
     auto constexpr COUNT = 2;
     auto renderEntities = addEntities(COUNT);
+    EntitySystem::MakeComps<NetworkDataComponent>(COUNT, renderEntities.data(),
+            UUID::GenerateUUID());
     EntitySystem::MakeComps<RenderComponent>(COUNT, renderEntities.data());
     int index = 0;
     for(auto& id : renderEntities) {

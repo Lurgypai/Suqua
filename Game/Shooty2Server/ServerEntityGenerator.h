@@ -11,7 +11,12 @@ class ServerEntityGenerator : public EntityGenerator{
 public:
     ServerEntityGenerator(Game* host);
     virtual ~ServerEntityGenerator() = default;
-    virtual std::vector<EntityId> SpawnEntity(const std::string& tag, Scene& targetScene, const Vec2f& targetPos, NetworkDataComponent::Owner owner, const std::vector<UUID>& uuids = {}) override;
+    virtual EntityId SpawnEntity(
+            const std::string& tag,
+            Scene& targetScene,
+            const Vec2f& targetPos,
+            NetworkDataComponent::Owner owner,
+            const UUID& uuid = UUID::GenerateUUID()) override;
 
 private:
     Game* game;

@@ -11,6 +11,7 @@ CharacterGFXComponent::CharacterGFXComponent(
         const std::string& fileName,
         Vec2f offset
         ) :
+    sprIndex{},
 	id{ id_ },
 	prevCardinalDir{ 0 },
 	isPlayingAnimation_{false},
@@ -25,16 +26,16 @@ CharacterGFXComponent::CharacterGFXComponent(
 
 void CharacterGFXComponent::loadSpriteSheet(const std::string& tag, const std::string& fileName, Vec2f offset) {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	renderComp->loadDrawable<AnimatedSprite>(tag, fileName);
-	renderComp->offset = offset;
+	sprIndex = renderComp->loadDrawable<AnimatedSprite>(tag, fileName);
 
-	auto sprite = renderComp->getDrawable<AnimatedSprite>();
-	sprite->looping = true;
+	AnimatedSprite& sprite = renderComp->getDrawable<AnimatedSprite>(sprIndex);
+	sprite.looping = true;
+    sprite.offset = offset;
 }
 
 void CharacterGFXComponent::update(int timeDelta) {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite* sprite = renderComp->getDrawable<AnimatedSprite>();
+	AnimatedSprite& sprite = renderComp->getDrawable<AnimatedSprite>(sprIndex);
 
 	auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 
@@ -47,13 +48,13 @@ void CharacterGFXComponent::update(int timeDelta) {
 	else if (currCharacterDirDeg >= 180 && currCharacterDirDeg <= 270) currCardinalDir = 2;
 
 
-	sprite->update(timeDelta);
+	sprite.update(timeDelta);
 	if (isPlayingAnimation_) {
 		if (currCardinalDir == 1) {
-			sprite->setHorizontalFlip(false);
+			sprite.setHorizontalFlip(false);
 		}
 		else if(currCardinalDir == 3) {
-			sprite->setHorizontalFlip(true);
+			sprite.setHorizontalFlip(true);
 		}
 	}
 	else {
@@ -64,11 +65,11 @@ void CharacterGFXComponent::update(int timeDelta) {
 void CharacterGFXComponent::playAnimation(const std::string& tag, bool looping)
 {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite* sprite = renderComp->getDrawable<AnimatedSprite>();
+	AnimatedSprite& sprite = renderComp->getDrawable<AnimatedSprite>(sprIndex);
 
-	if (sprite->hasAnimation(tag)) {
-		sprite->setAnimation(tag);
-		sprite->looping = looping;
+	if (sprite.hasAnimation(tag)) {
+		sprite.setAnimation(tag);
+		sprite.looping = looping;
 		isPlayingAnimation_ = true;
 	}
 }
@@ -82,8 +83,8 @@ void CharacterGFXComponent::stopAnimation() {
 
 void CharacterGFXComponent::doDefaultAnimations() {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite* sprite = renderComp->getDrawable<AnimatedSprite>();
-	sprite->looping = true;
+	AnimatedSprite& sprite = renderComp->getDrawable<AnimatedSprite>(sprIndex);
+	sprite.looping = true;
 
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 	auto currCharacterVel = physicsComp->getVel();
@@ -104,19 +105,19 @@ void CharacterGFXComponent::doDefaultAnimations() {
 	}
 
 	if (currCharacterVel != Vec2f{0, 0}) {
-		if (currCardinalDir == 0) sprite->setAnimation("down");
+		if (currCardinalDir == 0) sprite.setAnimation("down");
 		else if (currCardinalDir == 1) {
-			sprite->setAnimation("left_right");
-			sprite->setHorizontalFlip(false);
+			sprite.setAnimation("left_right");
+			sprite.setHorizontalFlip(false);
 		}
-		else if (currCardinalDir == 2) sprite->setAnimation("up");
+		else if (currCardinalDir == 2) sprite.setAnimation("up");
 		else {
-			sprite->setAnimation("left_right");
-			sprite->setHorizontalFlip(true);
+			sprite.setAnimation("left_right");
+			sprite.setHorizontalFlip(true);
 		}
 	}
 	else {
-		sprite->setAnimation("idle");
+		sprite.setAnimation("idle");
 	}
 
 	prevCardinalDir = currCardinalDir;
@@ -170,12 +171,10 @@ void CharacterGFXComponent::setHasUpDown(bool upDown) {
 
 void CharacterGFXComponent::setColorOverlay(Color c) {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite* sprite = renderComp->getDrawable<AnimatedSprite>();
-	sprite->setColorOverlay(c);
+	renderComp->getDrawable<AnimatedSprite>(sprIndex).setColorOverlay(c);
 }
 
 void CharacterGFXComponent::setOverlayAmount(float a) {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite* sprite = renderComp->getDrawable<AnimatedSprite>();
-	sprite->setOverlayAmount(a);
+    renderComp->getDrawable<AnimatedSprite>(sprIndex).setOverlayAmount(a);
 }

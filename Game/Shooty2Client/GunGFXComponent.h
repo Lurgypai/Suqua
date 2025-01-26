@@ -8,4 +8,5 @@ public:
 
 	void update();
 private:
+    size_t sprIndex;
 };

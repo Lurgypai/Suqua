@@ -9,28 +9,29 @@
 #include "EntitySpawnSystem.h"
 
 GunFireComponent::GunFireComponent(EntityId id_,
+        const Vec2f& baseOffset_,
         float offset_,
         const std::string& bulletTag_) :
 	id{ id_ },
+    baseOffset{ baseOffset_},
 	offset{ offset_  },
     bulletTag{ bulletTag_ }
 {}
 
-// why ref go away?
-void GunFireComponent::fire(Scene* currScene)
+void GunFireComponent::fire(Scene& currScene)
 {
 	auto firingPos = getFiringPos();
-	auto bullets = EntitySpawnSystem::SpawnEntity(bulletTag, *currScene, firingPos, NetworkDataComponent::Owner::local_shared);
-	EntityId bulletId = bullets[0];
+	auto bulletId = EntitySpawnSystem::SpawnEntity(bulletTag, currScene,
+            firingPos, NetworkDataComponent::Owner::local_shared);
 
-	auto directionComp = EntitySystem::GetComp<DirectionComponent>(id);
+	auto* contComp = EntitySystem::GetComp<ControllerComponent>(id);
 	Vec2f directionVector{ 1.0, 0.0 };
-	directionVector.angle(directionComp->getDir());
+	directionVector.angle(contComp->getController().stick2.angle());
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(bulletId);
 	physicsComp->setVel(directionVector * 260);
 }
 
-void GunFireComponent::update(Scene* currScene)
+void GunFireComponent::update(Scene& currScene)
 {
 	auto baseComp = EntitySystem::GetComp<EntityBaseComponent>(id);
 	if (!baseComp->isActive) return;
@@ -48,6 +49,6 @@ Vec2f GunFireComponent::getFiringPos() {
 	Vec2f directionVector{ 1.0, 0.0 };
 	directionVector.angle(directionComp->getDir());
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	auto firingPos = posComp->getPos() + (directionVector * offset);
+	auto firingPos = posComp->getPos() + baseOffset + (directionVector * offset);
 	return firingPos;
 }

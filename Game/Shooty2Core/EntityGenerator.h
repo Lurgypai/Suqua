@@ -1,6 +1,5 @@
 #pragma once
 #include <unordered_map>
-#include <vector>
 
 #include "EntitySpawnSystem.h"
 #include "Vec2.h"
@@ -9,21 +8,21 @@
 
 class EntityGenerator : public EntitySpawnSystem::Generator {
 public:
-    using SpawnFunction = std::function<std::vector<EntityId>(
+    using SpawnFunction = std::function<EntityId (
             Scene&,
             const Vec2f&,
             NetworkDataComponent::Owner owner,
-            std::vector<UUID> uuids )>;
+            const UUID& uuid)>;
 
     EntityGenerator() = default;
     virtual ~EntityGenerator() = default;
     virtual void RegisterSpawnFunctions() override;
-    virtual std::vector<EntityId> SpawnEntity(
+    virtual EntityId SpawnEntity(
             const std::string& tag,
             Scene& targetScene,
             const Vec2f& targetPos,
             NetworkDataComponent::Owner owner,
-            const std::vector<UUID>& uuids = std::vector<UUID>{}) override;
+            const UUID& uuid) override;
 
 private:
     std::unordered_map<std::string, SpawnFunction> SpawnFunctions; 

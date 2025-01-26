@@ -31,7 +31,8 @@ BasicAttackComponent::BasicAttackComponent(EntityId id_,
 
     EntitySystem::MakeComps<HitboxComponent>(1, &hitboxId,
             Vec2f{-5.f, -10.f},
-            Vec2f{10.f, 10.f} );
+            Vec2f{10.f, 10.f},
+            false );
 
     EntitySystem::MakeComps<ParentComponent>(1, &hitboxId,
             ParentComponent::OffsetMode::cardinal_left_right,

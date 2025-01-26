@@ -18,6 +18,8 @@ public:
 	void stopAnimation();
 	
 private:
+    size_t sprIndex;
+
 	void playDefaultAnimations();
 	void startDefaultAnimations();
 	bool isPlayingAnimation_;

@@ -16,6 +16,7 @@ public:
 	void setColorOverlay(Color c);
 	void setOverlayAmount(float a);
 private:
+    size_t sprIndex;
 	// run/start the actual animations based on direction, has up down
 	void doDefaultAnimations();
 

@@ -2,8 +2,7 @@
 #include "PositionComponent.h"
 
 RenderComponent::RenderComponent(EntityId id_, const Vec2f& offset_) :
-	id{id_},
-	offset{offset_}
+	id{id_}
 {
     if (!EntitySystem::Contains<PositionComponent>() || EntitySystem::GetComp<PositionComponent>(id) == nullptr) {
         EntitySystem::MakeComps<PositionComponent>(1, &id);
@@ -11,31 +10,17 @@ RenderComponent::RenderComponent(EntityId id_, const Vec2f& offset_) :
 }
 
 RenderComponent::RenderComponent(const RenderComponent & other) :
-	id{other.id},
-	offset{other.offset}
+	id{other.id}
 {
-	if (other.sprite != nullptr) {
-		sprite = SpritePtr{ other.sprite->clone() };
-	}
-	else {
-		sprite = nullptr;
-	}
+    for(auto& sprite : other.sprites) {
+        sprites.emplace_back(sprite->clone());
+    }
 }
-
-RenderComponent::RenderComponent(RenderComponent&& other) :
-	id{ other.id },
-	offset{ other.offset },
-	sprite{ std::move(other.sprite) }
-{}
 
 RenderComponent & RenderComponent::operator=(const RenderComponent & other) {
 	id = other.id;
-	offset = other.offset;
-	if (other.sprite != nullptr) {
-		sprite = SpritePtr{ other.sprite->clone() };
-	}
-	else {
-		sprite = nullptr;
-	}
-	return *this;
+    for(auto& sprite : other.sprites) {
+        sprites.emplace_back(sprite->clone());
+    }
+    return *this;
 }

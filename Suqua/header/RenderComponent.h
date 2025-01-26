@@ -1,62 +1,39 @@
 #pragma once
 #include "ComponentMacros.h"
 #include "IDrawable.h"
-#include "FileNotFoundException.h"
 
-#include <iostream>
+#include <vector>
 
 using SpritePtr = std::unique_ptr<IDrawable>;
 
 class RenderComponent {
     CompMembers(RenderComponent);
 public:
-	Vec2f offset;
-
 	RenderComponent(EntityId id_, const Vec2f& offset_ = {0.f, 0.f});
 	RenderComponent(const RenderComponent & other);
-	RenderComponent(RenderComponent&& other);
+	RenderComponent(RenderComponent&& other) = default;
 	
 	RenderComponent & operator=(const RenderComponent & other);
 	
 	template<typename T, typename... Args>
-	void loadDrawable(Args... args);
-
-	template<typename T, typename U>
-	void setDrawable(U&& u);
+	size_t loadDrawable(Args&&... args);
 	
-	template<typename U>
-	void setDrawable(std::unique_ptr<U> u);
-
 	template<typename T>
-	T * getDrawable();
+	T& getDrawable(size_t index);
 
 protected:
-	SpritePtr sprite;
+    std::vector<SpritePtr> sprites;
 
 	friend class RenderSystem;
 };
 
 template<typename T, typename ...Args>
-inline void RenderComponent::loadDrawable(Args ...args) {
-	try {
-		sprite = std::make_unique<T>(args...);
-	}
-	catch (FileNotFoundException e) {
-		std::cout << e.what() << '\n';
-	}
-}
-
-template<typename T, typename U>
-inline void RenderComponent::setDrawable(U && u) {
-	try {
-	sprite = std::make_unique<T>(std::forward<U>(u));
-	}
-	catch (FileNotFoundException e) {
-		std::cout << e.what() << '\n';
-	}
+inline size_t RenderComponent::loadDrawable(Args&& ...args) {
+    sprites.push_back(std::make_unique<T>(std::forward<Args>(args)...));
+    return sprites.size() - 1;
 }
 
 template<typename T>
-inline T* RenderComponent::getDrawable() {
-	return static_cast<T *>(sprite.get());
+inline T& RenderComponent::getDrawable(size_t index) {
+	return *(static_cast<T *>(sprites[index].get()));
 }

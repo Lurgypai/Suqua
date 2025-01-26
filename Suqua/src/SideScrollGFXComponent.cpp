@@ -23,28 +23,28 @@ SideScrollGFXComponent::SideScrollGFXComponent(EntityId id_,
 
 void SideScrollGFXComponent::loadSpriteSheet(const std::string& tag, const std::string& fileName, Vec2f offset) {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	renderComp->loadDrawable<AnimatedSprite>(tag, fileName);
-	renderComp->offset = offset;
+	sprIndex = renderComp->loadDrawable<AnimatedSprite>(tag, fileName);
 
-	auto sprite = renderComp->getDrawable<AnimatedSprite>();
-	sprite->looping = true;
+	AnimatedSprite& sprite = renderComp->getDrawable<AnimatedSprite>(sprIndex);
+	sprite.looping = true;
+    sprite.offset = offset;
 }
 
 void SideScrollGFXComponent::update(int timeDelta) {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite* sprite = renderComp->getDrawable<AnimatedSprite>();
+	AnimatedSprite& sprite = renderComp->getDrawable<AnimatedSprite>(sprIndex);
 
 	auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 
 	int currCardinalDir = dirComp->getCardinalDir();
 
-	sprite->update(timeDelta);
+	sprite.update(timeDelta);
 	if (isPlayingAnimation_) {
 		if (currCardinalDir == 1) {
-			sprite->setHorizontalFlip(false);
+			sprite.setHorizontalFlip(false);
 		}
 		else if (currCardinalDir == 3) {
-			sprite->setHorizontalFlip(true);
+			sprite.setHorizontalFlip(true);
 		}
 	}
 	else {
@@ -54,8 +54,8 @@ void SideScrollGFXComponent::update(int timeDelta) {
 
 void SideScrollGFXComponent::startDefaultAnimations() {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite* sprite = renderComp->getDrawable<AnimatedSprite>();
-	sprite->looping = true;
+	AnimatedSprite& sprite = renderComp->getDrawable<AnimatedSprite>(sprIndex);
+	sprite.looping = true;
 
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 	auto currCharacterVel = physicsComp->getVel();
@@ -65,24 +65,24 @@ void SideScrollGFXComponent::startDefaultAnimations() {
 	// std::cout << "STARTING\n";
 	if (currCharacterVel != Vec2f{ 0, 0 }) {
 		if ((currCharacterVel.x < 0 && currCardinalDir == 1) || (currCharacterVel.x > 0 && currCardinalDir == 3)) {
-            if(sprite->hasAnimation("turn")) sprite->setAnimation("turn");
-            else sprite->setAnimation("left_right");
+            if(sprite.hasAnimation("turn")) sprite.setAnimation("turn");
+            else sprite.setAnimation("left_right");
 			// std::cout << "TURNING\n";
 		}
 		else {
-			sprite->setAnimation("left_right");
+			sprite.setAnimation("left_right");
 			// std::cout << "WALKING\n";
 		}
 
 		if (currCardinalDir == 1) {
-			sprite->setHorizontalFlip(false);
+			sprite.setHorizontalFlip(false);
 		}
 		else if (currCardinalDir == 3) {
-			sprite->setHorizontalFlip(true);
+			sprite.setHorizontalFlip(true);
 		}
 	}
 	else {
-		sprite->setAnimation("idle");
+		sprite.setAnimation("idle");
 		// std::cout << "IDLE\n";
 	}
 }
@@ -118,11 +118,11 @@ void SideScrollGFXComponent::playDefaultAnimations()
 void SideScrollGFXComponent::playAnimation(const std::string& tag, bool looping)
 {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	AnimatedSprite* sprite = renderComp->getDrawable<AnimatedSprite>();
+	AnimatedSprite& sprite = renderComp->getDrawable<AnimatedSprite>(sprIndex);
 
-	if (sprite->hasAnimation(tag)) {
-		sprite->setAnimation(tag);
-		sprite->looping = looping;
+	if (sprite.hasAnimation(tag)) {
+		sprite.setAnimation(tag);
+		sprite.looping = looping;
 		isPlayingAnimation_ = true;
 	}
 }

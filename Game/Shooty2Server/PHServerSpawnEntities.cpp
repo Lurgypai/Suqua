@@ -23,19 +23,11 @@ void PHServerSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId so
     while(data.hasMoreData()) {
         data >> tag;
         data >> pos;
-        data >> uuidCount;
-
-        std::vector<UUID> uuids{};
-        uuids.reserve(uuidCount);
-        for(int i = 0; i != uuidCount; ++i) {
-            data >> uuid;
-            uuids.push_back(uuid);
-        }
-
+        data >> uuid;
         // spawn locally for ai and whatnot to know about
-        auto entities = EntitySpawnSystem::SpawnEntity(tag, *scene, pos, NetworkDataComponent::Owner::foreign, uuids);
+        auto entity = EntitySpawnSystem::SpawnEntity(tag, *scene, pos, NetworkDataComponent::Owner::foreign, uuid);
 
-        game.networkEntityOwnershipSystem.addOwnedEntity(sourcePeer, tag, std::move(uuids));
+        game.networkEntityOwnershipSystem.addOwnedEntity(sourcePeer, tag, uuid);
     }
 
     data.setReadPos(0);

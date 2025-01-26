@@ -1,41 +1,43 @@
 #include "GunGFXComponent.h"
 #include "RenderComponent.h"
-#include "DirectionComponent.h"
+#include "ControllerComponent.h"
 #include "Sprite.h"
 
 GunGFXComponent::GunGFXComponent(EntityId id_) :
-	id{id_}
+	id{id_},
+    sprIndex{}
 {
     if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
         EntitySystem::MakeComps<RenderComponent>(1, &id);
     }
 
     auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-    renderComp->loadDrawable<Sprite>("gun");
-    renderComp->offset = {-1.0, -2};
+    sprIndex = renderComp->loadDrawable<Sprite>("gun");
     
-    auto sprite = renderComp->getDrawable<Sprite>();
-    sprite->setOrigin({ 1, 1.5});
+    Sprite& sprite = renderComp->getDrawable<Sprite>(sprIndex);
+    sprite.setOrigin({ 1, 1.5});
+    sprite.offset = {2.0, -6};
 }
 
 void GunGFXComponent::update() {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	auto sprite = renderComp->getDrawable<Sprite>();
-	auto directionComp = EntitySystem::GetComp<DirectionComponent>(id);
-	int dirDeg = directionComp->getDir() * 180 / 3.14159;
+	Sprite& sprite = renderComp->getDrawable<Sprite>(sprIndex);
+    auto contComp = EntitySystem::GetComp<ControllerComponent>(id);
+    float dir = contComp->getController().stick2.angle();
+	int dirDeg = dir * 180 / 3.14159;
 	if (dirDeg < -90 || dirDeg > 90) {
-		sprite->verticalFlip = true;
+		sprite.verticalFlip = true;
 	}
 	else {
-		sprite->verticalFlip = false;
+		sprite.verticalFlip = false;
 	}
 
 	if (dirDeg >= -135 && dirDeg < -45) {
-		sprite->setDepth(1.0);
+		sprite.setDepth(1.0);
 	}
 	else {
-		sprite->setDepth(-1.0);
+		sprite.setDepth(-1.0);
 	}
 
-	sprite->setAngle(directionComp->getDir() * 180 / 3.14159);
+	sprite.setAngle(dir * 180 / 3.14159);
 }

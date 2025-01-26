@@ -22,15 +22,8 @@ void PHClientSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId so
     while(data.hasMoreData()) {
         data >> tag;
         data >> pos;
-        data >> uuidCount;
+        data >> uuid;
 
-        std::vector<UUID> uuids;
-        uuids.reserve(uuidCount);
-        for(int i = 0; i != uuidCount; ++i) {
-            data >> uuid;
-            uuids.push_back(uuid);
-        }
-
-        auto entities = EntitySpawnSystem::SpawnEntity(tag, *scene, pos, NetworkDataComponent::Owner::foreign, uuids);
+        EntitySpawnSystem::SpawnEntity(tag, *scene, pos, NetworkDataComponent::Owner::foreign, uuid);
     }
 }

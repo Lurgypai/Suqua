@@ -1,17 +1,24 @@
 #include "HitboxComponent.h"
 #include "PositionComponent.h"
 #include "EntityBaseComponent.h"
-#include "ParentComponent.h"
+#include <stdexcept>
 
-HitboxComponent::HitboxComponent(EntityId id_, const Vec2f& offset_, const Vec2f& res) :
+HitboxComponent::HitboxComponent(
+        EntityId id_,
+        const Vec2f& offset_,
+        const Vec2f& res,
+        bool dieOnHit_ ) :
 	id{ id_ },
-	hitbox{{}, res},
 	offset{offset_},
-	collisions{ 0 },
+	hitbox{{}, res},
 	collisionsMax{ 1 },
 	reHitDelay{ 0 },
 	multipleHits{false},
-	hitEntities{}
+    dieOnHit{dieOnHit_},
+
+	hitEntities{},
+	collisions{ 0 },
+    active{true}
 {}
 
 void HitboxComponent::update() {
@@ -50,15 +57,14 @@ bool HitboxComponent::addHitEntity(EntityId entityId) {
 }
 
 bool HitboxComponent::canHitEntity(EntityId entityId) {
+    if(!active) return false;
 	auto pair = hitEntities.find(entityId);
 	return pair == hitEntities.end() || pair->second == 0;
 }
 
 
-void HitboxComponent::activate()
-{
-	auto baseComp = EntitySystem::GetComp<EntityBaseComponent>(id);
-	baseComp->isActive = true;
+void HitboxComponent::activate() {
+    active = true;
 	collisions = 0;
 	for (auto& [_, hits] : hitEntities) {
 		hits = 0;
@@ -67,19 +73,16 @@ void HitboxComponent::activate()
 	hitbox.pos = posComp->getPos() + offset;
 }
 
-void HitboxComponent::deactivate()
-{
-	auto baseComp = EntitySystem::GetComp<EntityBaseComponent>(id);
-	baseComp->isActive = false;
+void HitboxComponent::deactivate() {
+    active = false;
+    if(!dieOnHit) return;
+    auto ebc = EntitySystem::GetComp<EntityBaseComponent>(id);
+    ebc->isDead = true;
 }
 
 TeamComponent::TeamId HitboxComponent::getTeamId() const
 {
 	auto teamComponent = EntitySystem::GetComp<TeamComponent>(id);
-	if (teamComponent != nullptr) return teamComponent->teamId;
-
-	//add a get root function to parent components
-	auto parentComponent = EntitySystem::GetComp<ParentComponent>(id);
-	auto parentTeamComponent = EntitySystem::GetComp<TeamComponent>(parentComponent->parentId);
-	return parentTeamComponent->teamId;
+    if(teamComponent == nullptr) throw std::runtime_error{"HitboxComponent: Missing Team Component"};
+	return teamComponent->teamId;
 }
