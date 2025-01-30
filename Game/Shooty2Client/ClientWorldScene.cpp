@@ -76,7 +76,7 @@ void ClientWorldScene::load(Game& game)
     //myGunId = playerAndGunId[1];
 	addEntityInputs({ {myPlayerId, playerInput} });
 
-    EntitySpawnSystem::SpawnEntity("enemy.basic", *this, {720.f / 2, 405.f / 2}, NetworkDataComponent::Owner::local_only);
+    // EntitySpawnSystem::SpawnEntity("enemy.basic", *this, {720.f / 2, 405.f / 2}, NetworkDataComponent::Owner::local_only);
 
 	// load level
 	World test{ "tileset", "levels/basic_test.ldtk" };
@@ -90,7 +90,7 @@ void ClientWorldScene::physicsStep(Game& game)
 	Updater::UpdateOwned<TopDownMoverComponent>();
 	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
-	Updater::UpdateOwned<GunFireComponent>(*this);
+	Updater::UpdateOwned<GunFireComponent>(*this, game.PHYSICS_STEP);
 	Updater::UpdateOwned<LifeTimeComponent>();
 	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();

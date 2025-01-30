@@ -150,7 +150,17 @@ static EntityId SpawnPlayer(
 	EntitySystem::MakeComps<GunFireComponent>(1, &playerId,
             Vec2f{3.f, -5.f},
             13.f,
-            "bullet.player.basic" );
+            "bullet.player.basic",
+            /*
+            3,
+            0.2f,
+            0.8f);
+            */
+            1,
+            0.f,
+            0.f,
+            1,
+            0.2f);
 
 	EntitySystem::MakeComps<RespawnComponent>(1, &playerId, 
         Vec2f{ 720.f / 4, 405.f / 4 } );
@@ -170,6 +180,9 @@ static EntityId SpawnEnemy(
             Vec2f{},
             0.f,
             "bullet.enemy.basic",
+            1,
+            0.f,
+            0.f,
             5,
             0.2f,
             30.f);

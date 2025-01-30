@@ -4,9 +4,6 @@
 #include "DirectionComponent.h"
 #include "RandomUtil.h"
 
-#include "DebugIO.h"
-#include <string>
-
 using TeamId = TeamComponent::TeamId;
 using AIState = AIGunnerComponent::AIState;
 
@@ -149,6 +146,7 @@ void AIGunnerComponent::update(double delta) {
     DirectionComponent* dir = EntitySystem::GetComp<DirectionComponent>(id);
     dir->setDir(controller.stick2.angle());
 
+    /*
     std::string strState;
     switch(state) {
         case AIState::idle: strState = "idle"; break;
@@ -161,4 +159,5 @@ void AIGunnerComponent::update(double delta) {
     DebugIO::setLine(7, "Stick2: " + std::to_string(controller.stick2.angle()));
     DebugIO::setLine(8, "Attack: " + std::to_string(controller[ControllerBits::BUTTON_11]));
     DebugIO::setLine(9, "Attack Toggled? " + std::to_string(controller.toggled(ControllerBits::BUTTON_11)));
+    */
 }

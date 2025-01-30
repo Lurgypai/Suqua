@@ -51,7 +51,7 @@ void ServerWorldScene::physicsStep(Game& game) {
 	Updater::UpdateOwned<TopDownMoverComponent>();
 	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
-	Updater::UpdateOwned<GunFireComponent>(*this);
+	Updater::UpdateOwned<GunFireComponent>(*this, game.PHYSICS_STEP);
 	Updater::UpdateOwned<LifeTimeComponent>();
 	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();
