@@ -1,6 +1,7 @@
 #include "AIGunnerComponent.h"
 #include "ControllerComponent.h"
 #include "PhysicsComponent.h"
+#include "DirectionComponent.h"
 #include "RandomUtil.h"
 
 #include "DebugIO.h"
@@ -14,10 +15,10 @@ AIGunnerComponent::AIGunnerComponent(EntityId id_, float followRadius_, float av
     followRadius{followRadius_},
     avoidRadius{avoidRadius_},
 
-    idleTime{0.7f},
-    walkTime{0.5f},
-    followTime{2.1f},
-    attackTime{0.9f},
+    idleTime{1.5f},
+    walkTime{2.1f},
+    followTime{3.9f},
+    attackTime{2.f},
 
     timeSinceLastAction{0.f},
     targetId{0},
@@ -39,8 +40,9 @@ static inline EntityId findTarget(EntityId id, const std::set<TeamId> targetTeam
     return 0;
 }
 
-static inline void beginIdle(AIState& state) {
+static inline void beginIdle(AIState& state, Controller& controller) {
     state = AIState::idle;
+    controller.stick1 = {0.f, 0.f};
 }
 
 static inline void beginWalking(AIState& state, Controller& controller) {
@@ -49,11 +51,16 @@ static inline void beginWalking(AIState& state, Controller& controller) {
 
     constexpr float PI = 3.1415926535898;
     float dir = randFloat(0, PI * 2);
+    controller.stick1 = Vec2f{.3f, 0.f};
     controller.stick1.angle(dir);
+    controller.stick2 = Vec2f{1.f, 0.f};
+    controller.stick2.angle(dir);
 }
 
-static inline void beginFollowing(AIState& state) {
+static inline void beginFollowing(AIState& state, float& angleMod) {
     state = AIState::following;
+
+    angleMod = randFloat(-1.f, 1.f);
 }
 
 static inline void beginAttacking(AIState& state, Controller& controller) {
@@ -83,7 +90,7 @@ void AIGunnerComponent::update(double delta) {
 
 
             targetId = findTarget(id, targetTeams, followRadius);
-            if(targetId != 0) beginFollowing(state);
+            if(targetId != 0) beginFollowing(state, angleMod);
             else beginWalking(state, controller);
             break; }
         case AIState::walking: {
@@ -93,7 +100,7 @@ void AIGunnerComponent::update(double delta) {
 
             targetId = findTarget(id, targetTeams, followRadius);
             if(targetId != 0) beginAttacking(state, controller);
-            else beginIdle(state);
+            else beginIdle(state, controller);
             break; }
         case AIState::following: {
             if(timeSinceLastAction < followTime) {
@@ -102,31 +109,45 @@ void AIGunnerComponent::update(double delta) {
                 // entity has been removed
                 if(otherPhysicsComp == nullptr) {
                     timeSinceLastAction = 0.0;
-                    beginIdle(state);
+                    beginIdle(state, controller);
                     break;
                 }
 
-                auto dir = (otherPhysicsComp->position() - physicsComp->position()).norm() * 0.3f;
-                controller.stick1 = dir;
-                controller.stick2 = dir;
+                Vec2f delta = otherPhysicsComp->center() - physicsComp->center();
+                float moveMagn = 0.7f;
+                if(delta.magn() < avoidRadius) moveMagn *= delta.magn() / avoidRadius - 1.f;
+                else moveMagn *= (delta.magn() - avoidRadius) / (followRadius - avoidRadius);
+
+                if(std::abs(moveMagn) < 0.1f) moveMagn = 0.f;
+
+                float moveAngle = delta.angle() + angleMod;
+                // float moveAngle = delta.angle();
+                controller.stick1 = {1.f, 0.f};
+                controller.stick1.angle(moveAngle);
+                controller.stick1 *= moveMagn;
+                controller.stick2 = delta.norm();
+
                 break;
             }
             timeSinceLastAction -= followTime;
 
             targetId = findTarget(id, targetTeams, followRadius);
             if(targetId != 0) beginAttacking(state, controller);
-            else beginIdle(state);
+            else beginIdle(state, controller);
             break; }
         case AIState::attacking:
             if(timeSinceLastAction < attackTime) {
                 controller.stick1 = {};
-                controller.set(ControllerBits::BUTTON_11, false);
+                controller.off(ControllerBits::BUTTON_11);
                 break;
             }
             timeSinceLastAction -= attackTime;
-            beginFollowing(state);
+            beginFollowing(state, angleMod);
             break;
     }
+
+    DirectionComponent* dir = EntitySystem::GetComp<DirectionComponent>(id);
+    dir->setDir(controller.stick2.angle());
 
     std::string strState;
     switch(state) {

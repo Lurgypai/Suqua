@@ -29,6 +29,8 @@ private:
     double followTime;
     double attackTime;
 
+    float angleMod;
+
     EntityId targetId;
     std::set<TeamComponent::TeamId> targetTeams;
     AIState state;

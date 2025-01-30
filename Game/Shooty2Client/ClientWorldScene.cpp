@@ -76,6 +76,8 @@ void ClientWorldScene::load(Game& game)
     //myGunId = playerAndGunId[1];
 	addEntityInputs({ {myPlayerId, playerInput} });
 
+    EntitySpawnSystem::SpawnEntity("enemy.basic", *this, {720.f / 2, 405.f / 2}, NetworkDataComponent::Owner::local_only);
+
 	// load level
 	World test{ "tileset", "levels/basic_test.ldtk" };
 	test.load(*this);
