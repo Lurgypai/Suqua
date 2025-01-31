@@ -8,36 +8,43 @@ using NDC = NetworkDataComponent;
 
 PhysicsSystem::PhysicsSystem() {}
 
+void PhysicsSystem::getActive() {
+    if(!EntitySystem::Contains<PhysicsComponent>()) return;
+
+    active.clear();
+    collidesWith.clear();
+    for(auto& physicsComp : EntitySystem::GetPool<PhysicsComponent>()) {
+        auto* base = EntitySystem::GetComp<EntityBaseComponent>(physicsComp.getId());
+        if(base->isDead || !base->isActive) continue;
+        active.push_back(physicsComp.getId());
+        if(!physicsComp.collidesWith) continue;
+        collidesWith.push_back(physicsComp.getId());
+    }
+};
+
 void PhysicsSystem::runPhysics(double timeDelta) {
-	if (EntitySystem::Contains<PhysicsComponent>()) {
-		for (auto& rawComp : EntitySystem::GetPool<PhysicsComponent>()) {
-			runPhysics(timeDelta, rawComp.id);
-		}
-	}
+    getActive();
+    for (auto id : active) {
+        runPhysics(timeDelta, id);
+    }
 }
 
 void PhysicsSystem::runPhysicsOnOwned(double timeDelta) {
-	if (EntitySystem::Contains<PhysicsComponent>()) {
-		for (auto& rawComp : EntitySystem::GetPool<PhysicsComponent>()) {
-            auto ndc = EntitySystem::GetComp<NetworkDataComponent>(rawComp.getId());
-            if(ndc->owner == NetworkDataComponent::Owner::local_only || ndc->owner == NetworkDataComponent::Owner::local_shared) {
-                runPhysics(timeDelta, rawComp.id);
-            }
-            else {
-                auto* posComp = EntitySystem::GetComp<PositionComponent>(rawComp.getId());
-                rawComp.collider.pos = posComp->getPos();
-            }
-		}
-	}
+    getActive();
+    for(auto id : active) {
+        auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+        if(ndc->owner == NetworkDataComponent::Owner::local_only || ndc->owner == NetworkDataComponent::Owner::local_shared) {
+            runPhysics(timeDelta, id);
+        }
+        else {
+            auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
+            physicsComp->refreshPos();
+        }
+    }
 }
 
 void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 	if (EntitySystem::Contains<PhysicsComponent>()) {
-		auto baseComp = EntitySystem::GetComp<EntityBaseComponent>(entity);
-		if (!baseComp->isActive) return;
-		// auto networkOwnerComp = EntitySystem::GetComp<NetworkOwnerComponent>(entity);
-		// if (networkOwnerComp != nullptr && networkOwnerComp->owner != NetworkOwnerComponent::Owner::local) return;
-
 		PhysicsComponent* comp = EntitySystem::GetComp<PhysicsComponent>(entity);
 		PositionComponent* posComp = EntitySystem::GetComp<PositionComponent>(entity);
 
@@ -57,10 +64,10 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 			
 			if (comp->doesCollide()) {
 				//handle collisions with the stage
-				for (auto& otherComp : EntitySystem::GetPool<PhysicsComponent>()) {
+				for (auto& otherId : collidesWith) {
+                    auto& otherComp = *EntitySystem::GetComp<PhysicsComponent>(otherId);
                     auto otherBaseComp = EntitySystem::GetComp<EntityBaseComponent>(otherComp.getId());
-                    if(!otherBaseComp->isActive) continue;
-                    if(otherComp.id == comp->id) continue;
+                    if(otherId == comp->id) continue;
                     if(!otherComp.isCollidedWith()) continue;
 
                     auto& collider = otherComp.getCollider();

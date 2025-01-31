@@ -23,7 +23,7 @@ static void AddPlayerGFX(EntityId playerId) {
 
 	EntitySystem::GetComp<CharacterGFXComponent>(playerId)->setHasUpDown(true);
 	EntitySystem::MakeComps<OnHitComponent>(1, &playerId);
-    EntitySystem::MakeComps<RespawnGFXComponent>(1, &playerId);
+    // EntitySystem::MakeComps<RespawnGFXComponent>(1, &playerId);
 
 	EntitySystem::MakeComps<GunGFXComponent>(1, &playerId);
 }
@@ -41,7 +41,7 @@ static void AddEnemyGFX(EntityId enemyId) {
             Vec2f{ -13, -24 } );
 
     EntitySystem::MakeComps<OnHitComponent>(1, &enemyId);
-    EntitySystem::MakeComps<RespawnGFXComponent>(1, &enemyId);
+    // EntitySystem::MakeComps<RespawnGFXComponent>(1, &enemyId);
 
     EntitySystem::MakeComps<AttackGFXComponent>(1, &enemyId, 80);
 }

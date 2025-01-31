@@ -13,8 +13,8 @@ layout(location = 0) in vec2 pos;
 void main() {
     
 	//position
-	vec2 pixelPos = (pos - camPos);
-	vec2 windowPos = pixelPos / (vec2(camRes) / zoom);
+	vec2 pixelPos = pos - camPos;
+	vec2 windowPos = ceil(pixelPos) / (vec2(camRes) / zoom);
 	windowPos.y = (-windowPos.y) + 1;
 	windowPos = 2 * (windowPos) - 1;
 	

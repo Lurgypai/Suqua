@@ -1,4 +1,5 @@
 #pragma once
+#include "World.h"
 #include "Scene.h"
 #include "PhysicsSystem.h"
 #include "../Shooty2Core/CombatSystem.h"
@@ -16,6 +17,7 @@ public:
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) override;
 
 private:
+    World world;
 	// player owned by this client
 	EntityId myPlayerId;
 	EntityId myGunId;

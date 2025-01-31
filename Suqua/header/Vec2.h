@@ -25,10 +25,10 @@ struct Vec2 {
 	void operator-=(const V& other);
 
 	template<typename V>
-	Vec2 operator*(const V& other);
+	Vec2 operator*(const V& other) const;
 
 	template<typename V>
-	Vec2 operator/(const V& other);
+	Vec2 operator/(const V& other) const;
 
 	template<typename V>
 	void operator*=(const V& other);
@@ -104,13 +104,13 @@ inline void Vec2<T>::operator-=(const V& other) {
 
 template<typename T>
 template<typename V>
-inline Vec2<T> Vec2<T>::operator*(const V& other) {
+inline Vec2<T> Vec2<T>::operator*(const V& other) const {
 	return Vec2<T>{x* other, y* other};
 }
 
 template<typename T>
 template<typename V>
-inline Vec2<T> Vec2<T>::operator/(const V& other) {
+inline Vec2<T> Vec2<T>::operator/(const V& other) const {
 	return Vec2<T>{x / other, y / other};
 }
 

@@ -281,8 +281,7 @@ void GLRenderer::BufferImage(ImgData data, const std::string& tag) {
 
     ++bufferedImageCount;
     if(bufferedImageCount >= IMG_DATA_BUFFER_SIZE) {
-        std::cerr << "ERROR: Out of image buffer space\n";
-        throw std::exception{}; //TODO: add real error here
+        throw std::runtime_error{"GLRenderer: Out of image buffer space"};
     }
 }
 

@@ -13,6 +13,7 @@
 #include "ControllerComponent.h"
 #include "RespawnComponent.h"
 #include "AIGunnerComponent.h"
+#include "PlayerSpawnComponent.h"
 
 #include "SpawnFunctionNotFoundException.h"
 
@@ -156,14 +157,14 @@ static EntityId SpawnPlayer(
             0.2f,
             0.8f);
             */
-            1,
+            4,
             0.f,
             0.f,
-            1,
-            0.2f);
+            5,
+            0.2f,
+            55.f);
 
-	EntitySystem::MakeComps<RespawnComponent>(1, &playerId, 
-        Vec2f{ 720.f / 4, 405.f / 4 } );
+    EntitySystem::MakeComps<PlayerSpawnComponent>(1, &playerId);
 	return playerId;
 }
 

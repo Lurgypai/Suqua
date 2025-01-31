@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 #include "Scene.h"
 #include "EntitySystem.h"
@@ -19,15 +19,16 @@ public:
 	void load(Scene& scene);
 	void load(const std::string& textureTag_, const std::string& fileName_, Scene& scene);
 	
-	const std::vector<Level>& getLevels() const;
-    std::vector<Level>& getLevels();
+	const std::unordered_map<std::string, Level>& getLevels() const;
+	Level* getActiveLevel(const Vec2f& pos);
 	const Level* getActiveLevel(const Vec2f& pos) const;
+    Level& getLevel(const std::string& levelId);
     bool hasTile(Vec2f pos) const;
 private:
 	std::string textureTag;
 	std::string fileName;
 	
-	std::vector<Level> levels;
+    std::unordered_map<std::string, Level> levels;
 };
 
 // keep track of neighboring levels on load, store in level

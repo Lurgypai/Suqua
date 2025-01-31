@@ -10,4 +10,9 @@ public:
 
 	void runPhysics(double timeDelta, EntityId entity);
 
+private:
+    // this is a bit of an ugly solution, but it should improve performance enough for now.
+    void getActive();
+    std::vector<EntityId> active;
+    std::vector<EntityId> collidesWith;
 };

@@ -48,7 +48,6 @@ void main() {
     
     imgPos *= abs(objRes);
 	imgPos += dat.imgOffset;
-    // imgPos += 0.1; //remove this line to re-enable rounding bug
 	FragCoord = vec2(imgPos) / dat.imgRes;
 	
 	vec2 pixelPos = pos * abs(objRes);

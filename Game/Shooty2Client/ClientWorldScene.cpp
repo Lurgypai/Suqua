@@ -4,7 +4,6 @@
 #include "Updater.h"
 #include "ClientWorldScene.h"
 #include "IDKeyboardMouse.h"
-#include "World.h"
 #include "ExitCommand.h"
 #include "ClientEntityGenerator.h"
 
@@ -33,6 +32,9 @@
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/EntitySpawnSystem.h"
 #include "../Shooty2Core/AIGunnerComponent.h"
+#include "../Shooty2Core/PlayerSpawnComponent.h"
+
+#include "../Shooty2Core/CommandRespawn.h"
 
 ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{ id_, flags_ },
@@ -42,6 +44,7 @@ ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 void ClientWorldScene::load(Game& game)
 {
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
+    DebugIO::getCommandManager().registerCommand<CommandRespawn>(world);
     /* ------------------ NETWORKING ------------------ */
     game.loadPacketHandler<PHClientSpawnEntities>(Shooty2Packet::SpawnEntities, this);
     game.loadPacketHandler<PHClientState>(Packet::StateId, this);
@@ -79,9 +82,19 @@ void ClientWorldScene::load(Game& game)
     // EntitySpawnSystem::SpawnEntity("enemy.basic", *this, {720.f / 2, 405.f / 2}, NetworkDataComponent::Owner::local_only);
 
 	// load level
-	World test{ "tileset", "levels/basic_test.ldtk" };
-	test.load(*this);
-    test.getLevels()[0].activate();
+    world = World{ "tileset", "levels/test.ldtk" };
+	world.load(*this);
+    world.getLevel("Level_spawn").activate();
+
+    auto* spawnComp = EntitySystem::GetComp<PlayerSpawnComponent>(myPlayerId);
+    for(const auto& pair : world.getLevels()) {
+        for(auto& entity : pair.second.getEntities()) {
+            if(entity.id != "PlayerSpawn") continue;
+            spawnComp->insertSpawnPos(pair.first, entity.pos + (entity.res / 2.f));
+        }
+    }
+    auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
+    plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_spawn"));
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -118,6 +131,33 @@ void ClientWorldScene::renderUpdateStep(Game& game)
     Updater::UpdateAll<OnHitComponent>();
     Updater::UpdateAll<RespawnGFXComponent>();
     Updater::UpdateAll<AttackGFXComponent>();
+
+	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
+	auto& cam = GLRenderer::getCamera(camId);
+
+	Vec2f targetPos = plrPhysicsComp->center() - Vec2f{ cam.res.x / 2.f, cam.res.y / 2.f };
+	auto* level = world.getActiveLevel(plrPhysicsComp->center());
+
+	if (level != nullptr) {
+		auto& boundingBox = level->getBoundingBox();
+		float leftOverlap = boundingBox.pos.x - targetPos.x;
+		float rightOverlap = (boundingBox.pos.x + boundingBox.res.x) - (targetPos.x + cam.res.x);
+		float topOverlap = boundingBox.pos.y - targetPos.y;
+		float bottomOverlap = (boundingBox.pos.y + boundingBox.res.y) - (targetPos.y + cam.res.y);
+		
+		Vec2f offset{ 0,0 };
+		if (leftOverlap > 0) offset.x = leftOverlap;
+		if (rightOverlap < 0) offset.x = rightOverlap;
+		if (topOverlap > 0) offset.y = topOverlap;
+		if (bottomOverlap < 0) offset.y = bottomOverlap;
+
+		targetPos += offset;
+	}
+
+
+	Vec2f distance = targetPos - cam.pos;
+	if (distance.magn() < 1.0f) cam.pos = targetPos;
+	else cam.pos += distance / 10.f;
 }
 
 void ClientWorldScene::renderStep(Game& game)

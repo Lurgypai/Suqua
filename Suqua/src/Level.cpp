@@ -8,7 +8,8 @@
 
 using namespace nlohmann;
 
-Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag) :
+Level::Level(const std::string& levelId_, const json& levelJson, Scene& scene, const std::string& textureTag) :
+    levelId{ levelId_ },
 	tiles{},
 	entities{},
 	boundingBox{},
@@ -71,6 +72,8 @@ Level::Level(const json& levelJson, Scene& scene, const std::string& textureTag)
 			}
 		}
 	}
+
+    deactivate();
 }
 
 void Level::activate() {
@@ -108,3 +111,6 @@ bool Level::isActive() const {
     return isActive_;
 }
 
+const std::string& Level::getLevelId() const {
+    return levelId;
+}

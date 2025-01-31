@@ -40,17 +40,17 @@ void main() {
 	vec2 pos = vec2(id % 2, id / 2);
     vec2 h = vec2(0.5);
 	vec2 imgPos = pos - h;
-	
+
+	vec2 objRes = vec2(dat.objRes);
 	//move -0.5, 0.5 to surround origin
-	imgPos *= sign(dat.objRes);
+	imgPos *= sign(objRes);
     imgPos += h;
     
-    imgPos *= abs(dat.objRes);
+    imgPos *= abs(objRes);
 	imgPos += dat.imgOffset;
-    imgPos += 0.1; //remove this line to re-enable rounding bug
 	FragCoord = vec2(imgPos) / dat.imgRes;
 	
-	vec2 pixelPos = (pos * abs(dat.objRes));
+	vec2 pixelPos = pos * abs(objRes);
 	
 	//scale about origin
 	pixelPos = ((pixelPos - dat.origin) * dat.scale) + dat.origin;
@@ -63,7 +63,7 @@ void main() {
 	pixelPos += dat.origin;
     
 	//position
-	pixelPos += (dat.objPos - camPos);
+	pixelPos += (dat.objPos - round(camPos));
     
 	vec2 windowPos = pixelPos / (vec2(camRes) / zoom);
     if(flip_vertically)

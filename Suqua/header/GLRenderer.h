@@ -14,7 +14,7 @@
 #include "ParticleSystem.h"
 #include "Color.h"
 
-#define IMG_DATA_BUFFER_SIZE 1000
+#define IMG_DATA_BUFFER_SIZE 2000
 
 using CamId = uint32_t;
 

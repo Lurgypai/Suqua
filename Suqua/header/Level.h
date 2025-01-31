@@ -13,7 +13,10 @@ public:
         Vec2f res;
     };
 
-	Level(const nlohmann::json& levelJson, Scene& scene, const std::string& textureTag);
+	Level(const std::string& levelId, const nlohmann::json& levelJson, Scene& scene, const std::string& textureTag);
+
+    Level(const Level& other) = default;
+    Level(Level&& other) = default;
 
     const std::vector<LevelEntity>& getEntities() const;
     const AABB& getBoundingBox() const;
@@ -23,7 +26,10 @@ public:
     void deactivate();
 
     bool isActive() const;
+    const std::string& getLevelId() const;
 private:
+    std::string levelId;
+
 	std::vector<EntityId> tiles;
     std::vector<LevelEntity> entities;
 

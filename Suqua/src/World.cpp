@@ -36,7 +36,8 @@ void World::load(Scene& scene) {
 
 	const json& levelsJson = worldJson["levels"];
 	for (auto& levelJson : levelsJson) {
-		levels.emplace_back(levelJson, scene, textureTag);
+        auto id = levelJson["identifier"];
+		levels.emplace(id, Level{id, levelJson, scene, textureTag});
 	}
 }
 
@@ -47,8 +48,17 @@ void World::load(const std::string& textureTag_, const std::string& fileName_, S
     load(scene);
 }
 
+Level* World::getActiveLevel(const Vec2f& pos) {
+	for (auto& pair : levels) {
+        auto& level = pair.second;
+		if (level.getBoundingBox().contains(pos)) return &level;
+	}
+	return nullptr;
+}
+
 const Level* World::getActiveLevel(const Vec2f& pos) const {
-	for (auto& level : levels) {
+	for (auto& pair : levels) {
+        auto& level = pair.second;
 		if (level.getBoundingBox().contains(pos)) return &level;
 	}
 	return nullptr;
@@ -60,10 +70,10 @@ bool World::hasTile(Vec2f pos) const {
 	return level->hasTile(pos);
 }
 
-const std::vector<Level>& World::getLevels() const {
+const std::unordered_map<std::string, Level>& World::getLevels() const {
 	return levels;
 }
 
-std::vector<Level>& World::getLevels() {
-    return levels;
+Level& World::getLevel(const std::string& levelId) {
+    return levels.at(levelId);
 }
