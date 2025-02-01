@@ -24,6 +24,7 @@
 #include "PhysicsComponent.h"
 #include "RespawnGFXComponent.h"
 #include "AttackGFXComponent.h"
+#include "ControllerComponent.h"
 
 #include "../Shooty2Core/GunFireComponent.h"
 #include "../Shooty2Core/RespawnComponent.h"
@@ -135,9 +136,14 @@ void ClientWorldScene::renderUpdateStep(Game& game)
     Updater::UpdateAll<AttackGFXComponent>();
 
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
+    auto plrContComp = EntitySystem::GetComp<ControllerComponent>(myPlayerId);
 	auto& cam = GLRenderer::getCamera(camId);
 
-	Vec2f targetPos = plrPhysicsComp->center() - Vec2f{ cam.res.x / 2.f, cam.res.y / 2.f };
+    auto plrPos = plrPhysicsComp->center();
+    auto pointerWorldPos = GLRenderer::screenToWorld(plrContComp->getController().pointerPos, camId);
+    auto delta = pointerWorldPos - plrPos;
+    Vec2f targetPos = plrPos + (delta / 2.f);
+    targetPos -= Vec2f{cam.res.x / 2.f, cam.res.y / 2.f };
 	auto* level = world.getActiveLevel(plrPhysicsComp->center());
 
 	if (level != nullptr) {
@@ -160,6 +166,9 @@ void ClientWorldScene::renderUpdateStep(Game& game)
 	Vec2f distance = targetPos - cam.pos;
 	if (distance.magn() < 1.0f) cam.pos = targetPos;
 	else cam.pos += distance / 10.f;
+
+    DebugIO::setLine(4, "Player Pos: " + std::to_string(plrPos.x) + ", " + std::to_string(plrPos.y));
+    DebugIO::setLine(5, "Pointer Pos: " + std::to_string(pointerWorldPos.x) + ", " + std::to_string(pointerWorldPos.y));
 }
 
 void ClientWorldScene::renderStep(Game& game)

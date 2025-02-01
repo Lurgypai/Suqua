@@ -1,6 +1,7 @@
 #include "CommandRespawn.h"
 #include "PlayerSpawnComponent.h"
 #include "PhysicsComponent.h"
+#include "DebugIO.h"
 
 CommandRespawn::CommandRespawn(World& world_) : 
     world{ &world_ }
@@ -22,7 +23,7 @@ void CommandRespawn::onCommand(const std::vector<std::string>& args) {
     }
 
     if(!found) {
-        std::cout << "Unable to locate level \"" << levelId << "\"\n";
+        DebugIO::printLine("Unable to locate level \"" + levelId + '\"');
         return;
     }
 
