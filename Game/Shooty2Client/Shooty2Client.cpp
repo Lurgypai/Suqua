@@ -12,7 +12,8 @@ int main(int argc, char** argv) {
 	SuquaLib::SuquaInit("Shooty2", "settings.json", SuquaLib::all);
 	GLRenderer::LoadTexture("suqua/images/none.png", "none");
 	
-	Game game{ Game::client_flags };
+	// Game game{ Game::client_flags };
+	Game game{ Game::local_flags };
 	game.serverBroadcastDelay = 0;
 	game.clientPingDelay = 120;
 

@@ -3,6 +3,7 @@
 #include "NetworkDataComponent.h"
 #include "PositionComponent.h"
 #include "EntityBaseComponent.h"
+#include "NetworkDataComponentDataFields.h"
 
 using NDC = NetworkDataComponent;
 
@@ -16,62 +17,75 @@ void PhysicsSystem::getActive() {
     for(auto& physicsComp : EntitySystem::GetPool<PhysicsComponent>()) {
         auto* base = EntitySystem::GetComp<EntityBaseComponent>(physicsComp.getId());
         if(base->isDead || !base->isActive) continue;
-        active.push_back(physicsComp.getId());
+        active.push_back(&physicsComp);
         if(!physicsComp.collidesWith) continue;
-        collidesWith.push_back(physicsComp.getId());
+        collidesWith.push_back(&physicsComp);
     }
 };
 
+void PhysicsSystem::getActiveOwned() {
+    if(!EntitySystem::Contains<PhysicsComponent>()) return;
+
+    active.clear();
+    collidesWith.clear();
+    for(auto& physicsComp : EntitySystem::GetPool<PhysicsComponent>()) {
+        auto* ndc = EntitySystem::GetComp<NDC>(physicsComp.getId());
+        if(ndc->owner == NDC::Owner::foreign) {
+            // skip the position component call
+            physicsComp.collider.pos = {
+                ndc->get<float>(PositionData::X),
+                ndc->get<float>(PositionData::Y)
+            };
+            continue;
+        }
+
+        auto* base = EntitySystem::GetComp<EntityBaseComponent>(physicsComp.getId());
+        if(base->isDead || !base->isActive) continue;
+        active.push_back(&physicsComp);
+        if(!physicsComp.isCollidedWith()) continue;
+        collidesWith.push_back(&physicsComp);
+    }
+}
+
 void PhysicsSystem::runPhysics(double timeDelta) {
     getActive();
-    for (auto id : active) {
-        runPhysics(timeDelta, id);
+    for (auto physicsComp : active) {
+        runPhysics(timeDelta, *physicsComp);
     }
 }
 
 void PhysicsSystem::runPhysicsOnOwned(double timeDelta) {
-    getActive();
-    for(auto id : active) {
-        auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-        if(ndc->owner == NetworkDataComponent::Owner::local_only || ndc->owner == NetworkDataComponent::Owner::local_shared) {
-            runPhysics(timeDelta, id);
-        }
-        else {
-            auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-            physicsComp->refreshPos();
-        }
+    getActiveOwned();
+    for (auto physicsComp : active) {
+        runPhysics(timeDelta, *physicsComp);
     }
 }
 
-void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
+void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) {
 	if (EntitySystem::Contains<PhysicsComponent>()) {
-		PhysicsComponent* comp = EntitySystem::GetComp<PhysicsComponent>(entity);
-		PositionComponent* posComp = EntitySystem::GetComp<PositionComponent>(entity);
+		PositionComponent* posComp = EntitySystem::GetComp<PositionComponent>(physicsComp.getId());
 
 		//refresh to make sure we're in the right place
-		comp->refreshPos();
+		physicsComp.refreshPos();
 
-		if (!comp->isFrozen()) {
+		if (!physicsComp.isFrozen()) {
 			//accelerate downwards, gravity
-			if (!comp->isWeightless()) comp->accelerate({ 0, comp->getWeight()}); //hmmmmmmm
-
-
+			if (!physicsComp.isWeightless()) physicsComp.accelerate({ 0, physicsComp.getWeight()}); //hmmmmmmm
 			//only the physics system manages grounded-ness, so this has to be a direct access
-			comp->setGrounded(false);
-			Vec2f currPos = posComp->getPos();
-			Vec2f vel = comp->getVel();
+			physicsComp.setGrounded(false);
+
+            // set by reset pos
+			Vec2f currPos = physicsComp.collider.pos;
+			Vec2f vel = physicsComp.getVel();
 			Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
 			
-			if (comp->doesCollide()) {
+			if (physicsComp.doesCollide()) {
 				//handle collisions with the stage
-				for (auto& otherId : collidesWith) {
-                    auto& otherComp = *EntitySystem::GetComp<PhysicsComponent>(otherId);
-                    auto otherBaseComp = EntitySystem::GetComp<EntityBaseComponent>(otherComp.getId());
-                    if(otherId == comp->id) continue;
-                    if(!otherComp.isCollidedWith()) continue;
+				for (auto otherComp : collidesWith) {
+                    if(otherComp->id == physicsComp.id) continue;
 
-                    auto& collider = otherComp.getCollider();
-                    Vec2f res = comp->getRes();
+                    auto& collider = otherComp->getCollider();
+                    Vec2f res = physicsComp.getRes();
                     //
                     //place we are updating too
                     AABB projection{ newPos, res };
@@ -110,13 +124,13 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
 
                     //horizontal collision
                     if (overlap.x != 0.0f && overlap.y == 0.0f) {
-                        if (vel.x < 0) comp->onCollide(CollisionDir::left);
-                        else if (vel.x > 0) comp->onCollide(CollisionDir::right);
+                        if (vel.x < 0) physicsComp.onCollide(CollisionDir::left);
+                        else if (vel.x > 0) physicsComp.onCollide(CollisionDir::right);
                     }
                     //vertical collision
                     else if (overlap.x == 0.0f && overlap.y != 0.0f) {
-                        if (vel.y < 0) comp->onCollide(CollisionDir::up);
-                        else if (vel.y > 0) comp->onCollide(CollisionDir::down);
+                        if (vel.y < 0) physicsComp.onCollide(CollisionDir::up);
+                        else if (vel.y > 0) physicsComp.onCollide(CollisionDir::down);
                     }
 
                     //corner collision
@@ -126,23 +140,23 @@ void PhysicsSystem::runPhysics(double timeDelta, EntityId entity) {
                             overlap.x = 0;
 
                             //and handle collision allong the y axis
-                            if (vel.y < 0) comp->onCollide(CollisionDir::up);
-                            else if (vel.y > 0) comp->onCollide(CollisionDir::down);
+                            if (vel.y < 0) physicsComp.onCollide(CollisionDir::up);
+                            else if (vel.y > 0) physicsComp.onCollide(CollisionDir::down);
                         }
                         else {
                             overlap.y = 0;
-                            if (vel.x < 0) comp->onCollide(CollisionDir::left);
-                            else if (vel.x > 0) comp->onCollide(CollisionDir::right);
+                            if (vel.x < 0) physicsComp.onCollide(CollisionDir::left);
+                            else if (vel.x > 0) physicsComp.onCollide(CollisionDir::right);
                         }
                     }
-                    // comp->setVel(vel);
+                    // physicsComp.setVel(vel);
                     newPos -= overlap;
 				}
 			}
 
 			currPos = newPos;
 			posComp->setPos(currPos);
-			comp->collider.pos = currPos;
+			physicsComp.collider.pos = currPos;
 		}
 	}
 }

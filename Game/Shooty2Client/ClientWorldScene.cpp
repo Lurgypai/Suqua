@@ -66,6 +66,7 @@ void ClientWorldScene::load(Game& game)
 	GLRenderer::LoadTexture("stranded/Hero/Hero/green_hero.png", "hero");
 	GLRenderer::LoadTexture("stranded/Enemies/Warrior/warrior.png", "enemy:warrior");
 	GLRenderer::LoadTexture("stranded/Hero/Hero/green_gun.png", "gun");
+    GLRenderer::LoadTexture("player/bullet.png", "bullet.player");
 	GLRenderer::LoadTexture("stranded/Tileset/custom_top_down.png", "tileset");
     GLRenderer::LoadTexture("enemy/basic.png", "enemy:basic");
 
@@ -82,6 +83,7 @@ void ClientWorldScene::load(Game& game)
     // EntitySpawnSystem::SpawnEntity("enemy.basic", *this, {720.f / 2, 405.f / 2}, NetworkDataComponent::Owner::local_only);
 
 	// load level
+    
     world = World{ "tileset", "levels/test.ldtk" };
 	world.load(*this);
     world.getLevel("Level_spawn").activate();

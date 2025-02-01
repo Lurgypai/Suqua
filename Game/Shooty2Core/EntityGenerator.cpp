@@ -109,7 +109,7 @@ static EntityId SpawnBulletPlayerBasic(
         const UUID& uuid)
 {
 	auto entities = scene.addEntities(1);
-	MakeBullet(entities[0], uuid, owner, pos, { 4, 4 }, TeamId::player, 10);
+	MakeBullet(entities[0], uuid, owner, pos, { 3, 3 }, TeamId::player, 10);
 
 	EntitySystem::MakeComps<LifeTimeComponent>(1, &entities[0], 480);
 
@@ -158,8 +158,8 @@ static EntityId SpawnPlayer(
             0.8f);
             */
             4,
-            0.f,
-            0.f,
+            0.5f,
+            2.f,
             5,
             0.2f,
             55.f);

@@ -5,6 +5,7 @@
 #include "AttackGFXComponent.h"
 #include "GunGFXComponent.h"
 #include "DebugFIO.h"
+#include "Sprite.h"
 #include "../Shooty2Core/OnHitComponent.h"
 
 #include "../Shooty2Core/Shooty2Packet.h"
@@ -31,7 +32,7 @@ static void AddPlayerGFX(EntityId playerId) {
 static void AddBulletPlayerBasicGFX(EntityId bulletId) {
 	EntitySystem::MakeComps<RenderComponent>(1, &bulletId);
 	auto render = EntitySystem::GetComp<RenderComponent>(bulletId);
-	render->loadDrawable<RectDrawable>(RectDrawable{ Color{0.0, 1.0, 0.0, 1.0}, true, -0.1, AABB{{0, 0 }, {4, 4}} });
+	render->loadDrawable<RectDrawable>(RectDrawable{ Color{0.0, 1.0, 0.0, 1.0}, true, -0.1, AABB{{0, 0 }, {3, 3}} });
 }
 
 static void AddEnemyGFX(EntityId enemyId) {

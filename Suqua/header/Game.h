@@ -21,6 +21,7 @@ public:
 		server = 1 << 2,
 		client = 1 << 3,
 		input =  1 << 4,
+        local_flags = render | physics | input,
 		client_flags = render | physics | client | input,
 		server_flags = physics | server | input,
 		none = 0

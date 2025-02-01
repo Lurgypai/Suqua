@@ -3,13 +3,11 @@
 
 #include "ComponentMacros.h"
 #include "AABB.h"
-#include "PhysicsSystem.h"
 #include "CollisionHandler.h"
 
 class PhysicsComponent {
 	friend class PhysicsSystem;
     CompMembers(PhysicsComponent);
-
 public:
 	PhysicsComponent(EntityId id_,
             const Vec2f& pos,
