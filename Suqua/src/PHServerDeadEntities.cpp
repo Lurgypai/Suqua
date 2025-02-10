@@ -3,6 +3,8 @@
 #include "EntityBaseComponent.h"
 #include "NetworkDataComponent.h"
 
+using UUID = Suqua::UUID;
+
 PHServerDeadEntities::PHServerDeadEntities(PacketId id_) :
 	PacketHandler{ id_ }
 {}

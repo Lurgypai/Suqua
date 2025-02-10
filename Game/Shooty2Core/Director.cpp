@@ -7,6 +7,8 @@
 
 #include "DebugIO.h"
 
+using UUID = Suqua::UUID;
+
 void Director::load(World& world_, Scene& scene, const std::string& spawnLevel) {
     exitRadius = 50.f;
     spawnDelay = 5.f;

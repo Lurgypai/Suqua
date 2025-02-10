@@ -1,5 +1,7 @@
 #include "EntitySpawnSystem.h"
 
+using UUID = Suqua::UUID;
+
 std::unique_ptr<EntitySpawnSystem::Generator> EntitySpawnSystem::generator{nullptr};
 
 EntityId EntitySpawnSystem::SpawnEntity(

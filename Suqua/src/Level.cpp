@@ -7,6 +7,7 @@
 #include "EntityBaseComponent.h"
 
 using namespace nlohmann;
+using UUID = Suqua::UUID;
 
 Level::Level(const std::string& levelId_, const json& levelJson, Scene& scene, const std::string& textureTag) :
     levelId{ levelId_ },

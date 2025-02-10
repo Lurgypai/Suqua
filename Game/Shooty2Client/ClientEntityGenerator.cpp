@@ -65,7 +65,7 @@ void ClientEntityGenerator::RegisterSpawnFunctions() {
 EntityId ClientEntityGenerator::SpawnEntity(
         const std::string& tag, Scene& targetScene,
         const Vec2f& pos, NetworkDataComponent::Owner owner,
-        const UUID& uuid) {
+        const Suqua::UUID& uuid) {
     auto entity = EntityGenerator::SpawnEntity(tag, targetScene, pos, owner, uuid);
     GFXFunctions.at(tag)(entity);
     if(!host->isConnected() || owner != NetworkDataComponent::Owner::local_shared) return entity;

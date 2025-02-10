@@ -19,7 +19,7 @@ public:
             Scene& targetScene,
             const Vec2f& targetPos,
             NetworkDataComponent::Owner owner,
-            const UUID& uuid = UUID::GenerateUUID()) override;
+            const Suqua::UUID& uuid = Suqua::UUID::GenerateUUID()) override;
 
 private:
     std::unordered_map<std::string, GFXFunction> GFXFunctions; 

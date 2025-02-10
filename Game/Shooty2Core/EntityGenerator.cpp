@@ -23,6 +23,7 @@
 
 using TeamId = TeamComponent::TeamId;
 using Owner =  NetworkDataComponent::Owner;
+using UUID = Suqua::UUID;
 
 static void MakeLivingEntity(
         EntityId id,

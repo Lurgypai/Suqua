@@ -18,7 +18,7 @@ public:
             Scene& scene,
             const Vec2f& pos,
             NetworkDataComponent::Owner owner,
-            const UUID& uuid = UUID::GenerateUUID());
+            const Suqua::UUID& uuid = Suqua::UUID::GenerateUUID());
 
     class Generator {
         friend EntitySpawnSystem;
@@ -31,7 +31,7 @@ public:
                 Scene& scene,
                 const Vec2f& pos,
                 NetworkDataComponent::Owner owner,
-                const UUID& uuid = UUID::GenerateUUID()) = 0;
+                const Suqua::UUID& uuid = Suqua::UUID::GenerateUUID()) = 0;
     };
 private:
     static std::unique_ptr<Generator> generator;    

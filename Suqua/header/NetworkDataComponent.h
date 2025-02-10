@@ -90,11 +90,11 @@ public:
 	using DataId = uint32_t;
     using DataType = Data::DataType;
 
-    static EntityId GetEntityId(const UUID& id);
-    static void RemoveEntity(const UUID& id);
+    static EntityId GetEntityId(const Suqua::UUID& id);
+    static void RemoveEntity(const Suqua::UUID& id);
 
 	NetworkDataComponent(EntityId id_, 
-            const UUID& uuid_,
+            const Suqua::UUID& uuid_,
             Owner owner_ = Owner::local_only );
 	NetworkDataComponent(NetworkDataComponent&& other) = default;
 	NetworkDataComponent& operator=(NetworkDataComponent&& other) = default;
@@ -133,7 +133,7 @@ public:
     void storePrev();
     void storePrev(DataId field);
 
-    const UUID& getUUID() const;
+    const Suqua::UUID& getUUID() const;
     Owner owner;
 private:
 	using DataMap = std::unordered_map<DataId, Data>;
@@ -142,8 +142,8 @@ private:
 	DataMapPtr dataPtr;
     DataMapPtr prevDataPtr;
 
-    UUID uuid;
-    static std::unordered_map<UUID, EntityId> idMap;
+    Suqua::UUID uuid;
+    static std::unordered_map<Suqua::UUID, EntityId> idMap;
 };
 
 

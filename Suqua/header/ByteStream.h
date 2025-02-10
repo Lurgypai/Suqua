@@ -79,7 +79,7 @@ inline ByteStream& ByteStream::operator<< <Vec2f>(const Vec2f& t) {
 }
 
 template<>
-inline ByteStream& ByteStream::operator<< <UUID>(const UUID& t) {
+inline ByteStream& ByteStream::operator<< <Suqua::UUID>(const Suqua::UUID& t) {
 	size_t end = _data.size();
 	_data.resize(end + sizeof(t));
 	auto xCpy = s_hton(t.data_[0]);
@@ -141,7 +141,7 @@ inline bool ByteStream::operator >> <Vec2f>(Vec2f& v) {
 }
 
 template<>
-inline bool ByteStream::operator >> <UUID>(UUID& v) {
+inline bool ByteStream::operator >> <Suqua::UUID>(Suqua::UUID& v) {
 	if (readPos + sizeof(v) > _data.size()) return false;
 
 	std::memcpy(&v.data_[0], _data.data() + readPos, sizeof(v.data_[0]));

@@ -5,6 +5,9 @@
 #include <iostream>
 #include <ostream>
 
+class ByteStream;
+
+namespace Suqua {
 class UUID {
 public:
     static UUID GenerateUUID();
@@ -15,13 +18,14 @@ private:
     std::array<std::uint64_t, 2> data_;
 
 friend struct std::hash<UUID>;
-friend class ByteStream;
+friend class ::ByteStream;
 friend std::ostream& operator<<(std::ostream& left, const UUID& value);
+};
 };
 
 namespace std {
-template <> struct hash<UUID> {
-    size_t operator()(const UUID & x) const {
+template <> struct hash<Suqua::UUID> {
+    size_t operator()(const Suqua::UUID & x) const {
         std::hash<std::uint64_t> hash;
         size_t lhs = hash(x.data_[0]);
         size_t rhs = hash(x.data_[1]);
@@ -36,4 +40,4 @@ template <> struct hash<UUID> {
 };
 }
 
-std::ostream& operator<<(std::ostream& left, const UUID& value);
+std::ostream& operator<<(std::ostream& left, const Suqua::UUID& value);

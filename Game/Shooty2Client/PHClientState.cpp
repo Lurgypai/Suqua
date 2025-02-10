@@ -2,6 +2,8 @@
 #include "Game.h"
 #include "NetworkDataComponent.h"
 
+using UUID = Suqua::UUID;
+
 PHClientState::PHClientState(PacketId id_, Scene* scene_) :
 	PacketHandler{ id_ },
     scene{scene_}

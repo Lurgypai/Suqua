@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <cstdint>
 
+namespace Suqua {
 UUID UUID::GenerateUUID() {
     static std::random_device r{};
     static std::default_random_engine e{r()};
@@ -21,4 +22,5 @@ std::ostream& operator<<(std::ostream& left, const UUID& value) {
        std::hex << std::setw(16) << std::setfill('0') << value.data_[0]
        << '-' 
        << std::hex << std::setw(16) << std::setfill('0') << value.data_[1];
+}
 }

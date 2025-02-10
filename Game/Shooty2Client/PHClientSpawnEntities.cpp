@@ -5,6 +5,8 @@
 #include "../Shooty2Core/EntitySpawnSystem.h"
 #include <cstdint>
 
+using UUID = Suqua::UUID;
+
 PHClientSpawnEntities::PHClientSpawnEntities(PacketId id_, Scene* scene_) :
 	PacketHandler{ id_ },
     scene{scene_}

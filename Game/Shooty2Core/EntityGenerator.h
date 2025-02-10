@@ -12,7 +12,7 @@ public:
             Scene&,
             const Vec2f&,
             NetworkDataComponent::Owner owner,
-            const UUID& uuid)>;
+            const Suqua::UUID& uuid)>;
 
     EntityGenerator() = default;
     virtual ~EntityGenerator() = default;
@@ -22,7 +22,7 @@ public:
             Scene& targetScene,
             const Vec2f& targetPos,
             NetworkDataComponent::Owner owner,
-            const UUID& uuid) override;
+            const Suqua::UUID& uuid) override;
 
 private:
     std::unordered_map<std::string, SpawnFunction> SpawnFunctions; 

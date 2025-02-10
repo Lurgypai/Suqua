@@ -5,6 +5,8 @@
 #include <utility>
 #include <exception>
 
+using UUID = Suqua::UUID;
+
 EntityId NetworkDataComponent::GetEntityId(const UUID& id) {
     auto found = idMap.find(id);
     if(found == idMap.end()) return 0;

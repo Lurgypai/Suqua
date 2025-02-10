@@ -2,6 +2,7 @@
 #include <vector>
 
 using OwnedEntityMap = NetworkEntityOwnershipSystem::OwnedEntityMap;
+using UUID = Suqua::UUID;
 
 NetworkEntityDescriptor::NetworkEntityDescriptor(const std::string& tag_,
         const UUID& uuid_) :
