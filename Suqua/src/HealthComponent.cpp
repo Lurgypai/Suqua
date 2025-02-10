@@ -1,4 +1,5 @@
 #include "HealthComponent.h"
+#include "EntityBaseComponent.h"
 #include "NetworkDataComponentDataFields.h"
 #include <stdexcept>
 
@@ -19,8 +20,10 @@ void HealthComponent::setHealth(std::int32_t health_) {
 }
 
 void HealthComponent::damage(std::int32_t amount) {
-	if (amount > *health) {
+	if (amount >= *health) {
 		*health = 0;
+        auto base = EntitySystem::GetComp<EntityBaseComponent>(id);
+        base->isActive = false;
 		return;
 	}
 

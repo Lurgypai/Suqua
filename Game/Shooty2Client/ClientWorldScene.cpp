@@ -25,6 +25,7 @@
 #include "RespawnGFXComponent.h"
 #include "AttackGFXComponent.h"
 #include "ControllerComponent.h"
+#include "RectDrawable.h"
 
 #include "../Shooty2Core/GunFireComponent.h"
 #include "../Shooty2Core/RespawnComponent.h"
@@ -98,6 +99,17 @@ void ClientWorldScene::load(Game& game)
     }
     auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
     plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_spawn"));
+
+    director = Director{};
+    director.load(world, *this, "Level_spawn");
+    auto exitId = director.getExitId();
+    EntitySystem::MakeComps<RenderComponent>(1, &exitId);
+    auto render = EntitySystem::GetComp<RenderComponent>(exitId);
+    render->loadDrawable<RectDrawable>(RectDrawable{
+            Color{1.f, 1.f, 1.f, 1.f}, false, -0.1, AABB{{0, 0}, {4, 4}} 
+            });
+
+    director.addPlayer(myPlayerId);
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -118,6 +130,8 @@ void ClientWorldScene::physicsStep(Game& game)
 	combat.checkClientCollisions(&game.host);
 
 	physics.runPhysicsOnOwned(game.PHYSICS_STEP);
+
+    director.update(*this, game.PHYSICS_STEP);
 
 	// update inputs for next frame
 	auto& playerInputDevice = static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput));
@@ -166,9 +180,6 @@ void ClientWorldScene::renderUpdateStep(Game& game)
 	Vec2f distance = targetPos - cam.pos;
 	if (distance.magn() < 1.0f) cam.pos = targetPos;
 	else cam.pos += distance / 10.f;
-
-    DebugIO::setLine(4, "Player Pos: " + std::to_string(plrPos.x) + ", " + std::to_string(plrPos.y));
-    DebugIO::setLine(5, "Pointer Pos: " + std::to_string(pointerWorldPos.x) + ", " + std::to_string(pointerWorldPos.y));
 }
 
 void ClientWorldScene::renderStep(Game& game)
@@ -176,10 +187,6 @@ void ClientWorldScene::renderStep(Game& game)
 	/* ---------- DEBUG LINES ----------- */
 	DebugIO::setLine(0, "Entity Count: " + std::to_string(EntitySystem::GetPool<EntityBaseComponent>().size()));
 	DebugIO::setLine(1, "Player ID: " + std::to_string(myPlayerId));
-
-	auto plrHealthComp = EntitySystem::GetComp<HealthComponent>(myPlayerId);
-	DebugIO::setLine(2, "Player Health: " + std::to_string(plrHealthComp->getHealth()));
-
 
 	screenBuffer.bind();
 	glClearColor(78.0f / 255, 59.0f / 255, 61.0f / 255, 1.0f);
