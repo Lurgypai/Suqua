@@ -124,12 +124,17 @@ void Director::doFinished() {
     world->getLevel(currLevelId).deactivate();
 
     // select the next stage
-    int index = randInt(0, levels.size() - 1);
-    currLevelId = levels[index];
-    // teleport players, initialize cluster spawn positions
-    activeSpawnPositions.clear();
+    std::string nextLevel = currLevelId;
+    while(nextLevel == currLevelId) {
+        int index = randInt(0, levels.size() - 1);
+        nextLevel = levels[index];
+    }
+    currLevelId = nextLevel;
     auto& level = world->getLevel(currLevelId);
     level.activate();
+
+    // teleport players, initialize cluster spawn positions
+    activeSpawnPositions.clear();
     for(const auto& entity : level.getEntities()) {
         if(entity.id == "EnemySpawn") {
             activeSpawnPositions.push_back(entity.pos);
@@ -143,6 +148,7 @@ void Director::doFinished() {
             physics->teleport(entity.pos);
         }
     }
+
     // deactiveate the exit
     auto* base = EntitySystem::GetComp<EntityBaseComponent>(exitId);
     base->isActive = false;

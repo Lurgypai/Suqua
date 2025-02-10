@@ -4,8 +4,6 @@ uniform vec2 camPos = vec2(0, 0);
 uniform ivec2 camRes;
 uniform vec2 zoom = vec2(1.0, 1.0);
 
-uniform vec2 windowRes;
-
 uniform int start = 0;
 uniform int size = 0;
 

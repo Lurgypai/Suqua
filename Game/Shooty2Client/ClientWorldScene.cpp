@@ -26,6 +26,7 @@
 #include "AttackGFXComponent.h"
 #include "ControllerComponent.h"
 #include "RectDrawable.h"
+#include "RandomUtil.h"
 
 #include "../Shooty2Core/GunFireComponent.h"
 #include "../Shooty2Core/RespawnComponent.h"
@@ -102,14 +103,10 @@ void ClientWorldScene::load(Game& game)
 
     director = Director{};
     director.load(world, *this, "Level_spawn");
-    auto exitId = director.getExitId();
-    EntitySystem::MakeComps<RenderComponent>(1, &exitId);
-    auto render = EntitySystem::GetComp<RenderComponent>(exitId);
-    render->loadDrawable<RectDrawable>(RectDrawable{
-            Color{1.f, 1.f, 1.f, 1.f}, false, -0.1, AABB{{0, 0}, {4, 4}} 
-            });
 
     director.addPlayer(myPlayerId);
+
+    GLRenderer::GenParticleType("exit", 1, ComputeShader{ "particles/test.vert" });
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -188,11 +185,33 @@ void ClientWorldScene::renderStep(Game& game)
 	DebugIO::setLine(0, "Entity Count: " + std::to_string(EntitySystem::GetPool<EntityBaseComponent>().size()));
 	DebugIO::setLine(1, "Player ID: " + std::to_string(myPlayerId));
 
+    /* LEVEL exit rendering */
+    auto exitId = director.getExitId();
+    auto exitBase = EntitySystem::GetComp<EntityBaseComponent>(exitId);
+    if(exitBase->isActive) {
+        auto exitPhysics = EntitySystem::GetComp<PhysicsComponent>(exitId);
+        auto pos = exitPhysics->position();
+        float angle = randFloat(0.f, 3.1415926535898f * 2.f);
+        Vec2f offset{ 50.f, 0.f };
+        offset.angle(angle);
+        pos += offset;
+        Particle base{
+            Color{ 1.f, 1.f, 1.f, 1.f },
+            pos,
+            -90,
+            .2f,
+            100,
+            0
+        };
+        GLRenderer::SpawnParticles("exit", 1, base);
+    }
+
 	screenBuffer.bind();
 	glClearColor(78.0f / 255, 59.0f / 255, 61.0f / 255, 1.0f);
 	GLRenderer::Clear();
 	drawScene(game.getRender());
     GLRenderer::DrawBufferedImages();
+    GLRenderer::UpdateAndDrawParticles();
 
 	/*
 	auto gunPos = EntitySystem::GetComp<PositionComponent>(myGunId);
