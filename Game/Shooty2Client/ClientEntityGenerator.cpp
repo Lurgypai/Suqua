@@ -20,7 +20,8 @@ static void AddPlayerGFX(EntityId playerId) {
 	EntitySystem::MakeComps<CharacterGFXComponent>(1, &playerId,
             "hero",
             "stranded/Hero/Hero/Hero.json",
-            Vec2f{ -13, -24 } );
+            Vec2f{ -13, -24 },
+            Vec2f{ -3, -1} );
 
 	EntitySystem::GetComp<CharacterGFXComponent>(playerId)->setHasUpDown(true);
 	EntitySystem::MakeComps<OnHitComponent>(1, &playerId);
@@ -39,7 +40,8 @@ static void AddEnemyGFX(EntityId enemyId) {
 	EntitySystem::MakeComps<CharacterGFXComponent>(1, &enemyId,
             "enemy:basic",
             "enemy/basic.json",
-            Vec2f{ -13, -24 } );
+            Vec2f{ -13, -24 },
+            Vec2f{ -3, 5 });
 
     EntitySystem::MakeComps<OnHitComponent>(1, &enemyId);
     // EntitySystem::MakeComps<RespawnGFXComponent>(1, &enemyId);

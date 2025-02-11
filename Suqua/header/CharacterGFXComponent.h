@@ -6,9 +6,11 @@
 class CharacterGFXComponent {
 	CompMembers(CharacterGFXComponent);
 public:
-    CharacterGFXComponent(EntityId id, const std::string& tag, const std::string& fileName, Vec2f offset);
+    CharacterGFXComponent(EntityId id, const std::string& tag, const std::string& fileName,
+            Vec2f offset, Vec2f shadowOffset);
 
-	void loadSpriteSheet(const std::string& tag, const std::string& fileName, Vec2f offset);
+	void loadSpriteSheet(const std::string& tag, const std::string& fileName,
+            Vec2f offset, Vec2f shadowOffset);
 	void update(int timeDelta);
 	void playAnimation(const std::string& tag, bool looping);
 	void stopAnimation();

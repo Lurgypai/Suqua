@@ -67,6 +67,7 @@ void ClientWorldScene::load(Game& game)
 
 	// textures
 	GLRenderer::LoadTexture("stranded/Hero/Hero/green_hero.png", "hero");
+	GLRenderer::LoadTexture("player/shadow.png", "shadow");
 	GLRenderer::LoadTexture("stranded/Enemies/Warrior/warrior.png", "enemy:warrior");
 	GLRenderer::LoadTexture("stranded/Hero/Hero/green_gun.png", "gun");
     GLRenderer::LoadTexture("player/bullet.png", "bullet.player");
