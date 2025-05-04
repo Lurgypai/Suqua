@@ -19,15 +19,12 @@ void EntitySystem::FreeEntities(unsigned int num, const EntityId* idStore) {
 }
 
 void EntitySystem::FreeDeadEntities() {
+    if(!EntitySystem::Contains<EntityBaseComponent>()) return;
+
 	auto& pool = EntitySystem::GetPool<EntityBaseComponent>();
-	if (EntitySystem::Contains<EntityBaseComponent>()) {
-		for (auto resIter = pool.beginResource(); resIter != pool.endResource(); ++resIter) {
-			if (resIter->val.isDead) {
-				for (auto& pool : PoolMap::getPools()) {
-					//add an erase function to do in place erasing
-					pool->free(resIter->val.getId() - 1);
-				}
-			}
-		}
-	}
+    for(auto& comp : pool) {
+        if(!comp.isDead) continue;
+
+        for(auto& pool : PoolMap::getPools()) pool->free(comp.getId() - 1);
+    }
 }

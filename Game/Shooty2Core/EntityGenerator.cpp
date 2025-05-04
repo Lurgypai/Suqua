@@ -156,7 +156,7 @@ static EntityId SpawnPlayer(
             0,
             0.f,
             0.f,
-            10,
+            1,
             0.2f,
             55.f);
 

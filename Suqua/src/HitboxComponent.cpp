@@ -1,6 +1,7 @@
 #include "HitboxComponent.h"
 #include "PositionComponent.h"
 #include "EntityBaseComponent.h"
+
 #include <stdexcept>
 
 HitboxComponent::HitboxComponent(
