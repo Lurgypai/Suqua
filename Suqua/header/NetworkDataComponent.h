@@ -38,7 +38,7 @@ public:
 private:
 	class Data {
 	public:
-		using DataValue = std::variant<bool, std::uint8_t, int32_t, float, std::string>;
+		using DataValue = std::variant<bool*, std::uint8_t*, std::int32_t*, float*, std::string*>;
 
 		enum class DataType : char {
 			NONE,
@@ -49,29 +49,8 @@ private:
 			STRING,
 		} type;
 
-		inline Data() = default;
-		/*
-		inline Data(const Data& other) = default;
-		inline Data(Data&& other) = default;
-
-		Data& operator=(const Data& other) = default;
-		Data& operator=(Data&& other) = default;
-		*/
-
-		template<IsDataValueType T>
-		T& get();
-
-		template<IsDataValueType T>
-		const T& getConst() const;
-
-		template<IsDataValueType T>
-		void set(T& t);
-
-		template<IsDataValueType T>
-		void set(T&& t);
-
-		template<IsDataValueType T>
-		void set(const T& t);
+        template<IsDataValueType T>
+        Data(T& t);
 
 		void write(ByteStream& s);
 		void read(ByteStream& s);
@@ -79,7 +58,6 @@ private:
 		bool operator==(const Data& other) const;
 		bool operator!=(const Data& other) const;
 	private:
-
 		DataValue value;
 
 		template<IsDataValueType T>
@@ -115,21 +93,10 @@ public:
 	
 	template<IsDataValueType T>
 	void set(DataId id, T& t);
-	template<IsDataValueType T>
-	void set(DataId id, T&& t);
-	template<IsDataValueType T>
-	void set(DataId id, const T& t);
-	template<IsDataValueType T>
-	T& get(DataId id);
-    template<IsDataValueType T>
-    const T& get(DataId id) const;
 
-	//sets this entity to the interpolation between the two targets
-	// void interp(const NetworkDataComponent& first, const NetworkDataComponent& second, float ratio);
+    // remove ptr from map
+    void unset(DataId id);
 
-	//const DataMap& data();
-
-    // stores the current data in the prevDataPtr
     void storePrev();
     void storePrev(DataId field);
 
@@ -146,59 +113,14 @@ private:
     static std::unordered_map<Suqua::UUID, EntityId> idMap;
 };
 
-
 template<IsDataValueType T>
-inline T& NetworkDataComponent::Data::get() {
-	return std::get<T>(value);
-}
+NetworkDataComponent::Data::Data(T& t) : value{&t}
+{}
 
-template<IsDataValueType T>
-inline const T& NetworkDataComponent::Data::getConst() const {
-	return std::get<T>(value);
-}
-
-template<IsDataValueType T>
-inline void NetworkDataComponent::Data::set(T& t) {
-	type = getDataType<T>();
-	value = t;
-}
-
-template<IsDataValueType T>
-inline void NetworkDataComponent::Data::set(T&& t) {
-	type = getDataType<T>();
-	value = std::move(t);
-}
-
-template<IsDataValueType T>
-
-inline void NetworkDataComponent::Data::set(const T& t) {
-	type = getDataType<T>();
-	value = t;
-}
 
 template<IsDataValueType T>
 inline void NetworkDataComponent::set(DataId id, T& t) {
-	(*dataPtr)[id].set(t);
-}
-
-template<IsDataValueType T>
-inline void NetworkDataComponent::set(DataId id, T&& t) {
-	(*dataPtr)[id].set(std::forward<T&&>(t));
-}
-
-template<IsDataValueType T>
-inline void NetworkDataComponent::set(DataId id, const T& t) {
-	(*dataPtr)[id].set(t);
-}
-
-template<IsDataValueType T>
-T& NetworkDataComponent::get(DataId id) {
-	return dataPtr->at(id).get<T>();
-}
-
-template<IsDataValueType T>
-inline const T& NetworkDataComponent::get(DataId id) const {
-	return dataPtr->at(id).getConst<T>();
+    dataPtr->emplace(id, t);
 }
 
 template<IsDataValueType T>

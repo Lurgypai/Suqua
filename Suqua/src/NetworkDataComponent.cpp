@@ -158,19 +158,19 @@ void NetworkDataComponent::Data::write(ByteStream& s) {
 	switch (type)
 	{
 	case NetworkDataComponent::Data::DataType::UBYTE:
-		s << get<uint8_t>();
+		s << std::get<std::uint8_t*>(value);
 		break;
 	case NetworkDataComponent::Data::DataType::BOOL:
-		s << get<bool>();
+		s << std::get<bool*>(value);
 		break;
 	case NetworkDataComponent::Data::DataType::INT_32:
-		s << get<int32_t>();
+		s << std::get<std::int32_t*>(value);
 		break;
 	case NetworkDataComponent::Data::DataType::FLOAT:
-		s << get<float>();
+		s << std::get<float*>(value);
 		break;
 	case NetworkDataComponent::Data::DataType::STRING:
-		s << get<std::string>();
+		s << std::get<std::string*>(value);
 		break;
 	default:
 		break;
@@ -182,19 +182,19 @@ inline void NetworkDataComponent::Data::read(ByteStream& s) {
 	switch (type)
 	{
 	case NetworkDataComponent::Data::DataType::UBYTE:
-		s >> get<uint8_t>();
+		s >> *(std::get<std::uint8_t*>(value));
 		break;
 	case NetworkDataComponent::Data::DataType::BOOL:
-		s >> get<bool>();
+		s >> *(std::get<bool*>(value));
 		break;
 	case NetworkDataComponent::Data::DataType::INT_32:
-		s >> get<int32_t>();
+		s >> *(std::get<std::int32_t*>(value));
 		break;
 	case NetworkDataComponent::Data::DataType::FLOAT:
-		s >> get<float>();
+		s >> *(std::get<float*>(value));
 		break;
 	case NetworkDataComponent::Data::DataType::STRING:
-		s >> get<std::string>();
+		s >> *(std::get<std::string*>(value));
 		break;
 	default:
 		break;
