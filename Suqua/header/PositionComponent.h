@@ -7,9 +7,6 @@ class PositionComponent {
 public:
     PositionComponent(EntityId id_, const Vec2f& pos = Vec2f{});
 
-	Vec2f getPos() const;
-	void setPos(const Vec2f& newPos);
+    Vec2f pos;
 private:
-	float* xPos;
-	float* yPos;
 };

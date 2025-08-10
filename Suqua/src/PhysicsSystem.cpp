@@ -30,12 +30,11 @@ void PhysicsSystem::getActiveOwned() {
     collidesWith.clear();
     for(auto& physicsComp : EntitySystem::GetPool<PhysicsComponent>()) {
         auto* ndc = EntitySystem::GetComp<NDC>(physicsComp.getId());
+        if(ndc == nullptr) continue;
+
         if(ndc->owner == NDC::Owner::foreign) {
             // skip the position component call
-            physicsComp.collider.pos = {
-                ndc->get<float>(PositionData::X),
-                ndc->get<float>(PositionData::Y)
-            };
+            physicsComp.refreshPos();
             continue;
         }
 
@@ -155,7 +154,7 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
 			}
 
 			currPos = newPos;
-			posComp->setPos(currPos);
+            posComp->pos = currPos;
 			physicsComp.collider.pos = currPos;
 		}
 	}

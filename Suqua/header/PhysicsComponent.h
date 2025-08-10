@@ -70,16 +70,13 @@ private:
 
 protected:
 	AABB collider;
-	float* weight;
-	float* xVel;
-	float* yVel;
-	bool* grounded;
-	bool* frozen;
-	bool* weightless;
-	bool* collides;
-	bool* collidesWith;
-	float* xRes;
-	float* yRes;
+	float weight;
+    Vec2f vel;
+	bool grounded;
+	bool frozen;
+	bool weightless;
+	bool collides;
+	bool collidesWith;
 
     std::unique_ptr<CollisionHandler> collisionHandler;
 };

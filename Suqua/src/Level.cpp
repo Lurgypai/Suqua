@@ -55,7 +55,7 @@ Level::Level(const std::string& levelId_, const json& levelJson, Scene& scene, c
 				EntitySystem::MakeComps<RenderComponent>(1, &tile);
 
 				auto posComp = EntitySystem::GetComp<PositionComponent>(tile);
-				posComp->setPos(levelOffset + worldPos);
+                posComp->pos = levelOffset + worldPos;
 
 				auto renderComp = EntitySystem::GetComp<RenderComponent>(tile);
 				auto sprIndex = renderComp->loadDrawable<Sprite>(textureTag);

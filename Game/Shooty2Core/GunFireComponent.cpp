@@ -126,6 +126,6 @@ Vec2f GunFireComponent::getFiringPos() {
 	Vec2f directionVector{ 1.0, 0.0 };
 	directionVector.angle(directionComp->getDir());
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	auto firingPos = posComp->getPos() + baseOffset + (directionVector * offset);
+	auto firingPos = posComp->pos + baseOffset + (directionVector * offset);
 	return firingPos;
 }

@@ -11,5 +11,5 @@ public:
 	void setHealth(std::int32_t health);
 	void damage(std::int32_t amount);
 private:
-	std::int32_t* health;
+	std::int32_t health;
 };

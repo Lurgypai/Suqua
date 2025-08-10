@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <utility>
 #include <exception>
+#include <format>
 
 using UUID = Suqua::UUID;
 
@@ -202,13 +203,24 @@ inline void NetworkDataComponent::Data::read(ByteStream& s) {
 }
 
 void NetworkDataComponent::storePrev() {
-    for(auto& [id, data] : *dataPtr) {
-        (*prevDataPtr)[id] = data;     
-    }
+    *prevDataPtr = *dataPtr;
 }
 
 void NetworkDataComponent::storePrev(DataId id) {
-    (*prevDataPtr)[id] = dataPtr->at(id);
+    // missing in the entity
+    if(!dataPtr->contains(id)) {
+        throw std::runtime_error{std::format("NetworkDataComponent: Data with ID \"{}\" not found.", id)};
+    }
+
+    // missing in the previous
+    auto iter = prevDataPtr->find(id);
+    if(iter == prevDataPtr->end()) {
+        prevDataPtr->insert({id, dataPtr->at(id)});
+        return;
+    }
+
+    // default just replace
+    (*prevDataPtr).at(id) = dataPtr->at(id);
 }
 
 const UUID& NetworkDataComponent::getUUID() const {

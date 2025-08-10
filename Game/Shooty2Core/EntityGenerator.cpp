@@ -14,6 +14,8 @@
 #include "RespawnComponent.h"
 #include "AIGunnerComponent.h"
 #include "PlayerSpawnComponent.h"
+#include "PositionComponent.h"
+#include "NetworkDataComponentDataFields.h"
 
 #include "SpawnFunctionNotFoundException.h"
 
@@ -24,6 +26,10 @@
 using TeamId = TeamComponent::TeamId;
 using Owner =  NetworkDataComponent::Owner;
 using UUID = Suqua::UUID;
+
+static void MakeNetworkEntity(EntityId id, const UUID& uuid, Owner owner) {
+    EntitySystem::MakeComps<NetworkDataComponent>(1, &id, uuid, owner);
+}
 
 static void MakeLivingEntity(
         EntityId id,
@@ -36,8 +42,7 @@ static void MakeLivingEntity(
         Vec2f hurtboxOffset,
         Vec2f hurtboxRes,
         std::int32_t health ) {
-
-    EntitySystem::MakeComps<NetworkDataComponent>(1, &id, uuid, owner);
+    MakeNetworkEntity(id, uuid, owner);
 
 	EntitySystem::MakeComps<PhysicsComponent>(1, &id,
             pos,
@@ -58,6 +63,12 @@ static void MakeLivingEntity(
 
 	EntitySystem::MakeComps<AimToLStickComponent>(1, &id);
 	EntitySystem::MakeComps<TopDownMoverComponent>(1, &id, moveSpeed);
+
+    auto posComp = EntitySystem::GetComp<PositionComponent>(id);
+
+    auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+    ndc->set(PositionData::X, posComp->pos.x);
+    ndc->set(PositionData::Y, posComp->pos.y);
 }
 
 static void MakeHitboxEntity(
@@ -68,8 +79,8 @@ static void MakeHitboxEntity(
         Vec2f hitboxRes,
         TeamId team,
         int damage ) {
+    MakeNetworkEntity(id, uuid, owner);
 
-    EntitySystem::MakeComps<NetworkDataComponent>(1, &id, uuid, owner);
 	EntitySystem::MakeComps<TeamComponent>(1, &id, team);
 
 	EntitySystem::MakeComps<HitboxComponent>(1, &id,

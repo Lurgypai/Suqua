@@ -11,5 +11,5 @@ public:
 	std::int32_t getRemainingLife() const;
 	void setRemainingLife(std::int32_t remainingLife_);
 private:
-	std::int32_t* remainingLife;
+	std::int32_t remainingLife;
 };

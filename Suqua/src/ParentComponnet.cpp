@@ -27,11 +27,11 @@ void ParentComponent::update() {
 	if (!parentPosComp) return;
 
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	auto basePos = parentPosComp->getPos() + baseOffset;
+	auto basePos = parentPosComp->pos + baseOffset;
 	switch (offsetMode) {
 	case OffsetMode::none:
 	{
-		posComp->setPos(basePos);
+        posComp->pos = basePos;
 	
 	}
 	break;
@@ -42,7 +42,7 @@ void ParentComponent::update() {
 		float dir = x < 0 ? -1.0f : 1.0f;
 
 		auto pos = basePos + Vec2f{ effectedOffset.x * dir, effectedOffset.y };
-		posComp->setPos(pos);
+        posComp->pos = basePos;
 	}
 	break;
     default:

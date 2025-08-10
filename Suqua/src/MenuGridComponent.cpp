@@ -15,7 +15,7 @@ MenuGridComponent::MenuGridComponent(EntityId id_) :
 
 void MenuGridComponent::update(Vec2f mousePos, bool toggled_) {
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	auto pos = posComp->getPos();
+	const auto& pos = posComp->pos;
 	boundingBox.pos = pos;
 
 	wasActive = isActive;
@@ -76,7 +76,7 @@ StringTree MenuGridComponent::getCurrButtons() const {
 
 std::vector<AABB> MenuGridComponent::generateButtonBoxes() {
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	auto pos = posComp->getPos();
+	const auto& pos = posComp->pos;
 	int columns = boundingBox.res.x / (margins.x + buttonRes.x);
 	int rows = boundingBox.res.y / (margins.y + buttonRes.y);
 

@@ -31,7 +31,7 @@ void HitboxComponent::update() {
 	}
 
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	hitbox.pos = posComp->getPos() + offset;
+    hitbox.pos = posComp->pos + offset;
 
 	if (reHitDelay > 0) {
 		for (auto& [_, delay] : hitEntities) {
@@ -71,7 +71,7 @@ void HitboxComponent::activate() {
 		hits = 0;
 	}
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	hitbox.pos = posComp->getPos() + offset;
+	hitbox.pos = posComp->pos + offset;
 }
 
 void HitboxComponent::deactivate() {

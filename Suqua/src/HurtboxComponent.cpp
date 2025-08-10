@@ -9,5 +9,5 @@ HurtboxComponent::HurtboxComponent(EntityId id_, const Vec2f& offset_, const Vec
 
 void HurtboxComponent::update() {
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	hurtbox.pos = posComp->getPos() + offset;
+	hurtbox.pos = posComp->pos + offset;
 }

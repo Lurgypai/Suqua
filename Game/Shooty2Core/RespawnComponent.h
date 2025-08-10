@@ -16,6 +16,6 @@ public:
 	
 	Vec2f spawnPos;
 private:
-    int32_t* tick;
+    int32_t tick;
 	int respawnDelay;
 };

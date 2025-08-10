@@ -96,7 +96,7 @@ void BasicAttackComponent::update()
 
 Vec2f BasicAttackComponent::getHitBoxPos() const {
 	auto posComp = EntitySystem::GetComp<PositionComponent>(hitboxId);
-	return posComp->getPos();
+	return posComp->pos;
 }
 
 //fix the sidedness of the attack

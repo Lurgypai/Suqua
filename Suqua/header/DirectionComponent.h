@@ -14,6 +14,6 @@ public:
 	void setLocked(bool locked);
 private:
 	bool isLocked_;
-	float* dir;
+	float dir;
 	int cardinalDir;
 };

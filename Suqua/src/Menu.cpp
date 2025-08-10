@@ -160,7 +160,7 @@ EntityId Menu::makeTextBox(const std::string& entryTag_, const AABB& boundingBox
 
 	MenuTextBoxComponent* textBox = EntitySystem::GetComp<MenuTextBoxComponent>(id);
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	posComp->setPos(boundingBox.pos);
+    posComp->pos = boundingBox.pos;
 
 	textBox->boundingBox = boundingBox;
 	textBox->tag = entryTag_;
@@ -176,7 +176,7 @@ EntityId Menu::makeGrid(const std::string& entryTag_, const AABB& boundingBox) {
 
 	MenuGridComponent* grid = EntitySystem::GetComp<MenuGridComponent>(id);
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	posComp->setPos(boundingBox.pos);
+    posComp->pos = boundingBox.pos;
 
 	grid->boundingBox = boundingBox;
 	grid->tag = entryTag_;

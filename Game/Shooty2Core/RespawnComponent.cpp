@@ -9,26 +9,22 @@ RespawnComponent::RespawnComponent(EntityId id_,
         const Vec2f& spawnPos_,
         int spawnDelay_) :
 	id{ id_ },
-	tick{ nullptr },
+	tick{ 0 },
 	respawnDelay{ spawnDelay_ },
 	spawnPos{ spawnPos_ }
 {
-    auto* data = EntitySystem::GetComp<NetworkDataComponent>(id);
-
-    data->set<std::int32_t>(RespawnData::RESPAWN_TICK, 0);
-    tick = &data->get<std::int32_t>(RespawnData::RESPAWN_TICK);
 }
 
 void RespawnComponent::update() {
 	auto healthComp = EntitySystem::GetComp<HealthComponent>(id);
 	if (healthComp->getHealth() <= 0) {
-		if (*tick < respawnDelay) {
+		if (tick < respawnDelay) {
 			auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 			physicsComp->setVel({ 0, 0 });
-			++(*tick);
+			++(tick);
 		}
-		else if (*tick == respawnDelay) {
-			*tick = 0;
+		else if (tick == respawnDelay) {
+			tick = 0;
 			auto baseComp = EntitySystem::GetComp<EntityBaseComponent>(id);
 			baseComp->isActive = true;
 			respawn();
@@ -46,7 +42,7 @@ void RespawnComponent::respawn() {
 }
 
 const int RespawnComponent::getTick() const {
-    return *tick;
+    return tick;
 }
 
 const int RespawnComponent::getRespawnDelay() const {

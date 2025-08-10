@@ -10,5 +10,5 @@ public:
 	float getMoveSpeed();
 	void setMoveSpeed(float moveSpeed);
 private:
-	float* moveSpeed;
+	float moveSpeed;
 };

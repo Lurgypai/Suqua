@@ -16,7 +16,7 @@ MenuButtonComponent::MenuButtonComponent(EntityId id_, const AABB& boundingBox_,
 
 void MenuButtonComponent::update(Vec2f mousePos, bool toggled_) {
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	boundingBox.pos = posComp->getPos();
+	boundingBox.pos = posComp->pos;
 
 	wasActive = isActive;
 	if (boundingBox.contains(mousePos) && toggled_) {
