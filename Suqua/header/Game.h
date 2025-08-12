@@ -31,7 +31,7 @@ public:
 	virtual ~Game();
 
 	template<typename S, typename ... Args>
-	SceneId loadScene(char flags_, Args... args);
+	SceneId loadScene(char flags_, Args&&... args);
 
 	template<typename S>
 	S& getScene(SceneId id);
@@ -115,7 +115,7 @@ private:
 };
 
 template<typename S, typename ... Args>
-inline SceneId Game::loadScene(char flags_, Args... args) {
+inline SceneId Game::loadScene(char flags_, Args&&... args) {
 	ScenePtr scene = std::make_unique<S>(scenes.size(), flags_, args...);
 	scene->load(*this);
 	scenes.emplace_back(std::move(scene));

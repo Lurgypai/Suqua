@@ -300,6 +300,7 @@ void Game::loop() {
 			else clientStep();
 
 			clearSDLEvents();
+            tickTime();
 		}
 		leftover = elapsedTime;
 
@@ -316,7 +317,6 @@ void Game::loop() {
 			}
 		}
 
-		tickTime();
 
 		cleanScenes();
 		EntitySystem::FreeDeadEntities();
