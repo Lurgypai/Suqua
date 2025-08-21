@@ -5,6 +5,7 @@
 #include "PhysicsComponent.h"
 #include "PositionComponent.h"
 #include "EntityBaseComponent.h"
+#include "EntitySpawnSystem.h"
 
 using namespace nlohmann;
 using UUID = Suqua::UUID;
@@ -42,32 +43,32 @@ Level::Level(const std::string& levelId_, const json& levelJson, Scene& scene, c
 			for (auto& tileJson : layerJson["autoLayerTiles"]) {
 				Vec2f worldPos{ tileJson["px"][0], tileJson["px"][1] };
 				Vec2f texOffset{ tileJson["src"][0], tileJson["src"][1] };
-				EntityId tile = scene.addEntities(1)[0];
-                EntitySystem::MakeComps<NetworkDataComponent>(1, &tile, UUID::GenerateUUID(), NetworkDataComponent::Owner::local_only);
-                        
-				EntitySystem::MakeComps<PhysicsComponent>(1, &tile,
-                        Vec2f{},
-                        res,
-                        false,
-                        true );
 
+                // add tile data component to store the texture offset
+                // move tile into entity generator
 
-				EntitySystem::MakeComps<RenderComponent>(1, &tile);
+                EntityId tile = EntitySpawnSystem::SpawnEntity("world.tile", scene, Vec2f{}, NetworkDataComponent::Owner::local_only);
+
+                auto physComp = EntitySystem::GetComp<PhysicsComponent>(tile);
+                physComp->setDoesCollide(false);
+                physComp->setCollidedWith(true);
+                physComp->setFrozen(true);
+                physComp->setWeightless(true);
 
 				auto posComp = EntitySystem::GetComp<PositionComponent>(tile);
                 posComp->pos = levelOffset + worldPos;
 
-				auto renderComp = EntitySystem::GetComp<RenderComponent>(tile);
-				auto sprIndex = renderComp->loadDrawable<Sprite>(textureTag);
-
-				Sprite& sprite = renderComp->getDrawable<Sprite>(sprIndex);
-				// std::cout << "texture offset: " << texOffset << '\n';
-				sprite.setImgOffset(texOffset);
-				sprite.setObjRes(res);
-				unsigned int f = tileJson["f"];
-				// std::cout << "px: " << worldPos << ", f: " << f << '\n';
-				sprite.horizontalFlip = f & 1;
-				sprite.verticalFlip = f & 2;
+				// EntitySystem::MakeComps<RenderComponent>(1, &tile);
+                // 
+				// auto renderComp = EntitySystem::GetComp<RenderComponent>(tile);
+				// auto sprIndex = renderComp->loadDrawable<Sprite>(textureTag);
+                // 
+				// Sprite& sprite = renderComp->getDrawable<Sprite>(sprIndex);
+				// sprite.setImgOffset(texOffset);
+				// sprite.setObjRes(res);
+				// unsigned int f = tileJson["f"];
+				// sprite.horizontalFlip = f & 0b01;
+				// sprite.verticalFlip = f & 0b10;
 
 				tiles.emplace_back(tile);
 			}

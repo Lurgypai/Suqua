@@ -50,18 +50,19 @@ private:
 		} type;
 
         template<IsDataValueType T>
-        Data(T& t);
+        Data(T& t, DataType type);
 
 		void write(ByteStream& s);
 		void read(ByteStream& s);
 
 		bool operator==(const Data& other) const;
 		bool operator!=(const Data& other) const;
+
+        //transforms T into a datatype from the enum
+		template<IsDataValueType T>
+		static constexpr DataType getDataType();
 	private:
 		DataValue value;
-
-		template<IsDataValueType T>
-		constexpr DataType getDataType();
 	};
 
 public:
@@ -97,9 +98,6 @@ public:
     // remove ptr from map
     void unset(DataId id);
 
-    void storePrev();
-    void storePrev(DataId field);
-
     const Suqua::UUID& getUUID() const;
     Owner owner;
 private:
@@ -107,20 +105,21 @@ private:
 	using DataMapPtr = std::unique_ptr<DataMap>;
 
 	DataMapPtr dataPtr;
-    DataMapPtr prevDataPtr;
+    // this is currently broken, we need to actually store the previous states, don't worry for now
+    // DataMapPtr prevDataPtr;
 
     Suqua::UUID uuid;
     static std::unordered_map<Suqua::UUID, EntityId> idMap;
 };
 
 template<IsDataValueType T>
-NetworkDataComponent::Data::Data(T& t) : value{&t}
+NetworkDataComponent::Data::Data(T& t, DataType type_) : value{&t}, type{type_}
 {}
 
 
 template<IsDataValueType T>
 inline void NetworkDataComponent::set(DataId id, T& t) {
-    dataPtr->emplace(id, t);
+    dataPtr->emplace(id, Data{t, NetworkDataComponent::Data::getDataType<T>()});
 }
 
 template<IsDataValueType T>

@@ -13,21 +13,18 @@
 #include "NetworkDataComponentDataFields.h"
 
 static inline void damageEntity(EntityId cause, EntityId receiver, ByteStream& packet) {
-	auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(receiver);
 	auto otherDamageComp = EntitySystem::GetComp<DamageComponent>(cause);
-	ourHealthComp->damage(otherDamageComp->getDamage());
-
-	auto targetPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(receiver);
-	targetPhysicsComp->setVel(Vec2f{ 0, 0 });
 
     auto ndc = EntitySystem::GetComp<NetworkDataComponent>(receiver);
-    if(!ndc) return;
+    // foreign entity hit, send packet
+    if(ndc->owner == NetworkDataComponent::Owner::foreign) {
+        packet << ndc->getUUID();
+        packet << otherDamageComp->getDamage();
+    }
 
-    // store these so no change will be observed, preventing them from being sent
-    ndc->storePrev(PositionData::X);
-    ndc->storePrev(PositionData::Y);
-
-    ndc->serializeForNetwork(packet);
+    // always apply damage
+    auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(receiver);
+    ourHealthComp->damage(otherDamageComp->getDamage());
 }
 
 using TeamId = TeamComponent::TeamId;
@@ -39,8 +36,7 @@ void CombatSystem::checkClientCollisions(Host* host) {
 
 
     ByteStream damagePacket;
-    damagePacket << Packet::StateId;
-    damagePacket << false;
+    damagePacket << Shooty2Packet::Damage;
 
 	for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
 

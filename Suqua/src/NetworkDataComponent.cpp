@@ -1,3 +1,5 @@
+#include <print>
+
 #include "NetworkDataComponent.h"
 #include <cstring>
 #include <memory>
@@ -24,8 +26,7 @@ NetworkDataComponent::NetworkDataComponent(EntityId id_,
 	id{ id_ },
     owner{ owner_ },
     uuid{ uuid_ },
-	dataPtr{ new DataMap{} },
-    prevDataPtr{ new DataMap{} }
+	dataPtr{ new DataMap{} }
 {
     if(uuid == UUID{}) throw std::runtime_error{"Invalid UUID: Default UUID used"};
 
@@ -34,14 +35,12 @@ NetworkDataComponent::NetworkDataComponent(EntityId id_,
 
 NetworkDataComponent::NetworkDataComponent(const NetworkDataComponent& other) :
 	id{ other.id },
-	dataPtr{new DataMap{ *other.dataPtr }},
-    prevDataPtr{ new DataMap{ *other.dataPtr }}
+	dataPtr{new DataMap{ *other.dataPtr }}
 {}
 
 NetworkDataComponent& NetworkDataComponent::operator=(const NetworkDataComponent& other) {
 	id = other.id;
 	dataPtr = std::make_unique<DataMap>(*other.dataPtr);
-    prevDataPtr = std::make_unique<DataMap>(*other.prevDataPtr);
 	return *this;
 }
 
@@ -63,21 +62,8 @@ bool NetworkDataComponent::operator!=(const NetworkDataComponent& other) const {
 
 void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {
     stream << uuid;
-	//add the ability to allocate bytestream space, and overwrite at position
-	size_t writeCount = 0;
-	for (const auto& pair : *dataPtr) {
-        // skip unchanged values
-        auto prevPair = prevDataPtr->find(pair.first);
-        if(prevPair != prevDataPtr->end() && prevPair->second == pair.second) continue;
-        ++writeCount;
-	}
-
-	stream << writeCount;
+	stream << dataPtr->size();
 	for (auto&& pair : *dataPtr) {
-        // skip unchanged values
-        auto prevPair = prevDataPtr->find(pair.first);
-        if(prevPair != prevDataPtr->end() && prevPair->second == pair.second) continue;
-        
         stream << pair.first;
         pair.second.write(stream);
 	}
@@ -159,19 +145,19 @@ void NetworkDataComponent::Data::write(ByteStream& s) {
 	switch (type)
 	{
 	case NetworkDataComponent::Data::DataType::UBYTE:
-		s << std::get<std::uint8_t*>(value);
+		s << *(std::get<std::uint8_t*>(value));
 		break;
 	case NetworkDataComponent::Data::DataType::BOOL:
-		s << std::get<bool*>(value);
+		s << *(std::get<bool*>(value));
 		break;
 	case NetworkDataComponent::Data::DataType::INT_32:
-		s << std::get<std::int32_t*>(value);
+		s << *(std::get<std::int32_t*>(value));
 		break;
 	case NetworkDataComponent::Data::DataType::FLOAT:
-		s << std::get<float*>(value);
+		s << *(std::get<float*>(value));
 		break;
 	case NetworkDataComponent::Data::DataType::STRING:
-		s << std::get<std::string*>(value);
+		s << *(std::get<std::string*>(value));
 		break;
 	default:
 		break;
@@ -200,27 +186,6 @@ inline void NetworkDataComponent::Data::read(ByteStream& s) {
 	default:
 		break;
 	}
-}
-
-void NetworkDataComponent::storePrev() {
-    *prevDataPtr = *dataPtr;
-}
-
-void NetworkDataComponent::storePrev(DataId id) {
-    // missing in the entity
-    if(!dataPtr->contains(id)) {
-        throw std::runtime_error{std::format("NetworkDataComponent: Data with ID \"{}\" not found.", id)};
-    }
-
-    // missing in the previous
-    auto iter = prevDataPtr->find(id);
-    if(iter == prevDataPtr->end()) {
-        prevDataPtr->insert({id, dataPtr->at(id)});
-        return;
-    }
-
-    // default just replace
-    (*prevDataPtr).at(id) = dataPtr->at(id);
 }
 
 const UUID& NetworkDataComponent::getUUID() const {

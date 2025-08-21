@@ -1,10 +1,13 @@
+#include <print>
+
 #include "Director.h"
+#include "Shooty2Packet.h"
 
 #include "EntitySpawnSystem.h"
-#include "PhysicsComponent.h"
 #include "EntityBaseComponent.h"
-#include "RandomUtil.h"
+#include "PhysicsComponent.h"
 
+#include "RandomUtil.h"
 #include "DebugIO.h"
 
 using UUID = Suqua::UUID;
@@ -20,20 +23,14 @@ void Director::load(World& world_, Scene& scene, const std::string& spawnLevel) 
         levels.push_back(level.first);
     }
 
-    exitId = scene.addEntities(1)[0];
-    EntitySystem::MakeComps<NetworkDataComponent>(1, &exitId,
-            UUID::GenerateUUID(),
-            NetworkDataComponent::Owner::local_only);
-    EntitySystem::MakeComps<PhysicsComponent>(1, &exitId,
-            Vec2f{ 0.f, 0.f },
-            Vec2f{ 1.f, 1.f },
-            false,
-            false );
+    exitId = EntitySpawnSystem::SpawnEntity("world.teleportzone", scene, {0.f, 0.f}, NetworkDataComponent::Owner::local_shared);
 
     beginFinished();
 }
 
-void Director::update(Scene& scene, float delta) {
+void Director::update(Scene& scene, float delta,
+        const NetworkEntityOwnershipSystem& ownerSystem,
+        Host& host) {
     timeSinceLastAction += delta;
     switch(state) {
     case State::spawning:
@@ -43,7 +40,7 @@ void Director::update(Scene& scene, float delta) {
         doWaiting();
         break;
     case State::finished:
-        doFinished();
+        doFinished(ownerSystem, host);
         break;
     }
 
@@ -64,18 +61,6 @@ EntityId Director::getExitId() {
     return exitId;
 }
 
-void Director::addPlayer(EntityId id) {
-    players.push_back(id);
-}
-
-void Director::removePlayer(EntityId id) {
-    for(auto iter = players.begin(); iter != players.end(); ++iter) {
-        if(*iter == id) {
-            players.erase(iter);
-            return;
-        }
-    }
-}
 
 void Director::doSpawning(Scene& scene) {
     if(timeSinceLastAction < spawnDelay) return;
@@ -108,11 +93,14 @@ void Director::beginFinished() {
     baseComp->isActive = true;
 }
 
-void Director::doFinished() {
+void Director::doFinished(const NetworkEntityOwnershipSystem& ownerSystem, Host& host) {
+    if(ownerSystem.getPlayers().empty()) return;
+
     bool allInRange = true;
     auto* exitPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(exitId);
 
-    for(auto playerId : players) {
+    for(auto uuid : ownerSystem.getPlayers()) {
+        EntityId playerId = NetworkDataComponent::GetEntityId(uuid);
         auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(playerId);
         float dist = physicsComp->position().distance(exitPhysicsComp->position());
         if(dist > exitRadius) {
@@ -145,9 +133,14 @@ void Director::doFinished() {
 
         if(entity.id != "PlayerSpawn") continue;
 
-        for(auto playerId : players) {
-            auto* physics = EntitySystem::GetComp<PhysicsComponent>(playerId);
-            physics->teleport(entity.pos);
+        for(auto ownedEntityPair : ownerSystem.getOwnedPlayers()) {
+            std::println("Teleporting players for peer {}.", ownedEntityPair.first);
+
+            ByteStream tpPacket;
+            tpPacket << Shooty2Packet::TeleportPlayer;
+            tpPacket << entity.pos;
+
+            host.bufferDataToChannel(ownedEntityPair.first, 0, tpPacket);
         }
     }
 

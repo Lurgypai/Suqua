@@ -4,6 +4,7 @@
 #include "RectDrawable.h"
 #include "AttackGFXComponent.h"
 #include "GunGFXComponent.h"
+#include "TeleportZoneGFXComponent.h"
 #include "DebugFIO.h"
 #include "Sprite.h"
 #include "../Shooty2Core/OnHitComponent.h"
@@ -55,6 +56,24 @@ static void AddBulletEnemyBasicGFX(EntityId bulletId) {
 	render->loadDrawable<RectDrawable>(RectDrawable{ Color{0.675, 0.196, 0.196, 1.0}, true, -0.1, AABB{{0, 0 }, {4, 4}} });
 }
 
+static void AddWorldTeleportZoneGFX(EntityId zoneId) {
+    EntitySystem::MakeComps<TeleportZoneGFXComponent>(1, &zoneId);
+}
+
+static void AddWorldTileGFX(EntityId tileId) {
+    EntitySystem::MakeComps<RenderComponent>(1, &tileId);
+    
+    auto renderComp = EntitySystem::GetComp<RenderComponent>(tileId);
+    auto sprIndex = renderComp->loadDrawable<Sprite>("tileset");
+    
+    Sprite& sprite = renderComp->getDrawable<Sprite>(sprIndex);
+    sprite.setImgOffset({16, 16});
+    sprite.setObjRes({16, 16});
+    // unsigned int f = tileJson["f"];
+    // sprite.horizontalFlip = f & 0b01;
+    // sprite.verticalFlip = f & 0b10;
+}
+
 void ClientEntityGenerator::RegisterSpawnFunctions() {
     EntityGenerator::RegisterSpawnFunctions();
     
@@ -62,6 +81,8 @@ void ClientEntityGenerator::RegisterSpawnFunctions() {
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("enemy.basic", AddEnemyGFX));
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("bullet.player.basic", AddBulletPlayerBasicGFX));
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("bullet.enemy.basic", AddBulletEnemyBasicGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("world.teleportzone", AddWorldTeleportZoneGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("world.tile", AddWorldTileGFX));
 }
 
 EntityId ClientEntityGenerator::SpawnEntity(
@@ -69,7 +90,11 @@ EntityId ClientEntityGenerator::SpawnEntity(
         const Vec2f& pos, NetworkDataComponent::Owner owner,
         const Suqua::UUID& uuid) {
     auto entity = EntityGenerator::SpawnEntity(tag, targetScene, pos, owner, uuid);
-    GFXFunctions.at(tag)(entity);
+
+    //only add gfx if we need them
+    auto iter = GFXFunctions.find(tag);
+    if(iter != GFXFunctions.end()) iter->second(entity);
+
     if(!host->isConnected() || owner != NetworkDataComponent::Owner::local_shared) return entity;
 
     ByteStream spawn;

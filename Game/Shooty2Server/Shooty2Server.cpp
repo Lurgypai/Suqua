@@ -11,9 +11,7 @@ using json = nlohmann::json;
 int main(int argc, char** argv) {
 	SuquaLib::SuquaInit("Shooty2", "settings.json", SuquaLib::network);
 
-	Game game{ Game::server_flags, 1.f / 30.f};
-	game.serverBroadcastDelay = 0;
-	game.clientPingDelay = 120;
+	Game game{ Game::server_flags };
 
     DebugFIO::AddFOut("send.packet.log");
 
@@ -31,8 +29,7 @@ int main(int argc, char** argv) {
 
         std::cout << "Enabled debug delay, minimum " << delayMin << ", variation " << delayVar << '\n';
     }
-
-	std::cout << "The network input delay is " << game.networkInputDelay << ".\n";
+    game.setStateBroadcastDelay(4);
 
 	SceneId lobbyScene = game.loadScene<ServerWorldScene>(Scene::Flag::physics | Scene::Flag::input);
 

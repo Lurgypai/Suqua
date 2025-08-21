@@ -1,6 +1,8 @@
 #pragma once
 #include "Scene.h"
 #include "PhysicsSystem.h"
+#include "World.h"
+#include "../Shooty2Core/Director.h"
 
 class ServerWorldScene : public Scene {
 public:
@@ -15,6 +17,9 @@ public:
 	virtual void onConnect(Game& game, PeerId connectingId) override;
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) override;
 private:
+    World world;
+    Director director;
+
 	int currPlayerCount;
 
     EntityId dummy;

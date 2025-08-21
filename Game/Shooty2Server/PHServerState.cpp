@@ -13,7 +13,7 @@ void PHServerState::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer
     bool propogate;
     data >> propogate;
 
-    UUID uuid;
+    Suqua::UUID uuid;
     while(data.hasMoreData()) {
         data >> uuid;
 

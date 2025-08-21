@@ -20,7 +20,7 @@ void RespawnComponent::update() {
 	if (healthComp->getHealth() <= 0) {
 		if (tick < respawnDelay) {
 			auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-			physicsComp->setVel({ 0, 0 });
+			physicsComp->vel ={ 0, 0 };
 			++(tick);
 		}
 		else if (tick == respawnDelay) {
@@ -35,7 +35,7 @@ void RespawnComponent::update() {
 void RespawnComponent::respawn() {
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 	physicsComp->teleport(spawnPos);
-	physicsComp->setVel({ 0, 0 });
+	physicsComp->vel = { 0, 0 };
 
 	auto healthComponent = EntitySystem::GetComp<HealthComponent>(id);
 	healthComponent->setHealth(100);

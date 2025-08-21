@@ -75,7 +75,7 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
 
             // set by reset pos
 			Vec2f currPos = physicsComp.collider.pos;
-			Vec2f vel = physicsComp.getVel();
+			const Vec2f& vel = physicsComp.vel;
 			Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
 			
 			if (physicsComp.doesCollide()) {

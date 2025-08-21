@@ -13,7 +13,7 @@ public:
 
 	uint32_t getDamage() const;
 	template<typename T, typename... Args>
-	void setDamageCalculator(Args... args);
+	void setDamageCalculator(Args&&... args);
 
 	template<typename T>
 	const T& getDamageCalculator() const;
@@ -25,8 +25,8 @@ private:
 };
 
 template <typename T, typename... Args>
-void DamageComponent::setDamageCalculator(Args... args) {
-	damageCalculator = std::make_unique<T>(args...);
+void DamageComponent::setDamageCalculator(Args&&... args) {
+	damageCalculator = std::make_unique<T>(std::forward<Args>(args)...);
 }
 
 template<typename T>

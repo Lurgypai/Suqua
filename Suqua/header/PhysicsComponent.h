@@ -39,9 +39,6 @@ public:
 	Vec2f getRes() const;
 	void setRes(const Vec2f & res_);
 
-	Vec2f getVel() const;
-	void setVel(const Vec2f& vel);
-
 	void freeze();
 	void unfreeze();
 	void setFrozen(bool newFrozen);
@@ -63,15 +60,13 @@ public:
     
     void onCollide(CollisionDir dir);
 
-private:
-
+    Vec2f vel;
 private:
 	void setGrounded(bool newGrounded);
 
 protected:
 	AABB collider;
 	float weight;
-    Vec2f vel;
 	bool grounded;
 	bool frozen;
 	bool weightless;

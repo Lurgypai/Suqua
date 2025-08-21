@@ -97,14 +97,6 @@ void PhysicsComponent::setRes(const Vec2f& res_) {
 	collider.res = res_;
 }
 
-Vec2f PhysicsComponent::getVel() const {
-	return vel;
-}
-
-void PhysicsComponent::setVel(const Vec2f& newVel) {
-    vel = newVel;
-}
-
 void PhysicsComponent::freeze() {
 	frozen = true;
 }

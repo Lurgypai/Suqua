@@ -59,7 +59,7 @@ void GunFireComponent::fire(Scene& currScene)
             baseVel += velMod;
         }
         auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(bulletId);
-        physicsComp->setVel(directionVector * baseVel);
+        physicsComp->vel = directionVector * baseVel;
     }
 }
 

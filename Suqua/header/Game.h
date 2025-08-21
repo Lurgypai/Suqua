@@ -27,7 +27,7 @@ public:
 		none = 0
 	};
 
-	Game(FlagType flags, double physics_step = (1.0 / 120.0), double render_step = (1.0 / 60.0), Tick clientPingDelay_ = 120, Tick serverBroadcastDelay = 4);
+	Game(FlagType flags, double physics_step = (1.0 / 120.0), double render_step = (1.0 / 60.0));
 	virtual ~Game();
 
 	template<typename S, typename ... Args>
@@ -37,10 +37,10 @@ public:
 	S& getScene(SceneId id);
 
 	template<typename T, typename ... Args>
-	InputDeviceId loadInputDevice(Args ... args);
+	InputDeviceId loadInputDevice(Args&&... args);
 
 	template<typename P, typename ... Args>
-	PacketId loadPacketHandler(PacketId id, Args... args);
+	PacketId loadPacketHandler(PacketId id, Args&&... args);
 
 	InputDevice& getInputDevice(InputDeviceId id);
 
@@ -59,8 +59,6 @@ public:
 
 	//how long (in seconds) to wait until the server gives up waiting for inputs.
 	double networkInputTimeout;
-	// artificial input delay in ticks, to reduce sudden jumping during networking.
-	Tick networkInputDelay;
 
 	const RenderSystem& getRender();
 	const EventQueue& getEvents();
@@ -74,14 +72,10 @@ public:
 
 	Host host;
     NetworkEntityOwnershipSystem networkEntityOwnershipSystem;
-	//how often, in game ticks, the client pings the server
-	Tick clientPingDelay;
-	//how many new states to wait before sending an update
-	Tick serverBroadcastDelay;
 
 	FlagType getFlags();
-    // map peerid to type/netid sets
-    // std::unordered_map<PeerId
+
+    void setStateBroadcastDelay(Tick delay);
     
 private:
 	void pollSDLEvents();
@@ -104,14 +98,17 @@ private:
 
 	Tick renderTick;
 	Tick gameTick;
-	Tick clientPingCtr;
-	Tick serverBroadcastCtr;
 	EventQueue events;
 
     RenderSystem renderSystem;
 	std::vector<ScenePtr> scenes;
 	std::unordered_map<InputDeviceId, InputDevicePtr> inputDevices;
 	FlagType flags;
+
+    // timing broadcast delay
+    Tick stateBroadcastDelay;
+    Tick stateBroadcastDelayCtr;
+    void broadcastOwnedStates();
 };
 
 template<typename S, typename ... Args>
@@ -134,14 +131,14 @@ inline S& Game::getScene(SceneId id) {
 }
 
 template<typename T, typename ...Args>
-inline InputDeviceId Game::loadInputDevice(Args ...args) {
-	InputDevicePtr inputDevice = std::make_unique<T>(inputDevices.size(), args...);
+inline InputDeviceId Game::loadInputDevice(Args&&... args) {
+	InputDevicePtr inputDevice = std::make_unique<T>(inputDevices.size(), std::forward<Args>(args)...);
 	inputDevices.emplace(inputDevices.size(), std::move(inputDevice));
 	return inputDevices.size() - 1;
 }
 
 template<typename P, typename ...Args>
-inline PacketId Game::loadPacketHandler(PacketId id, Args ...args) {
-	host.loadPacketHandler<P>(id, args...);
+inline PacketId Game::loadPacketHandler(PacketId id, Args&&... args) {
+	host.loadPacketHandler<P>(id, std::forward<Args>(args)...);
 	return id;
 }

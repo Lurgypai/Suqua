@@ -94,7 +94,7 @@ void CharacterGFXComponent::doDefaultAnimations() {
 	sprite.looping = true;
 
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-	auto currCharacterVel = physicsComp->getVel();
+	const auto& currCharacterVel = physicsComp->vel;
 	auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 	float currCharacterDir = dirComp->getDir();
 	int currCardinalDir = 3;
@@ -134,7 +134,7 @@ void CharacterGFXComponent::doDefaultAnimations() {
 void CharacterGFXComponent::playDefaultAnimations()
 {
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-	auto currCharacterVel = physicsComp->getVel();
+	const auto& currCharacterVel = physicsComp->vel;
 
 	auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 	float currCharacterDir = dirComp->getDir();

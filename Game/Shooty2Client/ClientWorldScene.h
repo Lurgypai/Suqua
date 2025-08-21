@@ -3,7 +3,6 @@
 #include "Scene.h"
 #include "PhysicsSystem.h"
 #include "../Shooty2Core/CombatSystem.h"
-#include "../Shooty2Core/Director.h"
 
 class ClientWorldScene : public Scene {
 public:
@@ -19,7 +18,7 @@ public:
 
 private:
     World world;
-    Director director;
+    std::string activeLevel;
 	// player owned by this client
 	EntityId myPlayerId;
 	EntityId myGunId;
