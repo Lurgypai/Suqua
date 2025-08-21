@@ -142,6 +142,7 @@ void ClientWorldScene::physicsStep(Game& game)
     if(newLevel != nullptr && newLevel->getLevelId() != activeLevel) {
         world.getLevel(activeLevel).deactivate();
         newLevel->activate();
+        activeLevel = newLevel->getLevelId();
     }
 
     broadcastDeadEntities(game);
