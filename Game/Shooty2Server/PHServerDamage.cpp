@@ -1,3 +1,5 @@
+#include <print>
+
 #include "PHServerDamage.h"
 #include "UUID.h"
 #include "NetworkDataComponent.h"
@@ -24,7 +26,9 @@ void PHServerDamage::handlePacket(Game& game, ByteStream& data, PeerId sourcePee
         // apply damage to local entities
         if(ndc->owner == NetworkDataComponent::Owner::local_shared) {
             auto healthComp = EntitySystem::GetComp<HealthComponent>(entityId);
+            auto health = healthComp->health;
             healthComp->damage(damage);
+            std::println("health before {}, health after {}", health, healthComp->health);
             continue;
         }
 

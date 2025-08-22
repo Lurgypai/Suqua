@@ -11,18 +11,18 @@
 #include "ByteStream.h"
 #include "UUID.h"
 
+// change to send only deltas
+// track local delta, only 
+//
+// add prev state tracking
+// when we apply a change from the server, reset our deltas
+// deserialize state from server
+//      calculate local delta by subtracting current state from previous state
+//      remove local delta from server delta
+//      apply server delta
 
-//where do you want to store previous states for interpolation?
-//where do you want to store the SyncMode (none, immediate, interpolated)?
-
-// as it is, the NDC is not cache friendly. A major overhaul would be needed to improve cache friendliness, with a custom backing structure, and packing of the data elements, to conserve space while keeping data local.
 template<typename T>
 concept IsDataValueType = std::same_as<T, bool> || std::same_as<T, std::uint8_t> || std::same_as<T, int32_t> || std::same_as<T, float> || std::same_as<T, std::string>;
-
-// new changes
-//  add uuid
-//  add owner
-//  add shared
 
 class NetworkDataComponent {
     CompMembers(NetworkDataComponent);
@@ -37,6 +37,7 @@ public:
 
 private:
 	class Data {
+    friend class NetworkDataComponent;
 	public:
 		using DataValue = std::variant<bool*, std::uint8_t*, std::int32_t*, float*, std::string*>;
 
@@ -51,9 +52,6 @@ private:
 
         template<IsDataValueType T>
         Data(T& t, DataType type);
-
-		void write(ByteStream& s);
-		void read(ByteStream& s);
 
 		bool operator==(const Data& other) const;
 		bool operator!=(const Data& other) const;
@@ -77,8 +75,8 @@ public:
             Owner owner_ = Owner::local_only );
 	NetworkDataComponent(NetworkDataComponent&& other) = default;
 	NetworkDataComponent& operator=(NetworkDataComponent&& other) = default;
-	NetworkDataComponent(const NetworkDataComponent& other);
-    NetworkDataComponent& operator=(const NetworkDataComponent& other);
+	NetworkDataComponent(const NetworkDataComponent& other) = default;
+    NetworkDataComponent& operator=(const NetworkDataComponent& other) = default;
 
     // NOTE
     // this doesn't compare previous states
@@ -100,16 +98,31 @@ public:
 
     const Suqua::UUID& getUUID() const;
     Owner owner;
+    
 private:
 	using DataMap = std::unordered_map<DataId, Data>;
-	using DataMapPtr = std::unique_ptr<DataMap>;
+    using PrevDataValue = std::variant<bool, std::uint8_t, int32_t, float, std::string>;
+    using PrevDataMap = std::unordered_map<DataId, PrevDataValue>;
 
-	DataMapPtr dataPtr;
-    // this is currently broken, we need to actually store the previous states, don't worry for now
-    // DataMapPtr prevDataPtr;
+	DataMap dataMap;
+    // last state sent to server
+    PrevDataMap prevDataMap;
+    // last state received from server
+    PrevDataMap serverDataMap;
+
+    // store the current state in the target map
+    void storePrev(PrevDataMap& map);
 
     Suqua::UUID uuid;
     static std::unordered_map<Suqua::UUID, EntityId> idMap;
+
+    // helper function for writing
+    template<IsDataValueType T>
+    inline void writeDelta(const DataMap::value_type& pair, ByteStream& stream);
+
+    // helper function for reading
+    template<IsDataValueType T>
+    inline void readDelta(const DataMap::value_type& pair, ByteStream& stream);
 };
 
 template<IsDataValueType T>
@@ -119,7 +132,9 @@ NetworkDataComponent::Data::Data(T& t, DataType type_) : value{&t}, type{type_}
 
 template<IsDataValueType T>
 inline void NetworkDataComponent::set(DataId id, T& t) {
-    dataPtr->emplace(id, Data{t, NetworkDataComponent::Data::getDataType<T>()});
+    dataMap.emplace(id, Data{t, NetworkDataComponent::Data::getDataType<T>()});
+    prevDataMap.emplace(id, t);
+    serverDataMap.emplace(id, t);
 }
 
 template<IsDataValueType T>
@@ -152,3 +167,29 @@ constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data
 	return NetworkDataComponent::Data::DataType::STRING;
 }
 
+template<IsDataValueType T>
+inline void NetworkDataComponent::writeDelta(const DataMap::value_type& pair, ByteStream& stream) {
+    const auto& localVal = *(std::get<T*>(pair.second.value));
+    auto& prevVal = std::get<T>(prevDataMap.at(pair.first));
+    auto delta = localVal - prevVal;
+
+    // right now send all
+    // if (delta == 0) return;
+    stream << pair.first;
+    stream << delta;
+
+    prevVal = localVal;
+}
+
+template<IsDataValueType T>
+inline void NetworkDataComponent::readDelta(const DataMap::value_type& pair, ByteStream& stream) {
+    T serverDelta;
+    stream >> serverDelta;
+    auto& localVal = *(std::get<T*>(pair.second.value));
+    auto& prevVal = std::get<T>(serverDataMap.at(pair.first));
+    auto localDelta = localVal - prevVal;
+    auto trueDelta = serverDelta - localDelta;
+    
+    localVal += trueDelta;
+    prevVal = localVal;
+}

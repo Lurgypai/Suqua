@@ -63,3 +63,5 @@ int main(int argc, char** argv) {
 //
 // fix teleporting
 // fix dealing damage (damage packet is needed). setting can cause two client to overwrite
+// fix packet desync
+//  log serialize and unserialize, and damage packet

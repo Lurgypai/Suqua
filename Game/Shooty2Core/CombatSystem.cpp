@@ -1,3 +1,5 @@
+#include <print>
+
 #include "CombatSystem.h"
 #include "EntitySystem.h"
 #include "HurtboxComponent.h"
@@ -21,10 +23,12 @@ static inline void damageEntity(EntityId cause, EntityId receiver, ByteStream& p
         packet << ndc->getUUID();
         packet << otherDamageComp->getDamage();
     }
-
     // always apply damage
     auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(receiver);
+    auto health = ourHealthComp->health;
     ourHealthComp->damage(otherDamageComp->getDamage());
+
+    std::println("health before damage {}, after {}", health, ourHealthComp->health);
 }
 
 using TeamId = TeamComponent::TeamId;

@@ -34,6 +34,8 @@ public:
 
 	void setReadPos(size_t readPos_);
     void moveReadPos(size_t offset);
+    size_t getPos();
+    size_t size();
 
 	bool hasMoreData();
 	const Byte* data() const;
