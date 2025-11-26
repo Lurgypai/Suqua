@@ -2,8 +2,6 @@
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "Game.h"
 
-using UUID = Suqua::UUID;
-
 ServerEntityGenerator::ServerEntityGenerator(Game* game_) : game{game_} {}
 
 EntityId ServerEntityGenerator::SpawnEntity(
@@ -11,7 +9,7 @@ EntityId ServerEntityGenerator::SpawnEntity(
         Scene& targetScene,
         const Vec2f& targetPos,
         NetworkDataComponent::Owner owner,
-        const UUID& uuid) {
+        const Suqua::UUID& uuid) {
     auto entity = EntityGenerator::SpawnEntity(tag, targetScene, targetPos, owner, uuid);
     if(owner != NetworkDataComponent::Owner::local_shared) return entity;
 

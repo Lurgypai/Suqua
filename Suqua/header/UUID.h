@@ -8,10 +8,10 @@
 
 namespace Suqua {
 class UUID;
+std::ostream& operator<<(std::ostream& left, const Suqua::UUID& value);
 }
 
 class ByteStream;
-std::ostream& operator<<(std::ostream& left, const Suqua::UUID& value);
 
 namespace Suqua {
 class UUID {
@@ -26,7 +26,7 @@ private:
 
 friend struct std::hash<UUID>;
 friend class ::ByteStream;
-friend std::ostream& ::operator<<(std::ostream& left, const UUID& value);
+friend std::ostream& operator<<(std::ostream& left, const UUID& value);
 };
 };
 

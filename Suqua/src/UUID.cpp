@@ -23,7 +23,7 @@ std::string UUID::str() const {
 }
 }
 
-std::ostream& operator<<(std::ostream& left, const Suqua::UUID& value) {
+std::ostream& Suqua::operator<<(std::ostream& left, const Suqua::UUID& value) {
     return left <<
        std::hex << std::setw(16) << std::setfill('0') << value.data_[0]
        << '-' 
