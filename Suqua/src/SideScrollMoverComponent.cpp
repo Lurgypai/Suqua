@@ -22,7 +22,7 @@ void SideScrollMoverComponent::update() {
 	auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 	if (contComp && physicsComp) {
 		const auto& controller = contComp->getController();
-		Vec2f vel = physicsComp->getVel();
+		Vec2f vel = physicsComp->vel;
 		// LEFT RIGHT MOVEMENT
 		// get direction
 		float dir = 0.0f;
@@ -86,7 +86,7 @@ void SideScrollMoverComponent::update() {
 			++fullJumpTick;
 		}
 
-		physicsComp->setVel(vel);
+		physicsComp->vel = vel;
 	}
 
 }

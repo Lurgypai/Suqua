@@ -2,7 +2,7 @@
 #include "Game.h"
 
 #include "../Shooty2Core/Shooty2Packet.h"
-#include "../Shooty2Core/EntitySpawnSystem.h"
+#include "EntitySpawnSystem.h"
 #include <cstdint>
 
 using UUID = Suqua::UUID;

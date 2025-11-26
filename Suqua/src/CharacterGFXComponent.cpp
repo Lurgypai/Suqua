@@ -9,7 +9,8 @@ CharacterGFXComponent::CharacterGFXComponent(
         EntityId id_,
         const std::string& tag,
         const std::string& fileName,
-        Vec2f offset
+        Vec2f offset,
+        Vec2f shadowOffset
         ) :
     sprIndex{},
 	id{ id_ },
@@ -21,16 +22,22 @@ CharacterGFXComponent::CharacterGFXComponent(
         EntitySystem::MakeComps<RenderComponent>(1, &id);
     }
 
-    loadSpriteSheet(tag, fileName, offset);
+    loadSpriteSheet(tag, fileName, offset, shadowOffset);
 }
 
-void CharacterGFXComponent::loadSpriteSheet(const std::string& tag, const std::string& fileName, Vec2f offset) {
+void CharacterGFXComponent::loadSpriteSheet(const std::string& tag, const std::string& fileName,
+        Vec2f offset, Vec2f shadowOffset) {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
 	sprIndex = renderComp->loadDrawable<AnimatedSprite>(tag, fileName);
 
 	AnimatedSprite& sprite = renderComp->getDrawable<AnimatedSprite>(sprIndex);
 	sprite.looping = true;
     sprite.offset = offset;
+
+    auto index = renderComp->loadDrawable<Sprite>("shadow");
+    Sprite& shadowSpr = renderComp->getDrawable<Sprite>(index);
+    shadowSpr.offset = shadowOffset;
+    shadowSpr.setDepth(.5f);
 }
 
 void CharacterGFXComponent::update(int timeDelta) {
@@ -87,7 +94,7 @@ void CharacterGFXComponent::doDefaultAnimations() {
 	sprite.looping = true;
 
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-	auto currCharacterVel = physicsComp->getVel();
+	const auto& currCharacterVel = physicsComp->vel;
 	auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 	float currCharacterDir = dirComp->getDir();
 	int currCardinalDir = 3;
@@ -127,7 +134,7 @@ void CharacterGFXComponent::doDefaultAnimations() {
 void CharacterGFXComponent::playDefaultAnimations()
 {
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-	auto currCharacterVel = physicsComp->getVel();
+	const auto& currCharacterVel = physicsComp->vel;
 
 	auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 	float currCharacterDir = dirComp->getDir();

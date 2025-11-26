@@ -13,7 +13,7 @@ void PHServerState::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer
     bool propogate;
     data >> propogate;
 
-    UUID uuid;
+    Suqua::UUID uuid;
     while(data.hasMoreData()) {
         data >> uuid;
 
@@ -29,7 +29,7 @@ void PHServerState::handlePacket(Game& game, ByteStream& data, PeerId sourcePeer
     }
 
     if(!propogate) return;
-    data.setReadPos(0);
+    data.setPos(0);
     for(PeerId& id : game.host.getConnectedPeers()) {
         if(id != sourcePeer) game.host.bufferDataToChannel(id, 0, data);
     }

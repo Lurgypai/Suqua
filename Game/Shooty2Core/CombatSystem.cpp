@@ -1,33 +1,33 @@
+#include <print>
+
 #include "CombatSystem.h"
 #include "EntitySystem.h"
 #include "HurtboxComponent.h"
 #include "HitboxComponent.h"
-#include "Packet.h"
+#include "Shooty2Packet.h"
 #include "TeamComponent.h"
 #include "EntityBaseComponent.h"
 #include "HealthComponent.h"
 #include "DamageComponent.h"
 #include "PhysicsComponent.h"
-#include "Shooty2Packet.h"
+#include "Packet.h"
 #include "NetworkDataComponent.h"
 #include "NetworkDataComponentDataFields.h"
 
 static inline void damageEntity(EntityId cause, EntityId receiver, ByteStream& packet) {
-	auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(receiver);
 	auto otherDamageComp = EntitySystem::GetComp<DamageComponent>(cause);
-	ourHealthComp->damage(otherDamageComp->getDamage());
-
-	auto targetPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(receiver);
-	targetPhysicsComp->setVel(Vec2f{ 0, 0 });
 
     auto ndc = EntitySystem::GetComp<NetworkDataComponent>(receiver);
-    if(!ndc) return;
+    auto damage = otherDamageComp->getDamage();
+    // foreign entity hit, send packet
+    if(ndc->owner == NetworkDataComponent::Owner::foreign) {
+        packet << ndc->getUUID();
+        packet << damage;
 
-    // store these so no change will be observed, preventing them from being sent
-    ndc->storePrev(PositionData::X);
-    ndc->storePrev(PositionData::Y);
-
-    ndc->serializeForNetwork(packet);
+    }
+    auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(receiver);
+    auto health = ourHealthComp->health;
+    ourHealthComp->damage(damage);
 }
 
 using TeamId = TeamComponent::TeamId;
@@ -39,15 +39,14 @@ void CombatSystem::checkClientCollisions(Host* host) {
 
 
     ByteStream damagePacket;
-    damagePacket << Packet::StateId;
-    damagePacket << false;
+    damagePacket << Shooty2Packet::Damage;
 
 	for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
 
+		// find the things that we control
 		if (ndc.owner != NetworkDataComponent::Owner::local_only &&
                 ndc.owner != NetworkDataComponent::Owner::local_shared) continue;
 
-		// find the things that we control
 		const auto base = EntitySystem::GetComp<EntityBaseComponent>(ndc.getId());
 		if (!base->isActive || base->isDead) continue;
 

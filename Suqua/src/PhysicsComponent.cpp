@@ -17,44 +17,16 @@ PhysicsComponent::PhysicsComponent(EntityId id_,
         bool weightless_) :
 	id{ id_ },
 	collider{ {}, res},
-	weight{nullptr},
-	xVel{ nullptr },
-	yVel{nullptr},
-	grounded{nullptr},
-	frozen{nullptr},
-	weightless{nullptr},
-	collides{nullptr},
-	collidesWith{nullptr}
+	weight{weight_},
+    vel{0.f, 0.f},
+	grounded{false},
+	frozen{false},
+	weightless{weightless_},
+	collides{collideable_},
+	collidesWith{collideableWith_}
 {
     if (!EntitySystem::Contains<PositionComponent>() || !EntitySystem::GetComp<PositionComponent>(id)) {
         EntitySystem::MakeComps<PositionComponent>(1, &id); }
-
-    NDC* dataComp = EntitySystem::GetComp<NDC>(id);
-
-    dataComp->set<float>(WEIGHT, weight_);
-    weight = &dataComp->get<float>(WEIGHT);
-    dataComp->set(XVEL, 0.f);
-    xVel = &dataComp->get<float>(XVEL);
-    dataComp->set(YVEL, 0.f);
-    yVel = &dataComp->get<float>(YVEL);
-    dataComp->set(GROUNDED, false);
-    grounded = &dataComp->get<bool>(GROUNDED);
-    dataComp->set(FROZEN, false);
-    frozen = &dataComp->get<bool>(FROZEN);
-    dataComp->set(WEIGHTLESS, weightless_);
-    weightless = &dataComp->get<bool>(WEIGHTLESS);
-
-    dataComp->set(COLLIDEABLE, collideable_);
-    collides = &dataComp->get<bool>(COLLIDEABLE);
-    
-    dataComp->set(COLLIDEABLE_WITH, collideableWith_);
-    collidesWith = &dataComp->get<bool>(COLLIDEABLE_WITH);
-
-    dataComp->set(XRES, collider.res.x);
-    xRes = &dataComp->get<float>(XRES);
-    dataComp->set(YRES, collider.res.y);
-    yRes = &dataComp->get<float>(YRES);
-
     teleport(pos);
 }
 
@@ -64,7 +36,7 @@ const AABB & PhysicsComponent::getCollider() const {
 
 void PhysicsComponent::refreshPos() {
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	collider.pos = posComp->getPos();
+	collider.pos = posComp->pos;
 }
 
 bool PhysicsComponent::intersects(const AABB & other) {
@@ -74,7 +46,7 @@ bool PhysicsComponent::intersects(const AABB & other) {
 void PhysicsComponent::move(Vec2f amount) {
 	collider.pos += amount;
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	posComp->setPos(collider.pos);
+    posComp->pos = collider.pos;
 }
 
 void PhysicsComponent::move(float angle, float amount) {
@@ -86,8 +58,7 @@ void PhysicsComponent::move(float angle, float amount) {
 
 void PhysicsComponent::accelerate(Vec2f amount) {
 	NDC* data = EntitySystem::GetComp<NDC>(id);
-	*xVel += amount.x;
-	*yVel += amount.y;
+    vel += amount;
 }
 
 void PhysicsComponent::accelerate(float angle, float amount) {
@@ -101,7 +72,7 @@ void PhysicsComponent::accelerate(float angle, float amount) {
 void PhysicsComponent::teleport(const Vec2f & newPos) {
 	collider.pos = newPos - Vec2f{collider.res.x / 2, collider.res.y};
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	posComp->setPos(collider.pos);
+    posComp->pos = collider.pos;
 }
 
 Vec2f PhysicsComponent::position() const {
@@ -115,7 +86,7 @@ Vec2f PhysicsComponent::center() {
 void PhysicsComponent::center(const Vec2f& center_) {
 	collider.center(center_);
 	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	posComp->setPos(collider.pos);
+    posComp->pos = collider.pos;
 }
 
 Vec2f PhysicsComponent::getRes() const {
@@ -124,73 +95,62 @@ Vec2f PhysicsComponent::getRes() const {
 
 void PhysicsComponent::setRes(const Vec2f& res_) {
 	collider.res = res_;
-	*xRes = collider.res.x;
-	*yRes = collider.res.y;
-}
-
-Vec2f PhysicsComponent::getVel() const {
-	return Vec2f{ *xVel, *yVel };
-}
-
-void PhysicsComponent::setVel(const Vec2f& newVel) {
-	*xVel = newVel.x;
-	*yVel = newVel.y;
 }
 
 void PhysicsComponent::freeze() {
-	*frozen = true;
+	frozen = true;
 }
 
 void PhysicsComponent::unfreeze() {
-	*frozen = false;
+	frozen = false;
 }
 
 bool PhysicsComponent::isFrozen() const {
-	return *frozen;
+	return frozen;
 }
 
 void PhysicsComponent::setFrozen(bool newFrozen) {
-	*frozen = newFrozen;
+	frozen = newFrozen;
 }
 
 void PhysicsComponent::setWeight(float newWeight) {
-	*weight = newWeight;
+	weight = newWeight;
 }
 
 float PhysicsComponent::getWeight() const {
-	return *weight;
+	return weight;
 }
 
 bool PhysicsComponent::doesCollide() const {
-	return *collides;
+	return collides;
 }
 
 void PhysicsComponent::setDoesCollide(bool newCollideable) {
-	*collides = newCollideable;
+	collides = newCollideable;
 }
 
 bool PhysicsComponent::isCollidedWith() const {
-    return *collidesWith;
+    return collidesWith;
 }
 
 void PhysicsComponent::setCollidedWith(bool newCollideable) {
-    *collidesWith = newCollideable;
+    collidesWith = newCollideable;
 }
 
 bool PhysicsComponent::isWeightless() const {
-	return *weightless;
+	return weightless;
 }
 
 void PhysicsComponent::setWeightless(bool newWeightless) {
-	*weightless = newWeightless;
+	weightless = newWeightless;
 }
 
 bool PhysicsComponent::isGrounded() const {
-	return *grounded;
+	return grounded;
 }
 
 void PhysicsComponent::setGrounded(bool newGrounded) {
-	*grounded = newGrounded;
+	grounded = newGrounded;
 }
 
 void PhysicsComponent::onCollide(CollisionDir dir) {
@@ -201,12 +161,12 @@ void PhysicsComponent::onCollide(CollisionDir dir) {
         switch(dir) {
             case CollisionDir::left:
             case CollisionDir::right:
-                *xVel = 0;
+                vel.x = 0;
                 break;
             case CollisionDir::down:
-                *grounded = true;
+                grounded = true;
             case CollisionDir::up:
-                *yVel = 0;
+                vel.y = 0;
                 break;
             default:
                 break;

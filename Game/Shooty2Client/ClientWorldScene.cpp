@@ -10,6 +10,8 @@
 #include "PHClientState.h"
 #include "PHClientSpawnEntities.h"
 #include "PHClientDeadEntities.h"
+#include "PHClientTeleport.h"
+#include "PHClientDamage.h"
 
 #include "EntityBaseComponent.h"
 #include "HealthComponent.h"
@@ -27,13 +29,13 @@
 #include "ControllerComponent.h"
 #include "RectDrawable.h"
 #include "RandomUtil.h"
+#include "TeleportZoneGFXComponent.h"
 
 #include "../Shooty2Core/GunFireComponent.h"
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
 #include "../Shooty2Core/OnHitComponent.h"
 #include "../Shooty2Core/Shooty2Packet.h"
-#include "../Shooty2Core/EntitySpawnSystem.h"
 #include "../Shooty2Core/AIGunnerComponent.h"
 #include "../Shooty2Core/PlayerSpawnComponent.h"
 
@@ -52,6 +54,8 @@ void ClientWorldScene::load(Game& game)
     game.loadPacketHandler<PHClientSpawnEntities>(Shooty2Packet::SpawnEntities, this);
     game.loadPacketHandler<PHClientState>(Packet::StateId, this);
     game.loadPacketHandler<PHClientDeadEntities>(Packet::DeadEntities);
+    game.loadPacketHandler<PHClientTeleport>(Shooty2Packet::TeleportPlayer, myPlayerId);
+    game.loadPacketHandler<PHClientDamage>(Shooty2Packet::Damage);
 
 	/* ------------------ SET UP RENDERING ------------------- */
 	// down scale buffer
@@ -67,11 +71,15 @@ void ClientWorldScene::load(Game& game)
 
 	// textures
 	GLRenderer::LoadTexture("stranded/Hero/Hero/green_hero.png", "hero");
+	GLRenderer::LoadTexture("player/shadow.png", "shadow");
 	GLRenderer::LoadTexture("stranded/Enemies/Warrior/warrior.png", "enemy:warrior");
 	GLRenderer::LoadTexture("stranded/Hero/Hero/green_gun.png", "gun");
     GLRenderer::LoadTexture("player/bullet.png", "bullet.player");
 	GLRenderer::LoadTexture("stranded/Tileset/custom_top_down.png", "tileset");
     GLRenderer::LoadTexture("enemy/basic.png", "enemy:basic");
+
+    //particles
+    GLRenderer::GenParticleType("exit", 1, ComputeShader{ "particles/test.vert" });
 
 	/* ---------------- LOAD ENTITIES ----------------- */
     EntitySpawnSystem::Init<ClientEntityGenerator>(&game.host);
@@ -80,17 +88,15 @@ void ClientWorldScene::load(Game& game)
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 
 	myPlayerId = EntitySpawnSystem::SpawnEntity("player.basic", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
-    //myGunId = playerAndGunId[1];
 	addEntityInputs({ {myPlayerId, playerInput} });
 
-    // EntitySpawnSystem::SpawnEntity("enemy.basic", *this, {720.f / 2, 405.f / 2}, NetworkDataComponent::Owner::local_only);
-
 	// load level
-    
     world = World{ "tileset", "levels/test.ldtk" };
 	world.load(*this);
-    world.getLevel("Level_spawn").activate();
+    activeLevel = "Level_spawn";
+    world.getLevel(activeLevel).activate();
 
+    // prepare spawning
     auto* spawnComp = EntitySystem::GetComp<PlayerSpawnComponent>(myPlayerId);
     for(const auto& pair : world.getLevels()) {
         for(auto& entity : pair.second.getEntities()) {
@@ -101,12 +107,12 @@ void ClientWorldScene::load(Game& game)
     auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
     plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_spawn"));
 
-    director = Director{};
-    director.load(world, *this, "Level_spawn");
-
-    director.addPlayer(myPlayerId);
-
-    GLRenderer::GenParticleType("exit", 1, ComputeShader{ "particles/test.vert" });
+    // tell the server that we're ready
+    ByteStream playerPacket;
+    playerPacket << Shooty2Packet::AddPlayer;
+    auto playerNdc = EntitySystem::GetComp<NetworkDataComponent>(myPlayerId);
+    playerPacket << playerNdc->getUUID();
+    game.host.bufferAllDataByChannel(0, playerPacket);
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -128,12 +134,18 @@ void ClientWorldScene::physicsStep(Game& game)
 
 	physics.runPhysicsOnOwned(game.PHYSICS_STEP);
 
-    director.update(*this, game.PHYSICS_STEP);
-
 	// update inputs for next frame
 	auto& playerInputDevice = static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput));
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
 	playerInputDevice.entityPos = plrPhysicsComp->center();
+
+    // load active level
+    auto newLevel = world.getActiveLevel(plrPhysicsComp->position());
+    if(newLevel != nullptr && newLevel->getLevelId() != activeLevel) {
+        world.getLevel(activeLevel).deactivate();
+        newLevel->activate();
+        activeLevel = newLevel->getLevelId();
+    }
 
     broadcastDeadEntities(game);
 }
@@ -145,6 +157,7 @@ void ClientWorldScene::renderUpdateStep(Game& game)
     Updater::UpdateAll<OnHitComponent>();
     Updater::UpdateAll<RespawnGFXComponent>();
     Updater::UpdateAll<AttackGFXComponent>();
+    Updater::UpdateAll<TeleportZoneGFXComponent>(game.PHYSICS_STEP * 1000);
 
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
     auto plrContComp = EntitySystem::GetComp<ControllerComponent>(myPlayerId);
@@ -184,27 +197,6 @@ void ClientWorldScene::renderStep(Game& game)
 	/* ---------- DEBUG LINES ----------- */
 	DebugIO::setLine(0, "Entity Count: " + std::to_string(EntitySystem::GetPool<EntityBaseComponent>().size()));
 	DebugIO::setLine(1, "Player ID: " + std::to_string(myPlayerId));
-
-    /* LEVEL exit rendering */
-    auto exitId = director.getExitId();
-    auto exitBase = EntitySystem::GetComp<EntityBaseComponent>(exitId);
-    if(exitBase->isActive) {
-        auto exitPhysics = EntitySystem::GetComp<PhysicsComponent>(exitId);
-        auto pos = exitPhysics->position();
-        float angle = randFloat(0.f, 3.1415926535898f * 2.f);
-        Vec2f offset{ 50.f, 0.f };
-        offset.angle(angle);
-        pos += offset;
-        Particle base{
-            Color{ 1.f, 1.f, 1.f, 1.f },
-            pos,
-            -90,
-            .2f,
-            100,
-            0
-        };
-        GLRenderer::SpawnParticles("exit", 1, base);
-    }
 
 	screenBuffer.bind();
 	glClearColor(78.0f / 255, 59.0f / 255, 61.0f / 255, 1.0f);

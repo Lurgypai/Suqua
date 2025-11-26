@@ -58,7 +58,7 @@ void SideScrollGFXComponent::startDefaultAnimations() {
 	sprite.looping = true;
 
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-	auto currCharacterVel = physicsComp->getVel();
+	const auto& currCharacterVel = physicsComp->vel;
 	auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 	int currCardinalDir = dirComp->getCardinalDir();
 
@@ -90,7 +90,7 @@ void SideScrollGFXComponent::startDefaultAnimations() {
 void SideScrollGFXComponent::playDefaultAnimations()
 {
 	auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
-	auto currCharacterVel = physicsComp->getVel();
+	const auto& currCharacterVel = physicsComp->vel;
 
 	auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 	int currCardinalDir = dirComp->getCardinalDir();

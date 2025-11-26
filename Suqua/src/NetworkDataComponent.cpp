@@ -1,9 +1,12 @@
-#include "NetworkDataComponent.h"
+#include <print>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
 #include <utility>
 #include <exception>
+#include <format>
+
+#include "NetworkDataComponent.h"
 
 using UUID = Suqua::UUID;
 
@@ -23,25 +26,11 @@ NetworkDataComponent::NetworkDataComponent(EntityId id_,
 	id{ id_ },
     owner{ owner_ },
     uuid{ uuid_ },
-	dataPtr{ new DataMap{} },
-    prevDataPtr{ new DataMap{} }
+	dataMap{}
 {
     if(uuid == UUID{}) throw std::runtime_error{"Invalid UUID: Default UUID used"};
 
     idMap.emplace(uuid, id);
-}
-
-NetworkDataComponent::NetworkDataComponent(const NetworkDataComponent& other) :
-	id{ other.id },
-	dataPtr{new DataMap{ *other.dataPtr }},
-    prevDataPtr{ new DataMap{ *other.dataPtr }}
-{}
-
-NetworkDataComponent& NetworkDataComponent::operator=(const NetworkDataComponent& other) {
-	id = other.id;
-	dataPtr = std::make_unique<DataMap>(*other.dataPtr);
-    prevDataPtr = std::make_unique<DataMap>(*other.prevDataPtr);
-	return *this;
 }
 
 bool NetworkDataComponent::Data::operator==(const NetworkDataComponent::Data& other) const {
@@ -53,62 +42,86 @@ bool NetworkDataComponent::Data::operator!=(const NetworkDataComponent::Data& ot
 }
 
 bool NetworkDataComponent::operator==(const NetworkDataComponent& other) const {
-    return *dataPtr == *other.dataPtr && id == other.id;
+    return dataMap == other.dataMap && id == other.id && dataMap == other.dataMap;
 }
 
 bool NetworkDataComponent::operator!=(const NetworkDataComponent& other) const {
     return !(*this == other);
 }
 
+
+
 void NetworkDataComponent::serializeForNetwork(ByteStream& stream) {
     stream << uuid;
-	//add the ability to allocate bytestream space, and overwrite at position
-	size_t writeCount = 0;
-	for (const auto& pair : *dataPtr) {
-        // skip unchanged values
-        auto prevPair = prevDataPtr->find(pair.first);
-        if(prevPair != prevDataPtr->end() && prevPair->second == pair.second) continue;
-        ++writeCount;
+    size_t totalWritten = 0;
+    size_t sizePos = stream.getPos();
+    stream.allocateData(sizeof(size_t)); // allocate space for the size;
+	for (auto&& pair : dataMap) {
+        //write delta
+        switch(pair.second.type) {
+        case NetworkDataComponent::Data::DataType::UBYTE:
+            if(writeDelta<std::uint8_t>(pair, stream)) ++totalWritten;
+            break;
+        case NetworkDataComponent::Data::DataType::BOOL:
+            if(writeDelta<bool>(pair, stream)) ++totalWritten;
+            break;
+        case NetworkDataComponent::Data::DataType::INT_32:
+            if(writeDelta<std::int32_t>(pair, stream)) ++totalWritten;
+            break;
+        case NetworkDataComponent::Data::DataType::FLOAT:
+            if(writeDelta<float>(pair, stream)) ++totalWritten;
+            break;
+        case NetworkDataComponent::Data::DataType::STRING: {
+            const std::string& localVal = *(std::get<std::string*>(pair.second.value));
+            const std::string& prevVal = std::get<std::string>(prevDataMap.at(pair.first));
+            if(localVal == prevVal) break;
+            stream << pair.first;
+            stream << pair.second.type;
+            stream << *(std::get<std::string*>(pair.second.value));
+            ++totalWritten;
+            } break;
+        default:
+            break;
+        }
 	}
 
-	stream << writeCount;
-	for (auto&& pair : *dataPtr) {
-        // skip unchanged values
-        auto prevPair = prevDataPtr->find(pair.first);
-        if(prevPair != prevDataPtr->end() && prevPair->second == pair.second) continue;
-        
-        stream << pair.first;
-        pair.second.write(stream);
-	}
+    size_t end = stream.getPos();
+    stream.setPos(sizePos);
+    stream << totalWritten;
+    stream.setPos(end);
 }
 
-//void NetworkDataComponent::serializeForNetwork(ByteStream& stream, const std::map<DataId, Data>& prevData) {
-//
-//	size_t writeCount = 0;
-//	for (auto&& pair : data_) {
-//		if (pair.second != prevData.at(pair.first)) {
-//			++writeCount;
-//		}
-//	}
-//	stream << writeCount;
-//	for (auto&& pair : data_) {
-//		if (pair.second != prevData.at(pair.first)) {
-//			stream << pair.first;
-//			pair.second.write(stream);
-//		}
-//	}
-//}
-
-
 void NetworkDataComponent::unserialize(ByteStream& stream) {
-
 	DataId dataId;
 	size_t size;
 	stream >> size;
 
 	for (size_t i = 0; i != size; ++i) {
 		if (stream >> dataId) {
-			dataPtr->at(dataId).read(stream);
+            stream.movePos(sizeof(DataType)); // skip type value used by MoveStreamPast
+            auto pair = dataMap.find(dataId);
+            if(pair == dataMap.end()) {
+                throw std::runtime_error{std::format("Unable to find data with id {}", dataId)}; }
+            switch(pair->second.type) {
+            case NetworkDataComponent::Data::DataType::UBYTE:
+                readDelta<std::uint8_t>(*pair, stream);
+                break;
+            case NetworkDataComponent::Data::DataType::BOOL:
+                readDelta<bool>(*pair, stream);
+                break;
+            case NetworkDataComponent::Data::DataType::INT_32:
+                readDelta<std::int32_t>(*pair, stream);
+                break;
+            case NetworkDataComponent::Data::DataType::FLOAT:
+                readDelta<float>(*pair, stream);
+                break;
+            case NetworkDataComponent::Data::DataType::STRING: {
+                std::string& localVal = *(std::get<std::string*>(pair->second.value));
+                stream >> localVal;
+                } break;
+            default:
+                break;
+            }
 		}
 		else {
 			//we should have more elements to read
@@ -127,21 +140,21 @@ void NetworkDataComponent::MoveStreamPast(ByteStream& stream) {
             stream >> type;
             switch(type) {
             case DataType::BOOL:
-                stream.moveReadPos(sizeof(bool));
+                stream.movePos(sizeof(bool));
                 break;
             case DataType::UBYTE:
-                stream.moveReadPos(sizeof(std::uint8_t));
+                stream.movePos(sizeof(std::uint8_t));
                 break;
             case DataType::INT_32:
-                stream.moveReadPos(sizeof(std::int32_t));
+                stream.movePos(sizeof(std::int32_t));
                 break;
             case DataType::FLOAT:
-                stream.moveReadPos(sizeof(float));
+                stream.movePos(sizeof(float));
                 break;
             case DataType::STRING:
                 size_t strSize;
                 stream >> strSize;
-                stream.moveReadPos(strSize);
+                stream.movePos(strSize);
                 break;
             default:
                 break;
@@ -153,66 +166,32 @@ void NetworkDataComponent::MoveStreamPast(ByteStream& stream) {
     }
 }
 
-void NetworkDataComponent::Data::write(ByteStream& s) {
-	s << static_cast<char>(type);
-	switch (type)
-	{
-	case NetworkDataComponent::Data::DataType::UBYTE:
-		s << get<uint8_t>();
-		break;
-	case NetworkDataComponent::Data::DataType::BOOL:
-		s << get<bool>();
-		break;
-	case NetworkDataComponent::Data::DataType::INT_32:
-		s << get<int32_t>();
-		break;
-	case NetworkDataComponent::Data::DataType::FLOAT:
-		s << get<float>();
-		break;
-	case NetworkDataComponent::Data::DataType::STRING:
-		s << get<std::string>();
-		break;
-	default:
-		break;
-	}
-}
-
-inline void NetworkDataComponent::Data::read(ByteStream& s) {
-	s >> type;
-	switch (type)
-	{
-	case NetworkDataComponent::Data::DataType::UBYTE:
-		s >> get<uint8_t>();
-		break;
-	case NetworkDataComponent::Data::DataType::BOOL:
-		s >> get<bool>();
-		break;
-	case NetworkDataComponent::Data::DataType::INT_32:
-		s >> get<int32_t>();
-		break;
-	case NetworkDataComponent::Data::DataType::FLOAT:
-		s >> get<float>();
-		break;
-	case NetworkDataComponent::Data::DataType::STRING:
-		s >> get<std::string>();
-		break;
-	default:
-		break;
-	}
+const UUID& NetworkDataComponent::getUUID() const {
+    return uuid;
 }
 
 void NetworkDataComponent::storePrev() {
-    for(auto& [id, data] : *dataPtr) {
-        (*prevDataPtr)[id] = data;     
+    for(auto& pair : dataMap) {
+        switch(pair.second.type) {
+            case DataType::BOOL:
+                prevDataMap.at(pair.first) = *(std::get<bool*>(pair.second.value));
+                break;
+            case DataType::UBYTE:
+                prevDataMap.at(pair.first) = *(std::get<uint8_t*>(pair.second.value));
+                break;
+            case DataType::INT_32:
+                prevDataMap.at(pair.first) = *(std::get<int32_t*>(pair.second.value));
+                break;
+            case DataType::FLOAT:
+                prevDataMap.at(pair.first) = *(std::get<float*>(pair.second.value));
+                break;
+            case DataType::STRING:
+                prevDataMap.at(pair.first) = *(std::get<std::string*>(pair.second.value));
+                break;
+            default:
+                break;
+        }
     }
-}
-
-void NetworkDataComponent::storePrev(DataId id) {
-    (*prevDataPtr)[id] = dataPtr->at(id);
-}
-
-const UUID& NetworkDataComponent::getUUID() const {
-    return uuid;
 }
 
 std::unordered_map<UUID, EntityId> NetworkDataComponent::idMap{};

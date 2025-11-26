@@ -1,3 +1,5 @@
+#include <print>
+
 #include "Game.h"
 #include "Packet.h"
 #include "PHClientPing.h"
@@ -6,30 +8,26 @@
 #include "DebugIO.h"
 #include "NetworkDataComponent.h"
 
-Game::Game(FlagType flags_, double physics_step, double render_step, Tick clientPingDelay_, Tick serverBroadcastDelay_) :
+Game::Game(FlagType flags_, double physics_step, double render_step) :
+    // timing
 	PHYSICS_STEP{ physics_step },
 	RENDER_STEP{ render_step },
 	TICK_RATE{ 1.0 / PHYSICS_STEP },
+    // current ticks
 	renderTick{ 0 },
 	gameTick{ 0 },
+    // update flags
 	flags{ flags_ },
-	clientPingCtr{ 0 },
-	clientPingDelay{ clientPingDelay_ },
-	serverBroadcastCtr{ 0 },
-	serverBroadcastDelay{ serverBroadcastDelay_ },
-	networkInputDelay{ 0 },
-	networkInputTimeout{ 0 }
+    //networking timers
+	networkInputTimeout{ 0 },
+    stateBroadcastDelay{ 1 },
+    stateBroadcastDelayCtr{ 0 } 
 {
 	if (flags & client) {
 		host.createClient(1, 10);
-		loadPacketHandler<PHClientPing>(Packet::PingId);
-		// loadPacketHandler<PHSyncState>(Packet::StateId);
-		// loadPacketHandler<PHOOSPacket>(Packet::OOSId);
 	}
 	if (flags & server) {
 		host.createServer(25565, 10, 10);
-		loadPacketHandler<PHServerPing>(Packet::PingId);
-		// loadPacketHandler<PHServerInputPacket>(Packet::InputId);
 	}
 }
 
@@ -182,7 +180,13 @@ void Game::clearSDLEvents() {
 	events.clear();
 }
 
-static inline void broadcastOwnedStates(Host& host) {
+void Game::broadcastOwnedStates() {
+    // check if update time
+    ++stateBroadcastDelayCtr;
+    if(stateBroadcastDelayCtr != stateBroadcastDelay) return;
+    stateBroadcastDelayCtr = 0;
+
+    //update
     ByteStream state;
     state << Packet::StateId;
     state << true;
@@ -192,7 +196,6 @@ static inline void broadcastOwnedStates(Host& host) {
         if (ndc.owner != NetworkDataComponent::Owner::local_shared) continue;
 
         ndc.serializeForNetwork(state);
-        ndc.storePrev();
     }
     host.bufferAllDataByChannel(0, state);
 }
@@ -206,26 +209,8 @@ void Game::serverStep() {
     if(flags & Flag::physics) {
         physicsUpdate();
     }
-    /*
-	if (serverBroadcastCtr == serverBroadcastDelay) {
-		serverBroadcastCtr = 0;
 
-        if(EntitySystem::Contains<NetworkDataComponent>()) {
-            ByteStream statePacket;
-            for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
-                auto onlineComp = EntitySystem::GetComp<OnlineComponent>(ndc.getId());
-                statePacket << onlineComp->getNetId();
-                ndc.serializeForNetwork(statePacket);
-            }
-            host.bufferAllDataByChannel(0, statePacket);
-        }
-	}
-	else {
-		++serverBroadcastCtr;
-	}
-    */
-
-    broadcastOwnedStates(host);
+    broadcastOwnedStates();
 
 	host.handlePackets(*this);
 	host.sendBuffered();
@@ -266,7 +251,7 @@ void Game::clientStep() {
 	}
 
 	if (flags & Flag::client) {
-        broadcastOwnedStates(host);
+        broadcastOwnedStates();
 
 		host.handlePackets(*this);
 		host.sendBuffered();
@@ -300,6 +285,7 @@ void Game::loop() {
 			else clientStep();
 
 			clearSDLEvents();
+            tickTime();
 		}
 		leftover = elapsedTime;
 
@@ -316,7 +302,6 @@ void Game::loop() {
 			}
 		}
 
-		tickTime();
 
 		cleanScenes();
 		EntitySystem::FreeDeadEntities();
@@ -355,4 +340,9 @@ Tick Game::getGameTick() const {
 
 void Game::physicsUpdate() {
     physicsStep();
+}
+
+void Game::setStateBroadcastDelay(Tick delay) {
+    if(delay > 0) stateBroadcastDelay = delay;
+    else throw std::runtime_error{"stateBroadcastDelay cannot be less than 0.\n"};
 }

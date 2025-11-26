@@ -2,6 +2,8 @@
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "Game.h"
 
+using UUID = Suqua::UUID;
+
 ServerEntityGenerator::ServerEntityGenerator(Game* game_) : game{game_} {}
 
 EntityId ServerEntityGenerator::SpawnEntity(

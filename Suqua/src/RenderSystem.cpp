@@ -15,7 +15,7 @@ inline void RenderSystem::draw(RenderComponent& render) const {
             IDrawable* drawable = sprite.get();
             if (drawable != nullptr) {
                 auto posComp = EntitySystem::GetComp<PositionComponent>(render.getId());
-                drawable->setPos(posComp->getPos() + sprite->offset);
+                drawable->setPos(posComp->pos + sprite->offset);
                 drawable->draw();
             }
         }

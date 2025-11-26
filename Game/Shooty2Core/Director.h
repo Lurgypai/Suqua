@@ -5,6 +5,7 @@
 
 #include "World.h"
 #include "Scene.h"
+#include "NetworkEntityOwnershipSystem.h"
 
 
 /* TODO
@@ -17,11 +18,10 @@
 class Director {
 public:
     void load(World& world_, Scene& scene, const std::string& spawnLevel);
-    void update(Scene& scene, float delta);
+    void update(Scene& scene, float delta,
+            const NetworkEntityOwnershipSystem& ownerSystem,
+            Host& host);
     EntityId getExitId();
-
-    void addPlayer(EntityId id);
-    void removePlayer(EntityId id);
 private:
     World* world;
 
@@ -36,7 +36,8 @@ private:
     void doSpawning(Scene& scene);
     void doWaiting();
     void beginFinished();
-    void doFinished();
+    void doFinished(const NetworkEntityOwnershipSystem& ownerSystem,
+            Host& host);
 
     void spawnCluster(Scene& scene);
     void removeDeadEnemies();
@@ -55,6 +56,4 @@ private:
     //exit
     EntityId exitId;
     float exitRadius;
-
-    std::vector<EntityId> players;
 };

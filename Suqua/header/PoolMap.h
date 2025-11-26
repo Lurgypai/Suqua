@@ -17,37 +17,13 @@ private:
 	};
 
 public:
-	inline static size_t poolSize = 0;
-
-	template<typename U>
-	static void add(U&& u) {
-		if (PoolWrapper<U>::pool == nullptr) {
-			PoolWrapper<U>::pool = std::make_unique<Pool<U>>();
-			PoolWrapper<U>::pool->reserve(poolSize);
-			pools.emplace_back(PoolWrapper<U>::pool.get());
-		}
-
-		PoolWrapper<U>::pool->add(std::forward<U>(u));
-	}
-
 	template<typename U>
 	static void add(size_t pos, U&& u) {
 		if (PoolWrapper<U>::pool == nullptr) {
 			PoolWrapper<U>::pool = std::make_unique<Pool<U>>();
-			PoolWrapper<U>::pool->reserve(poolSize);
 			pools.emplace_back(PoolWrapper<U>::pool.get());
 		}
 		PoolWrapper<U>::pool->add(pos, std::forward<U>(u));
-	}
-
-	template<typename U>
-	static void add() {
-		if (PoolWrapper<U>::pool == nullptr) {
-			PoolWrapper<U>::pool = std::make_unique<Pool<U>>();
-			PoolWrapper<U>::pool->reserve(poolSize);
-			pools.emplace_back(PoolWrapper<U>::pool.get());
-		}
-		PoolWrapper<U>::pool->add();
 	}
 
 	template<typename T>
@@ -63,8 +39,6 @@ public:
 	static std::vector<pool_ptr>& getPools() {
 		return pools;
 	}
-
-
 private:
 	inline static std::vector<pool_ptr> pools{};
 };

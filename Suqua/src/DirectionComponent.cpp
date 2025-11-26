@@ -9,26 +9,21 @@ using namespace DirectionData;
 
 DirectionComponent::DirectionComponent(EntityId id_) :
 	id{id_},
-	dir{nullptr},
+    dir{180.f},
 	cardinalDir{ 0 },
 	isLocked_{false}
-{
-    auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
-    if(ndc == nullptr) throw std::runtime_error{"DirectionData: NetworkDataComponent was not initialized"};
-    ndc->set<float>(DIR, 180.0f);
-    dir = &ndc->get<float>(DIR);
-}
+{}
 
 float DirectionComponent::getDir() const {
-	return *dir;
+	return dir;
 }
 
 void DirectionComponent::setDir(float newDir) {
 	if (isLocked_) return;
-	*dir = newDir;
+	dir = newDir;
 
 	cardinalDir = 3;
-	int currCharacterDirDeg = degrees(*dir) - 45;
+	int currCharacterDirDeg = degrees(dir) - 45;
 	if (currCharacterDirDeg < 0) currCharacterDirDeg += 360;
 	if (currCharacterDirDeg >= 0 && currCharacterDirDeg <= 90) cardinalDir = 0;
 	else if (currCharacterDirDeg > 90 && currCharacterDirDeg < 180) cardinalDir = 1;

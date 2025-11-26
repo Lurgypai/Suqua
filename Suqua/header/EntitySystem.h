@@ -68,10 +68,6 @@ inline bool EntitySystem::Contains() {
 template<typename T>
 inline void EntitySystem::FreeComps(unsigned int size, EntityId* first) {
 	for (int i = 0; i != size; ++i) {
-		for (auto iter = PoolMap::get<T>().beginResource(); iter != PoolMap::get<T>().endResource(); ++iter) {
-			auto& comp = *iter;
-			if (comp.val.getId() == first[i])
-				comp.isFree = true;
-		}
+        PoolMap::get<T>().free(first[i]);
 	}
 }

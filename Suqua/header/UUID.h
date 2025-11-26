@@ -4,8 +4,14 @@
 #include <functional>
 #include <iostream>
 #include <ostream>
+#include <string>
+
+namespace Suqua {
+class UUID;
+}
 
 class ByteStream;
+std::ostream& operator<<(std::ostream& left, const Suqua::UUID& value);
 
 namespace Suqua {
 class UUID {
@@ -14,12 +20,13 @@ public:
 
     bool operator==(const UUID& other) const = default;
     bool operator!=(const UUID& other) const = default;
+    std::string str() const;
 private:
     std::array<std::uint64_t, 2> data_;
 
 friend struct std::hash<UUID>;
 friend class ::ByteStream;
-friend std::ostream& operator<<(std::ostream& left, const UUID& value);
+friend std::ostream& ::operator<<(std::ostream& left, const UUID& value);
 };
 };
 
@@ -40,4 +47,3 @@ template <> struct hash<Suqua::UUID> {
 };
 }
 
-std::ostream& operator<<(std::ostream& left, const Suqua::UUID& value);

@@ -10,6 +10,7 @@ public:
 	std::int32_t getHealth() const;
 	void setHealth(std::int32_t health);
 	void damage(std::int32_t amount);
+
+	std::int32_t health;
 private:
-	std::int32_t* health;
 };

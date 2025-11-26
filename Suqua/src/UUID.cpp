@@ -1,5 +1,6 @@
 #include "UUID.h"
 
+#include <format>
 #include <random>
 #include <iomanip>
 #include <cstdint>
@@ -17,10 +18,14 @@ UUID UUID::GenerateUUID() {
     return uuid;
 }
 
-std::ostream& operator<<(std::ostream& left, const UUID& value) {
+std::string UUID::str() const {
+    return std::format("{:016d}-{:016d}", data_[0], data_[1]);
+}
+}
+
+std::ostream& operator<<(std::ostream& left, const Suqua::UUID& value) {
     return left <<
        std::hex << std::setw(16) << std::setfill('0') << value.data_[0]
        << '-' 
        << std::hex << std::setw(16) << std::setfill('0') << value.data_[1];
-}
 }

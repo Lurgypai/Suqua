@@ -9,9 +9,10 @@
 #include "Updater.h"
 #include "EntityBaseComponent.h"
 
-#include "../Shooty2Core/EntitySpawnSystem.h"
 #include "../Shooty2Core/AIGunnerComponent.h"
 #include "Packet.h"
+#include "PHServerAddPlayer.h"
+#include "PHServerDamage.h"
 
 #include "PositionComponent.h"
 
@@ -38,12 +39,17 @@ void ServerWorldScene::load(Game& game)
     game.loadPacketHandler<PHServerSpawnEntities>(Shooty2Packet::SpawnEntities, this);
     game.loadPacketHandler<PHServerState>(Packet::StateId);
     game.loadPacketHandler<PHServerDeadEntities>(Packet::DeadEntities);
+    game.loadPacketHandler<PHServerAddPlayer>(Shooty2Packet::AddPlayer);
+    game.loadPacketHandler<PHServerDamage>(Shooty2Packet::Damage);
  
-	// dummy ai
-	EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2, 405.f / 2 }, NetworkDataComponent::Owner::local_shared);
-	EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2 + 50, 405.f / 2 }, NetworkDataComponent::Owner::local_shared);
-	EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2, 405.f / 2 + 50 }, NetworkDataComponent::Owner::local_shared);
-	EntitySpawnSystem::SpawnEntity("enemy.basic", *this, { 720.f / 2 + 50, 405.f / 2 + 50}, NetworkDataComponent::Owner::local_shared);
+    world = World{ "tileset", "levels/test.ldtk" };
+	world.load(*this);
+    world.getLevel("Level_spawn").activate();
+
+    EntitySpawnSystem::SpawnEntity("enemy.basic", *this, Vec2f{200, 200}, NetworkDataComponent::Owner::local_shared);
+
+    director = Director{};
+    director.load(world, *this, "Level_spawn");
 }
 
 void ServerWorldScene::physicsStep(Game& game) {
@@ -57,6 +63,9 @@ void ServerWorldScene::physicsStep(Game& game) {
 	Updater::UpdateOwned<RespawnComponent>();
 
 	physics.runPhysicsOnOwned(game.PHYSICS_STEP);
+
+    director.update(*this, game.PHYSICS_STEP,
+            game.networkEntityOwnershipSystem, game.host);
 
     broadcastDeadEntities(game);
 }
@@ -87,7 +96,7 @@ void ServerWorldScene::onConnect(Game& game, PeerId connectingPeer) {
 
             spawnPacket << entity.tag;
             auto posComp = EntitySystem::GetComp<PositionComponent>(NetworkDataComponent::GetEntityId(entity.uuid));
-            spawnPacket << posComp->getPos();
+            spawnPacket << posComp->pos;
             spawnPacket << entity.uuid;
         }
     }
@@ -96,7 +105,7 @@ void ServerWorldScene::onConnect(Game& game, PeerId connectingPeer) {
         std::cout << '\t' << entityDescriptor.tag << '\n';
         spawnPacket<< entityDescriptor.tag;
         auto posComp = EntitySystem::GetComp<PositionComponent>(NetworkDataComponent::GetEntityId(entityDescriptor.uuid));
-        spawnPacket << posComp->getPos();
+        spawnPacket << posComp->pos;
         spawnPacket<< entityDescriptor.uuid;
     }
 

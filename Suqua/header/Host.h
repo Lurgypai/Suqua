@@ -46,7 +46,7 @@ public:
 	void sendBuffered();
 
 	template<typename T, typename ... Args>
-	void loadPacketHandler(PacketId id, Args ... args);
+	void loadPacketHandler(PacketId id, Args&&... args);
 
 	void handlePackets(Game& game);
 
@@ -100,11 +100,9 @@ private:
     int delayVariation;
 };
 
-//add owning entities
-
 template<typename T, typename ...Args>
-inline void Host::loadPacketHandler(PacketId id, Args ...args) {
-	auto packetHandler = std::make_unique<T>(id, args...);
+inline void Host::loadPacketHandler(PacketId id, Args&& ...args) {
+	auto packetHandler = std::make_unique<T>(id, std::forward<Args>(args)...);
 	packetHandlers.emplace(id, std::move(packetHandler));
 }
 
