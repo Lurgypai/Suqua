@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
 
 	Game game{ Game::server_flags };
 
-    DebugFIO::AddFOut("send.packet.log");
+    DebugFIO::AddFOut("debug.log");
 
 	json settings;
 	std::ifstream file{ "settings.json" };

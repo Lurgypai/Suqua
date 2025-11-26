@@ -2,11 +2,11 @@
 #include <cstring>
 
 ByteStream::ByteStream() :
-	readPos{0}
+	pos{0}
 {}
 
 bool ByteStream::operator==(const ByteStream& other) {
-	return _data == other._data && readPos == other.readPos;
+	return _data == other._data && pos == other.pos;
 }
 
 bool ByteStream::operator!=(const ByteStream& other) {
@@ -17,20 +17,26 @@ bool ByteStream::sameData(const ByteStream& other) {
 	return _data == other._data;
 }
 
-void ByteStream::setReadPos(size_t readPos_) {
-	readPos = readPos_;
+void ByteStream::setPos(size_t pos_) {
+	pos = pos_;
 }
 
-void ByteStream::moveReadPos(size_t offset) {
-    readPos += offset;
+void ByteStream::movePos(size_t offset) {
+    pos += offset;
 }
 
 size_t ByteStream::getPos() {
-    return readPos;
+    return pos;
 }
 
 size_t ByteStream::size() {
     return _data.size();
+}
+
+void ByteStream::allocateData(size_t len) {
+	auto start = _data.size();
+	_data.resize(start + len);
+    pos += len;
 }
 
 void ByteStream::putData(void* data, size_t len) {
@@ -49,7 +55,7 @@ std::string ByteStream::getData() {
 }
 
 bool ByteStream::hasMoreData() {
-	return readPos != _data.size();
+	return pos != _data.size();
 }
 
 const Byte* ByteStream::data() const {
@@ -57,7 +63,7 @@ const Byte* ByteStream::data() const {
 }
 
 void ByteStream::clear() {
-	readPos = 0;
+	pos = 0;
 	_data.clear();
 }
 

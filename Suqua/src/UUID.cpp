@@ -1,5 +1,6 @@
 #include "UUID.h"
 
+#include <format>
 #include <random>
 #include <iomanip>
 #include <cstdint>
@@ -15,6 +16,10 @@ UUID UUID::GenerateUUID() {
     uuid.data_[1] = dist(e);
 
     return uuid;
+}
+
+std::string UUID::str() const {
+    return std::format("{:016d}-{:016d}", data_[0], data_[1]);
 }
 }
 

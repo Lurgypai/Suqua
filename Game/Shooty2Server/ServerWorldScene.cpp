@@ -46,7 +46,7 @@ void ServerWorldScene::load(Game& game)
 	world.load(*this);
     world.getLevel("Level_spawn").activate();
 
-    // EntitySpawnSystem::SpawnEntity("enemy.basic", *this, Vec2f{}, NetworkDataComponent::Owner::local_shared);
+    EntitySpawnSystem::SpawnEntity("enemy.basic", *this, Vec2f{200, 200}, NetworkDataComponent::Owner::local_shared);
 
     director = Director{};
     director.load(world, *this, "Level_spawn");

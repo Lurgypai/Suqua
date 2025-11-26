@@ -102,7 +102,6 @@ EntityId ClientEntityGenerator::SpawnEntity(
     spawn << tag;
     spawn << pos;
     spawn << uuid;
-    DebugFIO::TimeOut("send.packet.log") << entity << " spawn\n";
     host->bufferAllDataByChannel(0, spawn);
 
     return entity;

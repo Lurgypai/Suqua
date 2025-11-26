@@ -16,8 +16,7 @@ int main(int argc, char** argv) {
     game.setStateBroadcastDelay(4);
 	// Game game{ Game::local_flags };
 
-    DebugFIO::AddFOut("packet.log");
-    DebugFIO::AddFOut("send.packet.log");
+    DebugFIO::AddFOut("debug.log");
 
 	json settings;
 	std::ifstream file{ "settings.json" };
@@ -65,3 +64,6 @@ int main(int argc, char** argv) {
 // fix dealing damage (damage packet is needed). setting can cause two client to overwrite
 // fix packet desync
 //  log serialize and unserialize, and damage packet
+// new bug, moving is getting the wrong size.
+//  log the order packets are sent
+//  log the sent data

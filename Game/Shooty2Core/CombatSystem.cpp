@@ -4,13 +4,13 @@
 #include "EntitySystem.h"
 #include "HurtboxComponent.h"
 #include "HitboxComponent.h"
-#include "Packet.h"
+#include "Shooty2Packet.h"
 #include "TeamComponent.h"
 #include "EntityBaseComponent.h"
 #include "HealthComponent.h"
 #include "DamageComponent.h"
 #include "PhysicsComponent.h"
-#include "Shooty2Packet.h"
+#include "Packet.h"
 #include "NetworkDataComponent.h"
 #include "NetworkDataComponentDataFields.h"
 
@@ -18,17 +18,16 @@ static inline void damageEntity(EntityId cause, EntityId receiver, ByteStream& p
 	auto otherDamageComp = EntitySystem::GetComp<DamageComponent>(cause);
 
     auto ndc = EntitySystem::GetComp<NetworkDataComponent>(receiver);
+    auto damage = otherDamageComp->getDamage();
     // foreign entity hit, send packet
     if(ndc->owner == NetworkDataComponent::Owner::foreign) {
         packet << ndc->getUUID();
-        packet << otherDamageComp->getDamage();
+        packet << damage;
+
     }
-    // always apply damage
     auto ourHealthComp = EntitySystem::GetComp<HealthComponent>(receiver);
     auto health = ourHealthComp->health;
-    ourHealthComp->damage(otherDamageComp->getDamage());
-
-    std::println("health before damage {}, after {}", health, ourHealthComp->health);
+    ourHealthComp->damage(damage);
 }
 
 using TeamId = TeamComponent::TeamId;
@@ -44,10 +43,10 @@ void CombatSystem::checkClientCollisions(Host* host) {
 
 	for (auto& ndc : EntitySystem::GetPool<NetworkDataComponent>()) {
 
+		// find the things that we control
 		if (ndc.owner != NetworkDataComponent::Owner::local_only &&
                 ndc.owner != NetworkDataComponent::Owner::local_shared) continue;
 
-		// find the things that we control
 		const auto base = EntitySystem::GetComp<EntityBaseComponent>(ndc.getId());
 		if (!base->isActive || base->isDead) continue;
 

@@ -29,11 +29,12 @@ public:
 
 	bool sameData(const ByteStream& other);
 
+    void allocateData(size_t len);
 	void putData(void* data, size_t len);
     std::string getData();
 
-	void setReadPos(size_t readPos_);
-    void moveReadPos(size_t offset);
+	void setPos(size_t pos_);
+    void movePos(size_t offset);
     size_t getPos();
     size_t size();
 
@@ -42,28 +43,35 @@ public:
 	void clear();
 	size_t size() const;
 private:
-	size_t readPos;
+	size_t pos;
 	ByteArray _data;
 };
 
 template<typename T>
 inline ByteStream& ByteStream::operator<<(const T& t) {
 	size_t end = _data.size();
-	_data.resize(end + sizeof(T));
+    size_t newEnd = pos + sizeof(T);
+    if(newEnd > end) _data.resize(end + (newEnd - end));
+
 	T cpy = s_hton(t);
-	std::memcpy(_data.data() + end, &cpy, sizeof(T));
+	std::memcpy(_data.data() + pos, &cpy, sizeof(T));
+    pos += sizeof(T);
+
 	return *this;
 }
 
 template<>
 inline ByteStream& ByteStream::operator<< <std::string>(const std::string& t) {
 	size_t end = _data.size();
+    size_t newEnd = pos + sizeof(size_t) + t.size();
+
+    if(newEnd > end) _data.resize(end + (newEnd - end));
+
 	size_t strSize = s_hton(t.size());
-	_data.resize(end + sizeof(size_t));
-	std::memcpy(_data.data() + end, &strSize, sizeof(size_t));
-	end = _data.size();
-	_data.resize(end + strSize);
-	std::memcpy(_data.data() + end, t.data(), strSize);
+	std::memcpy(_data.data() + pos, &strSize, sizeof(size_t));
+	std::memcpy(_data.data() + pos + sizeof(size_t), t.data(), t.size());
+
+    pos += sizeof(size_t) + t.size();
 
 	return *this;
 }
@@ -71,11 +79,14 @@ inline ByteStream& ByteStream::operator<< <std::string>(const std::string& t) {
 template<>
 inline ByteStream& ByteStream::operator<< <Vec2f>(const Vec2f& t) {
 	size_t end = _data.size();
-	_data.resize(end + sizeof(t));
+    size_t newEnd = pos + sizeof(Vec2f);
+    if(newEnd > end) _data.resize(end + (newEnd - end));
+
 	auto xCpy = s_hton(t.x);
 	auto yCpy = s_hton(t.y);
-	std::memcpy(_data.data() + end, &xCpy, sizeof(xCpy));
-	std::memcpy(_data.data() + end + sizeof(xCpy), &yCpy, sizeof(yCpy));
+	std::memcpy(_data.data() + pos, &xCpy, sizeof(xCpy));
+	std::memcpy(_data.data() + pos + sizeof(xCpy), &yCpy, sizeof(yCpy));
+    pos += sizeof(Vec2f);
 
     return *this;
 }
@@ -83,58 +94,53 @@ inline ByteStream& ByteStream::operator<< <Vec2f>(const Vec2f& t) {
 template<>
 inline ByteStream& ByteStream::operator<< <Suqua::UUID>(const Suqua::UUID& t) {
 	size_t end = _data.size();
-	_data.resize(end + sizeof(t));
+    size_t newEnd = pos + sizeof(Suqua::UUID);
+    if(newEnd > end) _data.resize(end + (newEnd - end));
+
 	auto xCpy = s_hton(t.data_[0]);
 	auto yCpy = s_hton(t.data_[1]);
-	std::memcpy(_data.data() + end, &xCpy, sizeof(xCpy));
-	std::memcpy(_data.data() + end + sizeof(xCpy), &yCpy, sizeof(yCpy));
+	std::memcpy(_data.data() + pos, &xCpy, sizeof(xCpy));
+	std::memcpy(_data.data() + pos + sizeof(xCpy), &yCpy, sizeof(yCpy));
+    pos += sizeof(Suqua::UUID);
 
     return *this;
 }
 
 template<typename T>
 inline bool ByteStream::operator>>(T& t) {
-	if (readPos + sizeof(t) <= _data.size()) {
-		std::memcpy(&t, _data.data() + readPos, sizeof(t));
-		t = s_ntoh(t);
-		readPos += sizeof(t);
-		return true;
-	}
-	else {
-		return false;
-	}
+    if(pos + sizeof(t) > _data.size()) return false;
+
+    std::memcpy(&t, _data.data() + pos, sizeof(t));
+    t = s_ntoh(t);
+    pos += sizeof(t);
+    return true;
 }
 
 template<>
 inline bool ByteStream::operator>> <std::string>(std::string& s) {
-	if (readPos + sizeof(size_t) <= _data.size()) {
-		size_t size;
-		std::memcpy(&size, _data.data() + readPos, sizeof(size_t));
-		size = s_ntoh(size);
-		if (readPos + sizeof(size_t) + size <= _data.size()) {
-			readPos += sizeof(size_t);
-			s.resize(size);
-			std::memcpy(s.data(), _data.data() + readPos, size);
-			readPos += size;
-            return true;
-		}
-		else {
-			return false;
-		}
-	}
-	else {
-		return false;
-	}
+    if (pos + sizeof(size_t) > _data.size()) return false;
+
+    size_t size;
+    std::memcpy(&size, _data.data() + pos, sizeof(size_t));
+    size = s_ntoh(size);
+
+    if(pos + sizeof(size_t) + size > _data.size()) return false;
+
+    s.resize(size);
+    std::memcpy(s.data(), _data.data() + pos + sizeof(size_t), size);
+
+    pos += size + sizeof(size_t);
+    return true;
 }
 
 template<>
 inline bool ByteStream::operator >> <Vec2f>(Vec2f& v) {
-	if (readPos + sizeof(v) > _data.size()) return false;
+	if (pos + sizeof(v) > _data.size()) return false;
 
-	std::memcpy(&v.x, _data.data() + readPos, sizeof(v.x));
-    readPos += sizeof(v.x);
-	std::memcpy(&v.y, _data.data() + readPos, sizeof(v.y));
-    readPos += sizeof(v.y);
+	std::memcpy(&v.x, _data.data() + pos, sizeof(v.x));
+    pos += sizeof(v.x);
+	std::memcpy(&v.y, _data.data() + pos, sizeof(v.y));
+    pos += sizeof(v.y);
 
 	v.x = s_ntoh(v.x);
 	v.y = s_ntoh(v.y);
@@ -144,12 +150,12 @@ inline bool ByteStream::operator >> <Vec2f>(Vec2f& v) {
 
 template<>
 inline bool ByteStream::operator >> <Suqua::UUID>(Suqua::UUID& v) {
-	if (readPos + sizeof(v) > _data.size()) return false;
+	if (pos + sizeof(v) > _data.size()) return false;
 
-	std::memcpy(&v.data_[0], _data.data() + readPos, sizeof(v.data_[0]));
-    readPos += sizeof(v.data_[0]);
-	std::memcpy(&v.data_[1], _data.data() + readPos, sizeof(v.data_[1]));
-    readPos += sizeof(v.data_[1]);
+	std::memcpy(&v.data_[0], _data.data() + pos, sizeof(v.data_[0]));
+    pos += sizeof(v.data_[0]);
+	std::memcpy(&v.data_[1], _data.data() + pos, sizeof(v.data_[1]));
+    pos += sizeof(v.data_[1]);
 
 	v.data_[0] = s_ntoh(v.data_[0]);
 	v.data_[1] = s_ntoh(v.data_[1]);
@@ -159,8 +165,8 @@ inline bool ByteStream::operator >> <Suqua::UUID>(Suqua::UUID& v) {
 
 template<typename T>
 inline bool ByteStream::peek(T& t) const {
-	if (readPos + sizeof(t) <= _data.size()) {
-		std::memcpy(&t, _data.data() + readPos, sizeof(t));
+	if (pos + sizeof(t) <= _data.size()) {
+		std::memcpy(&t, _data.data() + pos, sizeof(t));
 		t = s_ntoh(t);
 		return true;
 	}
@@ -171,13 +177,13 @@ inline bool ByteStream::peek(T& t) const {
 
 template<>
 inline bool ByteStream::peek<std::string>(std::string& s) const {
-	if (readPos + sizeof(size_t) <= _data.size()) {
+	if (pos + sizeof(size_t) <= _data.size()) {
 		size_t size;
-		std::memcpy(&size, _data.data() + readPos, sizeof(size_t));
+		std::memcpy(&size, _data.data() + pos, sizeof(size_t));
 		size = s_ntoh(size);
-		if (readPos + sizeof(size_t) + size <= _data.size()) {
+		if (pos + sizeof(size_t) + size <= _data.size()) {
 			s.resize(size);
-			std::memcpy(s.data(), _data.data() + readPos, size);
+			std::memcpy(s.data(), _data.data() + pos, size);
 			return true;
 		}
 		else {

@@ -34,7 +34,7 @@ void PHServerSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId so
     }
 
     // send to clients
-    data.setReadPos(0);
+    data.setPos(0);
     for(PeerId& peerId : game.host.getConnectedPeers()) {
         if(peerId != sourcePeer) game.host.bufferDataToChannel(peerId, 0, data);
     }

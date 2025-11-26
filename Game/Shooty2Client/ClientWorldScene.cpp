@@ -11,6 +11,7 @@
 #include "PHClientSpawnEntities.h"
 #include "PHClientDeadEntities.h"
 #include "PHClientTeleport.h"
+#include "PHClientDamage.h"
 
 #include "EntityBaseComponent.h"
 #include "HealthComponent.h"
@@ -54,6 +55,7 @@ void ClientWorldScene::load(Game& game)
     game.loadPacketHandler<PHClientState>(Packet::StateId, this);
     game.loadPacketHandler<PHClientDeadEntities>(Packet::DeadEntities);
     game.loadPacketHandler<PHClientTeleport>(Shooty2Packet::TeleportPlayer, myPlayerId);
+    game.loadPacketHandler<PHClientDamage>(Shooty2Packet::Damage);
 
 	/* ------------------ SET UP RENDERING ------------------- */
 	// down scale buffer

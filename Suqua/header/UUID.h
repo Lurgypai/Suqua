@@ -4,6 +4,7 @@
 #include <functional>
 #include <iostream>
 #include <ostream>
+#include <string>
 
 namespace Suqua {
 class UUID;
@@ -19,6 +20,7 @@ public:
 
     bool operator==(const UUID& other) const = default;
     bool operator!=(const UUID& other) const = default;
+    std::string str() const;
 private:
     std::array<std::uint64_t, 2> data_;
 

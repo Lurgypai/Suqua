@@ -20,12 +20,6 @@ void HealthComponent::setHealth(std::int32_t health_) {
 
 void HealthComponent::damage(std::int32_t amount) {
 	if (amount >= health) {
-
-        /* DEBUG */
-        static int DEBUG_DEATH_COUNT{0};
-        std::println("Death count: {}", ++DEBUG_DEATH_COUNT);
-        /* END DEBUG */
-
 		health = 0;
         auto base = EntitySystem::GetComp<EntityBaseComponent>(id);
         base->isActive = false;

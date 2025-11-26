@@ -10,6 +10,7 @@
 #include "ComponentMacros.h"
 #include "ByteStream.h"
 #include "UUID.h"
+#include "DebugFIO.h"
 
 // change to send only deltas
 // track local delta, only 
@@ -98,6 +99,8 @@ public:
 
     const Suqua::UUID& getUUID() const;
     Owner owner;
+
+    void storePrev();
     
 private:
 	using DataMap = std::unordered_map<DataId, Data>;
@@ -107,18 +110,17 @@ private:
 	DataMap dataMap;
     // last state sent to server
     PrevDataMap prevDataMap;
-    // last state received from server
-    PrevDataMap serverDataMap;
 
     // store the current state in the target map
-    void storePrev(PrevDataMap& map);
-
     Suqua::UUID uuid;
     static std::unordered_map<Suqua::UUID, EntityId> idMap;
 
-    // helper function for writing
     template<IsDataValueType T>
-    inline void writeDelta(const DataMap::value_type& pair, ByteStream& stream);
+    inline void hasChanged(const DataMap::value_type& pair, ByteStream& stream);
+
+    // helper function for writing, returns true if written
+    template<IsDataValueType T>
+    inline bool writeDelta(const DataMap::value_type& pair, ByteStream& stream);
 
     // helper function for reading
     template<IsDataValueType T>
@@ -134,7 +136,6 @@ template<IsDataValueType T>
 inline void NetworkDataComponent::set(DataId id, T& t) {
     dataMap.emplace(id, Data{t, NetworkDataComponent::Data::getDataType<T>()});
     prevDataMap.emplace(id, t);
-    serverDataMap.emplace(id, t);
 }
 
 template<IsDataValueType T>
@@ -168,28 +169,46 @@ constexpr inline NetworkDataComponent::Data::DataType NetworkDataComponent::Data
 }
 
 template<IsDataValueType T>
-inline void NetworkDataComponent::writeDelta(const DataMap::value_type& pair, ByteStream& stream) {
-    const auto& localVal = *(std::get<T*>(pair.second.value));
-    auto& prevVal = std::get<T>(prevDataMap.at(pair.first));
-    auto delta = localVal - prevVal;
+inline bool NetworkDataComponent::writeDelta(const DataMap::value_type& pair, ByteStream& stream) {
+    const T& localVal = *(std::get<T*>(pair.second.value));
+    T& prevVal = std::get<T>(prevDataMap.at(pair.first));
+    T delta = localVal - prevVal;
 
     // right now send all
-    // if (delta == 0) return;
+    if (delta == 0) return false;
     stream << pair.first;
+    stream << pair.second.type;
     stream << delta;
 
     prevVal = localVal;
+    return true;
 }
 
 template<IsDataValueType T>
 inline void NetworkDataComponent::readDelta(const DataMap::value_type& pair, ByteStream& stream) {
     T serverDelta;
     stream >> serverDelta;
-    auto& localVal = *(std::get<T*>(pair.second.value));
-    auto& prevVal = std::get<T>(serverDataMap.at(pair.first));
-    auto localDelta = localVal - prevVal;
-    auto trueDelta = serverDelta - localDelta;
+    T& localVal = *(std::get<T*>(pair.second.value));
+    T& prevVal = std::get<T>(prevDataMap.at(pair.first));
+    localVal += serverDelta;
+    // store to prevent being sent
+    prevVal = localVal;
+
+    // DebugFIO::TimeOut("debug.log") << std::format("localVal {}\n", localVal);
+    // DebugFIO::TimeOut("debug.log") << std::format("serverDelta {}\n", serverDelta);
+    // DebugFIO::TimeOut("debug.log") << std::format("localVal, updated {}\n", localVal);
+    /*
+    T localDelta = localVal - prevVal;
+
+    T trueDelta = serverDelta - localDelta;
     
+    DebugFIO::TimeOut("debug.log") << std::format("localDelta {}\n", localDelta);
+    DebugFIO::TimeOut("debug.log") << std::format("localVal {}\n", localVal);
+
     localVal += trueDelta;
     prevVal = localVal;
+
+    DebugFIO::TimeOut("debug.log") << std::format("trueDelta {}\n", trueDelta);
+    DebugFIO::TimeOut("debug.log") << std::format("prevVal {}\n", prevVal);
+    */
 }

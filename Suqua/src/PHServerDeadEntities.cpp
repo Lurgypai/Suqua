@@ -26,7 +26,7 @@ void PHServerDeadEntities::handlePacket(Game& game, ByteStream& data, PeerId sou
         game.networkEntityOwnershipSystem.removeEntity(uuid);
     }
 
-    data.setReadPos(0);
+    data.setPos(0);
     for(const auto peer : game.host.getConnectedPeers()) {
         if(peer != sourcePeer) game.host.bufferDataToChannel(peer, 0, data);
     }
