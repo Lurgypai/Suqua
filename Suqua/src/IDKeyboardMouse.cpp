@@ -23,18 +23,18 @@ void IDKeyboardMouse::update() {
 
 	const Uint8* state = SDL_GetKeyboardState(NULL);
 
-	controller.set(ControllerBits::UP, state[SDL_SCANCODE_W]);
-	controller.set(ControllerBits::DOWN, state[SDL_SCANCODE_S]);
-	controller.set(ControllerBits::LEFT, state[SDL_SCANCODE_A]);
-	controller.set(ControllerBits::RIGHT, state[SDL_SCANCODE_D]);
+	controller.set(ControllerBits::UP, state[SDL_SCANCODE_E]);
+	controller.set(ControllerBits::DOWN, state[SDL_SCANCODE_D]);
+	controller.set(ControllerBits::LEFT, state[SDL_SCANCODE_S]);
+	controller.set(ControllerBits::RIGHT, state[SDL_SCANCODE_F]);
 	controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_H]);
 	controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_J]);
 	controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_K]);
 	controller.set(ControllerBits::BUTTON_4, state[SDL_SCANCODE_L]);
 
 	controller.set(ControllerBits::BUTTON_5, state[SDL_SCANCODE_SPACE]);
-	controller.set(ControllerBits::BUTTON_6, state[SDL_SCANCODE_LSHIFT]);
-	controller.set(ControllerBits::BUTTON_7, state[SDL_SCANCODE_LCTRL]);
+	controller.set(ControllerBits::BUTTON_6, state[SDL_SCANCODE_A]);
+	controller.set(ControllerBits::BUTTON_7, state[SDL_SCANCODE_Z]);
 
 	controller.stick1 = {};
 	if (controller[ControllerBits::LEFT]) controller.stick1.x -= 1;

@@ -25,6 +25,7 @@
 #include "BasicDamageCalculator.h"
 #include "CHKill.h"
 #include "NetworkDataComponentDataFields.h"
+#include "InventoryComponent.h"
 
 using TeamId = TeamComponent::TeamId;
 using Owner =  NetworkDataComponent::Owner;
@@ -72,7 +73,7 @@ static void MakeLivingEntity(
 		TeamId team,
         Vec2f hurtboxOffset,
         Vec2f hurtboxRes,
-        std::int32_t health ) {
+        std::int32_t health) {
     MakePhysicsEntity(id, uuid, owner, pos, colliderRes);
 
 	EntitySystem::MakeComps<TeamComponent>(1, &id, team);
@@ -88,6 +89,7 @@ static void MakeLivingEntity(
 
 	EntitySystem::MakeComps<AimToLStickComponent>(1, &id);
 	EntitySystem::MakeComps<TopDownMoverComponent>(1, &id, moveSpeed);
+    EntitySystem::MakeComps<InventoryComponent>(1, &id);
 
     auto healthComp = EntitySystem::GetComp<HealthComponent>(id);
 

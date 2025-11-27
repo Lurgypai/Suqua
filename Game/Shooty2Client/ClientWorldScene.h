@@ -2,6 +2,7 @@
 #include "World.h"
 #include "Scene.h"
 #include "PhysicsSystem.h"
+#include "../Shooty2Core/ItemSystem.h"
 #include "../Shooty2Core/CombatSystem.h"
 
 class ClientWorldScene : public Scene {
@@ -27,6 +28,7 @@ private:
 	InputDeviceId gunInput;
 	PhysicsSystem physics;
 	CombatSystem combat;
+	ItemSystem items;
 
 	Framebuffer screenBuffer;
 };

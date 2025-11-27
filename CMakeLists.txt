@@ -9,6 +9,10 @@ project ("Suqua")
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(MSVC)
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 # Include sub-projects.
 add_subdirectory ("Suqua")
 add_subdirectory ("enet-master")
@@ -23,8 +27,3 @@ add_subdirectory("Game/Shooty2Core")
 add_subdirectory("Game/Shooty2Server")
 
 add_subdirectory("Test")
-
-if (MSVC)
-    set_target_properties("Suqua" "Shooty2Core" "Shooty2Client" "Shooty2Server" PROPERTIES LINK_FLAGS "/PROFILE")
-    set_target_properties("Suqua" "Shooty2Core" "Shooty2Client" "Shooty2Server" PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()

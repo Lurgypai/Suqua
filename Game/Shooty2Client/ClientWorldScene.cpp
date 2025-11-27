@@ -1,3 +1,5 @@
+#include <print>
+
 #include "DebugIO.h"
 #include "Game.h"
 #include "Packet.h"
@@ -38,6 +40,7 @@
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/AIGunnerComponent.h"
 #include "../Shooty2Core/PlayerSpawnComponent.h"
+#include "../Shooty2Core/InventoryComponent.h"
 
 #include "../Shooty2Core/CommandRespawn.h"
 
@@ -113,6 +116,25 @@ void ClientWorldScene::load(Game& game)
     auto playerNdc = EntitySystem::GetComp<NetworkDataComponent>(myPlayerId);
     playerPacket << playerNdc->getUUID();
     game.host.bufferAllDataByChannel(0, playerPacket);
+
+	/* ------------------------ OTHER DEBUG ------------------------ */
+	// load test items
+	auto testItem0 = []() { std::println("testItem0"); };
+	auto testItem1 = []() { std::println("testItem1"); };
+	auto testItem2 = []() { std::println("testItem2"); };
+	auto testItem3 = []() { std::println("testItem3"); };
+
+	items.registerItem(Item{ "Test Item 0", "testItem0", testItem0 });
+	items.registerItem(Item{ "Test Item 1", "testItem1", testItem1 });
+	items.registerItem(Item{ "Test Item 2", "testItem2", testItem2 });
+	items.registerItem(Item{ "Test Item 3", "testItem3", testItem3 });
+
+	// add test items to inventory
+	auto* plrInventoryComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
+	plrInventoryComp->setActionItem(0, "testItem0");
+	plrInventoryComp->setActionItem(1, "testItem1");
+	plrInventoryComp->setActionItem(2, "testItem2");
+	plrInventoryComp->setActionItem(3, "testItem3");
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -125,6 +147,7 @@ void ClientWorldScene::physicsStep(Game& game)
 	Updater::UpdateOwned<LifeTimeComponent>();
 	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();
+	Updater::UpdateOwned<InventoryComponent>(items);
 
     // combat is done entirely client side
 	Updater::UpdateAll<HurtboxComponent>(); // Hurtboxes need to be moved to where the ndc says they are

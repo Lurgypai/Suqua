@@ -86,6 +86,7 @@ static EntityId SpawnPlayer(
             { -1, -11 },
             { 8, 13 },
             100);
+    /*
 	EntitySystem::MakeComps<GunFireComponent>(1, &playerId,
             Vec2f{3.f, -5.f},
             13.f,
@@ -96,6 +97,7 @@ static EntityId SpawnPlayer(
             1,
             0.2f,
             55.f);
+            */
 
     EntitySystem::MakeComps<PlayerSpawnComponent>(1, &playerId);
 	return playerId;
