@@ -200,6 +200,12 @@ void Game::broadcastOwnedStates() {
     host.bufferAllDataByChannel(0, state);
 }
 
+void Game::broadcastDeadEntities() {
+    for(auto& scene : scenes) {
+        scene->broadcastDeadEntities(*this);
+    }
+};
+
 void Game::serverStep() {
 	if (flags & Flag::input) {
 		tickInputDevices();
@@ -211,8 +217,8 @@ void Game::serverStep() {
     }
 
     broadcastOwnedStates();
-
 	host.handlePackets(*this);
+    broadcastDeadEntities();
 	host.sendBuffered();
 }
 
@@ -251,9 +257,14 @@ void Game::clientStep() {
 	}
 
 	if (flags & Flag::client) {
+        // broadcast our deltas first. this updates the "previous" values used to track deltas
         broadcastOwnedStates();
-
+        // handle incoming packets.
+        // This also updates the previous values to prevent new deltas from being stored
 		host.handlePackets(*this);
+        // Now that we've applied possible death from the server, broadcast anything that has died
+        broadcastDeadEntities();
+        // send the buffered (including death) packets
 		host.sendBuffered();
 	}
 }

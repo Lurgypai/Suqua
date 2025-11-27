@@ -66,8 +66,6 @@ void ServerWorldScene::physicsStep(Game& game) {
 
     director.update(*this, game.PHYSICS_STEP,
             game.networkEntityOwnershipSystem, game.host);
-
-    broadcastDeadEntities(game);
 }
 
 void ServerWorldScene::renderUpdateStep(Game& game)

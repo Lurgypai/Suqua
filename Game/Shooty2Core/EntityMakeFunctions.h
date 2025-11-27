@@ -118,8 +118,6 @@ static void MakeHitboxEntity(
 
 	auto damageComp = EntitySystem::GetComp<DamageComponent>(id);
 	damageComp->setDamageCalculator<BasicDamageCalculator>(damage);
-
-
 }
 
 static void MakeBullet(

@@ -59,13 +59,13 @@ public:
 
 	void addEntityInputs(const EntityInputSet& inputs);
 	void removeEntityInputs(EntityId id);
+    void broadcastDeadEntities(Game& game);
 protected:
 
 	SceneId id;
 	CamId camId;
 
 	void removeEntities(const std::vector<EntityId>& entities);
-    void broadcastDeadEntities(Game& game);
 private:
 	void applyInputs(Game& game);
 

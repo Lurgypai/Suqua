@@ -169,8 +169,6 @@ void ClientWorldScene::physicsStep(Game& game)
         newLevel->activate();
         activeLevel = newLevel->getLevelId();
     }
-
-    broadcastDeadEntities(game);
 }
 
 void ClientWorldScene::renderUpdateStep(Game& game)

@@ -109,6 +109,7 @@ private:
     Tick stateBroadcastDelay;
     Tick stateBroadcastDelayCtr;
     void broadcastOwnedStates();
+    void broadcastDeadEntities();
 };
 
 template<typename S, typename ... Args>
