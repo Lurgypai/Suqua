@@ -1,11 +1,12 @@
 #include "Item.h"
 
-Item::Item(const std::string& displayName_, const std::string& tag_, const UseCallback& useCallback_) :
+Item::Item(const std::string& displayName_, const std::string& tag_) :
 	displayName{displayName_},
 	tag{tag_},
-	useCallback{useCallback_}
+	ability{nullptr}
 {}
 
-void Item::onUse() const {
-	if (useCallback) useCallback();
+std::unique_ptr<ItemAbility> Item::getAbility() const {
+	if (ability == nullptr) return nullptr;
+	return ability->clone();
 }

@@ -12,7 +12,6 @@
 #include "EntityMakeFunctions.h"
 #include "Scene.h"
 #include "LifeTimeComponent.h"
-#include "GunFireComponent.h"
 #include "PlayerSpawnComponent.h"
 #include "AIGunnerComponent.h"
 
@@ -112,6 +111,7 @@ static EntityId SpawnEnemy(
 	EntityId enemyId = entities[0];
 	MakeLivingEntity(enemyId, uuid, owner, pos, { 6, 4 }, 50.0f, TeamId::enemy, { -1, -11 }, { 8, 13 }, 100);
 
+    /*
 	EntitySystem::MakeComps<GunFireComponent>(1, &enemyId,
             Vec2f{},
             0.f,
@@ -122,6 +122,7 @@ static EntityId SpawnEnemy(
             5,
             0.2f,
             30.f);
+            */
 
     EntitySystem::MakeComps<AIGunnerComponent>(1, &enemyId,
             300.f,

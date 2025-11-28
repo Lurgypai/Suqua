@@ -14,10 +14,11 @@ class InventoryComponent {
 public:
     InventoryComponent(EntityId id_);
 
-	void update(const ItemSystem& itemSystem);
+	void update(Scene& scene, float delta);
 
-	void setActionItem(int slot, const std::string& tag);
+	void setActionItem(int slot, const Item& item);
 private:
+	static constexpr int SLOT_COUNT = 2;
 	std::vector<InventoryItem> actionItems;
 	std::vector<InventoryItem> storageItems;
 };

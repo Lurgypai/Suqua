@@ -6,37 +6,37 @@ InventoryComponent::InventoryComponent(EntityId id_) :
 	actionItems{},
 	storageItems{}
 {
-	actionItems.resize(4);
+	actionItems.resize(SLOT_COUNT);
 }
 
-void InventoryComponent::update(const ItemSystem& itemSystem) {
-	/* 11 = mouse 1
-	* 12 = mouse 2
-	* 6 = A
-	* 5 = Space
-	*/
-
+void InventoryComponent::update(Scene& scene, float delta) {
+	// use items
 	auto* contComp = EntitySystem::GetComp<ControllerComponent>(id);
 	if (contComp == nullptr) return;
 
 	const auto& controller = contComp->getController();
+	int targetItem = -1;
 	if (controller[ControllerBits::BUTTON_11]) {
-		if(!actionItems[0].tag.empty()) itemSystem.useItem(actionItems[0].tag);
+		targetItem = 0;
 	}
 	else if (controller[ControllerBits::BUTTON_12]) {
-		if(!actionItems[1].tag.empty()) itemSystem.useItem(actionItems[1].tag);
+		targetItem = 1;
 	}
-	else if (controller[ControllerBits::BUTTON_6]) {
-		if(!actionItems[2].tag.empty()) itemSystem.useItem(actionItems[2].tag);
-	}
-	else if (controller[ControllerBits::BUTTON_5]) {
-		if(!actionItems[3].tag.empty()) itemSystem.useItem(actionItems[3].tag);
+
+	if (targetItem < 0) return;
+	if (actionItems[targetItem].ability == nullptr) return;
+
+	actionItems[targetItem].ability->doAbility(scene, id, controller.stick1, controller.stick2, actionItems[targetItem]);
+
+	// update items
+	for (auto& item : actionItems) {
+		if (item.ability != nullptr) item.ability->update(delta);
 	}
 }
 
-void InventoryComponent::setActionItem(int slot, const std::string& tag) {
+void InventoryComponent::setActionItem(int slot, const Item& item) {
 	// maybe crash?
-	if (slot < 0 && slot > 3) return;
+	if (slot < 0 && slot > SLOT_COUNT - 1) return;
 
-	actionItems[slot] = InventoryItem{ tag, 1 };
+	actionItems[slot] = InventoryItem{ item.tag, 1, item.getAbility()};
 }

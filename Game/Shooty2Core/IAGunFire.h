@@ -1,12 +1,9 @@
 #pragma once
-#include "ComponentMacros.h"
-#include "Scene.h"
+#include "ItemAbility.h"
 
-class GunFireComponent {
-    CompMembers(GunFireComponent);
+class IAGunFire : public ItemAbility {
 public:
-	GunFireComponent(EntityId id_,
-            const Vec2f& baseOffset_,
+	IAGunFire(const Vec2f& baseOffset_,
             float offset_,
             const std::string& bulletTag_,
             int chamberSize_,
@@ -16,9 +13,9 @@ public:
             float bulletSpread_ = 0.f,
             float velVariance_ = 0.f);
 
-	void fire(Scene& currScene);
-	void update(Scene& currScene, float delta);
-	Vec2f getFiringPos();
+    virtual void doAbility(Scene& scene, EntityId sourceEntity, Vec2f stick1, Vec2f stick2, InventoryItem& sourceInvItem);
+    virtual void update(float delta) override;
+    virtual std::unique_ptr<ItemAbility> clone() const override;
 
     Vec2f baseOffset;
 	float offset;
@@ -37,6 +34,8 @@ public:
     // variance in velocity in each shot
     float velVariance;
 private:
+	Vec2f getFiringPos(EntityId id);
+
     enum class FireState : unsigned char {
         ready, //ready to fire
         refreshing, //between regular shots
