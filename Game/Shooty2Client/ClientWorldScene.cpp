@@ -286,3 +286,12 @@ void ClientWorldScene::onConnect(Game& game, PeerId connectingId)
 void ClientWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer)
 {
 }
+
+// next steps
+// make action slots rebindable
+// add basic "dash" item
+// add item command
+// setup left and right hand item offsets
+// add daemon
+//		add entity that follows player
+//		add "stand here" command  

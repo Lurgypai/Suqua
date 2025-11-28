@@ -3,6 +3,8 @@
 
 InventoryComponent::InventoryComponent(EntityId id_) :
 	id{ id_ },
+	lHandFlag{ControllerBits::BUTTON_11},
+	rHandFlag{ControllerBits::BUTTON_12},
 	actionItems{},
 	storageItems{}
 {
@@ -16,10 +18,10 @@ void InventoryComponent::update(Scene& scene, float delta) {
 
 	const auto& controller = contComp->getController();
 	int targetItem = -1;
-	if (controller[ControllerBits::BUTTON_11]) {
+	if (controller[lHandFlag]) {
 		targetItem = 0;
 	}
-	else if (controller[ControllerBits::BUTTON_12]) {
+	else if (controller[rHandFlag]) {
 		targetItem = 1;
 	}
 
