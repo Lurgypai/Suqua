@@ -5,11 +5,8 @@
 #include <string>
 
 #include "ItemSystem.h"
+#include "InventoryItem.h"
 
-struct InventoryItem {
-	std::string tag;
-	int count;
-};
 
 class InventoryComponent {
 	CompMembers(InventoryComponent);
