@@ -12,6 +12,11 @@ InventoryComponent::InventoryComponent(EntityId id_) :
 }
 
 void InventoryComponent::update(Scene& scene, float delta) {
+	// update items
+	for (auto& item : actionItems) {
+		if (item.ability != nullptr) item.ability->update(delta);
+	}
+
 	// use items
 	auto* contComp = EntitySystem::GetComp<ControllerComponent>(id);
 	if (contComp == nullptr) return;
@@ -28,12 +33,7 @@ void InventoryComponent::update(Scene& scene, float delta) {
 	if (targetItem < 0) return;
 	if (actionItems[targetItem].ability == nullptr) return;
 
-	actionItems[targetItem].ability->doAbility(scene, id, controller.stick1, controller.stick2, actionItems[targetItem]);
-
-	// update items
-	for (auto& item : actionItems) {
-		if (item.ability != nullptr) item.ability->update(delta);
-	}
+	actionItems[targetItem].ability->doAbility(scene, id, controller, actionItems[targetItem]);
 }
 
 void InventoryComponent::setActionItem(int slot, const Item& item) {

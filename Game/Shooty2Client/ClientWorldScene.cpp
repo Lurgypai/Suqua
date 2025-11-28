@@ -45,6 +45,7 @@
 
 // debug
 #include "../Shooty2Core/IAGunFire.h"
+#include "../Shooty2Core/IABasicDash.h"
 
 ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{ id_, flags_ },
@@ -131,10 +132,12 @@ void ClientWorldScene::load(Game& game)
 			1,
 			0.2f,
 			55.f } });
+	items.registerItem(Item{ "Dash Skill", "basicDash", IABasicDash{} });
 
 	// add test items to inventory
 	auto* plrInventoryComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
 	plrInventoryComp->setActionItem(0, items.getItem("testItem0"));
+	plrInventoryComp->setActionItem(1, items.getItem("basicDash"));
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -288,7 +291,7 @@ void ClientWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer)
 }
 
 // next steps
-// make action slots rebindable
+// make action slots rebindable DONE
 // add basic "dash" item
 // add item command
 // setup left and right hand item offsets

@@ -6,11 +6,12 @@
 
 TopDownMoverComponent::TopDownMoverComponent(EntityId id_, float moveSpeed_) :
 	id{ id_ },
-	moveSpeed{moveSpeed_}
-{
-}
+	moveSpeed{moveSpeed_},
+	paused{false}
+{}
 
 void TopDownMoverComponent::update() {
+	if (paused) return;
 	auto* contComp = EntitySystem::GetComp<ControllerComponent>(id);
 	auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 	if (contComp && physicsComp) {

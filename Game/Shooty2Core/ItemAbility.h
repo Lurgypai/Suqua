@@ -2,6 +2,7 @@
 #include "EntitySystem.h"
 #include "InventoryItem.h"
 #include "Scene.h"
+#include "Controller.h"
 
 class InventoryItem;
 
@@ -9,7 +10,7 @@ class InventoryItem;
 class ItemAbility {
 public:
     virtual void update(float delta) = 0;
-    virtual void doAbility(Scene& scene, EntityId sourceEntity, Vec2f stick1, Vec2f stick2, InventoryItem& sourceInvItem) = 0;
+    virtual void doAbility(Scene& scene, EntityId sourceEntity, const Controller& controller, InventoryItem& sourceInvItem) = 0;
     virtual std::unique_ptr<ItemAbility> clone() const = 0;
 private:
 };

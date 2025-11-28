@@ -13,7 +13,7 @@ public:
             float bulletSpread_ = 0.f,
             float velVariance_ = 0.f);
 
-    virtual void doAbility(Scene& scene, EntityId sourceEntity, Vec2f stick1, Vec2f stick2, InventoryItem& sourceInvItem);
+    virtual void doAbility(Scene& scene, EntityId sourceEntity, const Controller& controller, InventoryItem& sourceInvItem) override;
     virtual void update(float delta) override;
     virtual std::unique_ptr<ItemAbility> clone() const override;
 

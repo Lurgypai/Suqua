@@ -32,7 +32,7 @@ IAGunFire::IAGunFire(const Vec2f& baseOffset_,
     curShot{ 0 }
 {}
 
-void IAGunFire::doAbility(Scene& scene, EntityId sourceEntity, Vec2f stick1, Vec2f stick2, InventoryItem& sourceInvItem)
+void IAGunFire::doAbility(Scene& scene, EntityId sourceEntity, const Controller& controller, InventoryItem& sourceInvItem)
 {
     if (state != FireState::ready) return;
 
@@ -43,7 +43,7 @@ void IAGunFire::doAbility(Scene& scene, EntityId sourceEntity, Vec2f stick1, Vec
                 firingPos, NetworkDataComponent::Owner::local_shared);
 
 
-        float baseAngle = stick2.angle();
+        float baseAngle = controller.stick2.angle();
         if(bulletSpread != 0.f) {
             float angleMod = randFloat(-bulletSpread / 2.f, bulletSpread / 2.f);
             baseAngle += angleMod;

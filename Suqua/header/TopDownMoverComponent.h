@@ -9,6 +9,7 @@ public:
 	void update();
 	float getMoveSpeed();
 	void setMoveSpeed(float moveSpeed);
+	bool paused;
 private:
 	float moveSpeed;
 };
