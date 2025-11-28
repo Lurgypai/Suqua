@@ -12,11 +12,20 @@ class InventoryComponent {
 	CompMembers(InventoryComponent);
 
 public:
-    InventoryComponent(EntityId id_);
+    InventoryComponent(EntityId id_, Vec2f bodyOffset_, float handOffset_);
 
 	void update(Scene& scene, float delta);
 
 	void setActionItem(int slot, const Item& item);
+
+	Vec2f getBodyPos() const;
+	Vec2f getHandPos(int index);
+	float getHandAngle(int index);
+
+	// offset to center of arms from entity pos
+	Vec2f bodyOffset;
+	// offset from body pos to hands
+	float handOffset;
 
 	ControllerBits lHandFlag;
 	ControllerBits rHandFlag;

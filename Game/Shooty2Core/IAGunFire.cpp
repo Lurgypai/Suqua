@@ -9,8 +9,7 @@
 #include "EntitySpawnSystem.h"
 #include "RandomUtil.h"
 
-IAGunFire::IAGunFire(const Vec2f& baseOffset_,
-        float offset_,
+IAGunFire::IAGunFire(float offset_,
         const std::string& bulletTag_,
         int chamberSize_,
         float fireDelay_,
@@ -18,7 +17,6 @@ IAGunFire::IAGunFire(const Vec2f& baseOffset_,
         int bulletCount_,
         float bulletSpread_,
         float velVariance_) :
-    baseOffset{ baseOffset_},
 	offset{ offset_  },
     bulletTag{ bulletTag_ },
     chamberSize{ chamberSize_ },
@@ -37,7 +35,7 @@ void IAGunFire::doAbility(Scene& scene, EntityId sourceEntity, const Controller&
     if (state != FireState::ready) return;
 
     // do firing process
-	auto firingPos = getFiringPos(sourceEntity);
+	auto firingPos = getFiringPos(sourceInvItem.heldPos, sourceInvItem.angle);
     for(int i = 0; i != bulletCount; ++i) {
         auto bulletId = EntitySpawnSystem::SpawnEntity(bulletTag, scene,
                 firingPos, NetworkDataComponent::Owner::local_shared);
@@ -98,11 +96,9 @@ std::unique_ptr<ItemAbility> IAGunFire::clone() const {
     return std::make_unique<IAGunFire>(*this);
 }
 
-Vec2f IAGunFire::getFiringPos(EntityId id) {
-	auto directionComp = EntitySystem::GetComp<DirectionComponent>(id);
-	Vec2f directionVector{ 1.0, 0.0 };
-	directionVector.angle(directionComp->getDir());
-	auto posComp = EntitySystem::GetComp<PositionComponent>(id);
-	auto firingPos = posComp->pos + baseOffset + (directionVector * offset);
+Vec2f IAGunFire::getFiringPos(Vec2f basePos, float angle) {
+	Vec2f directionVector{ offset, 0.0 };
+    directionVector.angle(angle);
+    auto firingPos = basePos + directionVector;
 	return firingPos;
 }

@@ -73,6 +73,8 @@ static void MakeLivingEntity(
 		TeamId team,
         Vec2f hurtboxOffset,
         Vec2f hurtboxRes,
+        Vec2f bodyOffset,
+        float armLength,
         std::int32_t health) {
     MakePhysicsEntity(id, uuid, owner, pos, colliderRes);
 
@@ -89,7 +91,7 @@ static void MakeLivingEntity(
 
 	EntitySystem::MakeComps<AimToLStickComponent>(1, &id);
 	EntitySystem::MakeComps<TopDownMoverComponent>(1, &id, moveSpeed);
-    EntitySystem::MakeComps<InventoryComponent>(1, &id);
+    EntitySystem::MakeComps<InventoryComponent>(1, &id, bodyOffset, armLength);
 
     auto healthComp = EntitySystem::GetComp<HealthComponent>(id);
 

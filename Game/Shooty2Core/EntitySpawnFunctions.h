@@ -84,7 +84,9 @@ static EntityId SpawnPlayer(
             TeamId::player,
             { -1, -11 },
             { 8, 13 },
-            100);
+			{0.f, -10},
+			4.f,
+			100);
     /*
 	EntitySystem::MakeComps<GunFireComponent>(1, &playerId,
             Vec2f{3.f, -5.f},
@@ -109,7 +111,7 @@ static EntityId SpawnEnemy(
         const UUID& uuid) {
 	auto entities = scene.addEntities(1);
 	EntityId enemyId = entities[0];
-	MakeLivingEntity(enemyId, uuid, owner, pos, { 6, 4 }, 50.0f, TeamId::enemy, { -1, -11 }, { 8, 13 }, 100);
+	MakeLivingEntity(enemyId, uuid, owner, pos, { 6, 4 }, 50.0f, TeamId::enemy, { -1, -11 }, { 8, 13 }, {0.f, -7}, 4.f, 100);
 
     /*
 	EntitySystem::MakeComps<GunFireComponent>(1, &enemyId,

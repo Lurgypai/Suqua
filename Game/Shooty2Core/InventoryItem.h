@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "ItemAbility.h"
+#include "Vec2.h"
 
 class ItemAbility;
 
@@ -18,4 +19,6 @@ public:
 	std::string tag;
 	int count;
 	std::unique_ptr<ItemAbility> ability;
+	Vec2f heldPos;
+	float angle;
 };

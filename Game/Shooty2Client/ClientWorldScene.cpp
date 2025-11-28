@@ -122,22 +122,20 @@ void ClientWorldScene::load(Game& game)
 
 	/* ------------------------ OTHER DEBUG ------------------------ */
 	// load test items
-	items.registerItem(Item{ "Test Item 0", "testItem0", IAGunFire{
-		    Vec2f{3.f, -5.f},
-			13.f,
+	items.registerItem(Item{ "Test Item 0", "testItem0", IAGunFire{13.f,
 			"bullet.player.basic",
-			0,
-			0.f,
-			0.f,
-			1,
+			3,
 			0.2f,
-			55.f } });
+			0.5f,
+			1,
+			0.1f,
+			0.f } });
 	items.registerItem(Item{ "Dash Skill", "basicDash", IABasicDash{} });
 
 	// add test items to inventory
 	auto* plrInventoryComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
 	plrInventoryComp->setActionItem(0, items.getItem("testItem0"));
-	plrInventoryComp->setActionItem(1, items.getItem("basicDash"));
+	plrInventoryComp->setActionItem(1, items.getItem("testItem0"));
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -273,6 +271,15 @@ void ClientWorldScene::renderStep(Game& game)
 		*/
 	
 	
+	// render inventory body pos
+	auto* plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
+	auto* plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
+	RectDrawable bodyPosRect{ Color{1, 0, 0, 1}, false, -1.0f, AABB{plrInvComp->getBodyPos() - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
+	bodyPosRect.draw();
+	RectDrawable lhandRect{ Color{0, 1, 0, 1}, false, -1.0f, AABB{plrInvComp->getHandPos(0) - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
+	lhandRect.draw();
+	RectDrawable rhandRect{ Color{0, 0, 1, 1}, false, -1.0f, AABB{plrInvComp->getHandPos(1) - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
+	rhandRect.draw();
 
 	Framebuffer::unbind();
 	GLRenderer::DrawOverScreen(screenBuffer.getTexture(0).id);
@@ -292,9 +299,10 @@ void ClientWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer)
 
 // next steps
 // make action slots rebindable DONE
-// add basic "dash" item
+// add basic "dash" item DONE
+// setup left and right hand item offsets DONE
+// setup item rendering
 // add item command
-// setup left and right hand item offsets
 // add daemon
 //		add entity that follows player
 //		add "stand here" command  

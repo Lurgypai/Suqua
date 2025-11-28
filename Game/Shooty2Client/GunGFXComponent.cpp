@@ -1,7 +1,9 @@
 #include "GunGFXComponent.h"
+#include "PositionComponent.h"
 #include "RenderComponent.h"
 #include "ControllerComponent.h"
 #include "Sprite.h"
+#include "../Shooty2Core/InventoryComponent.h"
 
 GunGFXComponent::GunGFXComponent(EntityId id_) :
 	id{id_},
@@ -16,14 +18,17 @@ GunGFXComponent::GunGFXComponent(EntityId id_) :
     
     Sprite& sprite = renderComp->getDrawable<Sprite>(sprIndex);
     sprite.setOrigin({ 1, 1.5});
-    sprite.offset = {2.0, -6};
 }
 
 void GunGFXComponent::update() {
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
 	Sprite& sprite = renderComp->getDrawable<Sprite>(sprIndex);
-    auto contComp = EntitySystem::GetComp<ControllerComponent>(id);
-    float dir = contComp->getController().stick2.angle();
+
+	auto* posComp = EntitySystem::GetComp<PositionComponent>(id);
+	auto* invComp = EntitySystem::GetComp<InventoryComponent>(id);
+	sprite.offset = invComp->getHandPos(0) - posComp->pos;
+
+    float dir = invComp->getHandAngle(0);
 	int dirDeg = dir * 180 / 3.14159;
 	if (dirDeg < -90 || dirDeg > 90) {
 		sprite.verticalFlip = true;

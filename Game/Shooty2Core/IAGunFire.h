@@ -3,8 +3,7 @@
 
 class IAGunFire : public ItemAbility {
 public:
-	IAGunFire(const Vec2f& baseOffset_,
-            float offset_,
+	IAGunFire(float offset_,
             const std::string& bulletTag_,
             int chamberSize_,
             float fireDelay_,
@@ -17,8 +16,9 @@ public:
     virtual void update(float delta) override;
     virtual std::unique_ptr<ItemAbility> clone() const override;
 
-    Vec2f baseOffset;
+    // length of barrel
 	float offset;
+    // tag of bullet to fire
     std::string bulletTag;
     // number of shots before reload is triggered
     int chamberSize;
@@ -34,7 +34,7 @@ public:
     // variance in velocity in each shot
     float velVariance;
 private:
-	Vec2f getFiringPos(EntityId id);
+	Vec2f getFiringPos(Vec2f basePos, float angle);
 
     enum class FireState : unsigned char {
         ready, //ready to fire

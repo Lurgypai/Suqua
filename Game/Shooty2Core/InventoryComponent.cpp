@@ -1,12 +1,15 @@
 #include "InventoryComponent.h"
 #include "ControllerComponent.h"
+#include "PhysicsComponent.h"
 
-InventoryComponent::InventoryComponent(EntityId id_) :
+InventoryComponent::InventoryComponent(EntityId id_, Vec2f bodyOffset_, float handOffset_) :
 	id{ id_ },
 	lHandFlag{ControllerBits::BUTTON_11},
 	rHandFlag{ControllerBits::BUTTON_12},
 	actionItems{},
-	storageItems{}
+	storageItems{},
+	bodyOffset{bodyOffset_},
+	handOffset{handOffset_}
 {
 	actionItems.resize(SLOT_COUNT);
 }
@@ -20,20 +23,34 @@ void InventoryComponent::update(Scene& scene, float delta) {
 	// use items
 	auto* contComp = EntitySystem::GetComp<ControllerComponent>(id);
 	if (contComp == nullptr) return;
-
 	const auto& controller = contComp->getController();
-	int targetItem = -1;
-	if (controller[lHandFlag]) {
-		targetItem = 0;
-	}
-	else if (controller[rHandFlag]) {
-		targetItem = 1;
+
+	auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
+	// get base body position
+	Vec2f basePos = getBodyPos();
+	// calculate offset to hands
+	Vec2f armOffset = Vec2f{ handOffset, 0.f };
+	armOffset.angle(controller.stick2.angle());
+
+	auto& leftItem = actionItems[0];
+	if (!leftItem.tag.empty()) {
+		leftItem.heldPos = basePos + armOffset;
+		leftItem.angle = armOffset.angle();
+
+		if (controller[lHandFlag] && leftItem.ability != nullptr) {
+			leftItem.ability->doAbility(scene, id, controller, leftItem);
+		}
 	}
 
-	if (targetItem < 0) return;
-	if (actionItems[targetItem].ability == nullptr) return;
+	auto& rightItem = actionItems[1];
+	if (!rightItem.tag.empty()) {
+		rightItem.heldPos = basePos - armOffset;
+		rightItem.angle = armOffset.angle();
 
-	actionItems[targetItem].ability->doAbility(scene, id, controller, actionItems[targetItem]);
+		if (controller[rHandFlag] && rightItem.ability != nullptr) {
+			rightItem.ability->doAbility(scene, id, controller, rightItem);
+		}
+	}
 }
 
 void InventoryComponent::setActionItem(int slot, const Item& item) {
@@ -42,3 +59,19 @@ void InventoryComponent::setActionItem(int slot, const Item& item) {
 
 	actionItems[slot] = InventoryItem{ item.tag, 1, item.getAbility()};
 }
+
+Vec2f InventoryComponent::getBodyPos() const {
+	auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
+	return physicsComp->position() + bodyOffset;
+}
+
+Vec2f InventoryComponent::getHandPos(int hand) {
+	if (hand < 0 || hand > SLOT_COUNT - 1) return Vec2f{};
+	return actionItems[hand].heldPos;
+}
+
+float InventoryComponent::getHandAngle(int hand) {
+	if (hand < 0 || hand > SLOT_COUNT - 1) return 0.f;
+	return actionItems[hand].angle;
+}
+
