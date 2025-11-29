@@ -32,6 +32,7 @@
 #include "RectDrawable.h"
 #include "RandomUtil.h"
 #include "TeleportZoneGFXComponent.h"
+#include "DaemonGFXComponent.h"
 
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
@@ -40,12 +41,14 @@
 #include "../Shooty2Core/AIGunnerComponent.h"
 #include "../Shooty2Core/PlayerSpawnComponent.h"
 #include "../Shooty2Core/InventoryComponent.h"
+#include "../Shooty2Core/DaemonComponent.h"
 
 #include "../Shooty2Core/CommandRespawn.h"
 
 // debug
 #include "../Shooty2Core/IAGunFire.h"
 #include "../Shooty2Core/IABasicDash.h"
+#include "PositionComponent.h"
 
 ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 	Scene{ id_, flags_ },
@@ -79,10 +82,12 @@ void ClientWorldScene::load(Game& game)
 	GLRenderer::LoadTexture("stranded/Hero/Hero/green_hero.png", "hero");
 	GLRenderer::LoadTexture("player/shadow.png", "shadow");
 	GLRenderer::LoadTexture("stranded/Enemies/Warrior/warrior.png", "enemy:warrior");
-	GLRenderer::LoadTexture("stranded/Hero/Hero/green_gun.png", "gun");
     GLRenderer::LoadTexture("player/bullet.png", "bullet.player");
 	GLRenderer::LoadTexture("stranded/Tileset/custom_top_down.png", "tileset");
     GLRenderer::LoadTexture("enemy/basic.png", "enemy:basic");
+
+	GLRenderer::LoadTexture("stranded/Hero/Hero/green_gun.png", "item:gun");
+	invItemGfx.registerGFX("item:gun", InventoryItemGFX::sprite, { 1.f, 2.f });
 
     //particles
     GLRenderer::GenParticleType("exit", 1, ComputeShader{ "particles/test.vert" });
@@ -122,7 +127,7 @@ void ClientWorldScene::load(Game& game)
 
 	/* ------------------------ OTHER DEBUG ------------------------ */
 	// load test items
-	items.registerItem(Item{ "Test Item 0", "testItem0", IAGunFire{13.f,
+	items.registerItem(Item{ "Test Gun", "item:gun", IAGunFire{13.f,
 			"bullet.player.basic",
 			3,
 			0.2f,
@@ -130,12 +135,31 @@ void ClientWorldScene::load(Game& game)
 			1,
 			0.1f,
 			0.f } });
-	items.registerItem(Item{ "Dash Skill", "basicDash", IABasicDash{} });
+	items.registerItem(Item{ "Dash Skill", "item:dash", IABasicDash{} });
 
 	// add test items to inventory
 	auto* plrInventoryComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
-	plrInventoryComp->setActionItem(0, items.getItem("testItem0"));
-	plrInventoryComp->setActionItem(1, items.getItem("testItem0"));
+	plrInventoryComp->setActionItem(0, items.getItem("item:gun"));
+	plrInventoryComp->setActionItem(1, items.getItem("item:dash"));
+	
+	// test daemon
+	EntityId daemonId = addEntities(1)[0];
+	std::println("DaemonId: {}", daemonId);
+	EntitySystem::MakeComps<ControllerComponent>(1, &daemonId);
+	EntitySystem::MakeComps<NetworkDataComponent>(1, &daemonId, Suqua::UUID::GenerateUUID(), NetworkDataComponent::Owner::local_only);
+	EntitySystem::MakeComps<PositionComponent>(1, &daemonId);
+	EntitySystem::MakeComps<DaemonComponent>(1, &daemonId, 0.1f, Vec2f{-15, -15});
+	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(daemonId);
+	daemonComp->hostEntity = myPlayerId;
+	EntitySystem::MakeComps<InventoryComponent>(1, &daemonId, Vec2f{0.f, 5.f}, 5.f);
+	auto* daemonInvComp = EntitySystem::GetComp<InventoryComponent>(daemonId);
+	daemonInvComp->setActionItem(0, items.getItem("item:gun"));
+	daemonInvComp->setActionItem(1, items.getItem("item:dash"), myPlayerId);
+	daemonInvComp->handFlags = { ControllerBits::BUTTON_6, ControllerBits::BUTTON_5 };
+	EntitySystem::MakeComps<RenderComponent>(1, &daemonId);
+	EntitySystem::MakeComps<GunGFXComponent>(1, &daemonId);
+	EntitySystem::MakeComps<DaemonGFXComponent>(1, &daemonId);
+	addEntityInputs({ {daemonId, playerInput} });
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -148,6 +172,7 @@ void ClientWorldScene::physicsStep(Game& game)
 	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();
 	Updater::UpdateOwned<InventoryComponent>(*this, game.PHYSICS_STEP);
+	Updater::UpdateOwned<DaemonComponent>();
 
     // combat is done entirely client side
 	Updater::UpdateAll<HurtboxComponent>(); // Hurtboxes need to be moved to where the ndc says they are
@@ -159,10 +184,11 @@ void ClientWorldScene::physicsStep(Game& game)
 
 	// update inputs for next frame
 	auto& playerInputDevice = static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput));
-	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
-	playerInputDevice.entityPos = plrPhysicsComp->center();
+	auto plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
+	playerInputDevice.entityPos = plrInvComp->getBodyPos();
 
     // load active level
+	auto* plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
     auto newLevel = world.getActiveLevel(plrPhysicsComp->position());
     if(newLevel != nullptr && newLevel->getLevelId() != activeLevel) {
         world.getLevel(activeLevel).deactivate();
@@ -174,11 +200,12 @@ void ClientWorldScene::physicsStep(Game& game)
 void ClientWorldScene::renderUpdateStep(Game& game)
 {
 	Updater::UpdateAll<CharacterGFXComponent>(game.PHYSICS_STEP * 1000);
-	Updater::UpdateAll<GunGFXComponent>();
+	Updater::UpdateAll<GunGFXComponent>(invItemGfx);
     Updater::UpdateAll<OnHitComponent>();
     Updater::UpdateAll<RespawnGFXComponent>();
     Updater::UpdateAll<AttackGFXComponent>();
     Updater::UpdateAll<TeleportZoneGFXComponent>(game.PHYSICS_STEP * 1000);
+	Updater::UpdateAll<DaemonGFXComponent>(game.PHYSICS_STEP);
 
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
     auto plrContComp = EntitySystem::GetComp<ControllerComponent>(myPlayerId);
@@ -274,12 +301,12 @@ void ClientWorldScene::renderStep(Game& game)
 	// render inventory body pos
 	auto* plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
 	auto* plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
-	RectDrawable bodyPosRect{ Color{1, 0, 0, 1}, false, -1.0f, AABB{plrInvComp->getBodyPos() - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
-	bodyPosRect.draw();
-	RectDrawable lhandRect{ Color{0, 1, 0, 1}, false, -1.0f, AABB{plrInvComp->getHandPos(0) - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
+	// RectDrawable bodyPosRect{ Color{1, 0, 0, 1}, false, -1.0f, AABB{plrInvComp->getBodyPos() - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
+	// bodyPosRect.draw();
+	RectDrawable lhandRect{ Color{0, 1, 0, 1}, false, -1.0f, AABB{plrInvComp->getHandPos(0), Vec2f{1.f, 1.f}}};
 	lhandRect.draw();
-	RectDrawable rhandRect{ Color{0, 0, 1, 1}, false, -1.0f, AABB{plrInvComp->getHandPos(1) - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
-	rhandRect.draw();
+	//RectDrawable rhandRect{ Color{0, 0, 1, 1}, false, -1.0f, AABB{plrInvComp->getHandPos(1) - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
+	// rhandRect.draw();
 
 	Framebuffer::unbind();
 	GLRenderer::DrawOverScreen(screenBuffer.getTexture(0).id);
@@ -301,8 +328,14 @@ void ClientWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer)
 // make action slots rebindable DONE
 // add basic "dash" item DONE
 // setup left and right hand item offsets DONE
-// setup item rendering
+// setup item rendering DONE
+// add daemon DONE
+//		add entity that follows player DONE
+//		add "stand here" command DONE
+// add daemon rendering DONE
+// add alternate hand position
+// add daemon switching sides
 // add item command
-// add daemon
-//		add entity that follows player
-//		add "stand here" command  
+// add hand rendering
+// move daemon to spawn interface
+// check daemon networking

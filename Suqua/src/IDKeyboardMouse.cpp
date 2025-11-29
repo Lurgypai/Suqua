@@ -35,6 +35,7 @@ void IDKeyboardMouse::update() {
 	controller.set(ControllerBits::BUTTON_5, state[SDL_SCANCODE_SPACE]);
 	controller.set(ControllerBits::BUTTON_6, state[SDL_SCANCODE_A]);
 	controller.set(ControllerBits::BUTTON_7, state[SDL_SCANCODE_Z]);
+	controller.set(ControllerBits::BUTTON_8, state[SDL_SCANCODE_BACKSPACE]);
 
 	controller.stick1 = {};
 	if (controller[ControllerBits::LEFT]) controller.stick1.x -= 1;

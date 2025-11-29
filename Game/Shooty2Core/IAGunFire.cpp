@@ -9,6 +9,8 @@
 #include "EntitySpawnSystem.h"
 #include "RandomUtil.h"
 
+#include <print>
+
 IAGunFire::IAGunFire(float offset_,
         const std::string& bulletTag_,
         int chamberSize_,

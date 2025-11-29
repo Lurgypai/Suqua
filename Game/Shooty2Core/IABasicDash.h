@@ -23,5 +23,4 @@ private:
 	DashState state;
 	Vec2f dashDir;
 	float dashSpeed;
-	EntityId activatingEntity;
 };

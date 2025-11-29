@@ -12,26 +12,29 @@ class InventoryComponent {
 	CompMembers(InventoryComponent);
 
 public:
+	// number of hands
+	static constexpr int SLOT_COUNT = 2;
+
     InventoryComponent(EntityId id_, Vec2f bodyOffset_, float handOffset_);
 
 	void update(Scene& scene, float delta);
 
 	void setActionItem(int slot, const Item& item);
+	void setActionItem(int slot, const Item& item, EntityId targetEntity);
 
 	Vec2f getBodyPos() const;
-	Vec2f getHandPos(int index);
-	float getHandAngle(int index);
+	Vec2f getHandPos(int index) const;
+	float getHandAngle(int index) const;
+	const std::string& getHandTag(int index) const;
+	bool handIsActive(int index) const;
 
 	// offset to center of arms from entity pos
 	Vec2f bodyOffset;
 	// offset from body pos to hands
 	float handOffset;
 
-	ControllerBits lHandFlag;
-	ControllerBits rHandFlag;
+	std::vector<ControllerBits> handFlags;
 private:
-	// number of hands
-	static constexpr int SLOT_COUNT = 2;
 	// items in hands
 	std::vector<InventoryItem> actionItems;
 	// other items

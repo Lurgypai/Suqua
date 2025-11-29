@@ -10,8 +10,7 @@ IABasicDash::IABasicDash() :
 	elapsedTime{ 0.f },
 	state{DashState::ready},
 	dashDir{0.f, 0.f},
-	dashSpeed{500.f},
-	activatingEntity{0}
+	dashSpeed{500.f}
 {}
 
 void IABasicDash::update(float delta) {
@@ -22,7 +21,7 @@ void IABasicDash::update(float delta) {
 		break;
 	case IABasicDash::DashState::dashing: {
 		// continue dash
-		auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(activatingEntity);
+		auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(targetEntity);
 		if (physicsComp) {
 			physicsComp->vel = dashDir;
 			physicsComp->vel *= dashSpeed;
@@ -33,7 +32,7 @@ void IABasicDash::update(float delta) {
 			state = DashState::cooldown;
 			elapsedTime = 0;
 
-			auto* moverComp = EntitySystem::GetComp<TopDownMoverComponent>(activatingEntity);
+			auto* moverComp = EntitySystem::GetComp<TopDownMoverComponent>(targetEntity);
 			if (moverComp) moverComp->paused = false;
 		}
 		break; }
@@ -49,7 +48,6 @@ void IABasicDash::update(float delta) {
 }
 
 void IABasicDash::doAbility(Scene& scene, EntityId sourceEntity, const Controller& controller, InventoryItem& sourceInvItem) {
-	activatingEntity = sourceEntity;
 	if (state != DashState::ready) return;
 	// begin dash
 	dashDir = Vec2f{ 1.f, 0.f };

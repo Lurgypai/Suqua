@@ -24,3 +24,12 @@ RenderComponent & RenderComponent::operator=(const RenderComponent & other) {
     }
     return *this;
 }
+
+size_t RenderComponent::allocateDrawable() {
+    sprites.resize(sprites.size() + 1);
+    return sprites.size() - 1;
+}
+
+bool RenderComponent::hasDrawable(size_t index) {
+    return sprites[index] != nullptr;
+}

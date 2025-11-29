@@ -18,7 +18,7 @@ file(GLOB_RECURSE header_files
 	"*.h"
 )
 
-add_executable(Shooty2Client ${source_files} ${header_files})
+add_executable(Shooty2Client ${source_files} ${header_files} "DaemonGFXComponent.cpp")
 
 target_include_directories(Shooty2Client PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/../include"

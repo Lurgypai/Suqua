@@ -60,7 +60,6 @@ void main() {
 	vec2 diff = pixelPos - dat.origin;
 	float newAngle = atan(diff.y, diff.x) + radians(dat.angle);
 	pixelPos = vec2(magn * cos(newAngle), magn * sin(newAngle));
-	pixelPos += dat.origin;
     
 	//position
 	pixelPos += (dat.objPos - round(camPos));

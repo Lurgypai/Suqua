@@ -3,8 +3,10 @@
 #include "nlohmann/json.hpp"
 #include <SDL.h>
 #include <fstream>
+#include <print>
 
 #if defined(WIN32) || defined(_WIN32)
+#include <windows.h>
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
@@ -37,6 +39,12 @@ int SuquaLib::SuquaInit(const std::string& windowName, const std::string& settin
 		}
 
 		SDL_Init(SDL_INIT_VIDEO);
+
+		// FIX SCALING (maybe needs to be changed?
+		#if defined(WIN32) || defined(_WIN32)
+		SetProcessDPIAware();
+		#endif
+
 
 		SDL_Window* window = NULL;
 		window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowRes.x, windowRes.y, SDL_WINDOW_OPENGL);

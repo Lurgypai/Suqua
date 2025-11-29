@@ -4,6 +4,7 @@
 #include "PhysicsSystem.h"
 #include "../Shooty2Core/ItemSystem.h"
 #include "../Shooty2Core/CombatSystem.h"
+#include "InventoryItemGFXSystem.h"
 
 class ClientWorldScene : public Scene {
 public:
@@ -29,6 +30,7 @@ private:
 	PhysicsSystem physics;
 	CombatSystem combat;
 	ItemSystem items;
+	InventoryItemGFXSystem invItemGfx;
 
 	Framebuffer screenBuffer;
 };

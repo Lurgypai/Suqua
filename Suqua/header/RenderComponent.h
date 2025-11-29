@@ -14,12 +14,19 @@ public:
 	RenderComponent(RenderComponent&& other) = default;
 	
 	RenderComponent & operator=(const RenderComponent & other);
+
+	size_t allocateDrawable();
 	
 	template<typename T, typename... Args>
 	size_t loadDrawable(Args&&... args);
+
+	template<typename T, typename... Args>
+	void setDrawable(size_t index, Args&&... args);
 	
 	template<typename T>
 	T& getDrawable(size_t index);
+
+	bool hasDrawable(size_t index);
 
 protected:
     std::vector<SpritePtr> sprites;
@@ -31,6 +38,11 @@ template<typename T, typename ...Args>
 inline size_t RenderComponent::loadDrawable(Args&& ...args) {
     sprites.push_back(std::make_unique<T>(std::forward<Args>(args)...));
     return sprites.size() - 1;
+}
+
+template<typename T, typename ... Args>
+inline void RenderComponent::setDrawable(size_t index, Args&&... args) {
+	sprites[index] = std::make_unique<T>(std::forward<Args>(args)...);
 }
 
 template<typename T>
