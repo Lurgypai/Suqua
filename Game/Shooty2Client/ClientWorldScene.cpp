@@ -302,12 +302,12 @@ void ClientWorldScene::renderStep(Game& game)
 	
 	
 	// render inventory body pos
-	auto* plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
-	auto* plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
+	// auto* plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
+	// auto* plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
 	// RectDrawable bodyPosRect{ Color{1, 0, 0, 1}, false, -1.0f, AABB{plrInvComp->getBodyPos() - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
 	// bodyPosRect.draw();
-	RectDrawable lhandRect{ Color{0, 1, 0, 1}, false, -1.0f, AABB{plrInvComp->getHandPos(0), Vec2f{1.f, 1.f}}};
-	lhandRect.draw();
+	// RectDrawable lhandRect{ Color{0, 1, 0, 1}, false, -1.0f, AABB{plrInvComp->getHandPos(0), Vec2f{1.f, 1.f}}};
+	// lhandRect.draw();
 	//RectDrawable rhandRect{ Color{0, 0, 1, 1}, false, -1.0f, AABB{plrInvComp->getHandPos(1) - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
 	// rhandRect.draw();
 

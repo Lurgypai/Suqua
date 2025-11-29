@@ -20,7 +20,7 @@ struct InventoryItemGFX {
 class InventoryItemGFXSystem {
 public:
 	void registerGFX(const std::string& renderTag, InventoryItemGFX::RenderMode renderMode, Vec2f renderOffset);
-	const InventoryItemGFX& getGFX(const std::string& renderTag) const;
+	InventoryItemGFX getGFX(const std::string& renderTag) const;
 private:
 	std::unordered_map<std::string, InventoryItemGFX> gfx;
 };
