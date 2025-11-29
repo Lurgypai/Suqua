@@ -23,7 +23,7 @@ private:
     std::string activeLevel;
 	// player owned by this client
 	EntityId myPlayerId;
-	EntityId myGunId;
+	EntityId myDaemonId;
 
 	InputDeviceId playerInput;
 	InputDeviceId gunInput;

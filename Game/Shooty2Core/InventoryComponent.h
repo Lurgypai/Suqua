@@ -35,6 +35,9 @@ public:
 
 	std::vector<ControllerBits> handFlags;
 private:
+	std::vector<Vec2f> handTargetPos;
+	bool handsAligned;
+	float handMoveRate;
 	// items in hands
 	std::vector<InventoryItem> actionItems;
 	// other items

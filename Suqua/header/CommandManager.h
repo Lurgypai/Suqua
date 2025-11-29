@@ -11,9 +11,9 @@ using command_ptr = std::unique_ptr<Command>;
 
 class CommandManager {
 public:
-	template<typename T, typename U>
-	void registerCommand(U&& args) {
-		commands.push_back(std::make_unique<T>(std::forward<U>(args)));
+	template<typename T, typename ... Args>
+	void registerCommand(Args&&... args) {
+		commands.push_back(std::make_unique<T>(std::forward<Args>(args)...));
 	}
 
 	template<typename T>

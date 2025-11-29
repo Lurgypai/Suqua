@@ -22,6 +22,8 @@ public:
 
 	template<typename T, typename... Args>
 	void setDrawable(size_t index, Args&&... args);
+
+	void clearDrawable(size_t index);
 	
 	template<typename T>
 	T& getDrawable(size_t index);

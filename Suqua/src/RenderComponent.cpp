@@ -30,6 +30,10 @@ size_t RenderComponent::allocateDrawable() {
     return sprites.size() - 1;
 }
 
+void RenderComponent::clearDrawable(size_t index) {
+    sprites[index] = nullptr;
+}
+
 bool RenderComponent::hasDrawable(size_t index) {
     return sprites[index] != nullptr;
 }

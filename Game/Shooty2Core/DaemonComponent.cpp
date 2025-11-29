@@ -2,6 +2,7 @@
 #include "PositionComponent.h"
 #include "ControllerComponent.h"
 #include "InventoryComponent.h"
+#include "PhysicsComponent.h"
 
 #include <print>
 
@@ -11,7 +12,8 @@ DaemonComponent::DaemonComponent(EntityId id_, float followRate_, Vec2f followOf
 	followOffset{followOffset_},
 	hostEntity{0},
 	isHolding{false},
-	targetPos{}
+	targetPos{},
+	side{1}
 {}
 
 void DaemonComponent::update() {
@@ -19,15 +21,23 @@ void DaemonComponent::update() {
 	if (hostInv == nullptr) return;
 
 	auto* contComp = EntitySystem::GetComp<ControllerComponent>(id);
-	if (contComp->getController().toggled(ControllerBits::BUTTON_8)) {
-		// if pressed, toggle
-		if(contComp->getController()[ControllerBits::BUTTON_8]) isHolding = !isHolding;
+	if (contComp->getController().toggled(ControllerBits::BUTTON_7)) {
+		// if toggled down, flip isHolding
+		if(contComp->getController()[ControllerBits::BUTTON_7]) isHolding = !isHolding;
 		if (isHolding) {
 			targetPos = hostInv->getBodyPos();
 		}
 	}
+	
+	auto* physComp = EntitySystem::GetComp<PhysicsComponent>(hostEntity);
+	if (physComp->vel.x > 0) {
+		side = 1;
+	}
+	else if (physComp->vel.x < 0) {
+		side = -1;
+	}
 
-	if (!isHolding) targetPos = hostInv->getBodyPos() + followOffset;
+	if (!isHolding) targetPos = hostInv->getBodyPos() + Vec2f{ followOffset.x * side, followOffset.y };
 
 	auto* ourPos = EntitySystem::GetComp<PositionComponent>(id);
 	auto delta = targetPos - ourPos->pos;

@@ -69,6 +69,9 @@ void GunGFXComponent::update(const InventoryItemGFXSystem& invItemGfxSys) {
 				auto& sprite = renderComp->getDrawable<Sprite>(item.spriteIndex);
 				sprite.setOrigin(invItemGfx.renderOffset);
 			}
+			else {
+				renderComp->clearDrawable(item.spriteIndex);
+			}
 		}
 		// update if drawn to screen
 		auto& invItemGfx = invItemGfxSys.getGFX(item.renderTag);

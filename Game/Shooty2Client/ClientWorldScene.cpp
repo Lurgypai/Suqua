@@ -44,6 +44,7 @@
 #include "../Shooty2Core/DaemonComponent.h"
 
 #include "../Shooty2Core/CommandRespawn.h"
+#include "CommandSetItem.h"
 
 // debug
 #include "../Shooty2Core/IAGunFire.h"
@@ -57,8 +58,6 @@ ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
 
 void ClientWorldScene::load(Game& game)
 {
-    DebugIO::getCommandManager().registerCommand<ExitCommand>();
-    DebugIO::getCommandManager().registerCommand<CommandRespawn>(world);
     /* ------------------ NETWORKING ------------------ */
     game.loadPacketHandler<PHClientSpawnEntities>(Shooty2Packet::SpawnEntities, this);
     game.loadPacketHandler<PHClientState>(Packet::StateId, this);
@@ -143,23 +142,27 @@ void ClientWorldScene::load(Game& game)
 	plrInventoryComp->setActionItem(1, items.getItem("item:dash"));
 	
 	// test daemon
-	EntityId daemonId = addEntities(1)[0];
-	std::println("DaemonId: {}", daemonId);
-	EntitySystem::MakeComps<ControllerComponent>(1, &daemonId);
-	EntitySystem::MakeComps<NetworkDataComponent>(1, &daemonId, Suqua::UUID::GenerateUUID(), NetworkDataComponent::Owner::local_only);
-	EntitySystem::MakeComps<PositionComponent>(1, &daemonId);
-	EntitySystem::MakeComps<DaemonComponent>(1, &daemonId, 0.1f, Vec2f{-15, -15});
-	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(daemonId);
+	myDaemonId = addEntities(1)[0];
+	EntitySystem::MakeComps<ControllerComponent>(1, &myDaemonId);
+	EntitySystem::MakeComps<NetworkDataComponent>(1, &myDaemonId, Suqua::UUID::GenerateUUID(), NetworkDataComponent::Owner::local_only);
+	EntitySystem::MakeComps<PositionComponent>(1, &myDaemonId);
+	EntitySystem::MakeComps<DaemonComponent>(1, &myDaemonId, 0.1f, Vec2f{-15, -15});
+	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(myDaemonId);
 	daemonComp->hostEntity = myPlayerId;
-	EntitySystem::MakeComps<InventoryComponent>(1, &daemonId, Vec2f{0.f, 5.f}, 5.f);
-	auto* daemonInvComp = EntitySystem::GetComp<InventoryComponent>(daemonId);
+	EntitySystem::MakeComps<InventoryComponent>(1, &myDaemonId, Vec2f{0.f, 5.f}, 5.f);
+	auto* daemonInvComp = EntitySystem::GetComp<InventoryComponent>(myDaemonId);
 	daemonInvComp->setActionItem(0, items.getItem("item:gun"));
-	daemonInvComp->setActionItem(1, items.getItem("item:dash"), myPlayerId);
+	daemonInvComp->setActionItem(1, items.getItem("item:gun"), myPlayerId);
 	daemonInvComp->handFlags = { ControllerBits::BUTTON_6, ControllerBits::BUTTON_5 };
-	EntitySystem::MakeComps<RenderComponent>(1, &daemonId);
-	EntitySystem::MakeComps<GunGFXComponent>(1, &daemonId);
-	EntitySystem::MakeComps<DaemonGFXComponent>(1, &daemonId);
-	addEntityInputs({ {daemonId, playerInput} });
+	EntitySystem::MakeComps<RenderComponent>(1, &myDaemonId);
+	EntitySystem::MakeComps<GunGFXComponent>(1, &myDaemonId);
+	EntitySystem::MakeComps<DaemonGFXComponent>(1, &myDaemonId);
+	addEntityInputs({ {myDaemonId, playerInput} });
+
+	/*-------------- COMMANDS ----------------*/
+    DebugIO::getCommandManager().registerCommand<ExitCommand>();
+    DebugIO::getCommandManager().registerCommand<CommandRespawn>(world);
+    DebugIO::getCommandManager().registerCommand<CommandSetItem>(items, myPlayerId, myDaemonId);
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -333,9 +336,17 @@ void ClientWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer)
 //		add entity that follows player DONE
 //		add "stand here" command DONE
 // add daemon rendering DONE
-// add alternate hand position
-// add daemon switching sides
+// add alternate hand position DONE
+// add daemon switching sides DONE
 // add item command
+//		base command DONE
+//		add errors, prevent crashes for invalid slot/item
 // add hand rendering
 // move daemon to spawn interface
 // check daemon networking
+// add skill overlap prevention
+//		skill use puts the selected skill slot into a set of active skills
+//		skills with same slot id can't be active concurrently
+// add input buffering
+// fix hand position on item switch
+// how do we indicate when an ability should be based on a different entity?

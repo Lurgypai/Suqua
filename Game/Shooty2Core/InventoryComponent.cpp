@@ -11,9 +11,13 @@ InventoryComponent::InventoryComponent(EntityId id_, Vec2f bodyOffset_, float ha
 	actionItems{},
 	storageItems{},
 	bodyOffset{bodyOffset_},
-	handOffset{handOffset_}
+	handOffset{handOffset_},
+	handTargetPos{},
+	handsAligned{false},
+	handMoveRate{0.2f}
 {
 	actionItems.resize(SLOT_COUNT);
+	handTargetPos.resize(SLOT_COUNT);
 }
 
 void InventoryComponent::update(Scene& scene, float delta) {
@@ -27,18 +31,37 @@ void InventoryComponent::update(Scene& scene, float delta) {
 	if (contComp == nullptr) return;
 	const auto& controller = contComp->getController();
 
+	// toggle between aligned and spread
+	if (controller.toggled(ControllerBits::BUTTON_8)) {
+		if (controller[ControllerBits::BUTTON_8]) handsAligned = !handsAligned;
+	}
+
 	// get base body position
 	Vec2f basePos = getBodyPos();
 	// calculate offset to hands
-	Vec2f armOffset = Vec2f{ handOffset, 0.f };
-	armOffset.angle(controller.stick2.angle());
+	Vec2f baseArmOffset = Vec2f{ handOffset, 0.f };
+	baseArmOffset.angle(controller.stick2.angle());
 
 	for (int i = 0; i != SLOT_COUNT; ++i) {
 		auto& leftItem = actionItems[i];
 		if (!leftItem.tag.empty()) {
-			leftItem.heldPos = basePos + armOffset;
-			leftItem.angle = armOffset.angle();
-
+			// switch between left and right
+			int sign = (i % 2 == 0 ? 1 : -1);
+			// calculate hand target position
+			if (handsAligned) {
+				handTargetPos[i] = basePos + baseArmOffset * sign;
+			}
+			else {
+				float angleOffset = 3.1415926535898 / 4.f;
+				Vec2f armOffset = baseArmOffset;
+				armOffset.angle(armOffset.angle() + angleOffset * -sign);
+				handTargetPos[i] = basePos + armOffset;
+			}
+			// move hand and set angle
+			Vec2f delta = handTargetPos[i] - leftItem.heldPos;
+			leftItem.heldPos += delta * handMoveRate;
+			leftItem.angle = baseArmOffset.angle();
+			// activate abilities
 			if (controller[handFlags[i]] && leftItem.ability != nullptr) {
 				leftItem.ability->doAbility(scene, id, controller, leftItem);
 			}

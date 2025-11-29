@@ -17,4 +17,5 @@ public:
 private:
 	bool isHolding;
 	Vec2f targetPos;
+	int side;
 };
