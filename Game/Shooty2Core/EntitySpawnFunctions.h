@@ -14,6 +14,7 @@
 #include "LifeTimeComponent.h"
 #include "PlayerSpawnComponent.h"
 #include "AIGunnerComponent.h"
+#include "DaemonComponent.h"
 
 static EntityId SpawnTeleportZone(
         Scene& scene,
@@ -102,6 +103,27 @@ static EntityId SpawnPlayer(
 
     EntitySystem::MakeComps<PlayerSpawnComponent>(1, &playerId);
 	return playerId;
+}
+
+static EntityId SpawnDaemon(
+    Scene& scene,
+    const Vec2f& pos,
+    Owner owner,
+    const UUID& uuid) {
+    auto entity = scene.addEntities(1)[0];
+    MakeNetworkEntity(entity, uuid, owner);
+
+	EntitySystem::MakeComps<ControllerComponent>(1, &entity);
+	EntitySystem::MakeComps<PositionComponent>(1, &entity);
+	EntitySystem::MakeComps<DaemonComponent>(1, &entity, 0.1f, Vec2f{-15, -15});
+	EntitySystem::MakeComps<InventoryComponent>(1, &entity, Vec2f{0.f, 5.f}, 5.f);
+	auto* daemonInvComp = EntitySystem::GetComp<InventoryComponent>(entity);
+	daemonInvComp->handFlags = { ControllerBits::BUTTON_6, ControllerBits::BUTTON_5 };
+    auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(entity);
+    auto* posComp = EntitySystem::GetComp<PositionComponent>(entity);
+    ndc->set(PositionData::X, posComp->pos.x);
+    ndc->set(PositionData::Y, posComp->pos.y);
+    return entity;
 }
 
 static EntityId SpawnEnemy(

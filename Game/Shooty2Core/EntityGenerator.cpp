@@ -26,6 +26,7 @@ EntityId EntityGenerator::SpawnEntity(
 
 void EntityGenerator::RegisterSpawnFunctions() {
     EntityGenerator::SpawnFunctions.insert(std::make_pair("player.basic", SpawnPlayer));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("player.daemon", SpawnDaemon));
     EntityGenerator::SpawnFunctions.insert(std::make_pair("enemy.basic", SpawnEnemy));
     EntityGenerator::SpawnFunctions.insert(std::make_pair("bullet.player.basic", SpawnBulletPlayerBasic));
     EntityGenerator::SpawnFunctions.insert(std::make_pair("bullet.enemy.basic", SpawnBulletEnemyBasic));

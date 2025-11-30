@@ -1,11 +1,11 @@
-#include "GunGFXComponent.h"
+#include "InventoryItemGFXComponent.h"
 #include "PositionComponent.h"
 #include "RenderComponent.h"
 #include "ControllerComponent.h"
 #include "Sprite.h"
 #include "../Shooty2Core/InventoryComponent.h"
 
-GunGFXComponent::GunGFXComponent(EntityId id_) :
+InventoryItemGFXComponent::InventoryItemGFXComponent(EntityId id_) :
 	id{id_},
 	items{}
 {
@@ -52,7 +52,7 @@ inline static void updateItem(int index,
 	sprite.setAngle(dir * 180 / 3.14159);
 }
 
-void GunGFXComponent::update(const InventoryItemGFXSystem& invItemGfxSys) {
+void InventoryItemGFXComponent::update(const InventoryItemGFXSystem& invItemGfxSys) {
 	auto* posComp = EntitySystem::GetComp<PositionComponent>(id);
 	auto* invComp = EntitySystem::GetComp<InventoryComponent>(id);
 	auto* renderComp = EntitySystem::GetComp<RenderComponent>(id);

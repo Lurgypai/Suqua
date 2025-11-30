@@ -78,6 +78,7 @@ void IAGunFire::update(float delta)
     elapsedTime += delta;
     switch(state) {
     case FireState::ready:
+        if (curShot != 0 && elapsedTime > reloadDelay) curShot = 0;
         break;
     case FireState::refreshing:
         if(elapsedTime > fireDelay) {

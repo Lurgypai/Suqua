@@ -3,8 +3,9 @@
 #include "RespawnGFXComponent.h"
 #include "RectDrawable.h"
 #include "AttackGFXComponent.h"
-#include "GunGFXComponent.h"
+#include "InventoryItemGFXComponent.h"
 #include "TeleportZoneGFXComponent.h"
+#include "DaemonGFXComponent.h"
 #include "DebugFIO.h"
 #include "Sprite.h"
 #include "../Shooty2Core/OnHitComponent.h"
@@ -28,7 +29,13 @@ static void AddPlayerGFX(EntityId playerId) {
 	EntitySystem::MakeComps<OnHitComponent>(1, &playerId);
     // EntitySystem::MakeComps<RespawnGFXComponent>(1, &playerId);
 
-	EntitySystem::MakeComps<GunGFXComponent>(1, &playerId);
+	EntitySystem::MakeComps<InventoryItemGFXComponent>(1, &playerId);
+}
+
+static void AddDaemonGFX(EntityId daemonId) {
+    EntitySystem::MakeComps<DaemonGFXComponent>(1, &daemonId);
+	EntitySystem::MakeComps<RenderComponent>(1, &daemonId);
+    EntitySystem::MakeComps<InventoryItemGFXComponent>(1, &daemonId);
 }
 
 static void AddBulletPlayerBasicGFX(EntityId bulletId) {
@@ -78,6 +85,7 @@ void ClientEntityGenerator::RegisterSpawnFunctions() {
     EntityGenerator::RegisterSpawnFunctions();
     
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("player.basic", AddPlayerGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("player.daemon", AddDaemonGFX));
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("enemy.basic", AddEnemyGFX));
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("bullet.player.basic", AddBulletPlayerBasicGFX));
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("bullet.enemy.basic", AddBulletEnemyBasicGFX));

@@ -1,8 +1,9 @@
 #include "Item.h"
 
-Item::Item(const std::string& displayName_, const std::string& tag_) :
+Item::Item(const std::string& displayName_, const std::string& tag_, bool doesTargetHost_) :
 	displayName{displayName_},
 	tag{tag_},
+	doesTargetHost{doesTargetHost_},
 	ability{nullptr}
 {}
 

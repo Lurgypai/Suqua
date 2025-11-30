@@ -58,8 +58,11 @@ void DebugIO::enterInput() {
 			while (console.size() > CONSOLE_DISPLAY_SIZE) {
 				console.pop_back();
 			}
+			inputText.clear();
 		}
-		inputText.clear();
+		else {
+			closeDebug();
+		}
 	}
 }
 

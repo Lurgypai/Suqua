@@ -9,10 +9,10 @@ struct RenderItem {
 	std::string renderTag;
 };
 
-class GunGFXComponent {
-    CompMembers(GunGFXComponent);
+class InventoryItemGFXComponent {
+    CompMembers(InventoryItemGFXComponent);
 public:
-	GunGFXComponent(EntityId id_);
+	InventoryItemGFXComponent(EntityId id_);
 
 	void update(const InventoryItemGFXSystem& invItemGFXSys);
 private:

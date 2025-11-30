@@ -22,7 +22,6 @@
 #include "LifeTimeComponent.h"
 #include "AimToLStickComponent.h"
 #include "ParentComponent.h"
-#include "GunGFXComponent.h"
 #include "HurtboxComponent.h"
 #include "CharacterGFXComponent.h"
 #include "PhysicsComponent.h"
@@ -33,6 +32,7 @@
 #include "RandomUtil.h"
 #include "TeleportZoneGFXComponent.h"
 #include "DaemonGFXComponent.h"
+#include "InventoryItemGFXComponent.h"
 
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
@@ -100,6 +100,11 @@ void ClientWorldScene::load(Game& game)
 	myPlayerId = EntitySpawnSystem::SpawnEntity("player.basic", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
 	addEntityInputs({ {myPlayerId, playerInput} });
 
+	myDaemonId = EntitySpawnSystem::SpawnEntity("player.daemon", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
+	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(myDaemonId);
+	daemonComp->hostEntity = myPlayerId;
+	addEntityInputs({ {myDaemonId, playerInput} });
+
 	// load level
     world = World{ "tileset", "levels/test.ldtk" };
 	world.load(*this);
@@ -126,7 +131,7 @@ void ClientWorldScene::load(Game& game)
 
 	/* ------------------------ OTHER DEBUG ------------------------ */
 	// load test items
-	items.registerItem(Item{ "Test Gun", "item:gun", IAGunFire{13.f,
+	items.registerItem(Item{ "Test Gun", "item:gun", false, IAGunFire{13.f,
 			"bullet.player.basic",
 			3,
 			0.2f,
@@ -134,30 +139,16 @@ void ClientWorldScene::load(Game& game)
 			1,
 			0.1f,
 			0.f } });
-	items.registerItem(Item{ "Dash Skill", "item:dash", IABasicDash{} });
+	items.registerItem(Item{ "Dash Skill", "item:dash", true, IABasicDash{} });
 
 	// add test items to inventory
 	auto* plrInventoryComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
 	plrInventoryComp->setActionItem(0, items.getItem("item:gun"));
 	plrInventoryComp->setActionItem(1, items.getItem("item:dash"));
 	
-	// test daemon
-	myDaemonId = addEntities(1)[0];
-	EntitySystem::MakeComps<ControllerComponent>(1, &myDaemonId);
-	EntitySystem::MakeComps<NetworkDataComponent>(1, &myDaemonId, Suqua::UUID::GenerateUUID(), NetworkDataComponent::Owner::local_only);
-	EntitySystem::MakeComps<PositionComponent>(1, &myDaemonId);
-	EntitySystem::MakeComps<DaemonComponent>(1, &myDaemonId, 0.1f, Vec2f{-15, -15});
-	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(myDaemonId);
-	daemonComp->hostEntity = myPlayerId;
-	EntitySystem::MakeComps<InventoryComponent>(1, &myDaemonId, Vec2f{0.f, 5.f}, 5.f);
 	auto* daemonInvComp = EntitySystem::GetComp<InventoryComponent>(myDaemonId);
 	daemonInvComp->setActionItem(0, items.getItem("item:gun"));
 	daemonInvComp->setActionItem(1, items.getItem("item:gun"), myPlayerId);
-	daemonInvComp->handFlags = { ControllerBits::BUTTON_6, ControllerBits::BUTTON_5 };
-	EntitySystem::MakeComps<RenderComponent>(1, &myDaemonId);
-	EntitySystem::MakeComps<GunGFXComponent>(1, &myDaemonId);
-	EntitySystem::MakeComps<DaemonGFXComponent>(1, &myDaemonId);
-	addEntityInputs({ {myDaemonId, playerInput} });
 
 	/*-------------- COMMANDS ----------------*/
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
@@ -203,7 +194,7 @@ void ClientWorldScene::physicsStep(Game& game)
 void ClientWorldScene::renderUpdateStep(Game& game)
 {
 	Updater::UpdateAll<CharacterGFXComponent>(game.PHYSICS_STEP * 1000);
-	Updater::UpdateAll<GunGFXComponent>(invItemGfx);
+	Updater::UpdateAll<InventoryItemGFXComponent>(invItemGfx);
     Updater::UpdateAll<OnHitComponent>();
     Updater::UpdateAll<RespawnGFXComponent>();
     Updater::UpdateAll<AttackGFXComponent>();
@@ -338,16 +329,13 @@ void ClientWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer)
 // add daemon rendering DONE
 // add alternate hand position DONE
 // add daemon switching sides DONE
-
 // add item command
 //		base command DONE
-//		add errors, prevent crashes for invalid slot/item
-// move daemon to spawn interface
-// add skill overlap prevention
-//		skill use puts the selected skill slot into a set of active skills
-//		skills with same slot id can't be active concurrently
-// fix hand position on item switch
-// add flag to indicate when an item should target the "base" "doesTargetHost"
+//		add errors, prevent crashes for invalid slot/item DONE
+// move daemon to spawn interface DONE
+// fix hand position on item switch DONE
+// add flag to indicate when an item should target the "base" "doesTargetHost" DONE
+
 // add inventory ui
 //		render currently active items
 //		add category strings to items
@@ -356,3 +344,8 @@ void ClientWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer)
 // add hand rendering
 // check daemon networking
 // add input buffering
+
+// add skill overlap prevention DECIDED NOT TO DO FOR NOW
+// key question, how/why does daemon skill overlap?
+//		skill use puts the selected skill slot into a set of active skills
+//		skills with same slot id can't be active concurrently

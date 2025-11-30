@@ -20,9 +20,29 @@ InventoryComponent::InventoryComponent(EntityId id_, Vec2f bodyOffset_, float ha
 	handTargetPos.resize(SLOT_COUNT);
 }
 
+inline static Vec2f getTargetHandPos(int hand, bool handsAligned, const Vec2f& basePos, float armLength, float angle) {
+	Vec2f targetPos;
+	// switch between left and right
+	int sign = (hand % 2 == 0 ? 1 : -1);
+	// calculate hand target position
+	Vec2f baseArmOffset{ armLength, 0.f };
+	baseArmOffset.angle(angle);
+	if (handsAligned) {
+		targetPos = basePos + baseArmOffset * sign;
+	}
+	else {
+		float angleOffset = 3.1415926535898 / 4.f;
+		Vec2f armOffset = baseArmOffset;
+		armOffset.angle(armOffset.angle() + angleOffset * -sign);
+		targetPos = basePos + armOffset;
+	}
+	return targetPos;
+}
+
 void InventoryComponent::update(Scene& scene, float delta) {
 	// update items
-	for (auto& item : actionItems) {
+	for (int hand = 0; hand != actionItems.size(); ++hand) {
+		auto& item = actionItems[hand];
 		if (item.ability != nullptr) item.ability->update(delta);
 	}
 
@@ -38,29 +58,15 @@ void InventoryComponent::update(Scene& scene, float delta) {
 
 	// get base body position
 	Vec2f basePos = getBodyPos();
-	// calculate offset to hands
-	Vec2f baseArmOffset = Vec2f{ handOffset, 0.f };
-	baseArmOffset.angle(controller.stick2.angle());
 
 	for (int i = 0; i != SLOT_COUNT; ++i) {
 		auto& leftItem = actionItems[i];
 		if (!leftItem.tag.empty()) {
-			// switch between left and right
-			int sign = (i % 2 == 0 ? 1 : -1);
-			// calculate hand target position
-			if (handsAligned) {
-				handTargetPos[i] = basePos + baseArmOffset * sign;
-			}
-			else {
-				float angleOffset = 3.1415926535898 / 4.f;
-				Vec2f armOffset = baseArmOffset;
-				armOffset.angle(armOffset.angle() + angleOffset * -sign);
-				handTargetPos[i] = basePos + armOffset;
-			}
+			handTargetPos[i] = getTargetHandPos(i, handsAligned, basePos, handOffset, controller.stick2.angle());
 			// move hand and set angle
 			Vec2f delta = handTargetPos[i] - leftItem.heldPos;
 			leftItem.heldPos += delta * handMoveRate;
-			leftItem.angle = baseArmOffset.angle();
+			leftItem.angle = controller.stick2.angle();
 			// activate abilities
 			if (controller[handFlags[i]] && leftItem.ability != nullptr) {
 				leftItem.ability->doAbility(scene, id, controller, leftItem);
@@ -78,6 +84,9 @@ void InventoryComponent::setActionItem(int slot, const Item& item, EntityId targ
 	if (slot < 0 && slot > SLOT_COUNT - 1) return;
 
 	actionItems[slot] = InventoryItem{ item.tag, 1, item.getAbility()};
+	auto* contComp = EntitySystem::GetComp<ControllerComponent>(id);
+	actionItems[slot].heldPos = getTargetHandPos(slot, handsAligned, getBodyPos(), handOffset,
+		contComp->getController().stick2.angle());
 	if (actionItems[slot].ability == nullptr) return;
 	actionItems[slot].ability->targetEntity = targetEntity;
 }

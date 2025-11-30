@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #include "ItemSystem.h"
 #include "InventoryItem.h"
@@ -33,6 +34,7 @@ public:
 	// offset from body pos to hands
 	float handOffset;
 
+	// what controller buttons to use for each hand
 	std::vector<ControllerBits> handFlags;
 private:
 	std::vector<Vec2f> handTargetPos;
@@ -42,5 +44,4 @@ private:
 	std::vector<InventoryItem> actionItems;
 	// other items
 	std::vector<InventoryItem> storageItems;
-	// controller buttons for left and right hands
 };
