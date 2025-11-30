@@ -338,15 +338,21 @@ void ClientWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer)
 // add daemon rendering DONE
 // add alternate hand position DONE
 // add daemon switching sides DONE
+
 // add item command
 //		base command DONE
 //		add errors, prevent crashes for invalid slot/item
-// add hand rendering
 // move daemon to spawn interface
-// check daemon networking
 // add skill overlap prevention
 //		skill use puts the selected skill slot into a set of active skills
 //		skills with same slot id can't be active concurrently
-// add input buffering
 // fix hand position on item switch
-// how do we indicate when an ability should be based on a different entity?
+// add flag to indicate when an item should target the "base" "doesTargetHost"
+// add inventory ui
+//		render currently active items
+//		add category strings to items
+//		searchable structure
+
+// add hand rendering
+// check daemon networking
+// add input buffering

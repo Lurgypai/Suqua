@@ -1,4 +1,5 @@
 #include "CommandSetItem.h"
+#include "DebugIO.h"
 #include "../Shooty2Core/InventoryComponent.h"
 
 CommandSetItem::CommandSetItem(ItemSystem& items_, EntityId playerId_, EntityId daemonId_) :
@@ -12,8 +13,29 @@ std::string CommandSetItem::getTag() const {
 }
 
 void CommandSetItem::onCommand(const std::vector<std::string>& args) {
-	int slot = std::stoi(args[1]);
-	if (slot < 0 || slot > 3) return;
+	if (args.size() != 3) {
+		DebugIO::printLine("Error: Incorrect arg count.");
+		return;
+	}
+
+	int slot = 0;
+	try {
+		slot = std::stoi(args[1]);
+	}
+	catch (const std::exception&) {
+		DebugIO::printLine("Error: Unable to parse slot number.");
+		return;
+	}
+
+	if (slot < 0 || slot > 3) {
+		DebugIO::printLine("Error: Slot number out of range (0-3).");
+		return;
+	}
+
+	if (!items->hasItem(args[2])) {
+		DebugIO::printLine("Error: Invalid item.");
+		return;
+	}
 
 	EntityId e = playerId;
 	int trueSlot = slot;

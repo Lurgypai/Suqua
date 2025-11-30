@@ -13,6 +13,7 @@ public:
 	
 	// retrieve item from registry
 	const Item& getItem(const std::string& tag);
+	bool hasItem(const std::string& tag);
 private:
 	std::unordered_map<std::string, Item> items;
 };
