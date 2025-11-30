@@ -63,7 +63,7 @@ void GunGFXComponent::update(const InventoryItemGFXSystem& invItemGfxSys) {
 		// item has changed update sprite
 		if (invComp->getHandTag(i) != item.renderTag) {
 			item.renderTag = invComp->getHandTag(i);
-			auto& invItemGfx = invItemGfxSys.getGFX(item.renderTag);
+			auto invItemGfx = invItemGfxSys.getGFX(item.renderTag);
 			if (invItemGfx.renderMode == InventoryItemGFX::sprite) {
 				renderComp->setDrawable<Sprite>(item.spriteIndex, item.renderTag);
 				auto& sprite = renderComp->getDrawable<Sprite>(item.spriteIndex);
@@ -74,7 +74,7 @@ void GunGFXComponent::update(const InventoryItemGFXSystem& invItemGfxSys) {
 			}
 		}
 		// update if drawn to screen
-		auto& invItemGfx = invItemGfxSys.getGFX(item.renderTag);
+		auto invItemGfx = invItemGfxSys.getGFX(item.renderTag);
 		if (invItemGfx.renderMode != InventoryItemGFX::sprite) continue;
 		updateItem(i, items, posComp, invComp, renderComp);
 	}
