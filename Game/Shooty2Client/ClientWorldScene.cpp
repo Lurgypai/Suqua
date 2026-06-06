@@ -8,6 +8,7 @@
 #include "IDKeyboardMouse.h"
 #include "ExitCommand.h"
 #include "ClientEntityGenerator.h"
+#include "MenuScene.h"
 
 #include "PHClientState.h"
 #include "PHClientSpawnEntities.h"
@@ -28,8 +29,6 @@
 #include "RespawnGFXComponent.h"
 #include "AttackGFXComponent.h"
 #include "ControllerComponent.h"
-#include "RectDrawable.h"
-#include "RandomUtil.h"
 #include "TeleportZoneGFXComponent.h"
 #include "DaemonGFXComponent.h"
 #include "InventoryItemGFXComponent.h"
@@ -51,9 +50,9 @@
 #include "../Shooty2Core/IABasicDash.h"
 #include "PositionComponent.h"
 
-ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_) :
+ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_, InputDeviceId input) :
 	Scene{ id_, flags_ },
-	playerInput{ 0 }
+	playerInput{ input }
 {}
 
 void ClientWorldScene::load(Game& game)
@@ -94,7 +93,6 @@ void ClientWorldScene::load(Game& game)
 	/* ---------------- LOAD ENTITIES ----------------- */
     EntitySpawnSystem::Init<ClientEntityGenerator>(&game.host);
 	// player
-	playerInput = game.loadInputDevice<IDKeyboardMouse>();
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 
 	myPlayerId = EntitySpawnSystem::SpawnEntity("player.basic", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
@@ -154,6 +152,8 @@ void ClientWorldScene::load(Game& game)
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
     DebugIO::getCommandManager().registerCommand<CommandRespawn>(world);
     DebugIO::getCommandManager().registerCommand<CommandSetItem>(items, myPlayerId, myDaemonId);
+
+
 }
 
 void ClientWorldScene::physicsStep(Game& game)
@@ -188,6 +188,16 @@ void ClientWorldScene::physicsStep(Game& game)
         world.getLevel(activeLevel).deactivate();
         newLevel->activate();
         activeLevel = newLevel->getLevelId();
+    }
+
+    // opening the menu
+    auto cont = game.getInputDevice(playerInput).getControllerState();
+    if(cont.toggled(ControllerBits::BUTTON_1) && cont[ControllerBits::BUTTON_1]) {
+        // disable our input
+        game.setSceneFlags(id, Scene::Flag::input, false);
+        // open the menu
+        game.sceneOn(menuScene);
+        DebugIO::printLine("menu open");
     }
 }
 

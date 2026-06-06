@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1920"
+   height="1080"
+   viewBox="0 0 508 285.74999"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="menu.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.84096521"
+     inkscape:cx="607.63513"
+     inkscape:cy="585.04204"
+     inkscape:window-width="3838"
+     inkscape:window-height="2132"
+     inkscape:window-x="0"
+     inkscape:window-y="26"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 142.875 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="508 : 142.875 : 1"
+       inkscape:persp3d-origin="254 : 95.249997 : 1"
+       id="perspective2028" />
+  </defs>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="bg fill">
+    <rect
+       style="fill:#000000;fill-opacity:0.6;stroke-width:0.264999"
+       id="rect234"
+       width="508.00003"
+       height="285.75"
+       x="0"
+       y="0"
+       ry="0" />
+  </g>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:2.865;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1210"
+       width="485.07303"
+       height="220.00337"
+       x="11.463501"
+       y="55.710278"
+       ry="20.297878" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:2.86499;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1840"
+       width="74.161331"
+       height="85.961678"
+       x="32.787121"
+       y="11.296937"
+       ry="9.1777039" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.1111px;line-height:1.25;font-family:Alice;-inkscape-font-specification:Alice;stroke-width:0.264583"
+       x="38.294178"
+       y="26.258715"
+       id="text1896"><tspan
+         sodipodi:role="line"
+         id="tspan1894"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.1111px;font-family:Alice;-inkscape-font-specification:Alice;stroke-width:0.264583"
+         x="38.294178"
+         y="26.258715">Inventory</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:14.1111px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;stroke-width:0.264583"
+       x="117.425"
+       y="28.327402"
+       id="text1900"><tspan
+         sodipodi:role="line"
+         id="tspan1898"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.1111px;font-family:Alice;-inkscape-font-specification:Alice;stroke-width:0.264583"
+         x="117.425"
+         y="28.327402">Crucible</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:14.1111px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;stroke-width:0.264583"
+       x="190.4375"
+       y="27.929468"
+       id="text1904"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.1111px;font-family:Alice;-inkscape-font-specification:Alice;stroke-width:0.264583"
+         x="190.4375"
+         y="27.929468"
+         id="tspan1906">Settings</tspan></text>
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:2.86499;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1960"
+       width="74.161331"
+       height="85.961678"
+       x="106.94846"
+       y="11.296937"
+       ry="9.1777039" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:2.86499;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1962"
+       width="74.161331"
+       height="85.961678"
+       x="180.88744"
+       y="11.956142"
+       ry="9.1777039" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:2.86499;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1964"
+       width="74.161331"
+       height="85.961678"
+       x="32.787121"
+       y="33.477551"
+       ry="9.1777039" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:2.86499;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1966"
+       width="74.161331"
+       height="85.961678"
+       x="106.94846"
+       y="33.477551"
+       ry="9.1777039" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:2.86499;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1968"
+       width="74.161331"
+       height="85.961678"
+       x="180.88744"
+       y="33.477551"
+       ry="9.1777039" />
+  </g>
+</svg>

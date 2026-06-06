@@ -6,6 +6,7 @@
 
 class Sprite : public IDrawable{
 public:
+    Sprite();
 	Sprite(const std::string &texture_tag);
 	virtual ~Sprite() override;
 
@@ -33,6 +34,7 @@ public:
 	void setOverlayAmount(float a_);
 
 	int getChannels() const;
+    void loadTexture(const std::string& texture_tag_);
 
 	virtual void draw() override;
 	virtual IDrawable* clone() override;

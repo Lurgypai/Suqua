@@ -3,15 +3,22 @@
 #include "stb_image.h"
 #include "glad/glad.h"
 
+Sprite::Sprite() :
+    texture_tag{"none"},
+	data{ Color{1.0f, 1.0f, 1.0f, 1.0f}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {1.0, 1.0}, 0, 0, 0.0f },
+	horizontalFlip{false},
+	verticalFlip{false}
+{
+    loadTexture(texture_tag);
+}
+
 Sprite::Sprite(const std::string &texture_tag_) :
 	texture_tag{texture_tag_},
 	data{ Color{1.0f, 1.0f, 1.0f, 1.0f}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {1.0, 1.0}, 0, 0, 0.0f },
 	horizontalFlip{false},
 	verticalFlip{false}
 {
-	auto textureData = GLRenderer::GetTextureData(texture_tag);
-	data.objRes = textureData.res;
-	data.imgRes = textureData.res;
+    loadTexture(texture_tag);
 }
 
 Sprite::~Sprite() {}
@@ -106,6 +113,13 @@ void Sprite::setOverlayAmount(float a_) {
 
 int Sprite::getChannels() const {
 	return channels;
+}
+
+void Sprite::loadTexture(const std::string& texture_tag_) {
+    texture_tag = texture_tag_;
+	auto textureData = GLRenderer::GetTextureData(texture_tag);
+	data.objRes = textureData.res;
+	data.imgRes = textureData.res;
 }
 
 void Sprite::draw() {

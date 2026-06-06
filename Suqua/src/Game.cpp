@@ -153,7 +153,7 @@ void Game::renderUpdateStep() {
 
 void Game::renderStep() {
 	for (auto&& scene : scenes) {
-		if (scene->flags & Scene::Flag::physics) {
+		if (scene->flags & Scene::Flag::render) {
 			scene->renderStep(*this);
 		}
 	}

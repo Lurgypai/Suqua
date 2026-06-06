@@ -4,7 +4,9 @@
 
 #include "SuquaLib.h"
 #include "ClientWorldScene.h"
+#include "MenuScene.h"
 #include "DebugFIO.h"
+#include "IDKeyboardMouse.h"
 
 using json = nlohmann::json;
 
@@ -42,7 +44,10 @@ int main(int argc, char** argv) {
 	std::cout << "The target ip is " << ip << ".\n";
 
     // game.host.tryConnect(ip, 25565, 10);
-	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all);
+    InputDeviceId input = game.loadInputDevice<IDKeyboardMouse>();
+	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all, input);
+    SceneId menuScene = game.loadScene<MenuScene>(Scene::Flag::none, playingScene, input);
+    game.getScene<ClientWorldScene>(playingScene).menuScene = menuScene;
 
 	SuquaLib::RunGame(game);
 

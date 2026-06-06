@@ -8,7 +8,7 @@
 
 class ClientWorldScene : public Scene {
 public:
-	ClientWorldScene(SceneId id_, Scene::FlagType flags_);
+	ClientWorldScene(SceneId id_, Scene::FlagType flags_, InputDeviceId input);
 	// Inherited via Scene
 	virtual void load(Game& game) override;
 	virtual void physicsStep(Game& game) override;
@@ -18,6 +18,7 @@ public:
 	virtual void onConnect(Game& game, PeerId connectingId) override;
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) override;
 
+    SceneId menuScene;
 private:
     World world;
     std::string activeLevel;
@@ -26,7 +27,6 @@ private:
 	EntityId myDaemonId;
 
 	InputDeviceId playerInput;
-	InputDeviceId gunInput;
 	PhysicsSystem physics;
 	CombatSystem combat;
 	ItemSystem items;
