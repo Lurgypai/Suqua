@@ -1,13 +1,11 @@
 #include "FontData.h"
 #include "Vec2.h"
-#include "GLRenderer.h"
 
 #include <fstream>
 #include <sstream>
 #include <vector>
 
 #include "glad/glad.h"
-#include "SDL.h"
 #include "stb_image.h"
 
 FontData::FontData() {

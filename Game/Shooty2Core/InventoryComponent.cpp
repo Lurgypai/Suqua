@@ -41,7 +41,8 @@ void InventoryComponent::update(Scene& scene, float delta) {
 	// update items
 	for (int hand = 0; hand != actionItems.size(); ++hand) {
 		auto& item = actionItems[hand];
-		if (item.ability != nullptr) item.ability->update(delta);
+        ItemAbility* ability = item.item.getAbility();
+		if (ability != nullptr) ability->update(delta);
 	}
 
 	// use items
@@ -59,15 +60,16 @@ void InventoryComponent::update(Scene& scene, float delta) {
 
 	for (int i = 0; i != SLOT_COUNT; ++i) {
 		auto& leftItem = actionItems[i];
-		if (!leftItem.tag.empty()) {
+		if (!leftItem.item.getTag().empty()) {
 			handTargetPos[i] = getTargetHandPos(i, handsAligned, basePos, handOffset, controller.stick2.angle());
 			// move hand and set angle
 			Vec2f delta = handTargetPos[i] - leftItem.heldPos;
 			leftItem.heldPos += delta * handMoveRate;
 			leftItem.angle = controller.stick2.angle();
 			// activate abilities
-			if (controller[handFlags[i]] && leftItem.ability != nullptr) {
-				leftItem.ability->doAbility(scene, id, controller, leftItem);
+            ItemAbility* ability = leftItem.item.getAbility();
+			if (controller[handFlags[i]] && ability != nullptr) {
+				ability->doAbility(scene, id, controller, leftItem);
 			}
 		}
 	}
@@ -81,12 +83,14 @@ void InventoryComponent::setActionItem(int slot, const Item& item, EntityId targ
 	// maybe crash?
 	if (slot < 0 && slot > SLOT_COUNT - 1) return;
 
-	actionItems[slot] = InventoryItem{ item.tag, 1, item.getAbility()};
+	actionItems[slot] = InventoryItem{ item, 1};
 	auto* contComp = EntitySystem::GetComp<ControllerComponent>(id);
 	actionItems[slot].heldPos = getTargetHandPos(slot, handsAligned, getBodyPos(), handOffset,
 		contComp->getController().stick2.angle());
-	if (actionItems[slot].ability == nullptr) return;
-	actionItems[slot].ability->targetEntity = targetEntity;
+
+    ItemAbility* ability = actionItems[slot].item.getAbility();
+	if (ability == nullptr) return;
+	ability->targetEntity = targetEntity;
 }
 
 Vec2f InventoryComponent::getBodyPos() const {
@@ -108,10 +112,10 @@ float InventoryComponent::getHandAngle(int hand) const {
 
 const std::string& InventoryComponent::getHandTag(int hand) const {
 	// more elegant crashes?
-	return actionItems.at(hand).tag;
+	return actionItems.at(hand).item.getTag();
 }
 
 bool InventoryComponent::handIsActive(int hand) const {
 	if (hand < 0 || hand > SLOT_COUNT - 1) return false;
-	return !actionItems[hand].tag.empty();
+	return !actionItems[hand].item.getTag().empty();
 }

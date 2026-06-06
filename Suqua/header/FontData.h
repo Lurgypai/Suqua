@@ -1,10 +1,8 @@
 #pragma once
-#include "Sprite.h"
 #include <string>
-#include "ImgData.h"
-
 #include <map>
 
+#include "Vec2.h"
 
 struct Character {
 	int id;

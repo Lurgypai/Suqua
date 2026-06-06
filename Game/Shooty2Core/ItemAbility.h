@@ -1,6 +1,5 @@
 #pragma once
 #include "EntitySystem.h"
-#include "InventoryItem.h"
 #include "Scene.h"
 #include "Controller.h"
 

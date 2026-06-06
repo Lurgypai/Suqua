@@ -1,15 +1,10 @@
 #include "IAGunFire.h"
 #include "PhysicsComponent.h"
-#include "DirectionComponent.h"
-#include "ControllerComponent.h"
-#include "PositionComponent.h"
 #include "LifeTimeComponent.h"
-#include "EntityBaseComponent.h"
 #include "HealthComponent.h"
 #include "EntitySpawnSystem.h"
 #include "RandomUtil.h"
-
-#include <print>
+#include "InventoryItem.h"
 
 IAGunFire::IAGunFire(float offset_,
         const std::string& bulletTag_,

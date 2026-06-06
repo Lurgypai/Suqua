@@ -129,7 +129,7 @@ void ClientWorldScene::load(Game& game)
 
 	/* ------------------------ OTHER DEBUG ------------------------ */
 	// load test items
-	items.registerItem(Item{ "Test Gun", "item:gun", false, IAGunFire{13.f,
+	items.registerItem(Item{ "item:gun", false, IAGunFire{13.f,
 			"bullet.player.basic",
 			3,
 			0.2f,
@@ -137,7 +137,7 @@ void ClientWorldScene::load(Game& game)
 			1,
 			0.1f,
 			0.f } });
-	items.registerItem(Item{ "Dash Skill", "item:dash", true, IABasicDash{} });
+	items.registerItem(Item{ "item:dash", false, IABasicDash{} });
 
 	// add test items to inventory
 	auto* plrInventoryComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);

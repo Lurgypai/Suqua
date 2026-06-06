@@ -1,7 +1,7 @@
 #include "ItemSystem.h"
 
 void ItemSystem::registerItem(Item&& item) {
-	items.emplace(item.tag, std::forward<Item>(item));
+	items.emplace(item.getTag(), std::forward<Item>(item));
 }
 
 const Item& ItemSystem::getItem(const std::string& tag) {

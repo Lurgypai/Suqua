@@ -1,7 +1,12 @@
 #pragma once
 #include "Scene.h"
 
+#include <string>
+#include <array>
+
+#include "MenuTab.h"
 #include "Sprite.h"
+#include "TextDrawable.h"
 
 class MenuScene : public Scene {
 public:
@@ -14,12 +19,22 @@ public:
 	virtual void unload(Game& game) override;
 	virtual void onConnect(Game& game, PeerId connectingId) override;
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) override;
+
+    EntityId playerId;
 private:
+
+    void updateTabs();
+
+    void openInventoryTab(MenuTab::InventoryTab tab);
+    void closeInventoryTab();
+
     SceneId playingScene;
     InputDeviceId input;
 
     int superTab;
     int subTab;
+    int prevSuperTab;
+    int prevSubTab;
 
     int maxSuperTab;
     int maxSubTab;
@@ -31,6 +46,12 @@ private:
 
     int subTabBaseOffset;
     int subTabOffset;
+
+    std::array<std::string, 5> superTabNames;
+    std::array<std::array<std::string, 5>, 5> subTabNames;
+
+    std::array<TextDrawable, 5> superTabText;
+    std::array<TextDrawable, 5> subTabText;
 
     Sprite superTabBox;
     Sprite subTabBox;

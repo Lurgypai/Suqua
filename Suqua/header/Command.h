@@ -4,6 +4,7 @@
 
 class Command {
 public:
+    virtual ~Command() {};
 	virtual std::string getTag() const = 0;
 	virtual void onCommand(const std::vector<std::string>& args) = 0;
 };

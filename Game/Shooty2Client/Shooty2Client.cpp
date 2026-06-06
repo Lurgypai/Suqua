@@ -12,7 +12,6 @@ using json = nlohmann::json;
 
 int main(int argc, char** argv) {
 	SuquaLib::SuquaInit("Shooty2", "settings.json", SuquaLib::all);
-	GLRenderer::LoadTexture("suqua/images/none.png", "none");
 	
 	Game game{ Game::client_flags };
     game.setStateBroadcastDelay(4);
@@ -48,6 +47,7 @@ int main(int argc, char** argv) {
 	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all, input);
     SceneId menuScene = game.loadScene<MenuScene>(Scene::Flag::none, playingScene, input);
     game.getScene<ClientWorldScene>(playingScene).menuScene = menuScene;
+    game.getScene<MenuScene>(menuScene).playerId = game.getScene<ClientWorldScene>(playingScene).myPlayerId;
 
 	SuquaLib::RunGame(game);
 

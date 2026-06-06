@@ -45,7 +45,7 @@ void CommandSetItem::onCommand(const std::vector<std::string>& args) {
 	}
 
 	auto* invComp = EntitySystem::GetComp<InventoryComponent>(e);
-	if(slot > 1 && items->getItem(args[2]).doesTargetHost)
+	if(slot > 1)
 		invComp->setActionItem(trueSlot, items->getItem(args[2]), playerId);
 	else 
 		invComp->setActionItem(trueSlot, items->getItem(args[2]));
