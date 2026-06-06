@@ -3,9 +3,8 @@
 
 #include <vector>
 #include <string>
-#include <unordered_map>
 
-#include "ItemSystem.h"
+#include "Item.h"
 #include "InventoryItem.h"
 
 

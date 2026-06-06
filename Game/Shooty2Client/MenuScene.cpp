@@ -14,9 +14,9 @@ MenuScene::MenuScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_,
     subTabBox{},
     background{},
     superTabBaseOffset{44},
-    superTabOffset{109},
+    superTabOffset{105},
     subTabBaseOffset{44},
-    subTabOffset{109}
+    subTabOffset{105}
 {
     // set the y offset of tabs
     superTabBox.setPos({0, 13});
@@ -51,24 +51,24 @@ void MenuScene::load(Game& game) {
 
 void MenuScene::physicsStep(Game& game) {
     auto cont = game.getInputDevice(input).getControllerState();
-    if(cont.toggled(ControllerBits::BUTTON_5)) {
-        ++superTab;
-        if(superTab > maxSuperTab) superTab = 0;
-        subTab = 0;
-    }
-    if(cont.toggled(ControllerBits::BUTTON_6)) {
+    if(cont.toggled(ControllerBits::BUTTON_5) && cont[ControllerBits::BUTTON_5]) {
         --superTab;
         if(superTab < 0) superTab = maxSuperTab;
         subTab = 0;
     }
-
-    if(cont.toggled(ControllerBits::BUTTON_12)) {
-        ++subTab;
-        if(subTab > maxSubTab) subTab = 0;
+    if(cont.toggled(ControllerBits::BUTTON_6) && cont[ControllerBits::BUTTON_6]) {
+        ++superTab;
+        if(superTab > maxSuperTab) superTab = 0;
+        subTab = 0;
     }
-    if(cont.toggled(ControllerBits::BUTTON_11)) {
+
+    if(cont.toggled(ControllerBits::BUTTON_7) && cont[ControllerBits::BUTTON_7]) {
         --subTab;
         if(subTab < 0) subTab = maxSubTab;
+    }
+    if(cont.toggled(ControllerBits::BUTTON_8) && cont[ControllerBits::BUTTON_8]) {
+        ++subTab;
+        if(subTab > maxSubTab) subTab = 0;
     }
 }
 

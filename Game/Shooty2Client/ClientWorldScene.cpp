@@ -192,12 +192,12 @@ void ClientWorldScene::physicsStep(Game& game)
 
     // opening the menu
     auto cont = game.getInputDevice(playerInput).getControllerState();
-    if(cont.toggled(ControllerBits::BUTTON_1) && cont[ControllerBits::BUTTON_1]) {
-        // disable our input
-        game.setSceneFlags(id, Scene::Flag::input, false);
-        // open the menu
-        game.sceneOn(menuScene);
-        DebugIO::printLine("menu open");
+    if(cont.toggled(ControllerBits::BUTTON_4) && cont[ControllerBits::BUTTON_4]) {
+        // if our input is enabled, turn the menu on and disable input, else turn menu off and enable
+        if(flags & Scene::Flag::input) game.sceneOn(menuScene);
+        else game.sceneOff(menuScene);
+
+        game.toggleSceneFlags(id, Scene::Flag::input);
     }
 }
 

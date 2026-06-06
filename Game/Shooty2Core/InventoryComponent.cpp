@@ -3,11 +3,9 @@
 #include "PhysicsComponent.h"
 #include "PositionComponent.h"
 
-#include <print>
-
 InventoryComponent::InventoryComponent(EntityId id_, Vec2f bodyOffset_, float handOffset_) :
 	id{ id_ },
-	handFlags{ ControllerBits::BUTTON_11, ControllerBits::BUTTON_12 },
+	handFlags{ ControllerBits::BUTTON_5, ControllerBits::BUTTON_6 },
 	actionItems{},
 	storageItems{},
 	bodyOffset{bodyOffset_},
@@ -52,8 +50,8 @@ void InventoryComponent::update(Scene& scene, float delta) {
 	const auto& controller = contComp->getController();
 
 	// toggle between aligned and spread
-	if (controller.toggled(ControllerBits::BUTTON_8)) {
-		if (controller[ControllerBits::BUTTON_8]) handsAligned = !handsAligned;
+	if (controller.toggled(ControllerBits::BUTTON_10)) {
+		if (controller[ControllerBits::BUTTON_10]) handsAligned = !handsAligned;
 	}
 
 	// get base body position

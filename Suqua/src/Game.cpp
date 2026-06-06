@@ -247,8 +247,10 @@ void Game::clientStep() {
 	}
 
 	if (flags & Flag::input) {
-		tickInputDevices();
-		if (!DebugIO::getOpen()) inputStep();
+		if (!DebugIO::getOpen()) {
+            tickInputDevices();
+            inputStep();
+        }
 	}
 
 	if (flags & Flag::physics) {

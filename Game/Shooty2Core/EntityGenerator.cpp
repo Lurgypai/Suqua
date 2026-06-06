@@ -3,9 +3,7 @@
 
 #include "SpawnFunctionNotFoundException.h"
 
-#include "CHKill.h"
 #include <unordered_map>
-#include <vector>
 
 EntityId EntityGenerator::SpawnEntity(
         const std::string& tag,

@@ -118,7 +118,7 @@ static EntityId SpawnDaemon(
 	EntitySystem::MakeComps<DaemonComponent>(1, &entity, 0.1f, Vec2f{-15, -15});
 	EntitySystem::MakeComps<InventoryComponent>(1, &entity, Vec2f{0.f, 5.f}, 5.f);
 	auto* daemonInvComp = EntitySystem::GetComp<InventoryComponent>(entity);
-	daemonInvComp->handFlags = { ControllerBits::BUTTON_6, ControllerBits::BUTTON_5 };
+	daemonInvComp->handFlags = { ControllerBits::BUTTON_7, ControllerBits::BUTTON_8 };
     auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(entity);
     auto* posComp = EntitySystem::GetComp<PositionComponent>(entity);
     ndc->set(PositionData::X, posComp->pos.x);

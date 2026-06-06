@@ -21,9 +21,9 @@ void DaemonComponent::update() {
 	if (hostInv == nullptr) return;
 
 	auto* contComp = EntitySystem::GetComp<ControllerComponent>(id);
-	if (contComp->getController().toggled(ControllerBits::BUTTON_7)) {
+	if (contComp->getController().toggled(ControllerBits::BUTTON_9)) {
 		// if toggled down, flip isHolding
-		if(contComp->getController()[ControllerBits::BUTTON_7]) isHolding = !isHolding;
+		if(contComp->getController()[ControllerBits::BUTTON_9]) isHolding = !isHolding;
 		if (isHolding) {
 			targetPos = hostInv->getBodyPos();
 		}

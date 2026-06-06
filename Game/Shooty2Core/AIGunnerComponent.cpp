@@ -64,7 +64,7 @@ static inline void beginAttacking(AIState& state, Controller& controller) {
     state = AIState::attacking;
 
     // do attack
-    controller.on(ControllerBits::BUTTON_11);
+    controller.on(ControllerBits::BUTTON_5);
 }
 
 void AIGunnerComponent::update(double delta) {
@@ -135,7 +135,7 @@ void AIGunnerComponent::update(double delta) {
         case AIState::attacking:
             if(timeSinceLastAction < attackTime) {
                 controller.stick1 = {};
-                controller.off(ControllerBits::BUTTON_11);
+                controller.off(ControllerBits::BUTTON_5);
                 break;
             }
             timeSinceLastAction -= attackTime;

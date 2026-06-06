@@ -11,21 +11,20 @@ enum ControllerBits : ControllerState {
 	LEFT = 1 << 2,
 	RIGHT = 1 << 3,
 
-	BUTTON_1 = 1 << 4,
-	BUTTON_2 = 1 << 5,
-	BUTTON_3 = 1 << 6,
-	BUTTON_4 = 1 << 7,
+	BUTTON_1 = 1 << 4, // circle
+	BUTTON_2 = 1 << 5, // x
+	BUTTON_3 = 1 << 6, // square
+	BUTTON_4 = 1 << 7, // triangle
 
-	BUTTON_5 = 1 << 8,
-	BUTTON_6 = 1 << 9,
-	BUTTON_7 = 1 << 10,
-	BUTTON_8 = 1 << 11,
-	BUTTON_9 = 1 << 12,
-	BUTTON_10 = 1 << 13,
-	BUTTON_11 = 1 << 14,
-	BUTTON_12 = 1 << 15,
+	BUTTON_5 = 1 << 8,      // l
+	BUTTON_6 = 1 << 9,      // r
+	BUTTON_7 = 1 << 10,     // l2
+	BUTTON_8 = 1 << 11,     // r2
+	BUTTON_9 = 1 << 12,     // l3
+	BUTTON_10 = 1 << 13,    // r3
+	BUTTON_11 = 1 << 14,    // select
+	BUTTON_12 = 1 << 15,    // start
 
-	ALL = UP | DOWN | LEFT | RIGHT | BUTTON_1 | BUTTON_2 | BUTTON_3 | BUTTON_4,
 	NONE = 0
 };
 
