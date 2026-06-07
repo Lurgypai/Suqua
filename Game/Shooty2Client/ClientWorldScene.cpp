@@ -1,4 +1,4 @@
-#include <print>
+// #include <print>
 
 #include "DebugIO.h"
 #include "Game.h"
@@ -8,7 +8,6 @@
 #include "IDKeyboardMouse.h"
 #include "ExitCommand.h"
 #include "ClientEntityGenerator.h"
-#include "MenuScene.h"
 
 #include "PHClientState.h"
 #include "PHClientSpawnEntities.h"
@@ -31,7 +30,7 @@
 #include "ControllerComponent.h"
 #include "TeleportZoneGFXComponent.h"
 #include "DaemonGFXComponent.h"
-#include "InventoryItemGFXComponent.h"
+#include "HandItemGFXComponent.h"
 
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
@@ -40,20 +39,22 @@
 #include "../Shooty2Core/AIGunnerComponent.h"
 #include "../Shooty2Core/PlayerSpawnComponent.h"
 #include "../Shooty2Core/InventoryComponent.h"
+#include "../Shooty2Core/HandComponent.h"
 #include "../Shooty2Core/DaemonComponent.h"
 
 #include "../Shooty2Core/CommandRespawn.h"
 #include "CommandSetItem.h"
 
 // debug
-#include "../Shooty2Core/IAGunFire.h"
-#include "../Shooty2Core/IABasicDash.h"
-#include "PositionComponent.h"
+// #include "PositionComponent.h"
 
-ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_, InputDeviceId input) :
+ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_, InputDeviceId input,
+        ItemSystem& items_, HandItemGFXSystem& invItemGfx_) :
 	Scene{ id_, flags_ },
-	playerInput{ input }
-{}
+	playerInput{ input },
+    items{items_},
+    invItemGfx{invItemGfx_}
+{ }
 
 void ClientWorldScene::load(Game& game)
 {
@@ -84,8 +85,6 @@ void ClientWorldScene::load(Game& game)
 	GLRenderer::LoadTexture("stranded/Tileset/custom_top_down.png", "tileset");
     GLRenderer::LoadTexture("enemy/basic.png", "enemy:basic");
 
-	GLRenderer::LoadTexture("stranded/Hero/Hero/green_gun.png", "item:gun");
-	invItemGfx.registerGFX("item:gun", InventoryItemGFX::sprite, { 1.f, 2.f });
 
     //particles
     GLRenderer::GenParticleType("exit", 1, ComputeShader{ "particles/test.vert" });
@@ -128,25 +127,21 @@ void ClientWorldScene::load(Game& game)
     game.host.bufferAllDataByChannel(0, playerPacket);
 
 	/* ------------------------ OTHER DEBUG ------------------------ */
-	// load test items
-	items.registerItem(Item{ "item:gun", false, IAGunFire{13.f,
-			"bullet.player.basic",
-			3,
-			0.2f,
-			0.5f,
-			1,
-			0.1f,
-			0.f } });
-	items.registerItem(Item{ "item:dash", false, IABasicDash{} });
-
 	// add test items to inventory
-	auto* plrInventoryComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
-	plrInventoryComp->setActionItem(0, items.getItem("item:gun"));
-	plrInventoryComp->setActionItem(1, items.getItem("item:dash"));
+    auto* plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
+    plrInvComp->setItemCount("item:gun", 1);
+    plrInvComp->setItemCount("item:dash", 1);
+    for (int i = 0; i != 9; ++i) {
+        plrInvComp->setItemCount("debug" + std::to_string(i), 1);
+    }
+
+	auto* plrHandComp = EntitySystem::GetComp<HandComponent>(myPlayerId);
+	plrHandComp->setItem(0, items.getItem("item:gun"));
+	plrHandComp->setItem(1, items.getItem("item:dash"));
 	
-	auto* daemonInvComp = EntitySystem::GetComp<InventoryComponent>(myDaemonId);
-	daemonInvComp->setActionItem(0, items.getItem("item:gun"));
-	daemonInvComp->setActionItem(1, items.getItem("item:gun"), myPlayerId);
+	auto* daemonInvComp = EntitySystem::GetComp<HandComponent>(myDaemonId);
+	daemonInvComp->setItem(0, items.getItem("item:gun"));
+	daemonInvComp->setItem(1, items.getItem("item:gun"), myPlayerId);
 
 	/*-------------- COMMANDS ----------------*/
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
@@ -165,7 +160,7 @@ void ClientWorldScene::physicsStep(Game& game)
 	Updater::UpdateOwned<LifeTimeComponent>();
 	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();
-	Updater::UpdateOwned<InventoryComponent>(*this, game.PHYSICS_STEP);
+	Updater::UpdateOwned<HandComponent>(*this, game.PHYSICS_STEP);
 	Updater::UpdateOwned<DaemonComponent>();
 
     // combat is done entirely client side
@@ -178,7 +173,7 @@ void ClientWorldScene::physicsStep(Game& game)
 
 	// update inputs for next frame
 	auto& playerInputDevice = static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput));
-	auto plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
+	auto plrInvComp = EntitySystem::GetComp<HandComponent>(myPlayerId);
 	playerInputDevice.entityPos = plrInvComp->getBodyPos();
 
     // load active level
@@ -204,7 +199,7 @@ void ClientWorldScene::physicsStep(Game& game)
 void ClientWorldScene::renderUpdateStep(Game& game)
 {
 	Updater::UpdateAll<CharacterGFXComponent>(game.PHYSICS_STEP * 1000);
-	Updater::UpdateAll<InventoryItemGFXComponent>(invItemGfx);
+	Updater::UpdateAll<HandItemGFXComponent>(invItemGfx);
     Updater::UpdateAll<OnHitComponent>();
     Updater::UpdateAll<RespawnGFXComponent>();
     Updater::UpdateAll<AttackGFXComponent>();
@@ -303,7 +298,7 @@ void ClientWorldScene::renderStep(Game& game)
 	
 	
 	// render inventory body pos
-	// auto* plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
+	// auto* plrInvComp = EntitySystem::GetComp<HandComponent>(myPlayerId);
 	// auto* plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
 	// RectDrawable bodyPosRect{ Color{1, 0, 0, 1}, false, -1.0f, AABB{plrInvComp->getBodyPos() - Vec2f{1.f, 1.f}, Vec2f{3.f, 3.f}}};
 	// bodyPosRect.draw();

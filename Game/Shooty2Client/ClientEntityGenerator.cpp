@@ -1,12 +1,10 @@
 #include "ClientEntityGenerator.h"
 #include "CharacterGFXComponent.h"
-#include "RespawnGFXComponent.h"
 #include "RectDrawable.h"
 #include "AttackGFXComponent.h"
-#include "InventoryItemGFXComponent.h"
+#include "HandItemGFXComponent.h"
 #include "TeleportZoneGFXComponent.h"
 #include "DaemonGFXComponent.h"
-#include "DebugFIO.h"
 #include "Sprite.h"
 #include "../Shooty2Core/OnHitComponent.h"
 
@@ -29,13 +27,13 @@ static void AddPlayerGFX(EntityId playerId) {
 	EntitySystem::MakeComps<OnHitComponent>(1, &playerId);
     // EntitySystem::MakeComps<RespawnGFXComponent>(1, &playerId);
 
-	EntitySystem::MakeComps<InventoryItemGFXComponent>(1, &playerId);
+	EntitySystem::MakeComps<HandItemGFXComponent>(1, &playerId);
 }
 
 static void AddDaemonGFX(EntityId daemonId) {
     EntitySystem::MakeComps<DaemonGFXComponent>(1, &daemonId);
 	EntitySystem::MakeComps<RenderComponent>(1, &daemonId);
-    EntitySystem::MakeComps<InventoryItemGFXComponent>(1, &daemonId);
+    EntitySystem::MakeComps<HandItemGFXComponent>(1, &daemonId);
 }
 
 static void AddBulletPlayerBasicGFX(EntityId bulletId) {

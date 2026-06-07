@@ -6,9 +6,12 @@ public:
 	IABasicDash();
 
 	virtual void update(float delta) override;
-	virtual void doAbility(Scene& scene, EntityId sourceEntity, const Controller& controller, InventoryItem& sourceInvItem) override;
+	virtual void doAbility(Scene& scene, EntityId sourceEntity, EntityId targetEntity,
+            const Controller& controller, const Vec2f& heldPos, float angle) override;
 	virtual std::unique_ptr<ItemAbility> clone() const override;
 private:
+    EntityId targetEntity;
+
 	float dashTime;
 	float cooldownTime;
 

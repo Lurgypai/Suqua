@@ -6,8 +6,10 @@
 using SuperTab = MenuTab::SuperTab;
 using InventoryTab = MenuTab::InventoryTab;
 
-MenuScene::MenuScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_, InputDeviceId input_) :
+MenuScene::MenuScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_,
+        InputDeviceId input_, const InterfaceItemGFXSystem& itemGfx_, EntityId playerId_) :
     Scene{ id_, flags_ },
+    inventoryMenu{itemGfx_},
     playingScene{playingScene_},
     input{input_},
     superTab{ 0 },
@@ -26,7 +28,8 @@ MenuScene::MenuScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_,
     superTabNames{},
     subTabNames{},
     superTabText{},
-    subTabText{}
+    subTabText{},
+    playerId{playerId_}
 {
     // set the y offset of tabs
     superTabBox.setPos({0, 13});
@@ -57,7 +60,7 @@ void MenuScene::updateTabs() {
         case SuperTab::status:
             break;
         case SuperTab::inventory:
-            closeInventoryTab();
+            inventoryMenu.close();
             break;
         case SuperTab::crucible:
             break;
@@ -71,31 +74,20 @@ void MenuScene::updateTabs() {
         case SuperTab::status:
             break;
         case SuperTab::inventory:
-            openInventoryTab(static_cast<InventoryTab>(subTab));
+            inventoryMenu.open(static_cast<InventoryTab>(subTab));
             break;
         case SuperTab::crucible:
             break;
         case SuperTab::settings:
             break;
-        default:
-            throw std::exception{};
     }
     prevSuperTab = superTab;
     prevSubTab = subTab;
 }
 
-void MenuScene::openInventoryTab(InventoryTab tab) {
-    /*
-     * select items in this inventory sub
-     * set cur item selected to 0
-     *
-     */
-}
-
-void MenuScene::closeInventoryTab() {
-}
-
 void MenuScene::load(Game& game) {
+    inventoryMenu.playerId = playerId;
+
 	screenBuffer.bind();
 	screenBuffer.addTexture2D(720, 405, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);
 	screenBuffer.makeDepthBuffer(720, 405);
@@ -120,7 +112,7 @@ void MenuScene::load(Game& game) {
         "Status",
         "Inventory",
         "Crucible",
-        "Settings"
+        "Settings",
     };
 
     subTabNames[1] = {
@@ -153,25 +145,26 @@ void MenuScene::physicsStep(Game& game) {
     auto cont = game.getInputDevice(input).getControllerState();
     if(cont.toggled(ControllerBits::BUTTON_5) && cont[ControllerBits::BUTTON_5]) {
         --superTab;
-        if(superTab < 0) superTab = maxSuperTab;
+        if(superTab < 0) superTab = maxSuperTab - 1;
         subTab = 0;
     }
     if(cont.toggled(ControllerBits::BUTTON_6) && cont[ControllerBits::BUTTON_6]) {
         ++superTab;
-        if(superTab > maxSuperTab) superTab = 0;
+        if(superTab >= maxSuperTab) superTab = 0;
         subTab = 0;
     }
 
     if(cont.toggled(ControllerBits::BUTTON_7) && cont[ControllerBits::BUTTON_7]) {
         --subTab;
-        if(subTab < 0) subTab = maxSubTab;
+        if(subTab < 0) subTab = maxSubTab - 1;
     }
     if(cont.toggled(ControllerBits::BUTTON_8) && cont[ControllerBits::BUTTON_8]) {
         ++subTab;
-        if(subTab > maxSubTab) subTab = 0;
+        if(subTab >= maxSubTab) subTab = 0;
     }
 
     updateTabs();
+    inventoryMenu.update(cont);
 }
 
 void MenuScene::renderUpdateStep(Game& game) {}
@@ -189,6 +182,8 @@ void MenuScene::renderStep(Game& game) {
 
     for(auto& text : superTabText) text.draw();
     for(auto& text : subTabText) text.draw();
+
+    inventoryMenu.render();
 
     GLRenderer::DrawBufferedImages();
 

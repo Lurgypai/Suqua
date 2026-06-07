@@ -4,7 +4,6 @@
 #include "HealthComponent.h"
 #include "EntitySpawnSystem.h"
 #include "RandomUtil.h"
-#include "InventoryItem.h"
 
 IAGunFire::IAGunFire(float offset_,
         const std::string& bulletTag_,
@@ -27,12 +26,13 @@ IAGunFire::IAGunFire(float offset_,
     curShot{ 0 }
 {}
 
-void IAGunFire::doAbility(Scene& scene, EntityId sourceEntity, const Controller& controller, InventoryItem& sourceInvItem)
+void IAGunFire::doAbility(Scene& scene, EntityId sourceEntity, EntityId targetEntity,
+        const Controller& controller, const Vec2f& heldPos, float angle)
 {
     if (state != FireState::ready) return;
 
     // do firing process
-	auto firingPos = getFiringPos(sourceInvItem.heldPos, sourceInvItem.angle);
+	auto firingPos = getFiringPos(heldPos, angle);
     for(int i = 0; i != bulletCount; ++i) {
         auto bulletId = EntitySpawnSystem::SpawnEntity(bulletTag, scene,
                 firingPos, NetworkDataComponent::Owner::local_shared);

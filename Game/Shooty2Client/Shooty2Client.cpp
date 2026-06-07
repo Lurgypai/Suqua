@@ -8,29 +8,34 @@
 #include "DebugFIO.h"
 #include "IDKeyboardMouse.h"
 
+#include "InterfaceItemGFXSystem.h"
+#include "../Shooty2Core/IAGunFire.h"
+#include "../Shooty2Core/IABasicDash.h"
+
 using json = nlohmann::json;
 
 int main(int argc, char** argv) {
+    /* Library Init */
 	SuquaLib::SuquaInit("Shooty2", "settings.json", SuquaLib::all);
+
 	
+    /* Game Init */
 	Game game{ Game::client_flags };
     game.setStateBroadcastDelay(4);
-	// Game game{ Game::local_flags };
 
     DebugFIO::AddFOut("debug.log");
 
+    // load settings
 	json settings;
 	std::ifstream file{ "settings.json" };
 	if (file.good()) {
 		file >> settings;
 		file.close();
 	}
-
 	std::string ip = "127.0.0.1";
 	if (settings.contains("ip")) {
 		ip = settings["ip"];
 	}
-
     if(settings.contains("debugNetDelay")) {
         int delayMin = settings["debugNetDelay"]["min"];
         int delayVar = settings["debugNetDelay"]["variation"];
@@ -39,15 +44,39 @@ int main(int argc, char** argv) {
         std::cout << "Enabled debug delay, minimum " << delayMin << ", variation " << delayVar << '\n';
     }
     game.setStateBroadcastDelay(4);
-
 	std::cout << "The target ip is " << ip << ".\n";
 
+    
+    /* Load Objects */
+    // Items
+    ItemSystem items;
+	items.registerItem(Item{ "item:gun", false, IAGunFire{13.f,
+			"bullet.player.basic",
+			3,
+			0.2f,
+			0.5f,
+			1,
+			0.1f,
+			0.f } });
+	items.registerItem(Item{ "item:dash", false, IABasicDash{} });
+
+	GLRenderer::LoadTexture("stranded/Hero/Hero/green_gun.png", "item:gun");
+    GLRenderer::LoadTexture("player/dash.png", "item:dash");
+
+    InterfaceItemGFXSystem interfaceItemGfx;
+    interfaceItemGfx.registerGFX("item:gun", "item:gun", "none", "it do be a gun");
+    interfaceItemGfx.registerGFX("item:dash", "item:dash", "none", "it do be a dash");
+
+    HandItemGFXSystem handItemGfx;
+	handItemGfx.registerGFX("item:gun", HandItemGFX::sprite, { 1.f, 2.f });
+
+    /* Setup Scenes */
     // game.host.tryConnect(ip, 25565, 10);
     InputDeviceId input = game.loadInputDevice<IDKeyboardMouse>();
-	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all, input);
-    SceneId menuScene = game.loadScene<MenuScene>(Scene::Flag::none, playingScene, input);
+	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all, input, items, handItemGfx);
+    SceneId menuScene = game.loadScene<MenuScene>(Scene::Flag::none, playingScene, input, interfaceItemGfx,
+            game.getScene<ClientWorldScene>(playingScene).myPlayerId);
     game.getScene<ClientWorldScene>(playingScene).menuScene = menuScene;
-    game.getScene<MenuScene>(menuScene).playerId = game.getScene<ClientWorldScene>(playingScene).myPlayerId;
 
 	SuquaLib::RunGame(game);
 

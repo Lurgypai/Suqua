@@ -1,6 +1,6 @@
 #include "CommandSetItem.h"
 #include "DebugIO.h"
-#include "../Shooty2Core/InventoryComponent.h"
+#include "../Shooty2Core/HandComponent.h"
 
 CommandSetItem::CommandSetItem(ItemSystem& items_, EntityId playerId_, EntityId daemonId_) :
 	items{&items_},
@@ -44,9 +44,9 @@ void CommandSetItem::onCommand(const std::vector<std::string>& args) {
 		trueSlot -= 2;
 	}
 
-	auto* invComp = EntitySystem::GetComp<InventoryComponent>(e);
+	auto* invComp = EntitySystem::GetComp<HandComponent>(e);
 	if(slot > 1)
-		invComp->setActionItem(trueSlot, items->getItem(args[2]), playerId);
+		invComp->setItem(trueSlot, items->getItem(args[2]), playerId);
 	else 
-		invComp->setActionItem(trueSlot, items->getItem(args[2]));
+		invComp->setItem(trueSlot, items->getItem(args[2]));
 }

@@ -1,46 +1,21 @@
 #pragma once
 #include "ComponentMacros.h"
 
-#include <vector>
 #include <string>
-
-#include "Item.h"
-#include "InventoryItem.h"
-
+#include <map>
 
 class InventoryComponent {
 	CompMembers(InventoryComponent);
-
 public:
-	// number of hands
-	static constexpr int SLOT_COUNT = 2;
+    InventoryComponent(EntityId id_);
+    bool hasItem(const std::string& item) const;
 
-    InventoryComponent(EntityId id_, Vec2f bodyOffset_, float handOffset_);
+    void setItemCount(const std::string& item, int count);
+    int getItemCount(const std::string& item) const;
+    void useItem(const std::string& item);
 
-	void update(Scene& scene, float delta);
+    std::size_t getUniqueItemCount() const;
 
-	void setActionItem(int slot, const Item& item);
-	void setActionItem(int slot, const Item& item, EntityId targetEntity);
-
-	Vec2f getBodyPos() const;
-	Vec2f getHandPos(int index) const;
-	float getHandAngle(int index) const;
-	const std::string& getHandTag(int index) const;
-	bool handIsActive(int index) const;
-
-	// offset to center of arms from entity pos
-	Vec2f bodyOffset;
-	// offset from body pos to hands
-	float handOffset;
-
-	// what controller buttons to use for each hand
-	std::vector<ControllerBits> handFlags;
+    std::map<std::string, int> items;
 private:
-	std::vector<Vec2f> handTargetPos;
-	bool handsAligned;
-	float handMoveRate;
-	// items in hands
-	std::vector<InventoryItem> actionItems;
-	// other items
-	std::vector<InventoryItem> storageItems;
 };

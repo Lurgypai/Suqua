@@ -4,13 +4,15 @@
 #include <string>
 #include <array>
 
-#include "MenuTab.h"
 #include "Sprite.h"
 #include "TextDrawable.h"
+#include "InterfaceItemGFXSystem.h"
+#include "InventoryMenu.h"
 
 class MenuScene : public Scene {
 public:
-	MenuScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_, InputDeviceId input_);
+	MenuScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_, InputDeviceId input_,
+            const InterfaceItemGFXSystem& itemGfx_, EntityId playerId);
 	// Inherited via Scene
 	virtual void load(Game& game) override;
 	virtual void physicsStep(Game& game) override;
@@ -20,13 +22,11 @@ public:
 	virtual void onConnect(Game& game, PeerId connectingId) override;
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) override;
 
-    EntityId playerId;
 private:
-
+    EntityId playerId;
     void updateTabs();
 
-    void openInventoryTab(MenuTab::InventoryTab tab);
-    void closeInventoryTab();
+    InventoryMenu inventoryMenu;
 
     SceneId playingScene;
     InputDeviceId input;

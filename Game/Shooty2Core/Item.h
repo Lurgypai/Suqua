@@ -20,21 +20,15 @@ public:
     Item& operator=(const Item& other);
 
     const std::string& getTag() const;
-    bool getDoesStack() const;
 	const ItemAbility* getAbility() const;
     ItemAbility* getAbility();
 private:
-	std::unique_ptr<ItemAbility> ability;
-
-    // identifier
 	std::string tag;
-    // does this item stack?
-    bool doesStack;
+	std::unique_ptr<ItemAbility> ability;
 };
 
 template<typename T>
 Item::Item(const std::string& tag_, bool doesStack_, T&& itemAbility) :
 	tag{tag_},
-    doesStack{doesStack_},
 	ability{std::make_unique<T>(std::forward<T>(itemAbility))}
 {}

@@ -1,11 +1,10 @@
-#include "InventoryItemGFXComponent.h"
+#include "HandItemGFXComponent.h"
 #include "PositionComponent.h"
 #include "RenderComponent.h"
-#include "ControllerComponent.h"
 #include "Sprite.h"
-#include "../Shooty2Core/InventoryComponent.h"
+#include "../Shooty2Core/HandComponent.h"
 
-InventoryItemGFXComponent::InventoryItemGFXComponent(EntityId id_) :
+HandItemGFXComponent::HandItemGFXComponent(EntityId id_) :
 	id{id_},
 	items{}
 {
@@ -14,8 +13,8 @@ InventoryItemGFXComponent::InventoryItemGFXComponent(EntityId id_) :
     }
 
     auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
-	items.reserve(InventoryComponent::SLOT_COUNT);
-	for (int i = 0; i != InventoryComponent::SLOT_COUNT; ++i) {
+	items.reserve(HandComponent::SLOT_COUNT);
+	for (int i = 0; i != HandComponent::SLOT_COUNT; ++i) {
 		size_t spriteIndex = renderComp->allocateDrawable();
 		items.push_back(RenderItem{spriteIndex, "" });
 	}
@@ -24,7 +23,7 @@ InventoryItemGFXComponent::InventoryItemGFXComponent(EntityId id_) :
 inline static void updateItem(int index,
 	const std::vector<RenderItem> items,
 	PositionComponent* posComp,
-	InventoryComponent* invComp,
+	HandComponent* invComp,
 	RenderComponent* renderComp) {
 
 	auto& item = items[index];
@@ -52,19 +51,19 @@ inline static void updateItem(int index,
 	sprite.setAngle(dir * 180 / 3.14159);
 }
 
-void InventoryItemGFXComponent::update(const InventoryItemGFXSystem& invItemGfxSys) {
+void HandItemGFXComponent::update(const HandItemGFXSystem& invItemGfxSys) {
 	auto* posComp = EntitySystem::GetComp<PositionComponent>(id);
-	auto* invComp = EntitySystem::GetComp<InventoryComponent>(id);
+	auto* invComp = EntitySystem::GetComp<HandComponent>(id);
 	auto* renderComp = EntitySystem::GetComp<RenderComponent>(id);
 
-	for (int i = 0; i != InventoryComponent::SLOT_COUNT; ++i) {
+	for (int i = 0; i != HandComponent::SLOT_COUNT; ++i) {
 		if (!invComp->handIsActive(i)) continue;
 		auto& item = items[i];
 		// item has changed update sprite
 		if (invComp->getHandTag(i) != item.renderTag) {
 			item.renderTag = invComp->getHandTag(i);
 			auto invItemGfx = invItemGfxSys.getGFX(item.renderTag);
-			if (invItemGfx.renderMode == InventoryItemGFX::sprite) {
+			if (invItemGfx.renderMode == HandItemGFX::sprite) {
 				renderComp->setDrawable<Sprite>(item.spriteIndex, item.renderTag);
 				auto& sprite = renderComp->getDrawable<Sprite>(item.spriteIndex);
 				sprite.setOrigin(invItemGfx.renderOffset);
@@ -75,7 +74,7 @@ void InventoryItemGFXComponent::update(const InventoryItemGFXSystem& invItemGfxS
 		}
 		// update if drawn to screen
 		auto invItemGfx = invItemGfxSys.getGFX(item.renderTag);
-		if (invItemGfx.renderMode != InventoryItemGFX::sprite) continue;
+		if (invItemGfx.renderMode != HandItemGFX::sprite) continue;
 		updateItem(i, items, posComp, invComp, renderComp);
 	}
 }

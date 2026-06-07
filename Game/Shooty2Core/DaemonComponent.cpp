@@ -1,10 +1,8 @@
 #include "DaemonComponent.h"
 #include "PositionComponent.h"
 #include "ControllerComponent.h"
-#include "InventoryComponent.h"
+#include "HandComponent.h"
 #include "PhysicsComponent.h"
-
-#include <print>
 
 DaemonComponent::DaemonComponent(EntityId id_, float followRate_, Vec2f followOffset_) :
 	id{id_},
@@ -17,15 +15,15 @@ DaemonComponent::DaemonComponent(EntityId id_, float followRate_, Vec2f followOf
 {}
 
 void DaemonComponent::update() {
-	auto* hostInv = EntitySystem::GetComp<InventoryComponent>(hostEntity);
-	if (hostInv == nullptr) return;
+	auto* hostHands = EntitySystem::GetComp<HandComponent>(hostEntity);
+	if (hostHands == nullptr) return;
 
 	auto* contComp = EntitySystem::GetComp<ControllerComponent>(id);
 	if (contComp->getController().toggled(ControllerBits::BUTTON_9)) {
 		// if toggled down, flip isHolding
 		if(contComp->getController()[ControllerBits::BUTTON_9]) isHolding = !isHolding;
 		if (isHolding) {
-			targetPos = hostInv->getBodyPos();
+			targetPos = hostHands->getBodyPos();
 		}
 	}
 	
@@ -37,7 +35,7 @@ void DaemonComponent::update() {
 		side = -1;
 	}
 
-	if (!isHolding) targetPos = hostInv->getBodyPos() + Vec2f{ followOffset.x * side, followOffset.y };
+	if (!isHolding) targetPos = hostHands->getBodyPos() + Vec2f{ followOffset.x * side, followOffset.y };
 
 	auto* ourPos = EntitySystem::GetComp<PositionComponent>(id);
 	auto delta = targetPos - ourPos->pos;
