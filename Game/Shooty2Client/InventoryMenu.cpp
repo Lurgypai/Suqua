@@ -3,12 +3,12 @@
 #include "../Shooty2Core/InventoryComponent.h"
 #include "../Shooty2Core/HandComponent.h"
 
-// #include <format>
-// #include "DebugIO.h"
+#include <format>
+#include "DebugIO.h"
 
 using namespace MenuTab;
 
-InventoryMenu::InventoryMenu(const InterfaceItemGFXSystem& itemGfx_) :
+InventoryMenu::InventoryMenu(const ItemSystem& itemSys_, const InterfaceItemGFXSystem& itemGfx_) :
     state{State::top},
     curSelected{0},
     curEquipSelected{0},
@@ -22,7 +22,8 @@ InventoryMenu::InventoryMenu(const InterfaceItemGFXSystem& itemGfx_) :
     equipBaseOffsetY{350},
     equipOffsetY{25},
     itemGfx{ itemGfx_ },
-    isOpen{false}
+    isOpen{false},
+    itemSys{itemSys_}
 {
     for(auto& item : items) {
         item.outline.shape = {{}, {20, 20}};
@@ -39,6 +40,7 @@ InventoryMenu::InventoryMenu(const InterfaceItemGFXSystem& itemGfx_) :
 void InventoryMenu::open(InventoryTab tab) {
     curSelected = 0; 
     curMin = 0;
+    state = State::top;
 
     InventoryComponent* comp = EntitySystem::GetComp<InventoryComponent>(playerId);
 
@@ -85,6 +87,58 @@ void InventoryMenu::navigateEquip(const Controller& cont) {
         if(curEquipSelected >= 7) curEquipSelected = 6;
     }
 
+    // apply selected item
+    if(cont.toggled(ControllerBits::BUTTON_1) && cont[ControllerBits::BUTTON_1]) {
+        if(!itemSys.hasItem(curSelectedTag)) {
+            DebugIO::printLine(std::format("WARN: No item with tag \"{}\" found.", curSelectedTag));
+        }
+        else {
+            InventoryComponent* plrInv = EntitySystem::GetComp<InventoryComponent>(playerId);
+            HandComponent* plrHands = EntitySystem::GetComp<HandComponent>(playerId);
+            HandComponent* daemonHands = EntitySystem::GetComp<HandComponent>(daemonId);
+            EquipSelected selected = static_cast<EquipSelected>(curEquipSelected);
+            switch(selected) {
+                case EquipSelected::lhand:
+                    plrHands->setItem(0, itemSys.getItem(curSelectedTag));
+                    break;
+                case EquipSelected::rhand:
+                    plrHands->setItem(1, itemSys.getItem(curSelectedTag));
+                    break;
+                case EquipSelected::d_lhand:
+                    daemonHands->setItem(0, itemSys.getItem(curSelectedTag), playerId);
+                    break;
+                case EquipSelected::d_rhand:
+                    daemonHands->setItem(1, itemSys.getItem(curSelectedTag), playerId);
+                    break;
+                case EquipSelected::head:
+                    break;
+                case EquipSelected::chest:
+                    break;
+                case EquipSelected::feet:
+                    break;
+            }
+
+            // scan all hands and remove if necessary
+            int countInInv = plrInv->getItemCount(curSelectedTag);
+            int countEquiped = 0;
+            for(int handSlot = 3; handSlot >= 0; --handSlot) {
+                // select plr or daemon
+                HandComponent* curHands = nullptr;
+                if(handSlot > 1) curHands = daemonHands;
+                else curHands = plrHands;
+
+                // don't remove the one we placed, check if has item
+                if(handSlot != curEquipSelected && curHands->getHandTag(handSlot % 2) == curSelectedTag) ++countEquiped;
+                
+                // if to many, remove, and exit 
+                if(countEquiped >= countInInv) {
+                    curHands->clearItem(handSlot % 2);
+                    break;
+                }
+            }
+        }
+    }
+
     if(cont.toggled(ControllerBits::BUTTON_2) && cont[ControllerBits::BUTTON_2]) state = State::top;
 }
 
@@ -106,6 +160,7 @@ void InventoryMenu::render() {
     int curItemIdx = 0;
     InventoryComponent* comp = EntitySystem::GetComp<InventoryComponent>(playerId);
     HandComponent* hands = EntitySystem::GetComp<HandComponent>(playerId);
+    HandComponent* daemonHands = EntitySystem::GetComp<HandComponent>(daemonId);
     for(const auto& pair : comp->items) {
         if(curItemIdx < curMin) {
             ++curItemIdx;
@@ -114,6 +169,8 @@ void InventoryMenu::render() {
 
         int curRenderIdx = curItemIdx - curMin;
         if(curRenderIdx == curShowCount) break;
+
+        if(curItemIdx == curSelected) curSelectedTag = pair.first;
 
         auto& curMenuItem = items[curRenderIdx];
         const InterfaceItemGFX& gfx = itemGfx.getGFX(pair.first);
@@ -134,10 +191,7 @@ void InventoryMenu::render() {
         
         // set color
         if(curRenderIdx + curMin != curSelected) item.outline.c = Color{1.f, 1.f, 1.f, 1.f};
-        else {
-            if(state == State::top) item.outline.c = Color{1.f, 0.f, 0.f, 1.f};
-            else item.outline.c = Color{1.f, 1.f, 1.f, 1.f};
-        }
+        else item.outline.c = Color{1.f, 0.f, 0.f, 1.f};
 
         // draw
         item.sprite.draw();
@@ -146,7 +200,23 @@ void InventoryMenu::render() {
 
     for(int curPlrHand = 0; curPlrHand != 2; ++curPlrHand) {
         int equipRenderIdx = curPlrHand;
+        if(!hands->handIsActive(curPlrHand)) {
+            equiped[equipRenderIdx].sprite.loadTexture("none");
+            continue;
+        }
+
         const std::string& tag = hands->getHandTag(curPlrHand);
+        const InterfaceItemGFX& gfx = itemGfx.getGFX(tag);
+        equiped[equipRenderIdx].sprite.loadTexture(gfx.smallTag);
+    }
+    for(int curDaemonHand = 0; curDaemonHand != 2; ++curDaemonHand) {
+        int equipRenderIdx = curDaemonHand + 2;
+        if(!daemonHands->handIsActive(curDaemonHand)) {
+            equiped[equipRenderIdx].sprite.loadTexture("none");
+            continue;
+        }
+
+        const std::string& tag = daemonHands->getHandTag(curDaemonHand);
         const InterfaceItemGFX& gfx = itemGfx.getGFX(tag);
         equiped[equipRenderIdx].sprite.loadTexture(gfx.smallTag);
     }
@@ -171,7 +241,7 @@ void InventoryMenu::render() {
         }
 
         // draw
-        item.sprite.draw();
+        if(item.sprite.texture_tag != "none") item.sprite.draw();
         item.outline.draw();
     }
 }

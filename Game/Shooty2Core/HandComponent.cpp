@@ -1,7 +1,11 @@
 #include "HandComponent.h"
+
+#include <stdexcept>
+
 #include "ControllerComponent.h"
 #include "PhysicsComponent.h"
 #include "PositionComponent.h"
+
 
 HandComponent::HandComponent(EntityId id_, Vec2f bodyOffset_, float handOffset_) :
 	id{ id_ },
@@ -89,6 +93,10 @@ void HandComponent::setItem(int slot, const Item& item, EntityId targetEntity) {
 		contComp->getController().stick2.angle());
 }
 
+void HandComponent::clearItem(int slot) {
+    actionItems[slot] = HandItem{};
+}
+
 Vec2f HandComponent::getBodyPos() const {
 	auto* physicsComp = EntitySystem::GetComp<PhysicsComponent>(id);
 	if(physicsComp) return physicsComp->position() + bodyOffset;
@@ -107,8 +115,8 @@ float HandComponent::getHandAngle(int hand) const {
 }
 
 const std::string& HandComponent::getHandTag(int hand) const {
-	// more elegant crashes?
-	return actionItems.at(hand).item.getTag();
+    if(hand < 0 || hand > SLOT_COUNT - 1) throw std::runtime_error{"HandComponent: hand out of range"};
+	return actionItems[hand].item.getTag();
 }
 
 bool HandComponent::handIsActive(int hand) const {

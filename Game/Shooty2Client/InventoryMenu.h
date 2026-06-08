@@ -7,6 +7,8 @@
 #include "EntitySystem.h"
 #include "Controller.h"
 
+#include "../Shooty2Core/ItemSystem.h"
+
 #include "InterfaceItemGFXSystem.h"
 #include "MenuTab.h"
 
@@ -17,7 +19,7 @@ struct InventoryMenuItem {
 
 class InventoryMenu {
 public:
-    InventoryMenu(const InterfaceItemGFXSystem& itemGfx_);
+    InventoryMenu(const ItemSystem& itemSys_, const InterfaceItemGFXSystem& itemGfx_);
 
     void open(MenuTab::InventoryTab tab);
     void close();
@@ -25,11 +27,22 @@ public:
     void render();
 
     EntityId playerId;
+    EntityId daemonId;
 private:
     enum class State {
         top,
         equip
     } state;
+
+    enum class EquipSelected {
+        lhand,
+        rhand,
+        d_lhand,
+        d_rhand,
+        head,
+        chest,
+        feet
+    };
 
     void navigateTop(const Controller& cont);
     void navigateEquip(const Controller& cont);
@@ -38,6 +51,7 @@ private:
 
     // item selected
     int curSelected;
+    std::string curSelectedTag;
     int curEquipSelected;
 
     // item at top
@@ -57,6 +71,7 @@ private:
     std::array<InventoryMenuItem, SHOW_COUNT> items;
     std::array<InventoryMenuItem, 7> equiped;
 
+    const ItemSystem& itemSys;
     const InterfaceItemGFXSystem& itemGfx;
 
     bool isOpen;

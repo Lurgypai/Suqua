@@ -12,7 +12,8 @@
 class MenuScene : public Scene {
 public:
 	MenuScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_, InputDeviceId input_,
-            const InterfaceItemGFXSystem& itemGfx_, EntityId playerId);
+            const ItemSystem& itemSys_, const InterfaceItemGFXSystem& itemGfx_,
+            EntityId playerId, EntityId daemonId_);
 	// Inherited via Scene
 	virtual void load(Game& game) override;
 	virtual void physicsStep(Game& game) override;
@@ -24,6 +25,7 @@ public:
 
 private:
     EntityId playerId;
+    EntityId daemonId;
     void updateTabs();
 
     InventoryMenu inventoryMenu;

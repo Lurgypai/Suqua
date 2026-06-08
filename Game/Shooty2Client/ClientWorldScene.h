@@ -20,12 +20,12 @@ public:
 	virtual void onDisconnect(Game& game, PeerId disconnectedPeer) override;
 
 	EntityId myPlayerId;
+	EntityId myDaemonId;
     SceneId menuScene;
 private:
     World world;
     std::string activeLevel;
 	// player owned by this client
-	EntityId myDaemonId;
 
 	InputDeviceId playerInput;
 	PhysicsSystem physics;

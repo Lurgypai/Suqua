@@ -57,8 +57,11 @@ void HandItemGFXComponent::update(const HandItemGFXSystem& invItemGfxSys) {
 	auto* renderComp = EntitySystem::GetComp<RenderComponent>(id);
 
 	for (int i = 0; i != HandComponent::SLOT_COUNT; ++i) {
-		if (!invComp->handIsActive(i)) continue;
 		auto& item = items[i];
+		if (!invComp->handIsActive(i)) {
+            renderComp->clearDrawable(item.spriteIndex);
+            continue;
+        }
 		// item has changed update sprite
 		if (invComp->getHandTag(i) != item.renderTag) {
 			item.renderTag = invComp->getHandTag(i);

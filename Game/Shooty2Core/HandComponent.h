@@ -21,6 +21,7 @@ public:
 
 	void setItem(int slot, const Item& item);
 	void setItem(int slot, const Item& item, EntityId targetEntity);
+    void clearItem(int slot);
 
 	Vec2f getBodyPos() const;
 	Vec2f getHandPos(int index) const;

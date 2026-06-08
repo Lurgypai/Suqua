@@ -12,8 +12,8 @@ public:
 	void registerItem(Item&& item);
 	
 	// retrieve item from registry
-	const Item& getItem(const std::string& tag);
-	bool hasItem(const std::string& tag);
+	const Item& getItem(const std::string& tag) const;
+	bool hasItem(const std::string& tag) const;
 private:
 	std::unordered_map<std::string, Item> items;
 };

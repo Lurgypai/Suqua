@@ -7,9 +7,10 @@ using SuperTab = MenuTab::SuperTab;
 using InventoryTab = MenuTab::InventoryTab;
 
 MenuScene::MenuScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_,
-        InputDeviceId input_, const InterfaceItemGFXSystem& itemGfx_, EntityId playerId_) :
+        InputDeviceId input_, const ItemSystem& itemSys_, const InterfaceItemGFXSystem& itemGfx_,
+        EntityId playerId_, EntityId daemonId_) :
     Scene{ id_, flags_ },
-    inventoryMenu{itemGfx_},
+    inventoryMenu{itemSys_, itemGfx_},
     playingScene{playingScene_},
     input{input_},
     superTab{ 0 },
@@ -29,7 +30,8 @@ MenuScene::MenuScene(SceneId id_, Scene::FlagType flags_, SceneId playingScene_,
     subTabNames{},
     superTabText{},
     subTabText{},
-    playerId{playerId_}
+    playerId{playerId_},
+    daemonId{daemonId_}
 {
     // set the y offset of tabs
     superTabBox.setPos({0, 13});
@@ -86,7 +88,9 @@ void MenuScene::updateTabs() {
 }
 
 void MenuScene::load(Game& game) {
+    // MOVE THESE TO CTOR
     inventoryMenu.playerId = playerId;
+    inventoryMenu.daemonId = daemonId;
 
 	screenBuffer.bind();
 	screenBuffer.addTexture2D(720, 405, GL_RGBA, GL_RGBA, NULL, GL_COLOR_ATTACHMENT0);

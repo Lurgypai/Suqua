@@ -131,17 +131,6 @@ void ClientWorldScene::load(Game& game)
     auto* plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
     plrInvComp->setItemCount("item:gun", 1);
     plrInvComp->setItemCount("item:dash", 1);
-    for (int i = 0; i != 9; ++i) {
-        plrInvComp->setItemCount("debug" + std::to_string(i), 1);
-    }
-
-	auto* plrHandComp = EntitySystem::GetComp<HandComponent>(myPlayerId);
-	plrHandComp->setItem(0, items.getItem("item:gun"));
-	plrHandComp->setItem(1, items.getItem("item:dash"));
-	
-	auto* daemonInvComp = EntitySystem::GetComp<HandComponent>(myDaemonId);
-	daemonInvComp->setItem(0, items.getItem("item:gun"));
-	daemonInvComp->setItem(1, items.getItem("item:gun"), myPlayerId);
 
 	/*-------------- COMMANDS ----------------*/
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
