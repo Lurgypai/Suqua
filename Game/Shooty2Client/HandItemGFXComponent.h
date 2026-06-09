@@ -6,6 +6,7 @@
 
 struct RenderItem {
 	size_t spriteIndex;
+    std::string itemTag;
 	std::string renderTag;
 };
 

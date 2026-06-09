@@ -34,7 +34,7 @@ void CharacterGFXComponent::loadSpriteSheet(const std::string& tag, const std::s
 	sprite.looping = true;
     sprite.offset = offset;
 
-    auto index = renderComp->loadDrawable<Sprite>("shadow");
+    auto index = renderComp->loadDrawable<Sprite>("tex:shadow");
     Sprite& shadowSpr = renderComp->getDrawable<Sprite>(index);
     shadowSpr.offset = shadowOffset;
     shadowSpr.setDepth(.5f);

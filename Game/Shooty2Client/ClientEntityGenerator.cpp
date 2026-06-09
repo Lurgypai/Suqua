@@ -18,7 +18,7 @@ ClientEntityGenerator::ClientEntityGenerator(Host* host_) :
 
 static void AddPlayerGFX(EntityId playerId) {
 	EntitySystem::MakeComps<CharacterGFXComponent>(1, &playerId,
-            "hero",
+            "tex:hero",
             "stranded/Hero/Hero/Hero.json",
             Vec2f{ -13, -24 },
             Vec2f{ -3, -1} );
@@ -44,7 +44,7 @@ static void AddBulletPlayerBasicGFX(EntityId bulletId) {
 
 static void AddEnemyGFX(EntityId enemyId) {
 	EntitySystem::MakeComps<CharacterGFXComponent>(1, &enemyId,
-            "enemy:basic",
+            "tex:enemy:basic",
             "enemy/basic.json",
             Vec2f{ -13, -24 },
             Vec2f{ -3, 5 });
@@ -69,7 +69,7 @@ static void AddWorldTileGFX(EntityId tileId) {
     EntitySystem::MakeComps<RenderComponent>(1, &tileId);
     
     auto renderComp = EntitySystem::GetComp<RenderComponent>(tileId);
-    auto sprIndex = renderComp->loadDrawable<Sprite>("tileset");
+    auto sprIndex = renderComp->loadDrawable<Sprite>("tex:tileset");
     
     Sprite& sprite = renderComp->getDrawable<Sprite>(sprIndex);
     sprite.setImgOffset({16, 16});
@@ -82,13 +82,13 @@ static void AddWorldTileGFX(EntityId tileId) {
 void ClientEntityGenerator::RegisterSpawnFunctions() {
     EntityGenerator::RegisterSpawnFunctions();
     
-    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("player.basic", AddPlayerGFX));
-    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("player.daemon", AddDaemonGFX));
-    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("enemy.basic", AddEnemyGFX));
-    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("bullet.player.basic", AddBulletPlayerBasicGFX));
-    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("bullet.enemy.basic", AddBulletEnemyBasicGFX));
-    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("world.teleportzone", AddWorldTeleportZoneGFX));
-    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("world.tile", AddWorldTileGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("entity:player:basic", AddPlayerGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("entity:player:daemon", AddDaemonGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("entity:enemy:basic", AddEnemyGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("entity:bullet:player:basic", AddBulletPlayerBasicGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("entity:bullet:enemy:basic", AddBulletEnemyBasicGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("entity:world:teleportzone", AddWorldTeleportZoneGFX));
+    ClientEntityGenerator::GFXFunctions.insert(std::make_pair("entity:world:tile", AddWorldTileGFX));
 }
 
 EntityId ClientEntityGenerator::SpawnEntity(

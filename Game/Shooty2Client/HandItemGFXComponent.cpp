@@ -16,12 +16,12 @@ HandItemGFXComponent::HandItemGFXComponent(EntityId id_) :
 	items.reserve(HandComponent::SLOT_COUNT);
 	for (int i = 0; i != HandComponent::SLOT_COUNT; ++i) {
 		size_t spriteIndex = renderComp->allocateDrawable();
-		items.push_back(RenderItem{spriteIndex, "" });
+		items.push_back(RenderItem{spriteIndex, "", "none" });
 	}
 }
 
 inline static void updateItem(int index,
-	const std::vector<RenderItem> items,
+	const std::vector<RenderItem>& items,
 	PositionComponent* posComp,
 	HandComponent* invComp,
 	RenderComponent* renderComp) {
@@ -63,9 +63,10 @@ void HandItemGFXComponent::update(const HandItemGFXSystem& invItemGfxSys) {
             continue;
         }
 		// item has changed update sprite
-		if (invComp->getHandTag(i) != item.renderTag) {
-			item.renderTag = invComp->getHandTag(i);
-			auto invItemGfx = invItemGfxSys.getGFX(item.renderTag);
+		if (invComp->getHandTag(i) != item.itemTag) {
+			item.itemTag = invComp->getHandTag(i);
+			auto invItemGfx = invItemGfxSys.getGFX(item.itemTag);
+			item.renderTag = invItemGfx.renderTag;
 			if (invItemGfx.renderMode == HandItemGFX::sprite) {
 				renderComp->setDrawable<Sprite>(item.spriteIndex, item.renderTag);
 				auto& sprite = renderComp->getDrawable<Sprite>(item.spriteIndex);
@@ -76,7 +77,7 @@ void HandItemGFXComponent::update(const HandItemGFXSystem& invItemGfxSys) {
 			}
 		}
 		// update if drawn to screen
-		auto invItemGfx = invItemGfxSys.getGFX(item.renderTag);
+		auto invItemGfx = invItemGfxSys.getGFX(item.itemTag);
 		if (invItemGfx.renderMode != HandItemGFX::sprite) continue;
 		updateItem(i, items, posComp, invComp, renderComp);
 	}

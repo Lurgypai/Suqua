@@ -1,19 +1,21 @@
 #include "Item.h"
 
 
-Item::Item(const std::string& tag_, bool doesStack_) :
+Item::Item(const std::string& tag_) :
 	tag{tag_},
 	ability{nullptr}
 {}
 
 Item::Item(const Item& other) :
     tag{other.tag},
-    ability{other.ability->clone()}
-{}
+    ability{nullptr}
+{
+    if(other.ability) ability = other.ability->clone();
+}
 
 Item& Item::operator=(const Item& other) {
     tag = other.tag;
-    ability = other.ability->clone();
+    if(other.ability) ability = other.ability->clone();
     return *this;
 }
 

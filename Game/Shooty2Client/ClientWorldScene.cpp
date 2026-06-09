@@ -78,32 +78,31 @@ void ClientWorldScene::load(Game& game)
 	camId = GLRenderer::addCamera(cam);
 
 	// textures
-	GLRenderer::LoadTexture("stranded/Hero/Hero/green_hero.png", "hero");
-	GLRenderer::LoadTexture("player/shadow.png", "shadow");
-	GLRenderer::LoadTexture("stranded/Enemies/Warrior/warrior.png", "enemy:warrior");
-    GLRenderer::LoadTexture("player/bullet.png", "bullet.player");
-	GLRenderer::LoadTexture("stranded/Tileset/custom_top_down.png", "tileset");
-    GLRenderer::LoadTexture("enemy/basic.png", "enemy:basic");
-
+	GLRenderer::LoadTexture("stranded/Hero/Hero/green_hero.png", "tex:hero");
+	GLRenderer::LoadTexture("player/shadow.png", "tex:shadow");
+	GLRenderer::LoadTexture("stranded/Enemies/Warrior/warrior.png", "tex:enemy:warrior");
+    GLRenderer::LoadTexture("player/bullet.png", "tex:bullet:player");
+	GLRenderer::LoadTexture("stranded/Tileset/custom_top_down.png", "tex:tileset");
+    GLRenderer::LoadTexture("enemy/basic.png", "tex:enemy:basic");
 
     //particles
-    GLRenderer::GenParticleType("exit", 1, ComputeShader{ "particles/test.vert" });
+    GLRenderer::GenParticleType("part:exit", 1, ComputeShader{ "particles/test.vert" });
 
 	/* ---------------- LOAD ENTITIES ----------------- */
     EntitySpawnSystem::Init<ClientEntityGenerator>(&game.host);
 	// player
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 
-	myPlayerId = EntitySpawnSystem::SpawnEntity("player.basic", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
+	myPlayerId = EntitySpawnSystem::SpawnEntity("entity:player:basic", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
 	addEntityInputs({ {myPlayerId, playerInput} });
 
-	myDaemonId = EntitySpawnSystem::SpawnEntity("player.daemon", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
+	myDaemonId = EntitySpawnSystem::SpawnEntity("entity:player:daemon", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
 	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(myDaemonId);
 	daemonComp->hostEntity = myPlayerId;
 	addEntityInputs({ {myDaemonId, playerInput} });
 
 	// load level
-    world = World{ "tileset", "levels/test.ldtk" };
+    world = World{ "tex:tileset", "levels/test.ldtk" };
 	world.load(*this);
     activeLevel = "Level_spawn";
     world.getLevel(activeLevel).activate();
@@ -129,8 +128,9 @@ void ClientWorldScene::load(Game& game)
 	/* ------------------------ OTHER DEBUG ------------------------ */
 	// add test items to inventory
     auto* plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
-    plrInvComp->setItemCount("item:gun", 1);
-    plrInvComp->setItemCount("item:dash", 1);
+    plrInvComp->setItemCount("item:gun:basic", 1);
+    plrInvComp->setItemCount("item:skill:dash", 1);
+    plrInvComp->setItemCount("item:other:sprite", 4);
 
 	/*-------------- COMMANDS ----------------*/
     DebugIO::getCommandManager().registerCommand<ExitCommand>();

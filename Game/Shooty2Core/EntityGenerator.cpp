@@ -23,11 +23,11 @@ EntityId EntityGenerator::SpawnEntity(
 }
 
 void EntityGenerator::RegisterSpawnFunctions() {
-    EntityGenerator::SpawnFunctions.insert(std::make_pair("player.basic", SpawnPlayer));
-    EntityGenerator::SpawnFunctions.insert(std::make_pair("player.daemon", SpawnDaemon));
-    EntityGenerator::SpawnFunctions.insert(std::make_pair("enemy.basic", SpawnEnemy));
-    EntityGenerator::SpawnFunctions.insert(std::make_pair("bullet.player.basic", SpawnBulletPlayerBasic));
-    EntityGenerator::SpawnFunctions.insert(std::make_pair("bullet.enemy.basic", SpawnBulletEnemyBasic));
-    EntityGenerator::SpawnFunctions.insert(std::make_pair("world.teleportzone", SpawnTeleportZone));
-    EntityGenerator::SpawnFunctions.insert(std::make_pair("world.tile", SpawnTile));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:player:basic", SpawnPlayer));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:player:daemon", SpawnDaemon));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:enemy:basic", SpawnEnemy));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:bullet:player:basic", SpawnBulletPlayerBasic));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:bullet:enemy:basic", SpawnBulletEnemyBasic));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:world:teleportzone", SpawnTeleportZone));
+    EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:world:tile", SpawnTile));
 }

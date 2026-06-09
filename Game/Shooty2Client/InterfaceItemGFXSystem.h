@@ -2,6 +2,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "../Shooty2Core/ItemSystem.h"
+
 struct InterfaceItemGFX {
     // the small ui sprite
     std::string smallTag;
@@ -13,7 +15,7 @@ struct InterfaceItemGFX {
 
 class InterfaceItemGFXSystem {
 public:
-    void registerGFX(const std::string& itemTag, const std::string& smallTag, const std::string& bigTag, const std::string& desc);
+    void loadGfx(const ItemSystem& items);
     InterfaceItemGFX getGFX(const std::string& itemTag) const;
 private:
     std::unordered_map<std::string, InterfaceItemGFX> gfx;

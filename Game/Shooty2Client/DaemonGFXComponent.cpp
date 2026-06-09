@@ -3,7 +3,7 @@
 
 DaemonGFXComponent::DaemonGFXComponent(EntityId id_) :
 	id{id_},
-	emitter{ Vec2f{}, 2, "exit", 0.02f}
+	emitter{ Vec2f{}, 2, "part:exit", 0.02f}
 {}
 
 void DaemonGFXComponent::update(float timeDelta) {

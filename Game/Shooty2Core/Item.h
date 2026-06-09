@@ -12,8 +12,8 @@ class Item {
 public:
     Item() = default;
 	template<typename T>
-	Item(const std::string& tag_, bool doesStack_, T&& itemAbility);
-	Item(const std::string& tag_, bool doesStack_);
+	Item(const std::string& tag_, T&& itemAbility);
+	Item(const std::string& tag_);
 	Item(Item&& other) = default;
     Item(const Item& other);
     Item& operator=(Item&& other) = default;
@@ -28,7 +28,7 @@ private:
 };
 
 template<typename T>
-Item::Item(const std::string& tag_, bool doesStack_, T&& itemAbility) :
+Item::Item(const std::string& tag_, T&& itemAbility) :
 	tag{tag_},
 	ability{std::make_unique<T>(std::forward<T>(itemAbility))}
 {}

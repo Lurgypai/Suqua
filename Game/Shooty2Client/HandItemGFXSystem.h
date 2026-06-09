@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "../Shooty2Core/ItemSystem.h"
 #include "Vec2.h"
 
 // relies on item tags and texture tags being the same, maybe change later
@@ -20,8 +21,8 @@ struct HandItemGFX {
 
 class HandItemGFXSystem {
 public:
-	void registerGFX(const std::string& renderTag, HandItemGFX::RenderMode renderMode, Vec2f renderOffset);
-	HandItemGFX getGFX(const std::string& renderTag) const;
+    void loadGfx(const ItemSystem& items);
+	HandItemGFX getGFX(const std::string& itemTag) const;
 private:
 	std::unordered_map<std::string, HandItemGFX> gfx;
 };

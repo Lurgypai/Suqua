@@ -8,12 +8,14 @@
 
 class ItemSystem {
 public:
+    void loadItems(const std::string& filename);
 	// add an item to the item registry 
-	void registerItem(Item&& item);
 	
 	// retrieve item from registry
 	const Item& getItem(const std::string& tag) const;
 	bool hasItem(const std::string& tag) const;
+
+    const std::unordered_map<std::string, Item>& getItems() const;
 private:
 	std::unordered_map<std::string, Item> items;
 };

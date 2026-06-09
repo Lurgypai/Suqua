@@ -9,8 +9,6 @@
 #include "IDKeyboardMouse.h"
 
 #include "InterfaceItemGFXSystem.h"
-#include "../Shooty2Core/IAGunFire.h"
-#include "../Shooty2Core/IABasicDash.h"
 
 using json = nlohmann::json;
 
@@ -46,29 +44,16 @@ int main(int argc, char** argv) {
     game.setStateBroadcastDelay(4);
 	std::cout << "The target ip is " << ip << ".\n";
 
-    
     /* Load Objects */
     // Items
     ItemSystem items;
-	items.registerItem(Item{ "item:gun", false, IAGunFire{13.f,
-			"bullet.player.basic",
-			3,
-			0.2f,
-			0.5f,
-			1,
-			0.1f,
-			0.f } });
-	items.registerItem(Item{ "item:dash", false, IABasicDash{} });
-
-	GLRenderer::LoadTexture("stranded/Hero/Hero/green_gun.png", "item:gun");
-    GLRenderer::LoadTexture("player/dash.png", "item:dash");
+    items.loadItems("item/items.json");
 
     InterfaceItemGFXSystem interfaceItemGfx;
-    interfaceItemGfx.registerGFX("item:gun", "item:gun", "none", "it do be a gun");
-    interfaceItemGfx.registerGFX("item:dash", "item:dash", "none", "it do be a dash");
+    interfaceItemGfx.loadGfx(items);
 
     HandItemGFXSystem handItemGfx;
-	handItemGfx.registerGFX("item:gun", HandItemGFX::sprite, { 1.f, 2.f });
+    handItemGfx.loadGfx(items);
 
     /* Setup Scenes */
     // game.host.tryConnect(ip, 25565, 10);
