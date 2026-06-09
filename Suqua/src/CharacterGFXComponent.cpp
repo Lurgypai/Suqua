@@ -1,5 +1,6 @@
 #include "CharacterGFXComponent.h"
 #include "RenderComponent.h"
+#include "Sprite.h"
 #include "AnimatedSprite.h"
 #include "PhysicsComponent.h"
 #include "CharacterGFXComponent.h"

@@ -8,6 +8,11 @@
 #include "GLRenderer.h"
 
 using namespace nlohmann;
+static void checkForField(const json& j, const std::string& badField) {
+    if(!j.contains(badField)) throw std::runtime_error{
+        std::format("InterfaceItemGFXSystem: Unable to parse field \"{}\"", badField)
+    };
+}
 
 void InterfaceItemGFXSystem::loadGfx(const ItemSystem& items) {
     for(const auto& pair : items.getItems()) {
@@ -24,32 +29,31 @@ void InterfaceItemGFXSystem::loadGfx(const ItemSystem& items) {
         for(auto iter = tags.begin(); iter != std::prev(tags.end()); ++iter) {
             basePath += (*iter) + '/';
         }
-        std::string smallImagePath = basePath + tags.back() + ".png";
-        std::string bigImagePath = basePath + tags.back() + "_full.png";
-
+        std::string descFilePath = basePath + tags.back() + "_desc.json";
         std::string baseTexTag{"tex:"};
         for(auto iter = std::next(tags.begin()); iter != std::prev(tags.end()); ++iter) {
             baseTexTag += (*iter) + ':';
         }
 
-        std::string smallTexTag = baseTexTag + tags.back();
-        std::string bigTexTag = baseTexTag + tags.back() + "_full";
-
-        GLRenderer::LoadTexture(smallImagePath, smallTexTag);
-        GLRenderer::LoadTexture(bigImagePath, bigTexTag);
-
-        std::string descFilePath = basePath + tags.back() + "_desc.json";
         std::ifstream descFileStream{descFilePath};
         if(!descFileStream.good()) throw std::runtime_error{std::format(
             "InterfaceItemGFXSystem: Unable to open description {}", descFilePath
             )};
 
         json j = json::parse(descFileStream);
+        std::string smallTexTag = "none";
+        if(j.contains("ui_small")) {
+            smallTexTag = baseTexTag + tags.back() + "_ui_small";
+            GLRenderer::LoadTexture(j["ui_small"], smallTexTag);
+        }
+        std::string bigTexTag = "none";
+        if(j.contains("ui_big")) {
+            bigTexTag = baseTexTag + tags.back() + "_ui_big";
+            GLRenderer::LoadTexture(j["ui_big"], bigTexTag);
+        }
 
-        if(!j.contains("desc")) throw std::runtime_error{
-            "InterfaceItemGFXSystem: Unable to open description field \"desc\""
-        };
-        std::string desc = j["desc"];
+        std::string desc = "Uh Oh!";
+        if(j.contains("desc")) desc = j["desc"];
 
         gfx.emplace(pair.first, InterfaceItemGFX{ smallTexTag, bigTexTag, desc});
     }

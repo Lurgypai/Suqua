@@ -43,7 +43,7 @@
 #include "../Shooty2Core/DaemonComponent.h"
 
 #include "../Shooty2Core/CommandRespawn.h"
-#include "CommandSetItem.h"
+#include "CommandItem.h"
 
 // debug
 // #include "PositionComponent.h"
@@ -131,11 +131,13 @@ void ClientWorldScene::load(Game& game)
     plrInvComp->setItemCount("item:gun:basic", 1);
     plrInvComp->setItemCount("item:skill:dash", 1);
     plrInvComp->setItemCount("item:other:sprite", 4);
+    plrInvComp->setItemCount("item:gun:test", 1);
+    plrInvComp->setItemCount("item:gun:test2", 1);
 
 	/*-------------- COMMANDS ----------------*/
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
     DebugIO::getCommandManager().registerCommand<CommandRespawn>(world);
-    DebugIO::getCommandManager().registerCommand<CommandSetItem>(items, myPlayerId, myDaemonId);
+    DebugIO::getCommandManager().registerCommand<CommandItem>(items, myPlayerId);
 
 
 }

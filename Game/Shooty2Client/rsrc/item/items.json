@@ -18,6 +18,12 @@
         },
         {
             "tag": "item:other:sprite"
+        },
+        {
+            "tag": "item:gun:test"
+        },
+        {
+            "tag": "item:gun:test2"
         }
     ]
 }

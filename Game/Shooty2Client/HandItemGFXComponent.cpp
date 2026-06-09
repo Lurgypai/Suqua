@@ -24,21 +24,28 @@ inline static void updateItem(int index,
 	const std::vector<RenderItem>& items,
 	PositionComponent* posComp,
 	HandComponent* invComp,
-	RenderComponent* renderComp) {
+	RenderComponent* renderComp,
+    const HandItemGFXSystem& invItemGfxSys) {
 
 	auto& item = items[index];
 	if (!renderComp->hasDrawable(item.spriteIndex)) return;
 
 	Sprite& sprite = renderComp->getDrawable<Sprite>(item.spriteIndex);
 	sprite.offset = invComp->getHandPos(index) - posComp->pos;
+    const auto& invItemGfx = invItemGfxSys.getGFX(item.itemTag);
 
 	float dir = invComp->getHandAngle(index);
 	int dirDeg = dir * 180 / 3.14159;
 	if (dirDeg < -90 || dirDeg > 90) {
-		sprite.verticalFlip = true;
+        sprite.setVerticalFlip(true);
+        sprite.setOrigin({
+                invItemGfx.renderOffset.x,
+                sprite.getObjRes().y - invItemGfx.renderOffset.y}
+                );
 	}
 	else {
-		sprite.verticalFlip = false;
+        sprite.setVerticalFlip(false);
+        sprite.setOrigin(invItemGfx.renderOffset);
 	}
 
 	if (dirDeg >= -135 && dirDeg < -45) {
@@ -65,12 +72,11 @@ void HandItemGFXComponent::update(const HandItemGFXSystem& invItemGfxSys) {
 		// item has changed update sprite
 		if (invComp->getHandTag(i) != item.itemTag) {
 			item.itemTag = invComp->getHandTag(i);
-			auto invItemGfx = invItemGfxSys.getGFX(item.itemTag);
+			const auto& invItemGfx = invItemGfxSys.getGFX(item.itemTag);
 			item.renderTag = invItemGfx.renderTag;
 			if (invItemGfx.renderMode == HandItemGFX::sprite) {
 				renderComp->setDrawable<Sprite>(item.spriteIndex, item.renderTag);
 				auto& sprite = renderComp->getDrawable<Sprite>(item.spriteIndex);
-				sprite.setOrigin(invItemGfx.renderOffset);
 			}
 			else {
 				renderComp->clearDrawable(item.spriteIndex);
@@ -79,6 +85,6 @@ void HandItemGFXComponent::update(const HandItemGFXSystem& invItemGfxSys) {
 		// update if drawn to screen
 		auto invItemGfx = invItemGfxSys.getGFX(item.itemTag);
 		if (invItemGfx.renderMode != HandItemGFX::sprite) continue;
-		updateItem(i, items, posComp, invComp, renderComp);
+		updateItem(i, items, posComp, invComp, renderComp, invItemGfxSys);
 	}
 }

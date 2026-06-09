@@ -4,6 +4,8 @@
 
 #include "nlohmann/json.hpp"
 
+#include "GLRenderer.h"
+
 using namespace nlohmann;
 static void checkForField(const json& j, const std::string& badField) {
     if(!j.contains(badField)) throw std::runtime_error{
@@ -39,8 +41,9 @@ void HandItemGFXSystem::loadGfx(const ItemSystem& items) {
 
         // parse desc
         // mode
-        checkForField(j, "mode");
-        std::string mode = j["mode"];
+        std::string mode = "none";
+        if(j.contains("mode")) mode = j["mode"];
+
         HandItemGFX::RenderMode renderMode;
         if(mode == "sprite") renderMode = HandItemGFX::sprite;
         else if(mode == "particle") renderMode = HandItemGFX::particle;
@@ -48,19 +51,17 @@ void HandItemGFXSystem::loadGfx(const ItemSystem& items) {
 
         // offset
         std::array<float, 2> renderOffset{};
-        if(renderMode != HandItemGFX::none) {
-            checkForField(j, "offset");
-            renderOffset = j["offset"];
-        }
+        if(j.contains("offset")) renderOffset = j["offset"];
 
         // render tag
-        std::string renderTag{};
-        if(renderMode == HandItemGFX::sprite) {
+        std::string renderTag = "none";
+        if(j.contains("tex")) {
             std::string baseTexTag{"tex:"};
             for(auto iter = std::next(tags.begin()); iter != std::prev(tags.end()); ++iter) {
                 baseTexTag += (*iter) + ':';
             }
             renderTag = baseTexTag + tags.back();
+            GLRenderer::LoadTexture(j["tex"], renderTag);
         }
 
         gfx.emplace(pair.first, HandItemGFX{renderTag, renderMode, {renderOffset[0], renderOffset[1]}});

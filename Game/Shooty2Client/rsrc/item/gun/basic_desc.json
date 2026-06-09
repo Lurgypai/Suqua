@@ -1,4 +1,7 @@
 {
+    "tex": "item/gun/basic.png",
+    "ui_small": "item/gun/basic.png",
+    "ui_big": "item/gun/basic.png",
     "desc": "It do be a gun",
     "mode": "sprite",
     "offset": [1.0, 2.0]

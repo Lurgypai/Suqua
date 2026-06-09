@@ -1,4 +1,7 @@
 {
+    "tex": "item/skill/dash.png",
+    "ui_small": "item/skill/dash.png",
+    "ui_big": "item/skill/dash.png",
     "desc": "It do be a dash",
     "mode": "none"
 }

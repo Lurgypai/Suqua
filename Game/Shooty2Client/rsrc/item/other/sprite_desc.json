@@ -1,4 +1,6 @@
 {
+    "tex": "item/other/sprite.png",
+    "ui_small": "item/other/sprite.png",
     "desc": "This is a bottle of Sprite.",
     "mode": "sprite",
     "offset": [1, 11]
