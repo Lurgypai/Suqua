@@ -19,7 +19,6 @@
 #include "TopDownMoverComponent.h"
 #include "ParentComponent.h"
 #include "AimToLStickComponent.h"
-#include "../Shooty2Core/GunFireComponent.h"
 #include "LifeTimeComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
 #include "../Shooty2Core/RespawnComponent.h"
@@ -42,11 +41,11 @@ void ServerWorldScene::load(Game& game)
     game.loadPacketHandler<PHServerAddPlayer>(Shooty2Packet::AddPlayer);
     game.loadPacketHandler<PHServerDamage>(Shooty2Packet::Damage);
  
-    world = World{ "tileset", "levels/test.ldtk" };
+    world = World{ "tex:tileset", "levels/test.ldtk" };
 	world.load(*this);
     world.getLevel("Level_spawn").activate();
 
-    EntitySpawnSystem::SpawnEntity("enemy.basic", *this, Vec2f{200, 200}, NetworkDataComponent::Owner::local_shared);
+    EntitySpawnSystem::SpawnEntity("entity:enemy:basic", *this, Vec2f{200, 200}, NetworkDataComponent::Owner::local_shared);
 
     director = Director{};
     director.load(world, *this, "Level_spawn");
@@ -57,7 +56,6 @@ void ServerWorldScene::physicsStep(Game& game) {
 	Updater::UpdateOwned<TopDownMoverComponent>();
 	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
-	Updater::UpdateOwned<GunFireComponent>(*this, game.PHYSICS_STEP);
 	Updater::UpdateOwned<LifeTimeComponent>();
 	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();

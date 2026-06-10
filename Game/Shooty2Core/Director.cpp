@@ -23,7 +23,7 @@ void Director::load(World& world_, Scene& scene, const std::string& spawnLevel) 
         levels.push_back(level.first);
     }
 
-    exitId = EntitySpawnSystem::SpawnEntity("world.teleportzone", scene, {0.f, 0.f}, NetworkDataComponent::Owner::local_shared);
+    exitId = EntitySpawnSystem::SpawnEntity("entity:world:teleportzone", scene, {0.f, 0.f}, NetworkDataComponent::Owner::local_shared);
 
     beginFinished();
 }
@@ -157,7 +157,7 @@ void Director::doFinished(const NetworkEntityOwnershipSystem& ownerSystem, Host&
 void Director::spawnCluster(Scene& scene) {
     int index = randInt(0, activeSpawnPositions.size() - 1);
     const auto& spawnPos = activeSpawnPositions[index];
-    EntityId id = EntitySpawnSystem::SpawnEntity("enemy.basic", scene, spawnPos, NetworkDataComponent::Owner::local_shared);
+    EntityId id = EntitySpawnSystem::SpawnEntity("entity:enemy:basic", scene, spawnPos, NetworkDataComponent::Owner::local_shared);
     remainingEnemies.insert(id);
 }
 

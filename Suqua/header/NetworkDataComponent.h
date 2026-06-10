@@ -174,7 +174,6 @@ inline bool NetworkDataComponent::writeDelta(const DataMap::value_type& pair, By
     T& prevVal = std::get<T>(prevDataMap.at(pair.first));
     T delta = localVal - prevVal;
 
-    // right now send all
     if (delta == 0) return false;
     stream << pair.first;
     stream << pair.second.type;

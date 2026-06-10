@@ -1,5 +1,3 @@
-#include <print>
-
 #include "Game.h"
 #include "PHServerDamage.h"
 #include "UUID.h"
@@ -38,32 +36,23 @@ void PHServerDamage::handlePacket(Game& game, ByteStream& data, PeerId sourcePee
     }
 }
 
-// change to only send deltas
-//  the client sends a state delta to apply damage
-//  the server applies that delta and tells the other clients about it
-//
-//  the client sends a position delta to apply movement
-//  the server applies that delta and tells the other clients about it
-//  
-//  the server applies a local delta
-//  tells all clients
-//      cache the server delta after update before handling packets?
-//      cache the server delta whenever we get a delta to apply?
-
-/* THIS FILE HAS BEEN OUTMODED
- * Damage is now supplied by deltas
- *  the current state of an entity is stored to prevent it being part of the delta
- *  a delta is applied
- *  the deltas are sent
- * 
+/* I think you applied the changes you'd planned for networking. Everything still works on deltas cleanly.
+ * You use a damage packet specifically because just applying the damage isn't enough,
+ * entities have to respond to being damaged by calling the "damage" function
+ * and a packet is cleaner than tracking specifically this change in the state parsing
+ *
+ * look to the the games ordering to see how this panned out
+ * essential, the server (and client) first broadcast any changes they've made,
+ * then apply deltas they've received
+ *   those deltas are directly sent to the non-sending peer
+ *   and applied locally
+ * the previous state is set at the end of all of this, so no additional packets relating to these are sent
+ * when we get to fixing networking, consider decoupling ndc::storeprev
+ * just use a function that stores the previous state of ndcs
+ *
  * Current bugs
- *  Now we can kill a think client side and eventually it will be killed server side. However, it can still interact with the world server side before its died client side
- *      tie server side interaction (spawning bullets) to the entity, and ignore actions from dead entities <- THIS OPTION
- *          some complexity
- *          does it make sense to tie spawn requests to an entity asking to spawn them?
- *      turn interactions into requests for the client to decide on (server sends "shoot request")
- *          interaction from the server is delayed more (monsters aim gets worse the higher the latency)
- *          a new layer to interaction (now we have to use the request shoot interface as opposed to just running the same shoot code on client and server)
+ *  dead entities packets (shooting) may arrive after they've died
+ *      tie server side interaction (spawning bullets) to the entity, and ignore actions from dead entities
  *
  * also consider wrapping all packets in a "entity requester" indicating if/what entity is trying to take that packets action
  *
