@@ -3,15 +3,18 @@
 #include "stb_image.h"
 #include "glad/glad.h"
 
+Sprite::Sprite() :
+    texture_tag{"none"},
+	data{ Color{1.0f, 1.0f, 1.0f, 1.0f}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {1.0, 1.0}, 0, 0, 0.0f }
+{
+    loadTexture(texture_tag);
+}
+
 Sprite::Sprite(const std::string &texture_tag_) :
 	texture_tag{texture_tag_},
-	data{ Color{1.0f, 1.0f, 1.0f, 1.0f}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {1.0, 1.0}, 0, 0, 0.0f },
-	horizontalFlip{false},
-	verticalFlip{false}
+	data{ Color{1.0f, 1.0f, 1.0f, 1.0f}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {1.0, 1.0}, 0, 0, 0.0f }
 {
-	auto textureData = GLRenderer::GetTextureData(texture_tag);
-	data.objRes = textureData.res;
-	data.imgRes = textureData.res;
+    loadTexture(texture_tag);
 }
 
 Sprite::~Sprite() {}
@@ -21,7 +24,7 @@ Color Sprite::getColorOverlay() const
 	return data.colorOverlay;
 }
 
-Vec2f Sprite::getImgRes() const {
+Vec2i Sprite::getImgRes() const {
 	return data.imgRes;
 }
 
@@ -29,12 +32,12 @@ Vec2f Sprite::getPos() const {
 	return data.objPos;
 }
 
-Vec2f Sprite::getImgOffset() const {
+Vec2i Sprite::getImgOffset() const {
 	return data.imgOffset;
 }
 
-Vec2f Sprite::getObjRes() const {
-	return data.objRes;
+Vec2i Sprite::getObjRes() const {
+	return Vec2i{std::abs(data.objRes.x), std::abs(data.objRes.y)};
 }
 
 Vec2f Sprite::getOrigin() const {
@@ -104,15 +107,28 @@ void Sprite::setOverlayAmount(float a_) {
 	data.a = a_;
 }
 
+void Sprite::setVerticalFlip(bool verticalFlip) {
+	int mult = verticalFlip ? -1 : 1;
+	data.objRes.y = std::abs(data.objRes.y) * mult;
+}
+
+void Sprite::setHorizontalFlip(bool horizontalFlip) {
+	int mult = horizontalFlip ? -1 : 1;
+	data.objRes.x = std::abs(data.objRes.x) * mult;
+}
+
 int Sprite::getChannels() const {
 	return channels;
 }
 
+void Sprite::loadTexture(const std::string& texture_tag_) {
+    texture_tag = texture_tag_;
+	auto textureData = GLRenderer::GetTextureData(texture_tag);
+	data.objRes = textureData.res;
+	data.imgRes = textureData.res;
+}
+
 void Sprite::draw() {
-	int mult = horizontalFlip ? -1 : 1;
-	data.objRes.x = std::abs(data.objRes.x) * mult;
-	mult = verticalFlip ? -1 : 1;
-	data.objRes.y = std::abs(data.objRes.y) * mult;
 	GLRenderer::BufferImage(data, texture_tag);
 }
 

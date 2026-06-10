@@ -1,6 +1,5 @@
 #include "Level.h"
 #include "NetworkDataComponent.h"
-#include "Sprite.h"
 #include "EntitySystem.h"
 #include "PhysicsComponent.h"
 #include "PositionComponent.h"
@@ -47,7 +46,7 @@ Level::Level(const std::string& levelId_, const json& levelJson, Scene& scene, c
                 // add tile data component to store the texture offset
                 // move tile into entity generator
 
-                EntityId tile = EntitySpawnSystem::SpawnEntity("world.tile", scene, Vec2f{}, NetworkDataComponent::Owner::local_only);
+                EntityId tile = EntitySpawnSystem::SpawnEntity("entity:world:tile", scene, Vec2f{}, NetworkDataComponent::Owner::local_only);
 
                 auto physComp = EntitySystem::GetComp<PhysicsComponent>(tile);
                 physComp->setDoesCollide(false);

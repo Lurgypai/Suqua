@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include "Vec2.h"
-#include "Color.h"
 
 class ParticleEmitter {
 public:

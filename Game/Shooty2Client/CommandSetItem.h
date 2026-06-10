@@ -1,6 +1,5 @@
 #pragma once
 #include "Command.h"
-#include "World.h"
 #include "../Shooty2Core/ItemSystem.h"
 
 class CommandSetItem : public Command {

@@ -3,7 +3,6 @@
 #include "nlohmann/json.hpp"
 #include <SDL.h>
 #include <fstream>
-#include <print>
 
 #if defined(WIN32) || defined(_WIN32)
 #include <windows.h>
@@ -55,9 +54,11 @@ int SuquaLib::SuquaInit(const std::string& windowName, const std::string& settin
 		}
 
 		GLRenderer::Init(window, windowRes);
+		GLRenderer::LoadTexture("suqua/fonts/consolas_0.png", "debug_font");
+        GLRenderer::LoadTexture("suqua/images/none.png", "none");
+
 		DebugIO::startDebug("suqua/fonts/consolas.fnt");
 		debugCamId = GLRenderer::addCamera(Camera{ Vec2f{ 0.0f, 0.0f }, Vec2i{ windowRes.x, windowRes.y }, .5 });
-		GLRenderer::LoadTexture("suqua/fonts/consolas_0.png", "debug_font");
 	}
 	if (mode & Mode::network) {
 		enet_initialize();

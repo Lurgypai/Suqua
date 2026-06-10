@@ -1,9 +1,10 @@
 #pragma once
-#include "Vec2.h"
-#include "Sprite.h"
-#include "AABB.h"
 #include <unordered_map>
 
+#include "Vec2.h"
+#include "AABB.h"
+#include "ImgData.h"
+#include "IDrawable.h"
 
 //need to override setDepth and other things to use the proper thing
 class AnimatedSprite  : public IDrawable {
@@ -24,7 +25,9 @@ public:
 	void setColorOverlay(const Color& c);
 	void setOverlayAmount(float a);
 
+    // IF YOU ADD GET FUNCTIOSN FOR RES, ABS THEM
 	void setHorizontalFlip(bool horizFlip);
+    void setVerticalFlip(bool vertFlip);
 
 	IDrawable* clone() override;
 	virtual void draw() override;
@@ -45,9 +48,6 @@ private:
 	std::string currentAnimationId;
 	int currentFrame;
 	int currentTime;
-
-	bool horizontalFlip;
-	bool verticalFlip;
 
 	bool animationIsFinished_;
 };

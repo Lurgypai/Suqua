@@ -6,14 +6,15 @@
 
 class Sprite : public IDrawable{
 public:
+    Sprite();
 	Sprite(const std::string &texture_tag);
 	virtual ~Sprite() override;
 
 	Color getColorOverlay() const;
-	Vec2f getImgRes() const;
 	Vec2f getPos() const;
-	Vec2f getImgOffset() const;
-	Vec2f getObjRes() const;
+	Vec2i getImgRes() const;
+	Vec2i getImgOffset() const;
+	Vec2i getObjRes() const;
 	Vec2f getOrigin() const;
 	Vec2f getScale() const;
 	float getAngle() const;
@@ -32,14 +33,15 @@ public:
 	void setDepth(float depth_);
 	void setOverlayAmount(float a_);
 
+    void setVerticalFlip(bool verticalFlip);
+    void setHorizontalFlip(bool horizontalFlip);
+
 	int getChannels() const;
+    void loadTexture(const std::string& texture_tag_);
 
 	virtual void draw() override;
 	virtual IDrawable* clone() override;
 	std::string texture_tag;
-
-	bool horizontalFlip;
-	bool verticalFlip;
 protected:
 	ImgData data;
 	int channels;

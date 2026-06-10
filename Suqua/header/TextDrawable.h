@@ -16,6 +16,7 @@ public:
 
 	const AABB& getBoundingBox();
 
+    std::string texture_tag;
 	FontData font;
 	std::string text;
 	Color color;

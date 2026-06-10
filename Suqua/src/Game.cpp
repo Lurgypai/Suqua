@@ -153,7 +153,7 @@ void Game::renderUpdateStep() {
 
 void Game::renderStep() {
 	for (auto&& scene : scenes) {
-		if (scene->flags & Scene::Flag::physics) {
+		if (scene->flags & Scene::Flag::render) {
 			scene->renderStep(*this);
 		}
 	}
@@ -247,8 +247,10 @@ void Game::clientStep() {
 	}
 
 	if (flags & Flag::input) {
-		tickInputDevices();
-		if (!DebugIO::getOpen()) inputStep();
+		if (!DebugIO::getOpen()) {
+            tickInputDevices();
+            inputStep();
+        }
 	}
 
 	if (flags & Flag::physics) {

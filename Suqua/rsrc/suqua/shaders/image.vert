@@ -38,11 +38,10 @@ void main() {
 	int id = abs((gl_VertexID % 6) - 3);
     
 	vec2 pos = vec2(id % 2, id / 2);
+	vec2 objRes = vec2(dat.objRes);
+
     vec2 h = vec2(0.5);
 	vec2 imgPos = pos - h;
-
-	vec2 objRes = vec2(dat.objRes);
-	//move -0.5, 0.5 to surround origin
 	imgPos *= sign(objRes);
     imgPos += h;
     
@@ -53,20 +52,19 @@ void main() {
 	vec2 pixelPos = pos * abs(objRes);
 	
 	//scale about origin
-	pixelPos = ((pixelPos - dat.origin) * dat.scale) + dat.origin;
+	//pixelPos = ((pixelPos - dat.origin) * dat.scale) + dat.origin;
+	pixelPos = ((pixelPos - dat.origin) * dat.scale);
 	
 	//rotate about origin
-	float magn = distance(dat.origin, pixelPos);
-	vec2 diff = pixelPos - dat.origin;
-	float newAngle = atan(diff.y, diff.x) + radians(dat.angle);
+	float magn = length(pixelPos);
+	float newAngle = atan(pixelPos.y, pixelPos.x) + radians(dat.angle);
 	pixelPos = vec2(magn * cos(newAngle), magn * sin(newAngle));
     
 	//position
 	pixelPos += (dat.objPos - round(camPos));
     
 	vec2 windowPos = pixelPos / (vec2(camRes) / zoom);
-    if(flip_vertically)
-        windowPos.y = (-windowPos.y) + 1;
+    if(flip_vertically) windowPos.y = (-windowPos.y) + 1;
 	windowPos = 2 * (windowPos) - 1;
 	
 	gl_Position = vec4(windowPos, dat.depth, 1.0);

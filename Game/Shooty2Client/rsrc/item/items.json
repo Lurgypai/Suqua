@@ -1,0 +1,29 @@
+{
+    "items": [
+        {
+            "tag": "item:gun:basic",
+            "ability": "ability:gun:basic",
+            "offset": 13.0,
+            "bulletTag": "entity:bullet:player:basic",
+            "chamberSize": 3,
+            "fireDelay": 0.2,
+            "reloadDelay": 0.5,
+            "bulletCount": 1,
+            "bulletSpread": 0.1,
+            "velVariance": 0
+        },
+        {
+            "tag": "item:skill:dash",
+            "ability": "ability:skill:dash"
+        },
+        {
+            "tag": "item:other:sprite"
+        },
+        {
+            "tag": "item:gun:test"
+        },
+        {
+            "tag": "item:gun:test2"
+        }
+    ]
+}

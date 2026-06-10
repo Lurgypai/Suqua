@@ -2,8 +2,6 @@
 #include "PhysicsComponent.h"
 #include "TopDownMoverComponent.h"
 
-#include <print>
-
 IABasicDash::IABasicDash() :
 	dashTime{0.2f},
 	cooldownTime{1.5f},
@@ -47,7 +45,10 @@ void IABasicDash::update(float delta) {
 	}
 }
 
-void IABasicDash::doAbility(Scene& scene, EntityId sourceEntity, const Controller& controller, InventoryItem& sourceInvItem) {
+void IABasicDash::doAbility(Scene& scene, EntityId sourceEntity, EntityId targetEntity_,
+        const Controller& controller, const Vec2f& heldPos, float angle) {
+    targetEntity = targetEntity_;
+
 	if (state != DashState::ready) return;
 	// begin dash
 	dashDir = Vec2f{ 1.f, 0.f };

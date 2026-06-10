@@ -25,6 +25,7 @@
 #include "BasicDamageCalculator.h"
 #include "CHKill.h"
 #include "NetworkDataComponentDataFields.h"
+#include "HandComponent.h"
 #include "InventoryComponent.h"
 
 using TeamId = TeamComponent::TeamId;
@@ -91,7 +92,8 @@ static void MakeLivingEntity(
 
 	EntitySystem::MakeComps<AimToLStickComponent>(1, &id);
 	EntitySystem::MakeComps<TopDownMoverComponent>(1, &id, moveSpeed);
-    EntitySystem::MakeComps<InventoryComponent>(1, &id, bodyOffset, armLength);
+    EntitySystem::MakeComps<InventoryComponent>(1, &id);
+    EntitySystem::MakeComps<HandComponent>(1, &id, bodyOffset, armLength);
 
     auto healthComp = EntitySystem::GetComp<HealthComponent>(id);
 

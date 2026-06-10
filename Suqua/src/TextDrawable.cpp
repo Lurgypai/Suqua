@@ -2,6 +2,7 @@
 #include "GLRenderer.h"
 
 TextDrawable::TextDrawable() :
+    texture_tag{"none"},
 	font{},
 	text{},
 	color{},
@@ -41,7 +42,7 @@ void TextDrawable::draw() {
 			depth,	//depth
 			0.0f	//a, how much the color overlay is applied
 		};
-		GLRenderer::BufferImage(data, "test_font");
+		GLRenderer::BufferImage(data, texture_tag);
 		pos.x += glyph.advance * scale.x;
 	}
 	pos.x = displayOffset.x;

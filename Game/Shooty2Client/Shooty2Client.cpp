@@ -4,32 +4,36 @@
 
 #include "SuquaLib.h"
 #include "ClientWorldScene.h"
+#include "MenuScene.h"
 #include "DebugFIO.h"
+#include "IDKeyboardMouse.h"
+
+#include "InterfaceItemGFXSystem.h"
 
 using json = nlohmann::json;
 
 int main(int argc, char** argv) {
+    /* Library Init */
 	SuquaLib::SuquaInit("Shooty2", "settings.json", SuquaLib::all);
-	GLRenderer::LoadTexture("suqua/images/none.png", "none");
+
 	
+    /* Game Init */
 	Game game{ Game::client_flags };
     game.setStateBroadcastDelay(4);
-	// Game game{ Game::local_flags };
 
     DebugFIO::AddFOut("debug.log");
 
+    // load settings
 	json settings;
 	std::ifstream file{ "settings.json" };
 	if (file.good()) {
 		file >> settings;
 		file.close();
 	}
-
 	std::string ip = "127.0.0.1";
 	if (settings.contains("ip")) {
 		ip = settings["ip"];
 	}
-
     if(settings.contains("debugNetDelay")) {
         int delayMin = settings["debugNetDelay"]["min"];
         int delayVar = settings["debugNetDelay"]["variation"];
@@ -38,11 +42,27 @@ int main(int argc, char** argv) {
         std::cout << "Enabled debug delay, minimum " << delayMin << ", variation " << delayVar << '\n';
     }
     game.setStateBroadcastDelay(4);
-
 	std::cout << "The target ip is " << ip << ".\n";
 
+    /* Load Objects */
+    // Items
+    ItemSystem items;
+    items.loadItems("item/items.json");
+
+    InterfaceItemGFXSystem interfaceItemGfx;
+    interfaceItemGfx.loadGfx(items);
+
+    HandItemGFXSystem handItemGfx;
+    handItemGfx.loadGfx(items);
+
+    /* Setup Scenes */
     // game.host.tryConnect(ip, 25565, 10);
-	SceneId playingScene = game.loadScene<ClientWorldScene>(Scene::Flag::all);
+    InputDeviceId input = game.loadInputDevice<IDKeyboardMouse>();
+	SceneId playingSceneId = game.loadScene<ClientWorldScene>(Scene::Flag::all, input, items, handItemGfx);
+    auto& playingScene = game.getScene<ClientWorldScene>(playingSceneId);
+    SceneId menuScene = game.loadScene<MenuScene>(Scene::Flag::none, playingSceneId, input, items, interfaceItemGfx,
+            playingScene.myPlayerId, playingScene.myDaemonId);
+    playingScene.menuScene = menuScene;
 
 	SuquaLib::RunGame(game);
 

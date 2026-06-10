@@ -9,8 +9,6 @@ AnimatedSprite::AnimatedSprite(const std::string& texture_tag, const std::string
 	currentTime{ 0 },
 	speed{1.0f},
 	looping{false},
-	horizontalFlip{false},
-	verticalFlip{false},
 	animationIsFinished_{false},
 	currentFrame{0},
 	currentAnimationId{},
@@ -118,7 +116,13 @@ bool AnimatedSprite::hasAnimation(const std::string& tag) const {
 }
 
 void AnimatedSprite::setHorizontalFlip(bool horizFlip) {
-	horizontalFlip = horizFlip;
+    int mult = horizFlip ? -1 : 1;
+    data.objRes.x = std::abs(data.objRes.x) * mult;
+}
+
+void AnimatedSprite::setVerticalFlip(bool vertFlip) {
+	int mult = vertFlip ? -1 : 1;
+	data.objRes.y = std::abs(data.objRes.y) * mult;
 }
 
 IDrawable* AnimatedSprite::clone() {
@@ -131,10 +135,6 @@ void AnimatedSprite::draw() {
 	data.objRes = frame.obj.res;
 	data.imgOffset = frame.obj.pos;
 
-	int mult = horizontalFlip ? -1 : 1;
-	data.objRes.x = std::abs(data.objRes.x) * mult;
-	mult = verticalFlip ? -1 : 1;
-	data.objRes.y = std::abs(data.objRes.y) * mult;
 	GLRenderer::BufferImage(data, textureTag);
 }
 
