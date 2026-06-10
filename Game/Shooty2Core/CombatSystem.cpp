@@ -1,5 +1,3 @@
-#include <print>
-
 #include "CombatSystem.h"
 #include "EntitySystem.h"
 #include "HurtboxComponent.h"
@@ -9,10 +7,7 @@
 #include "EntityBaseComponent.h"
 #include "HealthComponent.h"
 #include "DamageComponent.h"
-#include "PhysicsComponent.h"
-#include "Packet.h"
 #include "NetworkDataComponent.h"
-#include "NetworkDataComponentDataFields.h"
 
 static inline void damageEntity(EntityId cause, EntityId receiver, ByteStream& packet) {
 	auto otherDamageComp = EntitySystem::GetComp<DamageComponent>(cause);
