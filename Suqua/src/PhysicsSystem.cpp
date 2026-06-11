@@ -3,7 +3,6 @@
 #include "NetworkDataComponent.h"
 #include "PositionComponent.h"
 #include "EntityBaseComponent.h"
-#include "NetworkDataComponentDataFields.h"
 
 using NDC = NetworkDataComponent;
 
@@ -79,15 +78,16 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
 			Vec2f newPos = { currPos.x + vel.x * static_cast<float>(timeDelta), currPos.y + vel.y * static_cast<float>(timeDelta) };
 			
 			if (physicsComp.doesCollide()) {
-				//handle collisions with the stage
+                const Vec2f& res = physicsComp.getRes();
+                const AABB projection{ newPos, res };
+
+				//handle collisions with other entities
 				for (auto otherComp : collidesWith) {
                     if(otherComp->id == physicsComp.id) continue;
 
                     auto& collider = otherComp->getCollider();
-                    Vec2f res = physicsComp.getRes();
-                    //
+
                     //place we are updating too
-                    AABB projection{ newPos, res };
                     if(!collider.intersects(projection)) continue;
 
                     //handle collisions
@@ -151,6 +151,12 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
                     // physicsComp.setVel(vel);
                     newPos -= overlap;
 				}
+
+                // handle collisions with stage
+                // codes gonna be similar to above,
+                // but you'll have to calculate tile position from the tilemap
+                // by checking if there are any tiles along the side being checked
+                // IE moving right, check if their are any tiles along the right edge
 			}
 
 			currPos = newPos;
