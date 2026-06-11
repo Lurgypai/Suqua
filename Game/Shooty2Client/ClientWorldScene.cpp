@@ -78,7 +78,7 @@ void ClientWorldScene::load(Game& game)
 	camId = GLRenderer::addCamera(cam);
 
 	// textures
-	GLRenderer::LoadTexture("stranded/Hero/Hero/green_hero.png", "tex:hero");
+	GLRenderer::LoadTexture("player/player.png", "tex:hero");
 	GLRenderer::LoadTexture("player/shadow.png", "tex:shadow");
 	GLRenderer::LoadTexture("stranded/Enemies/Warrior/warrior.png", "tex:enemy:warrior");
     GLRenderer::LoadTexture("player/bullet.png", "tex:bullet:player");

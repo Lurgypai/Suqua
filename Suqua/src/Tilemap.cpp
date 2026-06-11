@@ -11,7 +11,7 @@ const AABBi& Tilemap::getBoundingBox() const {
 }
 
 bool Tilemap::hasTile(const Vec2f& pos) const {
-	Vec2i tilePos = (pos - boundingBox.pos) / Vec2f{ tileRes.x, tileRes.y };
+	Vec2i tilePos = getTilePos(pos);
     return intGrid[tilePos.x][tilePos.y];
 }
 
@@ -33,5 +33,5 @@ const Vec2i& Tilemap::getTileRes() const {
 }
 
 Vec2i Tilemap::getTilePos(const Vec2f& pos) const {
-    return Vec2i{ (pos - boundingBox.pos) / Vec2f{ tileRes.x, tileRes.y } };
+    return Vec2i{ static_cast<int>((pos.x - boundingBox.pos.x) / tileRes.x), static_cast<int>((pos.y - boundingBox.pos.y) / tileRes.y) };
 }

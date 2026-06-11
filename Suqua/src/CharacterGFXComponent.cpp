@@ -3,7 +3,6 @@
 #include "Sprite.h"
 #include "AnimatedSprite.h"
 #include "PhysicsComponent.h"
-#include "CharacterGFXComponent.h"
 #include "DirectionComponent.h"
 
 CharacterGFXComponent::CharacterGFXComponent(

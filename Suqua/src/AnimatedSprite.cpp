@@ -117,12 +117,16 @@ bool AnimatedSprite::hasAnimation(const std::string& tag) const {
 
 void AnimatedSprite::setHorizontalFlip(bool horizFlip) {
     int mult = horizFlip ? -1 : 1;
-    data.objRes.x = std::abs(data.objRes.x) * mult;
+	for (auto& frame : frames) {
+		frame.obj.res.x = std::abs(frame.obj.res.x) * mult;
+	}
 }
 
 void AnimatedSprite::setVerticalFlip(bool vertFlip) {
 	int mult = vertFlip ? -1 : 1;
-	data.objRes.y = std::abs(data.objRes.y) * mult;
+	for (auto& frame : frames) {
+		frame.obj.res.y = std::abs(frame.obj.res.y) * mult;
+	}
 }
 
 IDrawable* AnimatedSprite::clone() {

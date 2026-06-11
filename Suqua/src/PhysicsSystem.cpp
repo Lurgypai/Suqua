@@ -179,7 +179,7 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
                             if (tilemap.hasTileInMap({ bottomRight.x, i })) {
                                 // skip tiles allong the far edges. if one doesn't none will so break
                                 AABB tileCollider{
-                                    Vec2f{ bottomRight.x * tileRes.x, i * tileRes.y } + Vec2f{ tilemap.getBoundingBox().pos },
+                                    Vec2f{ static_cast<float>(bottomRight.x * tileRes.x), static_cast<float>(i * tileRes.y) } + Vec2f{ tilemap.getBoundingBox().pos },
                                     tileRes
 								};
                                 if (!tileCollider.intersects(projection)) break;
@@ -203,7 +203,7 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
                         if (vel.y > 0) {
                             if (tilemap.hasTileInMap({ i, bottomRight.y })) {
                                 AABB tileCollider{
-                                    Vec2f{ i * tileRes.x, bottomRight.y * tileRes.y } + Vec2f{ tilemap.getBoundingBox().pos },
+                                    Vec2f{ static_cast<float>(i * tileRes.x), static_cast<float>(bottomRight.y * tileRes.y) } + Vec2f{ tilemap.getBoundingBox().pos },
                                     tileRes
                                 };
 								if (!tileCollider.intersects(projection)) break;

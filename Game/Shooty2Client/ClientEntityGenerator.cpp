@@ -19,9 +19,9 @@ ClientEntityGenerator::ClientEntityGenerator(Host* host_) :
 static void AddPlayerGFX(EntityId playerId) {
 	EntitySystem::MakeComps<CharacterGFXComponent>(1, &playerId,
             "tex:hero",
-            "stranded/Hero/Hero/Hero.json",
+            "player/player.json",
             Vec2f{ -13, -24 },
-            Vec2f{ -3, -1} );
+            Vec2f{ -3, 5} );
 
 	EntitySystem::GetComp<CharacterGFXComponent>(playerId)->setHasUpDown(true);
 	EntitySystem::MakeComps<OnHitComponent>(1, &playerId);
