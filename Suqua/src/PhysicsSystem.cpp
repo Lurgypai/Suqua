@@ -157,6 +157,93 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
                 // but you'll have to calculate tile position from the tilemap
                 // by checking if there are any tiles along the side being checked
                 // IE moving right, check if their are any tiles along the right edge
+                for (const auto& tilemap : tilemaps) {
+                    if (!tilemap.intersects(projection)) continue;
+					const auto& tileRes = tilemap.getTileRes();
+					Vec2i topLeft = tilemap.getTilePos(newPos);
+					Vec2i bottomRight = tilemap.getTilePos(newPos + res);
+					Vec2f overlap{ 0, 0 };
+					// moving left or right
+					for (int i = topLeft.y; i <= bottomRight.y; ++i) {
+                        // left
+						if (vel.x < 0) {
+                            if (tilemap.hasTileInMap({ topLeft.x, i })) {
+                                // get tiles right edge
+                                float tileRight = (bottomRight.x * tilemap.getTileRes().x) + tilemap.getBoundingBox().pos.x;
+                                overlap.x = projection.pos.x  - tileRight;
+                            }
+						}
+
+                        // right
+						if (vel.x > 0) {
+                            if (tilemap.hasTileInMap({ bottomRight.x, i })) {
+                                // skip tiles allong the far edges. if one doesn't none will so break
+                                AABB tileCollider{
+                                    Vec2f{ bottomRight.x * tileRes.x, i * tileRes.y } + Vec2f{ tilemap.getBoundingBox().pos },
+                                    tileRes
+								};
+                                if (!tileCollider.intersects(projection)) break;
+
+                                // get tile's left edge
+                                float tileLeft = (bottomRight.x * tilemap.getTileRes().x) + tilemap.getBoundingBox().pos.x;
+                                overlap.x = (projection.pos.x + projection.res.x) - tileLeft;
+                            }
+                        }
+                    }
+
+                    for (int i = topLeft.x; i <= bottomRight.x; ++i) {
+                        // up
+                        if(vel.y < 0) {
+                            if (tilemap.hasTileInMap({ i, topLeft.y })) {
+                                float tileBottom = (topLeft.y * tileRes.y) + tilemap.getBoundingBox().pos.y;
+                                overlap.y = projection.pos.y - tileBottom;
+                            }
+						}
+                        // down
+                        if (vel.y > 0) {
+                            if (tilemap.hasTileInMap({ i, bottomRight.y })) {
+                                AABB tileCollider{
+                                    Vec2f{ i * tileRes.x, bottomRight.y * tileRes.y } + Vec2f{ tilemap.getBoundingBox().pos },
+                                    tileRes
+                                };
+								if (!tileCollider.intersects(projection)) break;
+
+                                float tileTop = (bottomRight.y * tileRes.y) + tilemap.getBoundingBox().pos.y;
+								overlap.y = (projection.pos.y + projection.res.y) - tileTop;
+                            }
+                        }
+                    }
+
+                    //horizontal collision
+                    if (overlap.x != 0.0f && overlap.y == 0.0f) {
+                        if (vel.x < 0) physicsComp.onCollide(CollisionDir::left);
+                        else if (vel.x > 0) physicsComp.onCollide(CollisionDir::right);
+                    }
+                    //vertical collision
+                    else if (overlap.x == 0.0f && overlap.y != 0.0f) {
+                        if (vel.y < 0) physicsComp.onCollide(CollisionDir::up);
+                        else if (vel.y > 0) physicsComp.onCollide(CollisionDir::down);
+                    }
+
+                    //corner collision
+                    else if (overlap.x != 0.0f && overlap.y != 0.0f) {
+                        if (std::abs(vel.x) > std::abs(vel.y)) {
+                            //this means don't resolve collisions allong the x axis
+                            overlap.x = 0;
+
+                            //and handle collision allong the y axis
+                            if (vel.y < 0) physicsComp.onCollide(CollisionDir::up);
+                            else if (vel.y > 0) physicsComp.onCollide(CollisionDir::down);
+                        }
+                        else {
+                            overlap.y = 0;
+                            if (vel.x < 0) physicsComp.onCollide(CollisionDir::left);
+                            else if (vel.x > 0) physicsComp.onCollide(CollisionDir::right);
+                        }
+                    }
+                    // physicsComp.setVel(vel);
+                    newPos -= overlap;
+                }
 			}
 
 			currPos = newPos;
