@@ -3,6 +3,7 @@
 #include "NetworkDataComponent.h"
 #include "PositionComponent.h"
 #include "EntityBaseComponent.h"
+#include <stdexcept>
 
 using NDC = NetworkDataComponent;
 
@@ -251,4 +252,23 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
 			physicsComp.collider.pos = currPos;
 		}
 	}
+}
+
+TilemapId PhysicsSystem::loadTileMap(Tilemap&& tilemap) {
+    tilemaps.emplace_back(std::move(tilemap));
+    return tilemaps.size() - 1;
+}
+
+const Tilemap& PhysicsSystem::getTilemap(TilemapId tilemapId) const {
+    if(tilemapId < 0 || tilemapId >= tilemaps.size()) throw std::runtime_error{std::format(
+        "PhsycicsSystem: Unable to find tilemap with id \"{}\", tilemaps.size(): {}", tilemapId, tilemaps.size()
+        )};
+    return tilemaps[tilemapId];
+}
+
+const Tilemap* PhysicsSystem::getTilemapContains(const Vec2f& pos) const {
+    for(const auto& tilemap : tilemaps) {
+        if(tilemap.contains(pos)) return &tilemap;
+    }
+    return nullptr;
 }

@@ -3,7 +3,6 @@
 #include <unordered_map>
 
 #include "Scene.h"
-#include "EntitySystem.h"
 #include "Level.h"
 
 /*
@@ -14,20 +13,15 @@ for now just loading the whole thing
 
 class World {
 public:
-    World();
-	World(const std::string& textureTag_, const std::string& fileName_);
-	void load(Scene& scene);
-	void load(const std::string& textureTag_, const std::string& fileName_, Scene& scene);
+    World(const std::string& fileName, Scene& scene, PhysicsSystem& physics);
 	
 	const std::unordered_map<std::string, Level>& getLevels() const;
-	Level* getActiveLevel(const Vec2f& pos);
-	const Level* getActiveLevel(const Vec2f& pos) const;
+	Level* getActiveLevel(const Vec2f& pos, const PhysicsSystem& physics);
+	const Level* getActiveLevel(const Vec2f& pos, const PhysicsSystem& physics) const;
     Level& getLevel(const std::string& levelId);
+    const Level& getLevel(const std::string& levelId) const;
     bool hasTile(Vec2f pos) const;
 private:
-	std::string textureTag;
-	std::string fileName;
-	
     std::unordered_map<std::string, Level> levels;
 };
 

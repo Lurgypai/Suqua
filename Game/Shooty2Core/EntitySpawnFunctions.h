@@ -122,22 +122,9 @@ static EntityId SpawnEnemy(
 	auto entities = scene.addEntities(1);
 	EntityId enemyId = entities[0];
 	MakeLivingEntity(enemyId, uuid, owner, pos, { 6, 4 }, 50.0f, TeamId::enemy, { -1, -11 }, { 8, 13 }, {0.f, -7}, 4.f, 100);
-
-    /*
-	EntitySystem::MakeComps<GunFireComponent>(1, &enemyId,
-            Vec2f{},
-            0.f,
-            "bullet.enemy.basic",
-            1,
-            0.f,
-            0.f,
-            5,
-            0.2f,
-            30.f);
-            */
-
     EntitySystem::MakeComps<AIGunnerComponent>(1, &enemyId,
             300.f,
             200.f );
+
 	return enemyId;
 }

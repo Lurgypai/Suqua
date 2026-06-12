@@ -1,8 +1,8 @@
 #include "Tilemap.h"
 
-Tilemap::Tilemap(const Vec2i& tileRes_, const TilemapGrid& intGrid_, const AABBi& boundingBox_) :
+Tilemap::Tilemap(const Vec2i& tileRes_, TilemapGrid&& intGrid_, const AABBi& boundingBox_) :
     tileRes{ tileRes_ },
-    intGrid{ intGrid_ },
+    intGrid{ std::move(intGrid_) },
     boundingBox{ boundingBox_ }
 {}
 
@@ -12,11 +12,13 @@ const AABBi& Tilemap::getBoundingBox() const {
 
 bool Tilemap::hasTile(const Vec2f& pos) const {
 	Vec2i tilePos = getTilePos(pos);
-    return intGrid[tilePos.x][tilePos.y];
+    size_t i = tilePos.x + tilePos.y * (boundingBox.res.x / tileRes.x);
+    return intGrid[i];
 }
 
 bool Tilemap::hasTileInMap(const Vec2i& tilePos) const {
-    return intGrid[tilePos.x][tilePos.y];
+    size_t i = tilePos.x + tilePos.y * (boundingBox.res.x / tileRes.x);
+    return intGrid[i];
 }
 
 bool Tilemap::contains(const Vec2f& pos) const {

@@ -3,11 +3,11 @@
 #include "AABB.h"
 #include <vector>
 
-using TilemapGrid = std::vector<std::vector<int>>;
+using TilemapGrid = std::vector<int>;
 
 class Tilemap {
 public:
-    Tilemap(const Vec2i& tileRes, const TilemapGrid& intGrid_, const AABBi& boundingBox_);
+    Tilemap(const Vec2i& tileRes, TilemapGrid&& intGrid_, const AABBi& boundingBox_);
 
     const TilemapGrid& getGrid() const;
     const AABBi& getBoundingBox() const;
@@ -20,6 +20,6 @@ public:
 	Vec2i getTilePos(const Vec2f& pos) const;
 private:
     Vec2i tileRes;
-    std::vector<std::vector<int>> intGrid;
+    TilemapGrid intGrid;
     AABBi boundingBox;
 };

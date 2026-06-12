@@ -1,73 +1,51 @@
 #include "World.h"
 
 #include <fstream>
-#include <iostream>
-#include <exception>
 
 #include "nlohmann/json.hpp"
 
 using namespace nlohmann;
 
-World::World(const std::string& textureTag_, const std::string& fileName_) :
-	textureTag{textureTag_},
-	fileName{fileName_}
-{}
-
-World::World() :
-	textureTag{},
-	fileName{}
-{}
-
-void World::load(Scene& scene) {
+World::World(const std::string& fileName, Scene& scene, PhysicsSystem& physics) :
+    levels{}
+{
 	std::ifstream file{ fileName };
 	if (!file.good()) {
-		std::cout << "Unable to load World file: " << fileName << '\n';
-		throw std::exception{};
+        throw std::runtime_error{std::format(
+                "World: Unable to open world json file \"{}\"", fileName
+                )};
 	}
 
-	json worldJson{};
-    file >> worldJson;
-	//worldJson << file;
+	json worldJson = json::parse(file);
 
 	if (!worldJson.contains("levels")) {
-		std::cout << "ldtk is missing \"levels\"!\n";
-		throw std::exception{};
+        throw std::runtime_error{std::format(
+                "World: File \"{}\" is missing \"levels\" field", fileName
+                )};
 	}
 
 	const json& levelsJson = worldJson["levels"];
 	for (auto& levelJson : levelsJson) {
-        auto id = levelJson["identifier"];
-		levels.emplace(id, Level{id, levelJson, scene, textureTag});
+        std::string id = levelJson["identifier"];
+		levels.emplace(id, Level{id, levelJson, physics, scene});
 	}
 }
 
-void World::load(const std::string& textureTag_, const std::string& fileName_, Scene& scene) {
-    textureTag = textureTag_;
-    fileName  = fileName_;
 
-    load(scene);
-}
-
-Level* World::getActiveLevel(const Vec2f& pos) {
+Level* World::getActiveLevel(const Vec2f& pos, const PhysicsSystem& physics) {
 	for (auto& pair : levels) {
         auto& level = pair.second;
-		if (level.getBoundingBox().contains(pos)) return &level;
+		if (physics.getTilemap(level.getTilemapId()).contains(pos)) return &level;
 	}
 	return nullptr;
 }
 
-const Level* World::getActiveLevel(const Vec2f& pos) const {
+const Level* World::getActiveLevel(const Vec2f& pos, const PhysicsSystem& physics) const {
 	for (auto& pair : levels) {
         auto& level = pair.second;
-		if (level.getBoundingBox().contains(pos)) return &level;
+		if (physics.getTilemap(level.getTilemapId()).contains(pos)) return &level;
 	}
 	return nullptr;
-}
-
-bool World::hasTile(Vec2f pos) const {
-	const Level* level = getActiveLevel(pos);
-	if (level == nullptr) return false;
-	return level->hasTile(pos);
 }
 
 const std::unordered_map<std::string, Level>& World::getLevels() const {
@@ -75,5 +53,9 @@ const std::unordered_map<std::string, Level>& World::getLevels() const {
 }
 
 Level& World::getLevel(const std::string& levelId) {
+    return levels.at(levelId);
+}
+
+const Level& World::getLevel(const std::string& levelId) const {
     return levels.at(levelId);
 }
