@@ -38,7 +38,7 @@ LevelGFXSystem::LevelGFXSystem(const std::string& ldtkFilename) {
 
             std::string relTexturePath = layer["__tilesetRelPath"];
             std::filesystem::path ldtkPath = ldtkFilename;
-            std::string texturePath = std::string{ldtkPath.parent_path()} + "/" + relTexturePath;
+            std::string texturePath = ldtkPath.parent_path().string() + "/" + relTexturePath;
             GLRenderer::LoadTexture(texturePath, textureTag);
 
             LevelGFX levelGfx{id, textureTag, {}};
