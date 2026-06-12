@@ -5,12 +5,15 @@
 #include "PhysicsSystem.h"
 #include "../Shooty2Core/ItemSystem.h"
 #include "../Shooty2Core/CombatSystem.h"
+
+#include "LevelGFXSystem.h"
 #include "HandItemGFXSystem.h"
 
 class ClientWorldScene : public Scene {
 public:
 	ClientWorldScene(SceneId id_, Scene::FlagType flags_, InputDeviceId input,
-            ItemSystem& items, HandItemGFXSystem& invItemGfx);
+            ItemSystem& items, HandItemGFXSystem& invItemGfx,
+            const std::string& ldtkFileName);
 	// Inherited via Scene
 	virtual void load(Game& game) override;
 	virtual void physicsStep(Game& game) override;
@@ -24,15 +27,18 @@ public:
 	EntityId myDaemonId;
     SceneId menuScene;
 private:
+    // physics has to be constructed before world as its passed to world
+	PhysicsSystem physics;
+
     World world;
     std::string activeLevel;
 	// player owned by this client
 
 	InputDeviceId playerInput;
-	PhysicsSystem physics;
 	CombatSystem combat;
 	ItemSystem& items;
 	HandItemGFXSystem& invItemGfx;
+    LevelGFXSystem levelGfx;
 
 	Framebuffer screenBuffer;
 };

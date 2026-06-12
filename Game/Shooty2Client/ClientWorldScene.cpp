@@ -42,18 +42,20 @@
 #include "../Shooty2Core/HandComponent.h"
 #include "../Shooty2Core/DaemonComponent.h"
 
-#include "../Shooty2Core/CommandRespawn.h"
 #include "CommandItem.h"
 
 // debug
 // #include "PositionComponent.h"
 
 ClientWorldScene::ClientWorldScene(SceneId id_, Scene::FlagType flags_, InputDeviceId input,
-        ItemSystem& items_, HandItemGFXSystem& invItemGfx_) :
+        ItemSystem& items_, HandItemGFXSystem& invItemGfx_,
+        const std::string& ldtkFileName) :
 	Scene{ id_, flags_ },
+    world{ldtkFileName, *this, physics},
 	playerInput{ input },
     items{items_},
-    invItemGfx{invItemGfx_}
+    invItemGfx{invItemGfx_},
+    levelGfx{ldtkFileName}
 { }
 
 void ClientWorldScene::load(Game& game)
@@ -102,8 +104,6 @@ void ClientWorldScene::load(Game& game)
 	addEntityInputs({ {myDaemonId, playerInput} });
 
 	// load level
-    world = World{ "tex:tileset", "levels/test.ldtk" };
-	world.load(*this);
     activeLevel = "Level_spawn";
     world.getLevel(activeLevel).activate();
 
@@ -134,7 +134,6 @@ void ClientWorldScene::load(Game& game)
 
 	/*-------------- COMMANDS ----------------*/
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
-    DebugIO::getCommandManager().registerCommand<CommandRespawn>(world);
     DebugIO::getCommandManager().registerCommand<CommandItem>(items, myPlayerId);
 
 
@@ -167,7 +166,7 @@ void ClientWorldScene::physicsStep(Game& game)
 
     // load active level
 	auto* plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
-    auto newLevel = world.getActiveLevel(plrPhysicsComp->position());
+    auto newLevel = world.getActiveLevel(plrPhysicsComp->position(), physics);
     if(newLevel != nullptr && newLevel->getLevelId() != activeLevel) {
         world.getLevel(activeLevel).deactivate();
         newLevel->activate();
@@ -204,10 +203,10 @@ void ClientWorldScene::renderUpdateStep(Game& game)
     auto delta = pointerWorldPos - plrPos;
     Vec2f targetPos = plrPos + (delta / 2.f);
     targetPos -= Vec2f{cam.res.x / 2.f, cam.res.y / 2.f };
-	auto* level = world.getActiveLevel(plrPhysicsComp->center());
+	auto* level = world.getActiveLevel(plrPhysicsComp->center(), physics);
 
 	if (level != nullptr) {
-		auto& boundingBox = level->getBoundingBox();
+		auto& boundingBox = physics.getTilemap(level->getTilemapId()).getBoundingBox();
 		float leftOverlap = boundingBox.pos.x - targetPos.x;
 		float rightOverlap = (boundingBox.pos.x + boundingBox.res.x) - (targetPos.x + cam.res.x);
 		float topOverlap = boundingBox.pos.y - targetPos.y;
@@ -237,6 +236,7 @@ void ClientWorldScene::renderStep(Game& game)
 	screenBuffer.bind();
 	glClearColor(78.0f / 255, 59.0f / 255, 61.0f / 255, 1.0f);
 	GLRenderer::Clear();
+    levelGfx.draw(physics, world);
 	drawScene(game.getRender());
     GLRenderer::DrawBufferedImages();
     GLRenderer::UpdateAndDrawParticles();

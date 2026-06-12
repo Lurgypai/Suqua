@@ -1,25 +1,17 @@
 #include "Level.h"
-#include "NetworkDataComponent.h"
-#include "EntitySystem.h"
+
 #include "PhysicsComponent.h"
-#include "PositionComponent.h"
-#include "EntityBaseComponent.h"
-#include "EntitySpawnSystem.h"
 
 using namespace nlohmann;
 using UUID = Suqua::UUID;
 
-Level::Level(const std::string& levelId_, const json& levelJson, Scene& scene, const std::string& textureTag) :
+Level::Level(const std::string& levelId_, const json& levelJson, PhysicsSystem& physics, Scene& scene) :
     levelId{ levelId_ },
-	tiles{},
 	entities{},
-	boundingBox{},
-	grid{},
-	tileSize{},
     isActive_{true}
 {
 	Vec2f levelOffset = { levelJson["worldX"], levelJson["worldY"] };
-	boundingBox = AABB{ levelOffset, {levelJson["pxWid"], levelJson["pxHei"]} };
+	AABBi boundingBox = AABBi{ levelOffset, {levelJson["pxWid"], levelJson["pxHei"]} };
 
 	for (auto& layerJson : levelJson["layerInstances"]) {
 		const std::string& identifier = layerJson["__identifier"];
@@ -35,42 +27,15 @@ Level::Level(const std::string& levelId_, const json& levelJson, Scene& scene, c
 			}
 		}
 		else if (identifier == "Tiles") {
-			tileSize = layerJson["__gridSize"];
-			Vec2i res{ tileSize, tileSize };
-			grid = layerJson["intGridCsv"].get<std::vector<int>>();
+			int tileSize = layerJson["__gridSize"];
+			Vec2i tileRes{ tileSize, tileSize };
+            std::vector<int> grid = layerJson["intGridCsv"].get<std::vector<int>>();
 
-			for (auto& tileJson : layerJson["autoLayerTiles"]) {
-				Vec2f worldPos{ tileJson["px"][0], tileJson["px"][1] };
-				Vec2f texOffset{ tileJson["src"][0], tileJson["src"][1] };
-
-                // add tile data component to store the texture offset
-                // move tile into entity generator
-
-                EntityId tile = EntitySpawnSystem::SpawnEntity("entity:world:tile", scene, Vec2f{}, NetworkDataComponent::Owner::local_only);
-
-                auto physComp = EntitySystem::GetComp<PhysicsComponent>(tile);
-                physComp->setDoesCollide(false);
-                physComp->setCollidedWith(true);
-                physComp->setFrozen(true);
-                physComp->setWeightless(true);
-
-				auto posComp = EntitySystem::GetComp<PositionComponent>(tile);
-                posComp->pos = levelOffset + worldPos;
-
-				// EntitySystem::MakeComps<RenderComponent>(1, &tile);
-                // 
-				// auto renderComp = EntitySystem::GetComp<RenderComponent>(tile);
-				// auto sprIndex = renderComp->loadDrawable<Sprite>(textureTag);
-                // 
-				// Sprite& sprite = renderComp->getDrawable<Sprite>(sprIndex);
-				// sprite.setImgOffset(texOffset);
-				// sprite.setObjRes(res);
-				// unsigned int f = tileJson["f"];
-				// sprite.horizontalFlip = f & 0b01;
-				// sprite.verticalFlip = f & 0b10;
-
-				tiles.emplace_back(tile);
-			}
+            tilemapId = physics.loadTileMap(Tilemap{
+                    tileRes,
+                    std::move(grid),
+                    boundingBox
+                });
 		}
 	}
 
@@ -78,34 +43,15 @@ Level::Level(const std::string& levelId_, const json& levelJson, Scene& scene, c
 }
 
 void Level::activate() {
-    for(auto& tile : tiles) {
-        auto* baseComp = EntitySystem::GetComp<EntityBaseComponent>(tile);
-        baseComp->isActive = true;
-    } 
     isActive_ = true;
 }
 
 void Level::deactivate() {
-    for(auto& tile : tiles) {
-        auto* baseComp = EntitySystem::GetComp<EntityBaseComponent>(tile);
-        baseComp->isActive = false;
-    }
     isActive_ = false;
-}
-
-const AABB& Level::getBoundingBox() const {
-	return boundingBox;
 }
 
 const std::vector<Level::LevelEntity>& Level::getEntities() const {
 	return entities;
-}
-
-bool Level::hasTile(const Vec2f& pos) const {
-	auto inBoundsPos = pos - boundingBox.pos;
-    Vec2i tilePos = Vec2i{static_cast<int>(inBoundsPos.x / tileSize), static_cast<int>(inBoundsPos.y / tileSize)};
-    int index = tilePos.y * (boundingBox.res.x / tileSize) + tilePos.x;
-    return grid[index];
 }
 
 bool Level::isActive() const {
@@ -114,4 +60,8 @@ bool Level::isActive() const {
 
 const std::string& Level::getLevelId() const {
     return levelId;
+}
+
+TilemapId Level::getTilemapId() const {
+    return tilemapId;
 }
