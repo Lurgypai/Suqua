@@ -1,5 +1,4 @@
 #include "DaemonComponent.h"
-#include "PositionComponent.h"
 #include "ControllerComponent.h"
 #include "HandComponent.h"
 #include "PhysicsComponent.h"
@@ -14,7 +13,7 @@ DaemonComponent::DaemonComponent(EntityId id_, float followRate_, Vec2f followOf
 	side{1}
 {}
 
-void DaemonComponent::update() {
+void DaemonComponent::update(double timeDelta) {
 	auto* hostHands = EntitySystem::GetComp<HandComponent>(hostEntity);
 	if (hostHands == nullptr) return;
 
@@ -37,7 +36,7 @@ void DaemonComponent::update() {
 
 	if (!isHolding) targetPos = hostHands->getBodyPos() + Vec2f{ followOffset.x * side, followOffset.y };
 
-	auto* ourPos = EntitySystem::GetComp<PositionComponent>(id);
-	auto delta = targetPos - ourPos->pos;
-	ourPos->pos += delta * followRate;
+	auto* ourPhys = EntitySystem::GetComp<PhysicsComponent>(id);
+	auto delta = targetPos - ourPhys->center();
+	ourPhys->vel = (delta / timeDelta) * followRate;
 }

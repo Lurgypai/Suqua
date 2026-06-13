@@ -13,7 +13,7 @@ public:
 
 	// entity to follow
 	EntityId hostEntity;
-	void update();
+	void update(double timeDelta);
 private:
 	bool isHolding;
 	Vec2f targetPos;

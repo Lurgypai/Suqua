@@ -101,7 +101,6 @@ void ClientWorldScene::load(Game& game)
 
 	myDaemonId = EntitySpawnSystem::SpawnEntity("entity:player:daemon", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
 
-    EntitySpawnSystem::SpawnEntity("entity:enemy:basic", *this, {720.f/2, 405.f/2}, NetworkDataComponent::Owner::local_shared);
 	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(myDaemonId);
 	daemonComp->hostEntity = myPlayerId;
 	addEntityInputs({ {myDaemonId, playerInput} });
@@ -153,7 +152,7 @@ void ClientWorldScene::physicsStep(Game& game)
 	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();
 	Updater::UpdateOwned<HandComponent>(*this, game.PHYSICS_STEP);
-	Updater::UpdateOwned<DaemonComponent>();
+	Updater::UpdateOwned<DaemonComponent>(game.PHYSICS_STEP);
 
     // combat is done entirely client side
 	Updater::UpdateAll<HurtboxComponent>(); // Hurtboxes need to be moved to where the ndc says they are

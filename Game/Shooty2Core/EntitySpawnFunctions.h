@@ -100,10 +100,9 @@ static EntityId SpawnDaemon(
     Owner owner,
     const UUID& uuid) {
     auto entity = scene.addEntities(1)[0];
-    MakeNetworkEntity(entity, uuid, owner);
+    MakePhysicsEntity(entity, uuid, owner, pos, {4, 4});
 
 	EntitySystem::MakeComps<ControllerComponent>(1, &entity);
-	EntitySystem::MakeComps<PositionComponent>(1, &entity);
 	EntitySystem::MakeComps<DaemonComponent>(1, &entity, 0.1f, Vec2f{-15, -15});
 	EntitySystem::MakeComps<HandComponent>(1, &entity, Vec2f{0.f, 5.f}, 5.f);
 	auto* daemonHandComp = EntitySystem::GetComp<HandComponent>(entity);

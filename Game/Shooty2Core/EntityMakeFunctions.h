@@ -61,7 +61,7 @@ static void MakePhysicsEntity(
     ndc->set(PositionData::Y, posComp->pos.y);
 
     ndc->set(PhysicsData::XVEL, physComp->vel.x);
-    ndc->set(PhysicsData::XVEL, physComp->vel.y);
+    ndc->set(PhysicsData::YVEL, physComp->vel.y);
 }
 
 static void MakeLivingEntity(
@@ -149,5 +149,5 @@ static void MakeBullet(
     ndc->set(PositionData::Y, posComp->pos.y);
 
     ndc->set(PhysicsData::XVEL, physicsComp->vel.x);
-    ndc->set(PhysicsData::XVEL, physicsComp->vel.y);
+    ndc->set(PhysicsData::YVEL, physicsComp->vel.y);
 }

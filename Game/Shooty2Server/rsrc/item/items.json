@@ -1,0 +1,35 @@
+{
+    "items": [
+        {
+            "tag": "item:gun:basic",
+            "ability": "ability:gun:basic",
+            "offset": 13.0,
+            "bulletTag": "entity:bullet:player:basic",
+            "chamberSize": 3,
+            "fireDelay": 0.2,
+            "reloadDelay": 0.5,
+            "bulletCount": 1,
+            "bulletSpread": 0.1,
+            "velVariance": 0
+        },
+        {
+            "tag": "item:gun:enemy_blast",
+            "ability": "ability:gun:basic",
+            "offset": 13.0,
+            "bulletTag": "entity:bullet:enemy:basic",
+            "chamberSize": 1,
+            "fireDelay": 0.0,
+            "reloadDelay": 4.0,
+            "bulletCount": 5,
+            "bulletSpread": 0.2,
+            "velVariance": 30.0
+        },
+        {
+            "tag": "item:skill:dash",
+            "ability": "ability:skill:dash"
+        },
+        {
+            "tag": "item:other:sprite"
+        }
+    ]
+}
