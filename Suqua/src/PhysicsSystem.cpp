@@ -166,20 +166,30 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
 					Vec2i newTopLeft = tilemap.getTilePos(newPos);
 					Vec2i newBottomRight = tilemap.getTilePos(newPos + res);
 					Vec2f overlap{ 0, 0 };
+                    int xOverlaps = 0;
+                    int yOverlaps = 0;
 					// moving left or right
 					for (int i = newTopLeft.y; i <= newBottomRight.y; ++i) {
                         // left
 						if (vel.x < 0) {
-                            // tile in new location, no tile in old
                             if (tilemap.hasTileInMap({ newTopLeft.x, i })) {
+                                AABB tileCollider{
+                                    Vec2f{ static_cast<float>(newTopLeft.x * tileRes.x), static_cast<float>(i * tileRes.y) } + Vec2f{ tilemap.getBoundingBox().pos },
+                                    tileRes
+								};
+                                if (!tileCollider.intersects(projection)) break;
                                 // get the right edge of the left tile
                                 float tileRight = ((newTopLeft.x + 1) * tilemap.getTileRes().x) + tilemap.getBoundingBox().pos.x;
-                                if(currPos.x >= tileRight) overlap.x = projection.pos.x  - tileRight;
+                                if(currPos.x >= tileRight) {
+                                    ++xOverlaps;
+                                    if(xOverlaps > 1) break;
+                                    overlap.x = projection.pos.x  - tileRight;
+                                }
                             }
 						}
 
                         // right
-						if (vel.x > 0) {
+						else if (vel.x > 0) {
                             if (tilemap.hasTileInMap({ newBottomRight.x, i })) {
                                 // skip tiles allong the far edges. if one doesn't none will so break
                                 AABB tileCollider{
@@ -190,32 +200,51 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
 
                                 // get tile's left edge
                                 float tileLeft = (newBottomRight.x * tileRes.x) + tilemap.getBoundingBox().pos.x;
-                                if(currPos.x + res.x <= tileLeft) overlap.x = (projection.pos.x + projection.res.x) - tileLeft;
+                                if(currPos.x + res.x <= tileLeft) {
+                                    ++xOverlaps;
+                                    if(xOverlaps > 1) break;
+                                    overlap.x = (projection.pos.x + projection.res.x) - tileLeft;
+                                }
                             }
                         }
                     }
                     for (int i = newTopLeft.x; i <= newBottomRight.x; ++i) {
                         // up
                         if(vel.y < 0) {
-                            if (tilemap.hasTileInMap({ i, newTopLeft.y }) && !tilemap.hasTileInMap({i, curTopLeft.y})) {
+                            if (tilemap.hasTileInMap({ i, newTopLeft.y })) {
+                                AABB tileCollider{
+                                    Vec2f{ static_cast<float>(i * tileRes.x), static_cast<float>(newTopLeft.y * tileRes.y) } + Vec2f{ tilemap.getBoundingBox().pos },
+                                    tileRes
+								};
+                                if (!tileCollider.intersects(projection)) break;
                                 float tileBottom = ((newTopLeft.y + 1) * tileRes.y) + tilemap.getBoundingBox().pos.y;
-                                if(currPos.y >= tileBottom) overlap.y = projection.pos.y - tileBottom;
+                                if(currPos.y >= tileBottom) {
+                                    ++yOverlaps;
+                                    if(yOverlaps > 1) break;
+                                    overlap.y = projection.pos.y - tileBottom;
+                                }
                             }
 						}
                         // down
-                        if (vel.y > 0) {
+                        else if (vel.y > 0) {
                             if (tilemap.hasTileInMap({ i, newBottomRight.y })) {
                                 AABB tileCollider{
                                     Vec2f{ static_cast<float>(i * tileRes.x), static_cast<float>(newBottomRight.y * tileRes.y) } + Vec2f{ tilemap.getBoundingBox().pos },
                                     tileRes
                                 };
 								if (!tileCollider.intersects(projection)) break;
-
                                 float tileTop = (newBottomRight.y * tileRes.y) + tilemap.getBoundingBox().pos.y;
-                                if(currPos.y + res.y <= tileTop) overlap.y = (projection.pos.y + projection.res.y) - tileTop;
+                                if(currPos.y + res.y <= tileTop) {
+                                    ++yOverlaps;
+                                    if(yOverlaps > 1) break;
+                                    overlap.y = (projection.pos.y + projection.res.y) - tileTop;
+                                }
                             }
                         }
                     }
+
+                    if(yOverlaps > 1 && xOverlaps < 2) overlap.x = 0;
+                    if(xOverlaps > 1 && yOverlaps < 2) overlap.y = 0;
 
                     //horizontal collision
                     if (overlap.x != 0.0f) {
@@ -247,7 +276,6 @@ void PhysicsSystem::runPhysics(double timeDelta, PhysicsComponent& physicsComp) 
                         }
                     }
                     */
-                    // physicsComp.setVel(vel);
                     newPos -= overlap;
                 }
 			}
