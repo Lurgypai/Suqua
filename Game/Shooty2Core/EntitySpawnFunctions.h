@@ -85,7 +85,7 @@ static EntityId SpawnPlayer(
             TeamId::player,
             { -1, -11 },
             { 8, 13 },
-			{0.f, -10},
+			{0.f, -4.f},
 			4.f,
 			100);
     EntitySystem::MakeComps<PlayerSpawnComponent>(1, &playerId);

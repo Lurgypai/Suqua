@@ -13,11 +13,13 @@ const AABBi& Tilemap::getBoundingBox() const {
 bool Tilemap::hasTile(const Vec2f& pos) const {
 	Vec2i tilePos = getTilePos(pos);
     size_t i = tilePos.x + tilePos.y * (boundingBox.res.x / tileRes.x);
+	if (i < 0 || i >= intGrid.size()) return false;
     return intGrid[i];
 }
 
 bool Tilemap::hasTileInMap(const Vec2i& tilePos) const {
     size_t i = tilePos.x + tilePos.y * (boundingBox.res.x / tileRes.x);
+	if (i < 0 || i >= intGrid.size()) return false;
     return intGrid[i];
 }
 
