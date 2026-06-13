@@ -104,7 +104,7 @@ void ClientWorldScene::load(Game& game)
 	addEntityInputs({ {myDaemonId, playerInput} });
 
 	// load level
-    activeLevel = "Level_spawn";
+    activeLevel = "Level_0";
     world.getLevel(activeLevel).activate();
 
     // prepare spawning
@@ -116,7 +116,7 @@ void ClientWorldScene::load(Game& game)
         }
     }
     auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
-    plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_spawn"));
+    plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_0"));
 
     // tell the server that we're ready
     ByteStream playerPacket;
