@@ -1,9 +1,10 @@
-#include <print>
-
 #include "HealthComponent.h"
 #include "EntityBaseComponent.h"
-#include "NetworkDataComponentDataFields.h"
-#include <stdexcept>
+
+void HealthComponent::DefaultDeathCallback(EntityId id) {
+    EntityBaseComponent* base = EntitySystem::GetComp<EntityBaseComponent>(id);
+    base->isDead = true;
+}
 
 HealthComponent::HealthComponent(EntityId id_, int32_t health_, DeathCallback deathCallback_) :
     id{ id_ },
@@ -22,9 +23,7 @@ void HealthComponent::setHealth(std::int32_t health_) {
 void HealthComponent::damage(std::int32_t amount) {
 	if (amount >= health) {
 		health = 0;
-        auto base = EntitySystem::GetComp<EntityBaseComponent>(id);
-        base->isDead = true;
-        if(deathCallback) deathCallback();
+        if(deathCallback) deathCallback(id);
 		return;
 	}
 

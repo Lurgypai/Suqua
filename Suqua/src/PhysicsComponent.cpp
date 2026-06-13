@@ -1,12 +1,7 @@
 #include "PhysicsComponent.h"
 #include "PositionComponent.h"
 #include "AngleUtil.h"
-#include "NetworkDataComponent.h"
-#include "NetworkDataComponentDataFields.h"
 #include <cmath>
-
-using NDC = NetworkDataComponent;
-using namespace PhysicsData;
 
 PhysicsComponent::PhysicsComponent(EntityId id_,
         const Vec2f& pos,
@@ -57,7 +52,6 @@ void PhysicsComponent::move(float angle, float amount) {
 }
 
 void PhysicsComponent::accelerate(Vec2f amount) {
-	NDC* data = EntitySystem::GetComp<NDC>(id);
     vel += amount;
 }
 

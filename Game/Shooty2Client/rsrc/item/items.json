@@ -19,7 +19,7 @@
             "bulletTag": "entity:bullet:enemy:basic",
             "chamberSize": 1,
             "fireDelay": 0.0,
-            "reloadDelay": 0.0,
+            "reloadDelay": 4.0,
             "bulletCount": 5,
             "bulletSpread": 0.2,
             "velVariance": 30.0

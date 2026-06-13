@@ -31,6 +31,7 @@
 #include "TeleportZoneGFXComponent.h"
 #include "DaemonGFXComponent.h"
 #include "HandItemGFXComponent.h"
+#include "EnemyGFXComponent.h"
 
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/HealthWatcherComponent.h"
@@ -99,6 +100,8 @@ void ClientWorldScene::load(Game& game)
 	addEntityInputs({ {myPlayerId, playerInput} });
 
 	myDaemonId = EntitySpawnSystem::SpawnEntity("entity:player:daemon", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
+
+    EntitySpawnSystem::SpawnEntity("entity:enemy:basic", *this, {720.f/2, 405.f/2}, NetworkDataComponent::Owner::local_shared);
 	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(myDaemonId);
 	daemonComp->hostEntity = myPlayerId;
 	addEntityInputs({ {myDaemonId, playerInput} });
@@ -130,7 +133,8 @@ void ClientWorldScene::load(Game& game)
     auto* plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
     plrInvComp->setItemCount("item:gun:basic", 1);
     plrInvComp->setItemCount("item:skill:dash", 1);
-    plrInvComp->setItemCount("item:other:sprite", 4);
+    plrInvComp->setItemCount("item:other:sprite", 1);
+    plrInvComp->setItemCount("item:gun:enemy_blast", 1);
 
 	/*-------------- COMMANDS ----------------*/
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
@@ -141,7 +145,7 @@ void ClientWorldScene::load(Game& game)
 
 void ClientWorldScene::physicsStep(Game& game)
 {
-    Updater::UpdateOwned<AIGunnerComponent>(game.PHYSICS_STEP);
+    Updater::UpdateOwned<AIGunnerComponent>(game.PHYSICS_STEP, items);
 	Updater::UpdateOwned<TopDownMoverComponent>();
 	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
@@ -193,6 +197,7 @@ void ClientWorldScene::renderUpdateStep(Game& game)
     Updater::UpdateAll<AttackGFXComponent>();
     Updater::UpdateAll<TeleportZoneGFXComponent>(game.PHYSICS_STEP * 1000);
 	Updater::UpdateAll<DaemonGFXComponent>(game.PHYSICS_STEP);
+    Updater::UpdateAll<EnemyGFXComponent>();
 
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
     auto plrContComp = EntitySystem::GetComp<ControllerComponent>(myPlayerId);

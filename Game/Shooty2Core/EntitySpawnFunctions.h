@@ -89,6 +89,8 @@ static EntityId SpawnPlayer(
 			4.f,
 			100);
     EntitySystem::MakeComps<PlayerSpawnComponent>(1, &playerId);
+    auto* healthComp = EntitySystem::GetComp<HealthComponent>(playerId);
+    healthComp->deathCallback = nullptr;
 	return playerId;
 }
 
@@ -126,5 +128,7 @@ static EntityId SpawnEnemy(
             300.f,
             200.f );
 
+    auto* inv = EntitySystem::GetComp<InventoryComponent>(enemyId);
+    inv->setItemCount("item:gun:enemy_blast", 1);
 	return enemyId;
 }
