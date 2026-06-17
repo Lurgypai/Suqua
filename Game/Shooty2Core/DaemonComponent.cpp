@@ -3,10 +3,11 @@
 #include "HandComponent.h"
 #include "PhysicsComponent.h"
 
-DaemonComponent::DaemonComponent(EntityId id_, float followRate_, Vec2f followOffset_) :
+DaemonComponent::DaemonComponent(EntityId id_, float followRate_, Vec2f followOffset_, float maxDistance_) :
 	id{id_},
 	followRate{followRate_},
 	followOffset{followOffset_},
+    maxDistance{maxDistance_},
 	hostEntity{0},
 	isHolding{false},
 	targetPos{},
@@ -37,6 +38,15 @@ void DaemonComponent::update(double timeDelta) {
 	if (!isHolding) targetPos = hostHands->getBodyPos() + Vec2f{ followOffset.x * side, followOffset.y };
 
 	auto* ourPhys = EntitySystem::GetComp<PhysicsComponent>(id);
-	auto delta = targetPos - ourPhys->center();
-	ourPhys->vel = (delta / timeDelta) * followRate;
+    auto delta = targetPos - ourPhys->center();
+
+    // teleport if to far away
+    if(delta.magn() > maxDistance) {
+        auto* targetPhys = EntitySystem::GetComp<PhysicsComponent>(hostEntity);
+        ourPhys->vel = {0.f, 0.f};
+        ourPhys->center(targetPhys->center());
+    }
+    else {
+        ourPhys->vel = (delta / static_cast<float>(timeDelta)) * followRate;
+    }
 }

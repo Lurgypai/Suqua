@@ -101,6 +101,8 @@ void ClientWorldScene::load(Game& game)
 
 	myDaemonId = EntitySpawnSystem::SpawnEntity("entity:player:daemon", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
 
+    EntitySpawnSystem::SpawnEntity("entity:enemy:basic", *this, {720.4 / 2, 405.f / 2}, NetworkDataComponent::Owner::local_shared);
+
 	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(myDaemonId);
 	daemonComp->hostEntity = myPlayerId;
 	addEntityInputs({ {myDaemonId, playerInput} });
