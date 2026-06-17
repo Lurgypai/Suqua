@@ -180,7 +180,7 @@ void ClientWorldScene::physicsStep(Game& game)
 
     // opening the menu
     auto cont = game.getInputDevice(playerInput).getControllerState();
-    if(cont.toggled(ControllerBits::BUTTON_4) && cont[ControllerBits::BUTTON_4]) {
+    if(cont.toggled(ControllerBits::BUTTON_11) && cont[ControllerBits::BUTTON_11]) {
         // if our input is enabled, turn the menu on and disable input, else turn menu off and enable
         if(flags & Scene::Flag::input) game.sceneOn(menuScene);
         else game.sceneOff(menuScene);

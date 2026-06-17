@@ -71,9 +71,6 @@ void InventoryMenu::navigateTop(const Controller& cont) {
     // move sliding boxes
     if(curSelected < curMin) curMin = curSelected;
     else if (curSelected >= curMin + SHOW_COUNT) curMin = (curSelected - SHOW_COUNT) + 1;
-
-    // select an item
-    if(cont.toggled(ControllerBits::BUTTON_1) && cont[ControllerBits::BUTTON_1]) state = State::equip;
 }
 
 void InventoryMenu::navigateEquip(const Controller& cont) {
@@ -139,7 +136,31 @@ void InventoryMenu::navigateEquip(const Controller& cont) {
         }
     }
 
-    if(cont.toggled(ControllerBits::BUTTON_2) && cont[ControllerBits::BUTTON_2]) state = State::top;
+    if(cont.toggled(ControllerBits::BUTTON_2) && cont[ControllerBits::BUTTON_2]) {
+        HandComponent* plrHands = EntitySystem::GetComp<HandComponent>(playerId);
+        HandComponent* daemonHands = EntitySystem::GetComp<HandComponent>(daemonId);
+        EquipSelected selected = static_cast<EquipSelected>(curEquipSelected);
+        switch(selected) {
+            case EquipSelected::lhand:
+                plrHands->clearItem(0);
+                break;
+            case EquipSelected::rhand:
+                plrHands->clearItem(1);
+                break;
+            case EquipSelected::d_lhand:
+                daemonHands->clearItem(0);
+                break;
+            case EquipSelected::d_rhand:
+                daemonHands->clearItem(1);
+                break;
+            case EquipSelected::head:
+                break;
+            case EquipSelected::chest:
+                break;
+            case EquipSelected::feet:
+                break;
+        }
+    }
 }
 
 void InventoryMenu::update(const Controller& cont) {
@@ -148,8 +169,6 @@ void InventoryMenu::update(const Controller& cont) {
     switch(state) {
         case State::top:
             navigateTop(cont);
-            break;
-        case State::equip:
             navigateEquip(cont);
             break;
     }
@@ -235,10 +254,7 @@ void InventoryMenu::render() {
         
         // set color
         if(curRenderIdx != curEquipSelected) item.outline.c = Color{1.f, 1.f, 1.f, 1.f};
-        else {
-            if(state == State::equip) item.outline.c = Color{1.f, 0.f, 0.f, 1.f};
-            else item.outline.c = Color{1.f, 1.f, 1.f, 1.f};
-        }
+        else item.outline.c = Color{1.f, 0.f, 0.f, 1.f};
 
         // draw
         if(item.sprite.texture_tag != "none") item.sprite.draw();

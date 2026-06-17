@@ -30,8 +30,7 @@ public:
     EntityId daemonId;
 private:
     enum class State {
-        top,
-        equip
+        top
     } state;
 
     enum class EquipSelected {
