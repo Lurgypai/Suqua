@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 
     ItemSystem items;
     items.loadItems("item/items.json");
-	SceneId lobbyScene = game.loadScene<ServerWorldScene>(Scene::Flag::physics | Scene::Flag::input, items, "levels/debug.ldtk");
+	SceneId lobbyScene = game.loadScene<ServerWorldScene>(Scene::Flag::physics | Scene::Flag::input, items, "levels/test.ldtk");
 
 	SuquaLib::RunGame(game);
 

@@ -15,6 +15,8 @@
 #include "PlayerSpawnComponent.h"
 #include "AIGunnerComponent.h"
 #include "DaemonComponent.h"
+#include "EntityBaseComponent.h"
+#include "Shooty2NetworkDataFields.h"
 
 static EntityId SpawnTeleportZone(
         Scene& scene,
@@ -107,11 +109,6 @@ static EntityId SpawnDaemon(
 	EntitySystem::MakeComps<HandComponent>(1, &entity, Vec2f{0.f, 5.f}, 5.f);
 	auto* daemonHandComp = EntitySystem::GetComp<HandComponent>(entity);
     daemonHandComp->handFlags = { ControllerBits::BUTTON_7, ControllerBits::BUTTON_8 };
-
-    auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(entity);
-    auto* posComp = EntitySystem::GetComp<PositionComponent>(entity);
-    ndc->set(PositionData::X, posComp->pos.x);
-    ndc->set(PositionData::Y, posComp->pos.y);
     return entity;
 }
 
@@ -129,5 +126,16 @@ static EntityId SpawnEnemy(
 
     auto* inv = EntitySystem::GetComp<InventoryComponent>(enemyId);
     inv->setItemCount("item:gun:enemy_blast", 1);
+
+    auto* health = EntitySystem::GetComp<HealthComponent>(enemyId);
+    auto cb = [](EntityId id) {
+        auto* base = EntitySystem::GetComp<EntityBaseComponent>(id);
+        base->isActive = false;
+    };
+    health->deathCallback = cb;
+
+    auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(enemyId);
+    auto* ai = EntitySystem::GetComp<AIGunnerComponent>(enemyId);
+    ndc->set(AIData::AI_STATE, reinterpret_cast<std::uint8_t&>(ai->state));
 	return enemyId;
 }

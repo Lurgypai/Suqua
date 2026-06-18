@@ -18,6 +18,7 @@ public:
     float avoidRadius;
     
     AIState getState() const;
+    AIState state;
 private:
     double timeSinceLastAction;
     double idleTime;
@@ -29,5 +30,4 @@ private:
 
     EntityId targetId;
     std::set<TeamComponent::TeamId> targetTeams;
-    AIState state;
 };

@@ -18,13 +18,13 @@
 #include "EntityBaseComponent.h"
 #include "PositionComponent.h"
 #include "TopDownMoverComponent.h"
-#include "ParentComponent.h"
 #include "AimToLStickComponent.h"
 #include "LifeTimeComponent.h"
 
 #include "../Shooty2Core/RespawnComponent.h"
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/AIGunnerComponent.h"
+#include "../Shooty2Core/HandComponent.h"
 
 ServerWorldScene::ServerWorldScene(SceneId id_, Scene::FlagType flags_,
         ItemSystem& items_, const std::string& worldFile) :
@@ -47,21 +47,19 @@ void ServerWorldScene::load(Game& game)
     game.loadPacketHandler<PHServerAddPlayer>(Shooty2Packet::AddPlayer);
     game.loadPacketHandler<PHServerDamage>(Shooty2Packet::Damage);
  
-    world.getLevel("Level_0").activate();
-
-    EntitySpawnSystem::SpawnEntity("entity:enemy:basic", *this, Vec2f{200, 200}, NetworkDataComponent::Owner::local_shared);
 
     director = Director{};
-    director.load(world, *this, "Level_0");
+    director.load(world, *this, "Level_spawn");
+    world.getLevel("Level_spawn").activate();
 }
 
 void ServerWorldScene::physicsStep(Game& game) {
     Updater::UpdateOwned<AIGunnerComponent>(game.PHYSICS_STEP, items);
 	Updater::UpdateOwned<TopDownMoverComponent>();
-	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
 	Updater::UpdateOwned<LifeTimeComponent>();
 	Updater::UpdateOwned<RespawnComponent>();
+	Updater::UpdateOwned<HandComponent>(*this, game.PHYSICS_STEP);
 
 	physics.runPhysicsOnOwned(game.PHYSICS_STEP);
 

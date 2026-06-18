@@ -1,7 +1,5 @@
 #include "TopDownMoverComponent.h"
 #include "ControllerComponent.h"
-#include "NetworkDataComponent.h"
-#include "NetworkDataComponentDataFields.h"
 #include "PhysicsComponent.h"
 
 TopDownMoverComponent::TopDownMoverComponent(EntityId id_, float moveSpeed_) :

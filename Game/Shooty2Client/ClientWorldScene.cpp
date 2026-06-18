@@ -21,7 +21,6 @@
 #include "TopDownMoverComponent.h"
 #include "LifeTimeComponent.h"
 #include "AimToLStickComponent.h"
-#include "ParentComponent.h"
 #include "HurtboxComponent.h"
 #include "CharacterGFXComponent.h"
 #include "PhysicsComponent.h"
@@ -34,7 +33,6 @@
 #include "EnemyGFXComponent.h"
 
 #include "../Shooty2Core/RespawnComponent.h"
-#include "../Shooty2Core/HealthWatcherComponent.h"
 #include "../Shooty2Core/OnHitComponent.h"
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/AIGunnerComponent.h"
@@ -101,14 +99,12 @@ void ClientWorldScene::load(Game& game)
 
 	myDaemonId = EntitySpawnSystem::SpawnEntity("entity:player:daemon", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
 
-    EntitySpawnSystem::SpawnEntity("entity:enemy:basic", *this, {720.4 / 2, 405.f / 2}, NetworkDataComponent::Owner::local_shared);
-
 	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(myDaemonId);
 	daemonComp->hostEntity = myPlayerId;
 	addEntityInputs({ {myDaemonId, playerInput} });
 
 	// load level
-    activeLevel = "Level_0";
+    activeLevel = "Level_spawn";
     world.getLevel(activeLevel).activate();
 
     // prepare spawning
@@ -120,7 +116,7 @@ void ClientWorldScene::load(Game& game)
         }
     }
     auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
-    plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_0"));
+    plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_spawn"));
 
     // tell the server that we're ready
     ByteStream playerPacket;
@@ -148,10 +144,8 @@ void ClientWorldScene::physicsStep(Game& game)
 {
     Updater::UpdateOwned<AIGunnerComponent>(game.PHYSICS_STEP, items);
 	Updater::UpdateOwned<TopDownMoverComponent>();
-	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
 	Updater::UpdateOwned<LifeTimeComponent>();
-	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();
 	Updater::UpdateOwned<HandComponent>(*this, game.PHYSICS_STEP);
 	Updater::UpdateOwned<DaemonComponent>(game.PHYSICS_STEP);

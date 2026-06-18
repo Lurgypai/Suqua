@@ -1,10 +1,10 @@
 #include <glad/glad.h>
+#include <stdexcept>
 
 #include "ParticleSystem.h"
 #include "DebugIO.h"
 #include "GLRenderer.h"
 #include "RandomUtil.h"
-#include <iostream>
 
 ParticleSystem::ParticleSystem() :
 	ParticleDataBuffer{ 0 },
@@ -30,6 +30,12 @@ PartitionID ParticleSystem::genPartition(const std::string & tag, int workGroupC
 		partitionIds.emplace(std::pair<std::string, PartitionID>{tag, partitions.size() - 1});
 		return partitions.size() - 1;
 	}
+    throw std::runtime_error{std::format(
+            "ParticleSystem: to many particles, partitionOffset: {}, size: {}, MAX_PARTICLES: {}",
+            partitionOffset,
+            size,
+            MAX_PARTICLES
+            )};
 }
 
 void ParticleSystem::spawnParticles(PartitionID id, unsigned int count, Particle base, float angleModulation, float velModulation, int lifeModulation, Vec2f posModulation) {
@@ -111,6 +117,11 @@ void ParticleSystem::spawnParticles(PartitionID id, unsigned int count, Particle
 }
 
 void ParticleSystem::spawnParticles(const std::string & tag, unsigned int count, Particle base, float angleModulation, float velModulation, int lifeModulation, Vec2f posModulation) {
+    auto iter = partitionIds.find(tag);
+    if(iter == partitionIds.end()) throw std::runtime_error{std::format(
+            "ParticleSystem: Unable to find partition with id \"{}\"",
+            tag
+            )};
 	if (partitionIds.find(tag) != partitionIds.end()) {
 		spawnParticles(partitionIds[tag], count, base, angleModulation, velModulation, lifeModulation, posModulation);
 	}
@@ -167,7 +178,13 @@ ComputeShader & ParticleSystem::getShader(PartitionID id) {
 }
 
 ComputeShader & ParticleSystem::getShader(const std::string & tag) {
-	if (partitionIds.find(tag) != partitionIds.end()) {
+    auto iter = partitionIds.find(tag);
+	if (iter != partitionIds.end()) {
 		return partitions[partitionIds[tag]].comp;
 	}
+
+    throw std::runtime_error{std::format(
+            "ParticleSystem: Unable to find shader \"{}\".",
+            tag
+            )};
 }
