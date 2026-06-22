@@ -33,6 +33,6 @@ void TeleportZoneGFXComponent::update(int timeDelta) {
             100,
             0
         };
-        GLRenderer::SpawnParticles("exit", 1, base);
+        GLRenderer::SpawnParticles("part:exit", 1, base);
     }
 }

@@ -5,6 +5,7 @@
 #include "HandItemGFXComponent.h"
 #include "TeleportZoneGFXComponent.h"
 #include "DaemonGFXComponent.h"
+#include "EnemyGFXComponent.h"
 #include "Sprite.h"
 #include "../Shooty2Core/OnHitComponent.h"
 
@@ -53,6 +54,7 @@ static void AddEnemyGFX(EntityId enemyId) {
     // EntitySystem::MakeComps<RespawnGFXComponent>(1, &enemyId);
 
     EntitySystem::MakeComps<AttackGFXComponent>(1, &enemyId, 80);
+    EntitySystem::MakeComps<EnemyGFXComponent>(1, &enemyId);
 }
 
 static void AddBulletEnemyBasicGFX(EntityId bulletId) {

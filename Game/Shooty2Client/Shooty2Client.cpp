@@ -56,9 +56,9 @@ int main(int argc, char** argv) {
     handItemGfx.loadGfx(items);
 
     /* Setup Scenes */
-    // game.host.tryConnect(ip, 25565, 10);
+    game.host.tryConnect(ip, 25565, 10);
     InputDeviceId input = game.loadInputDevice<IDKeyboardMouse>();
-	SceneId playingSceneId = game.loadScene<ClientWorldScene>(Scene::Flag::all, input, items, handItemGfx, "levels/debug.ldtk");
+	SceneId playingSceneId = game.loadScene<ClientWorldScene>(Scene::Flag::all, input, items, handItemGfx, "levels/test.ldtk");
     auto& playingScene = game.getScene<ClientWorldScene>(playingSceneId);
     SceneId menuScene = game.loadScene<MenuScene>(Scene::Flag::none, playingSceneId, input, items, interfaceItemGfx,
             playingScene.myPlayerId, playingScene.myDaemonId);

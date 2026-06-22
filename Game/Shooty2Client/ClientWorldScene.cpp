@@ -21,7 +21,6 @@
 #include "TopDownMoverComponent.h"
 #include "LifeTimeComponent.h"
 #include "AimToLStickComponent.h"
-#include "ParentComponent.h"
 #include "HurtboxComponent.h"
 #include "CharacterGFXComponent.h"
 #include "PhysicsComponent.h"
@@ -31,9 +30,9 @@
 #include "TeleportZoneGFXComponent.h"
 #include "DaemonGFXComponent.h"
 #include "HandItemGFXComponent.h"
+#include "EnemyGFXComponent.h"
 
 #include "../Shooty2Core/RespawnComponent.h"
-#include "../Shooty2Core/HealthWatcherComponent.h"
 #include "../Shooty2Core/OnHitComponent.h"
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/AIGunnerComponent.h"
@@ -99,12 +98,13 @@ void ClientWorldScene::load(Game& game)
 	addEntityInputs({ {myPlayerId, playerInput} });
 
 	myDaemonId = EntitySpawnSystem::SpawnEntity("entity:player:daemon", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
+
 	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(myDaemonId);
 	daemonComp->hostEntity = myPlayerId;
 	addEntityInputs({ {myDaemonId, playerInput} });
 
 	// load level
-    activeLevel = "Level_0";
+    activeLevel = "Level_spawn";
     world.getLevel(activeLevel).activate();
 
     // prepare spawning
@@ -116,7 +116,7 @@ void ClientWorldScene::load(Game& game)
         }
     }
     auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
-    plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_0"));
+    plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_spawn"));
 
     // tell the server that we're ready
     ByteStream playerPacket;
@@ -130,7 +130,8 @@ void ClientWorldScene::load(Game& game)
     auto* plrInvComp = EntitySystem::GetComp<InventoryComponent>(myPlayerId);
     plrInvComp->setItemCount("item:gun:basic", 1);
     plrInvComp->setItemCount("item:skill:dash", 1);
-    plrInvComp->setItemCount("item:other:sprite", 4);
+    plrInvComp->setItemCount("item:other:sprite", 1);
+    plrInvComp->setItemCount("item:gun:enemy_blast", 1);
 
 	/*-------------- COMMANDS ----------------*/
     DebugIO::getCommandManager().registerCommand<ExitCommand>();
@@ -141,15 +142,13 @@ void ClientWorldScene::load(Game& game)
 
 void ClientWorldScene::physicsStep(Game& game)
 {
-    Updater::UpdateOwned<AIGunnerComponent>(game.PHYSICS_STEP);
+    Updater::UpdateOwned<AIGunnerComponent>(game.PHYSICS_STEP, items);
 	Updater::UpdateOwned<TopDownMoverComponent>();
-	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
 	Updater::UpdateOwned<LifeTimeComponent>();
-	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();
 	Updater::UpdateOwned<HandComponent>(*this, game.PHYSICS_STEP);
-	Updater::UpdateOwned<DaemonComponent>();
+	Updater::UpdateOwned<DaemonComponent>(game.PHYSICS_STEP);
 
     // combat is done entirely client side
 	Updater::UpdateAll<HurtboxComponent>(); // Hurtboxes need to be moved to where the ndc says they are
@@ -175,7 +174,7 @@ void ClientWorldScene::physicsStep(Game& game)
 
     // opening the menu
     auto cont = game.getInputDevice(playerInput).getControllerState();
-    if(cont.toggled(ControllerBits::BUTTON_4) && cont[ControllerBits::BUTTON_4]) {
+    if(cont.toggled(ControllerBits::BUTTON_11) && cont[ControllerBits::BUTTON_11]) {
         // if our input is enabled, turn the menu on and disable input, else turn menu off and enable
         if(flags & Scene::Flag::input) game.sceneOn(menuScene);
         else game.sceneOff(menuScene);
@@ -193,6 +192,7 @@ void ClientWorldScene::renderUpdateStep(Game& game)
     Updater::UpdateAll<AttackGFXComponent>();
     Updater::UpdateAll<TeleportZoneGFXComponent>(game.PHYSICS_STEP * 1000);
 	Updater::UpdateAll<DaemonGFXComponent>(game.PHYSICS_STEP);
+    Updater::UpdateAll<EnemyGFXComponent>();
 
 	auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
     auto plrContComp = EntitySystem::GetComp<ControllerComponent>(myPlayerId);

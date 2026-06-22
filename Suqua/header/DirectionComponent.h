@@ -12,8 +12,9 @@ public:
 	
 	bool isLocked();
 	void setLocked(bool locked);
+
+	float dir;
 private:
 	bool isLocked_;
-	float dir;
 	int cardinalDir;
 };

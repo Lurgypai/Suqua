@@ -3,7 +3,9 @@
 
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "EntitySpawnSystem.h"
+
 #include <cstdint>
+#include <print>
 
 using UUID = Suqua::UUID;
 
@@ -25,6 +27,8 @@ void PHClientSpawnEntities::handlePacket(Game& game, ByteStream& data, PeerId so
         data >> tag;
         data >> pos;
         data >> uuid;
+
+        std::println("received spawn request for entity \"{}\", pos {}, {}", tag, pos.x, pos.y);
 
         EntitySpawnSystem::SpawnEntity(tag, *scene, pos, NetworkDataComponent::Owner::foreign, uuid);
     }

@@ -1,31 +1,37 @@
 #include "ServerWorldScene.h"
+
+#include <print>
+
 #include "Game.h"
-#include "../Shooty2Core/Shooty2Packet.h"
-#include <iostream>
+
+#include "NetworkEntityOwnershipSystem.h"
+#include "Packet.h"
 #include "PHServerSpawnEntities.h"
 #include "PHServerState.h"
 #include "PHServerDeadEntities.h"
-#include "NetworkEntityOwnershipSystem.h"
-#include "Updater.h"
-#include "EntityBaseComponent.h"
-
-#include "../Shooty2Core/AIGunnerComponent.h"
-#include "Packet.h"
 #include "PHServerAddPlayer.h"
 #include "PHServerDamage.h"
 
-#include "PositionComponent.h"
+#include "ServerEntityGenerator.h"
+#include "Updater.h"
 
+#include "EntityBaseComponent.h"
+#include "PositionComponent.h"
 #include "TopDownMoverComponent.h"
-#include "ParentComponent.h"
 #include "AimToLStickComponent.h"
 #include "LifeTimeComponent.h"
-#include "../Shooty2Core/HealthWatcherComponent.h"
-#include "../Shooty2Core/RespawnComponent.h"
-#include "ServerEntityGenerator.h"
 
-ServerWorldScene::ServerWorldScene(SceneId id_, Scene::FlagType flags_) :
+#include "../Shooty2Core/RespawnComponent.h"
+#include "../Shooty2Core/Shooty2Packet.h"
+#include "../Shooty2Core/AIGunnerComponent.h"
+#include "../Shooty2Core/HandComponent.h"
+
+ServerWorldScene::ServerWorldScene(SceneId id_, Scene::FlagType flags_,
+        ItemSystem& items_, const std::string& worldFile) :
 	Scene{id_, flags_},
+    physics{},
+    items{items_},
+    world{worldFile, *this, physics},
 	currPlayerCount{ 0 }
 {
 }
@@ -41,24 +47,19 @@ void ServerWorldScene::load(Game& game)
     game.loadPacketHandler<PHServerAddPlayer>(Shooty2Packet::AddPlayer);
     game.loadPacketHandler<PHServerDamage>(Shooty2Packet::Damage);
  
-    world = World{ "tex:tileset", "levels/test.ldtk" };
-	world.load(*this);
-    world.getLevel("Level_spawn").activate();
-
-    EntitySpawnSystem::SpawnEntity("entity:enemy:basic", *this, Vec2f{200, 200}, NetworkDataComponent::Owner::local_shared);
 
     director = Director{};
     director.load(world, *this, "Level_spawn");
+    world.getLevel("Level_spawn").activate();
 }
 
 void ServerWorldScene::physicsStep(Game& game) {
-    Updater::UpdateOwned<AIGunnerComponent>(game.PHYSICS_STEP);
+    Updater::UpdateOwned<AIGunnerComponent>(game.PHYSICS_STEP, items);
 	Updater::UpdateOwned<TopDownMoverComponent>();
-	Updater::UpdateOwned<ParentComponent>();
 	Updater::UpdateOwned<AimToLStickComponent>();
 	Updater::UpdateOwned<LifeTimeComponent>();
-	Updater::UpdateOwned<HealthWatcherComponent>();
 	Updater::UpdateOwned<RespawnComponent>();
+	Updater::UpdateOwned<HandComponent>(*this, game.PHYSICS_STEP);
 
 	physics.runPhysicsOnOwned(game.PHYSICS_STEP);
 
@@ -80,36 +81,37 @@ void ServerWorldScene::unload(Game& game)
 
 void ServerWorldScene::onConnect(Game& game, PeerId connectingPeer) {
 	++currPlayerCount;
-    std::cout << "Peer " << connectingPeer << " connection received."
-        " Sending existing entities.\n";
+    std::println("Peer {} connection received."
+            " Sending existing entities.", connectingPeer);
     ByteStream spawnPacket;
     spawnPacket << Shooty2Packet::SpawnEntities;
     for(const auto& [peer, entities] : game.networkEntityOwnershipSystem.getOwnedEntities()) {
         if(peer == connectingPeer) continue;
 
         for(const auto& entity : entities) {
-            std::cout << '\t' << entity.tag << '\n';
-
             spawnPacket << entity.tag;
-            auto posComp = EntitySystem::GetComp<PositionComponent>(NetworkDataComponent::GetEntityId(entity.uuid));
+            auto posComp = EntitySystem::GetComp<PositionComponent>(
+                    NetworkDataComponent::GetEntityId(entity.uuid));
             spawnPacket << posComp->pos;
             spawnPacket << entity.uuid;
+            std::println("\t {}: {}, {}", entity.tag, posComp->pos.x, posComp->pos.y);
         }
     }
 
     for(const auto& entityDescriptor : game.networkEntityOwnershipSystem.getLocalEntities()) {
-        std::cout << '\t' << entityDescriptor.tag << '\n';
         spawnPacket<< entityDescriptor.tag;
-        auto posComp = EntitySystem::GetComp<PositionComponent>(NetworkDataComponent::GetEntityId(entityDescriptor.uuid));
+        auto posComp = EntitySystem::GetComp<PositionComponent>(
+                NetworkDataComponent::GetEntityId(entityDescriptor.uuid));
         spawnPacket << posComp->pos;
         spawnPacket<< entityDescriptor.uuid;
+        std::println("\t {}: {}, {}", entityDescriptor.tag, posComp->pos.x, posComp->pos.y);
     }
 
     game.host.bufferDataToChannel(connectingPeer, 0, spawnPacket);
 }
 
 void ServerWorldScene::onDisconnect(Game& game, PeerId disconnectedPeer) {
-	std::cout << "Peer " << disconnectedPeer << " disconnected.\n";
+    std::println("peer {} disconnected.", disconnectedPeer);
 	--currPlayerCount;
 
     const auto& owned = game.networkEntityOwnershipSystem.getOwnedEntities();

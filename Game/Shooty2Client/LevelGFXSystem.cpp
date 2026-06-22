@@ -68,7 +68,7 @@ void LevelGFXSystem::draw(const PhysicsSystem& physics, const World& world) {
             s.loadTexture(pair.second.textureTag);
             s.setObjRes(tilemap.getTileRes());
 
-            s.setPos(tile.worldPos);
+            s.setPos(tile.worldPos + tilemap.getBoundingBox().pos);
             s.setImgOffset(tile.texOffset);
             s.setHorizontalFlip(tile.flipHorizontal);
             s.setVerticalFlip(tile.flipVertical);

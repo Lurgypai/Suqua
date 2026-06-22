@@ -2,8 +2,6 @@
 #include "HealthComponent.h"
 #include "PhysicsComponent.h"
 #include "EntityBaseComponent.h"
-#include "NetworkDataComponent.h"
-#include "Shooty2NetworkDataFields.h"
 
 RespawnComponent::RespawnComponent(EntityId id_,
         const Vec2f& spawnPos_,

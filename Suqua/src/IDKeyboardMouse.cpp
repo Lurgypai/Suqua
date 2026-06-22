@@ -19,19 +19,19 @@ void IDKeyboardMouse::update() {
 
 	controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_R]);
 	controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_W]);
-	controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_G]);
-	controller.set(ControllerBits::BUTTON_4, state[SDL_SCANCODE_BACKSPACE]);
+	controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_A]);
+	controller.set(ControllerBits::BUTTON_4, state[SDL_SCANCODE_G]);
 
 	controller.set(ControllerBits::BUTTON_5, mouseState & SDL_BUTTON(SDL_BUTTON_LEFT));
 	controller.set(ControllerBits::BUTTON_6, mouseState & SDL_BUTTON(SDL_BUTTON_RIGHT));
 
-	controller.set(ControllerBits::BUTTON_7, state[SDL_SCANCODE_A]);
+	controller.set(ControllerBits::BUTTON_7, state[SDL_SCANCODE_Z]);
 	controller.set(ControllerBits::BUTTON_8, state[SDL_SCANCODE_SPACE]);
 	controller.set(ControllerBits::BUTTON_9, state[SDL_SCANCODE_X]);
 	controller.set(ControllerBits::BUTTON_10, state[SDL_SCANCODE_V]);
 
-	controller.set(ControllerBits::BUTTON_11, state[SDL_SCANCODE_J]);
-	controller.set(ControllerBits::BUTTON_12, state[SDL_SCANCODE_K]);
+	controller.set(ControllerBits::BUTTON_11, state[SDL_SCANCODE_BACKSPACE]);
+	controller.set(ControllerBits::BUTTON_12, state[SDL_SCANCODE_ESCAPE]);
 
 	controller.stick1 = {};
 	if (controller[ControllerBits::LEFT]) controller.stick1.x -= 1;

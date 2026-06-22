@@ -5,6 +5,7 @@
 #include "SuquaLib.h"
 #include "ServerWorldScene.h"
 #include "DebugFIO.h"
+#include "../Shooty2Core/ItemSystem.h"
 
 using json = nlohmann::json;
 
@@ -31,7 +32,9 @@ int main(int argc, char** argv) {
     }
     game.setStateBroadcastDelay(4);
 
-	SceneId lobbyScene = game.loadScene<ServerWorldScene>(Scene::Flag::physics | Scene::Flag::input);
+    ItemSystem items;
+    items.loadItems("item/items.json");
+	SceneId lobbyScene = game.loadScene<ServerWorldScene>(Scene::Flag::physics | Scene::Flag::input, items, "levels/test.ldtk");
 
 	SuquaLib::RunGame(game);
 

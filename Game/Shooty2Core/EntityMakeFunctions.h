@@ -27,6 +27,7 @@
 #include "NetworkDataComponentDataFields.h"
 #include "HandComponent.h"
 #include "InventoryComponent.h"
+#include "DirectionComponent.h"
 
 using TeamId = TeamComponent::TeamId;
 using Owner =  NetworkDataComponent::Owner;
@@ -61,7 +62,7 @@ static void MakePhysicsEntity(
     ndc->set(PositionData::Y, posComp->pos.y);
 
     ndc->set(PhysicsData::XVEL, physComp->vel.x);
-    ndc->set(PhysicsData::XVEL, physComp->vel.y);
+    ndc->set(PhysicsData::YVEL, physComp->vel.y);
 }
 
 static void MakeLivingEntity(
@@ -96,9 +97,11 @@ static void MakeLivingEntity(
     EntitySystem::MakeComps<HandComponent>(1, &id, bodyOffset, armLength);
 
     auto healthComp = EntitySystem::GetComp<HealthComponent>(id);
+    auto dirComp = EntitySystem::GetComp<DirectionComponent>(id);
 
-    auto ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
+    auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
     ndc->set(HealthData::HEALTH, healthComp->health);
+    ndc->set(DirectionData::DIR, dirComp->dir);
 }
 
 static void MakeHitboxEntity(
@@ -149,5 +152,5 @@ static void MakeBullet(
     ndc->set(PositionData::Y, posComp->pos.y);
 
     ndc->set(PhysicsData::XVEL, physicsComp->vel.x);
-    ndc->set(PhysicsData::XVEL, physicsComp->vel.y);
+    ndc->set(PhysicsData::YVEL, physicsComp->vel.y);
 }

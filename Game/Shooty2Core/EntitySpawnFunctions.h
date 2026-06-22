@@ -15,6 +15,8 @@
 #include "PlayerSpawnComponent.h"
 #include "AIGunnerComponent.h"
 #include "DaemonComponent.h"
+#include "EntityBaseComponent.h"
+#include "Shooty2NetworkDataFields.h"
 
 static EntityId SpawnTeleportZone(
         Scene& scene,
@@ -89,6 +91,8 @@ static EntityId SpawnPlayer(
 			4.f,
 			100);
     EntitySystem::MakeComps<PlayerSpawnComponent>(1, &playerId);
+    auto* healthComp = EntitySystem::GetComp<HealthComponent>(playerId);
+    healthComp->deathCallback = nullptr;
 	return playerId;
 }
 
@@ -98,19 +102,13 @@ static EntityId SpawnDaemon(
     Owner owner,
     const UUID& uuid) {
     auto entity = scene.addEntities(1)[0];
-    MakeNetworkEntity(entity, uuid, owner);
+    MakePhysicsEntity(entity, uuid, owner, pos, {4, 4});
 
 	EntitySystem::MakeComps<ControllerComponent>(1, &entity);
-	EntitySystem::MakeComps<PositionComponent>(1, &entity);
 	EntitySystem::MakeComps<DaemonComponent>(1, &entity, 0.1f, Vec2f{-15, -15});
 	EntitySystem::MakeComps<HandComponent>(1, &entity, Vec2f{0.f, 5.f}, 5.f);
 	auto* daemonHandComp = EntitySystem::GetComp<HandComponent>(entity);
     daemonHandComp->handFlags = { ControllerBits::BUTTON_7, ControllerBits::BUTTON_8 };
-
-    auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(entity);
-    auto* posComp = EntitySystem::GetComp<PositionComponent>(entity);
-    ndc->set(PositionData::X, posComp->pos.x);
-    ndc->set(PositionData::Y, posComp->pos.y);
     return entity;
 }
 
@@ -126,5 +124,18 @@ static EntityId SpawnEnemy(
             300.f,
             200.f );
 
+    auto* inv = EntitySystem::GetComp<InventoryComponent>(enemyId);
+    inv->setItemCount("item:gun:enemy_blast", 1);
+
+    auto* health = EntitySystem::GetComp<HealthComponent>(enemyId);
+    auto cb = [](EntityId id) {
+        auto* base = EntitySystem::GetComp<EntityBaseComponent>(id);
+        base->isActive = false;
+    };
+    health->deathCallback = cb;
+
+    auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(enemyId);
+    auto* ai = EntitySystem::GetComp<AIGunnerComponent>(enemyId);
+    ndc->set(AIData::AI_STATE, reinterpret_cast<std::uint8_t&>(ai->state));
 	return enemyId;
 }

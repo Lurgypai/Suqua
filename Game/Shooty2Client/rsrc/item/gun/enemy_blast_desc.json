@@ -1,5 +1,9 @@
 {
+    "tex": "item/gun/enemy_blast.png",
+    "ui_small": "item/gun/enemy_blast.png",
+    "ui_big": "item/gun/enemy_blast.png",
     "desc": "Enemy blast attack.",
-    "mode": "none"
+    "mode": "sprite",
+    "offset": [8.0, 8.0]
 }
 

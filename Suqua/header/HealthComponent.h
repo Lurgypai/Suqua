@@ -5,9 +5,11 @@
 
 class HealthComponent {
 	CompMembers(HealthComponent);
+private:
+    static void DefaultDeathCallback(EntityId id);
 public:
-    using DeathCallback = std::function<void()>;
-    HealthComponent(EntityId id_, int32_t health_, DeathCallback deathCallback_ = DeathCallback{});
+    using DeathCallback = std::function<void(EntityId id)>;
+    HealthComponent(EntityId id_, int32_t health_, DeathCallback deathCallback_ = DefaultDeathCallback);
 
 	std::int32_t getHealth() const;
 	void setHealth(std::int32_t health);

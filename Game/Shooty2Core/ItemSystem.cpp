@@ -65,6 +65,11 @@ void ItemSystem::loadItems(const std::string& filename) {
 }
 
 const Item& ItemSystem::getItem(const std::string& tag) const {
+    auto iter = items.find(tag);
+    if(iter == items.end()) throw std::runtime_error{std::format(
+            "ItemSystem: Unable to find item \"{}\"",
+            tag
+            )};
 	return items.at(tag);
 }
 

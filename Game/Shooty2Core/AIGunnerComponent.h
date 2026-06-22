@@ -3,25 +3,22 @@
 
 #include <set>
 
+#include "AIState.h"
 #include "TeamComponent.h"
+#include "ItemSystem.h"
 
 class AIGunnerComponent {
     CompMembers(AIGunnerComponent);
 public:
-	enum class AIState {
-		idle,
-		walking,
-		following,
-		attacking,
-	};
 
     AIGunnerComponent(EntityId id_, float followRadius_, float avoidRadius_);
 
-    void update(double delta);
+    void update(double delta, const ItemSystem& items);
     float followRadius;
     float avoidRadius;
     
     AIState getState() const;
+    AIState state;
 private:
     double timeSinceLastAction;
     double idleTime;
@@ -33,5 +30,4 @@ private:
 
     EntityId targetId;
     std::set<TeamComponent::TeamId> targetTeams;
-    AIState state;
 };

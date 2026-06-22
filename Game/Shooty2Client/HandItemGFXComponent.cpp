@@ -67,6 +67,7 @@ void HandItemGFXComponent::update(const HandItemGFXSystem& invItemGfxSys) {
 		auto& item = items[i];
 		if (!invComp->handIsActive(i)) {
             renderComp->clearDrawable(item.spriteIndex);
+            item.itemTag.clear();
             continue;
         }
 		// item has changed update sprite

@@ -3,9 +3,10 @@
 #include "PhysicsComponent.h"
 #include "DirectionComponent.h"
 #include "RandomUtil.h"
+#include "InventoryComponent.h"
+#include "HandComponent.h"
 
 using TeamId = TeamComponent::TeamId;
-using AIState = AIGunnerComponent::AIState;
 
 AIGunnerComponent::AIGunnerComponent(EntityId id_, float followRadius_, float avoidRadius_) :
     id{id_},
@@ -60,14 +61,26 @@ static inline void beginFollowing(AIState& state, float& angleMod) {
     angleMod = randFloat(-1.f, 1.f);
 }
 
-static inline void beginAttacking(AIState& state, Controller& controller) {
+static inline void beginAttacking(AIState& state, Controller& controller, EntityId id, const ItemSystem& items) {
     state = AIState::attacking;
+    // select and item
+    InventoryComponent* inv = EntitySystem::GetComp<InventoryComponent>(id);
+    std::string item;
+    for(const auto& pair : inv->items) {
+        item = pair.first;
+        break;
+    }
+
+    if(!item.empty()) {
+        HandComponent* hands = EntitySystem::GetComp<HandComponent>(id);
+        hands->setItem(0, items.getItem(item));
+    }
 
     // do attack
     controller.on(ControllerBits::BUTTON_5);
 }
 
-void AIGunnerComponent::update(double delta) {
+void AIGunnerComponent::update(double delta, const ItemSystem& items) {
     // idle
     //  sit and do nothing
     // walking
@@ -96,7 +109,7 @@ void AIGunnerComponent::update(double delta) {
 
 
             targetId = findTarget(id, targetTeams, followRadius);
-            if(targetId != 0) beginAttacking(state, controller);
+            if(targetId != 0) beginAttacking(state, controller, id, items);
             else beginIdle(state, controller);
             break; }
         case AIState::following: {
@@ -129,7 +142,7 @@ void AIGunnerComponent::update(double delta) {
             timeSinceLastAction -= followTime;
 
             targetId = findTarget(id, targetTeams, followRadius);
-            if(targetId != 0) beginAttacking(state, controller);
+            if(targetId != 0) beginAttacking(state, controller, id, items);
             else beginIdle(state, controller);
             break; }
         case AIState::attacking:
@@ -160,4 +173,8 @@ void AIGunnerComponent::update(double delta) {
     DebugIO::setLine(8, "Attack: " + std::to_string(controller[ControllerBits::BUTTON_11]));
     DebugIO::setLine(9, "Attack Toggled? " + std::to_string(controller.toggled(ControllerBits::BUTTON_11)));
     */
+}
+
+AIState AIGunnerComponent::getState() const {
+    return state;
 }
