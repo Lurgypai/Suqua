@@ -4,7 +4,6 @@
 #include "HealthComponent.h"
 #include "TopDownMoverComponent.h"
 #include "NetworkDataComponent.h"
-#include "DirectionComponent.h"
 #include "NetworkDataComponentDataFields.h"
 #include "EntityBaseComponent.h"
 

@@ -12,10 +12,6 @@
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/EntityGenerator.h"
 
-ClientEntityGenerator::ClientEntityGenerator(Host* host_) :
-    host{host_},
-    GFXFunctions{}
-{}
 
 static void AddPlayerGFX(EntityId playerId) {
 	EntitySystem::MakeComps<CharacterGFXComponent>(1, &playerId,
@@ -81,9 +77,11 @@ static void AddWorldTileGFX(EntityId tileId) {
     // sprite.verticalFlip = f & 0b10;
 }
 
-void ClientEntityGenerator::RegisterSpawnFunctions() {
-    EntityGenerator::RegisterSpawnFunctions();
-    
+ClientEntityGenerator::ClientEntityGenerator(const std::string& json, Host* host_) :
+    EntityGenerator{json},
+    host{host_},
+    GFXFunctions{}
+{
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("entity:player:basic", AddPlayerGFX));
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("entity:player:daemon", AddDaemonGFX));
     ClientEntityGenerator::GFXFunctions.insert(std::make_pair("entity:enemy:basic", AddEnemyGFX));

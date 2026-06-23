@@ -1,7 +1,7 @@
 #include "IAGunFire.h"
 #include "PhysicsComponent.h"
-#include "LifeTimeComponent.h"
 #include "HealthComponent.h"
+#include "TeamComponent.h"
 #include "EntitySpawnSystem.h"
 #include "RandomUtil.h"
 
@@ -36,7 +36,11 @@ void IAGunFire::doAbility(Scene& scene, EntityId sourceEntity, EntityId targetEn
     for(int i = 0; i != bulletCount; ++i) {
         auto bulletId = EntitySpawnSystem::SpawnEntity(bulletTag, scene,
                 firingPos, NetworkDataComponent::Owner::local_shared);
-
+        auto* ownerTeam = EntitySystem::GetComp<TeamComponent>(sourceEntity);
+        if(ownerTeam != nullptr) {
+            auto* bulletTeam = EntitySystem::GetComp<TeamComponent>(bulletId);
+            bulletTeam->teamId = ownerTeam->teamId;
+        }
 
         float baseAngle = controller.stick2.angle();
         if(bulletSpread != 0.f) {

@@ -6,17 +6,41 @@
 #include "EntitySystem.h"
 #include "Scene.h"
 
+#include "EntityAddPhysics.h"
+#include "EntityAddLiving.h"
+#include "EntityAddInventory.h"
+#include "EntityAddHands.h"
+#include "EntityAddDaemon.h"
+#include "EntityAddBullet.h"
+#include "EntityAddAIGunner.h"
+
+using EntityArgs = std::variant<
+    EntityAddPhysicsArgs,
+    EntityAddLivingArgs,
+    EntityAddInventoryArgs,
+    EntityAddHandsArgs,
+    EntityAddDaemonArgs,
+    EntityAddBulletArgs,
+    EntityAddAIGunnerArgs
+    >;
+
+
 class EntityGenerator : public EntitySpawnSystem::Generator {
 public:
+    struct Entity {
+        std::string tag;
+        std::vector<std::string> adds;
+        std::vector<EntityArgs> args;
+    };
+
     using SpawnFunction = std::function<EntityId (
             Scene&,
             const Vec2f&,
             NetworkDataComponent::Owner owner,
             const Suqua::UUID& uuid)>;
 
-    EntityGenerator() = default;
+    EntityGenerator(const std::string& entityFile);
     virtual ~EntityGenerator() = default;
-    virtual void RegisterSpawnFunctions() override;
     virtual EntityId SpawnEntity(
             const std::string& tag,
             Scene& targetScene,
@@ -25,7 +49,7 @@ public:
             const Suqua::UUID& uuid) override;
 
 private:
-    std::unordered_map<std::string, SpawnFunction> SpawnFunctions; 
+    std::unordered_map<std::string, Entity> entities; 
 };
 
 /*

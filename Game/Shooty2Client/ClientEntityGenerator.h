@@ -11,9 +11,8 @@ class ClientEntityGenerator : public EntityGenerator{
 public:
     using GFXFunction = std::function<void(EntityId)>;
 
-    ClientEntityGenerator(Host* host);
+    ClientEntityGenerator(const std::string& json, Host* host);
     virtual ~ClientEntityGenerator() = default;
-    virtual void RegisterSpawnFunctions() override;
     virtual EntityId SpawnEntity(
             const std::string& tag,
             Scene& targetScene,

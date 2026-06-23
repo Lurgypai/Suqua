@@ -36,7 +36,6 @@
 #include "../Shooty2Core/OnHitComponent.h"
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "../Shooty2Core/AIGunnerComponent.h"
-#include "../Shooty2Core/PlayerSpawnComponent.h"
 #include "../Shooty2Core/InventoryComponent.h"
 #include "../Shooty2Core/HandComponent.h"
 #include "../Shooty2Core/DaemonComponent.h"
@@ -90,7 +89,7 @@ void ClientWorldScene::load(Game& game)
     GLRenderer::GenParticleType("part:exit", 1, ComputeShader{ "particles/test.vert" });
 
 	/* ---------------- LOAD ENTITIES ----------------- */
-    EntitySpawnSystem::Init<ClientEntityGenerator>(&game.host);
+    EntitySpawnSystem::Init<ClientEntityGenerator>("entity/entities.json", &game.host);
 	// player
 	static_cast<IDKeyboardMouse&>(game.getInputDevice(playerInput)).camera = camId;
 

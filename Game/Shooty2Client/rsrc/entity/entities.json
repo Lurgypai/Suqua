@@ -1,0 +1,135 @@
+{
+    "entities": [
+        {
+            "tag": "entity:player:basic",
+            "adds": [
+                {
+                    "tag": "physics",
+                    "res": [6.0, 4.0],
+                    "collideable": true,
+                    "collideable_with": false
+                },
+                {
+                    "tag": "living",
+                    "move_speed": 50.0,
+                    "team_id": "player",
+                    "hurtbox_offset": [-1, -11],
+                    "hurtbox_res": [8, 13],
+                    "health": 100,
+                    "death_callback": "none"
+                },
+                {
+                    "tag": "hands",
+                    "body_offset": [0.0, -4.0],
+                    "arm_length": 4.0
+                }
+            ]
+        },
+        {
+            "tag": "entity:player:daemon",
+            "adds": [
+                {
+                    "tag": "physics",
+                    "res": [4.0, 4.0],
+                    "collideable": true,
+                    "collideable_with": false,
+                    "centered": true
+                },
+                {
+                    "tag": "hands",
+                    "body_offset": [0.0, 5.0],
+                    "arm_length": 5.0
+                },
+                {
+                    "tag": "daemon",
+                    "follow_rate": 0.1,
+                    "follow_offset": [-15, -15]
+                }
+            ]
+        },
+        {
+            "tag": "entity:enemy:basic",
+            "adds": [
+                {
+                    "tag": "physics",
+                    "res": [6.0, 4.0],
+                    "collideable": true,
+                    "collideable_with": false
+                },
+                {
+                    "tag": "living",
+                    "move_speed": 50.0,
+                    "team_id": "enemy",
+                    "hurtbox_offset": [-1, -11],
+                    "hurtbox_res": [8, 13],
+                    "health": 100,
+                    "death_callback": "deactivate"
+                },
+                {
+                    "tag": "hands",
+                    "body_offset": [0.0, -4.0],
+                    "arm_length": 4.0
+                },
+                {
+                    "tag": "ai_gunner",
+                    "follow_radius": 300.0,
+                    "avoid_radius": 200.0
+                },
+                {
+                    "tag": "inventory",
+                    "items": [
+                        { "tag": "item:gun:enemy_blast" }
+                    ]
+                }
+            ]
+        },
+        {
+            "tag": "entity:bullet:player:basic",
+            "adds": [
+                {
+                    "tag": "physics",
+                    "res": [3.0, 3.0],
+                    "collideable": true,
+                    "collideable_with": false,
+                    "centered": true
+                },
+                {
+                    "tag": "bullet",
+                    "res": [3.0, 3.0],
+                    "damage": 10,
+                    "lifetime": 480
+                }
+            ]
+        },
+        {
+            "tag": "entity:bullet:enemy:basic",
+            "adds": [
+                {
+                    "tag": "physics",
+                    "res": [3.0, 3.0],
+                    "collideable": true,
+                    "collideable_with": false,
+                    "centered": true
+                },
+                {
+                    "tag": "bullet",
+                    "res": [3.0, 3.0],
+                    "damage": 10,
+                    "lifetime": 480
+                }
+            ]
+        },
+        {
+            "tag": "entity:world:teleportzone",
+            "adds": [
+                {
+                    "tag": "physics",
+                    "res": [1.0, 1.0],
+                    "collideable": false,
+                    "collideable_with": false,
+                    "centered": true
+                }
+            ]
+        }
+    ]
+}

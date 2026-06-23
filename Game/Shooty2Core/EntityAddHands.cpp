@@ -13,8 +13,7 @@ void EntityAddHands(EntityId id, const EntityAddHandsArgs& args) {
     EntitySystem::MakeComps<InventoryComponent>(1, &id);
     EntitySystem::MakeComps<HandComponent>(1, &id,
             args.bodyOffset,
-            args.armLength,
-			std::vector<ControllerBits>{args.leftHand, args.rightHand}
+            args.armLength
             );
 
     auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(id);

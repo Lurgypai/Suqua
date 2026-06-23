@@ -39,7 +39,7 @@ ServerWorldScene::ServerWorldScene(SceneId id_, Scene::FlagType flags_,
 void ServerWorldScene::load(Game& game)
 {
 
-    EntitySpawnSystem::Init<ServerEntityGenerator>(&game);
+    EntitySpawnSystem::Init<ServerEntityGenerator>("entity/entities.json", &game);
 
     game.loadPacketHandler<PHServerSpawnEntities>(Shooty2Packet::SpawnEntities, this);
     game.loadPacketHandler<PHServerState>(Packet::StateId);
