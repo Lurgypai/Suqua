@@ -9,14 +9,23 @@
  * This header should not be used outside of the EntityGenerator.cpp file.
  */
 
-#include "EntityMakeFunctions.h"
 #include "Scene.h"
 #include "LifeTimeComponent.h"
 #include "PlayerSpawnComponent.h"
 #include "AIGunnerComponent.h"
 #include "DaemonComponent.h"
 #include "EntityBaseComponent.h"
-#include "Shooty2NetworkDataFields.h"
+#include "NetworkDataComponent.h"
+
+#include "EntityAddNetwork.h"
+#include "EntityAddPhysics.h"
+#include "EntityAddBullet.h"
+#include "EntityAddLiving.h"
+#include "EntityAddHands.h"
+
+using TeamId = TeamComponent::TeamId;
+using Owner = NetworkDataComponent::Owner;
+using UUID = Suqua::UUID;
 
 static EntityId SpawnTeleportZone(
         Scene& scene,
@@ -24,22 +33,19 @@ static EntityId SpawnTeleportZone(
         Owner owner,
         const UUID& uuid) {
 
-    auto entities = scene.addEntities(1);
-    MakePhysicsEntity(entities[0], uuid, owner, pos, {1.f, 1.f});
-
-    return entities[0];
-}
-
-static EntityId SpawnTile(
-        Scene& scene,
-        const Vec2f& pos,
-        Owner owner,
-        const UUID& uuid) {
-
-    auto entities = scene.addEntities(1);
-    MakePhysicsEntity(entities[0], uuid, owner, pos, {16, 16});
-
-    return entities[0];
+    auto entity = scene.addEntities(1)[0];
+    EntityAddNetworkArgs netArgs{ uuid, owner };
+    EntityAddNetwork(entity, netArgs);
+    EntityAddPhysicsArgs args{
+        pos,
+        Vec2f{1.f, 1.f},
+        false,
+        false,
+        true
+    };
+    EntityAddPhysics(entity, args);
+    
+    return entity;
 }
 
 static EntityId SpawnBulletPlayerBasic(
@@ -48,12 +54,28 @@ static EntityId SpawnBulletPlayerBasic(
         Owner owner,
         const UUID& uuid)
 {
-	auto entities = scene.addEntities(1);
-	MakeBullet(entities[0], uuid, owner, pos, { 3, 3 }, TeamId::player, 10);
+	auto entity = scene.addEntities(1)[0];
+    EntityAddNetworkArgs netArgs{ uuid, owner };
+    EntityAddNetwork(entity, netArgs);
+    EntityAddPhysicsArgs physArgs {
+        pos,
+        Vec2f{3, 3},
+        true,
+        false,
+        true
+    };
+    EntityAddPhysics(entity, physArgs);
+    EntityAddBulletArgs bulletArgs{
+        Vec2f{3, 3},
+        TeamId::player,
+        10,
+        "CHKill"
+    };
+    EntityAddBullet(entity, bulletArgs);
 
-	EntitySystem::MakeComps<LifeTimeComponent>(1, &entities[0], 480);
+	EntitySystem::MakeComps<LifeTimeComponent>(1, &entity, 480);
 
-	return entities[0];
+	return entity;
 }
 
 static EntityId SpawnBulletEnemyBasic(
@@ -62,12 +84,28 @@ static EntityId SpawnBulletEnemyBasic(
         Owner owner,
         const UUID& uuid)
 {
-	auto entities = scene.addEntities(1);
-    MakeBullet(entities[0], uuid, owner, pos, { 4, 4 }, TeamId::enemy, 10);
+	auto entity = scene.addEntities(1)[0];
+    EntityAddNetworkArgs netArgs{ uuid, owner };
+    EntityAddNetwork(entity, netArgs);
+    EntityAddPhysicsArgs physArgs {
+        pos,
+        Vec2f{3, 3},
+        true,
+        false,
+        true
+    };
+    EntityAddPhysics(entity, physArgs);
+    EntityAddBulletArgs bulletArgs{
+        Vec2f{3, 3},
+        TeamId::enemy,
+        10,
+        "CHKill"
+    };
+    EntityAddBullet(entity, bulletArgs);
 
-	EntitySystem::MakeComps<LifeTimeComponent>(1, &entities[0], 480);
+	EntitySystem::MakeComps<LifeTimeComponent>(1, &entity, 480);
 
-	return entities[0];
+	return entity;
 }
 
 static EntityId SpawnPlayer(
@@ -77,22 +115,33 @@ static EntityId SpawnPlayer(
         const UUID& uuid) {
 
 	auto playerId = scene.addEntities(1)[0];
-	MakeLivingEntity(
-            playerId,
-            uuid,
-            owner,
-            pos,
-            { 6, 4 },
-            50.0f,
-            TeamId::player,
-            { -1, -11 },
-            { 8, 13 },
-			{0.f, -4.f},
-			4.f,
-			100);
+    EntityAddNetworkArgs netArgs{ uuid, owner };
+    EntityAddNetwork(playerId, netArgs);
+    EntityAddPhysicsArgs physArgs {
+        pos,
+        Vec2f{6, 4},
+        true,
+        false,
+        false
+    };
+    EntityAddPhysics(playerId, physArgs);
+    EntityAddLivingArgs livingArgs {
+        50.f,
+        TeamId::player,
+        {-1, -11},
+        {8, 13},
+        100,
+        "none"
+    };
+    EntityAddLiving(playerId, livingArgs);
+    EntityAddHandsArgs handsArgs {
+        {0.f, 4.f},
+        4.f
+    };
+    EntityAddHands(playerId, handsArgs);
+
     EntitySystem::MakeComps<PlayerSpawnComponent>(1, &playerId);
-    auto* healthComp = EntitySystem::GetComp<HealthComponent>(playerId);
-    healthComp->deathCallback = nullptr;
+
 	return playerId;
 }
 
