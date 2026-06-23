@@ -33,7 +33,5 @@ void EntityAddLiving(EntityId id, const EntityAddLivingArgs& args) {
 
     auto* ndc = EntitySystem::GetComp<NetworkDataComponent>(id);
     if(ndc == nullptr) return;
-    auto* dir = EntitySystem::GetComp<DirectionComponent>(id);
     ndc->set(HealthData::HEALTH, health->health);
-    ndc->set(DirectionData::DIR, dir->dir);
 }

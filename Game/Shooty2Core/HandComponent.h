@@ -15,7 +15,8 @@ public:
 	// number of hands
 	static constexpr int SLOT_COUNT = 2;
 
-    HandComponent(EntityId id_, Vec2f bodyOffset_, float handOffset_);
+	HandComponent(EntityId id_, Vec2f bodyOffset_, float handOffset_,
+		const std::vector<ControllerBits>& handFlags_ = { ControllerBits::BUTTON_5, ControllerBits::BUTTON_6 });
 
 	void update(Scene& scene, float delta);
 
@@ -34,9 +35,10 @@ public:
 	// offset from body pos to hands
 	float handOffset;
 
+private:
 	// what controller buttons to use for each hand
 	std::vector<ControllerBits> handFlags;
-private:
+
 	std::vector<Vec2f> handTargetPos;
 	bool handsAligned;
 	float handMoveRate;

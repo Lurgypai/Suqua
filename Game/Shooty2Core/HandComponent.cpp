@@ -7,9 +7,10 @@
 #include "PositionComponent.h"
 
 
-HandComponent::HandComponent(EntityId id_, Vec2f bodyOffset_, float handOffset_) :
+HandComponent::HandComponent(EntityId id_, Vec2f bodyOffset_, float handOffset_,
+	const std::vector<ControllerBits>& handFlags_) :
 	id{ id_ },
-	handFlags{ ControllerBits::BUTTON_5, ControllerBits::BUTTON_6 },
+	handFlags{ handFlags_ },
 	actionItems{},
 	storageItems{},
 	bodyOffset{bodyOffset_},

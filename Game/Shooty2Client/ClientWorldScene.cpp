@@ -99,6 +99,8 @@ void ClientWorldScene::load(Game& game)
 
 	myDaemonId = EntitySpawnSystem::SpawnEntity("entity:player:daemon", *this, { 720.f / 4, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
 
+	EntitySpawnSystem::SpawnEntity("entity:enemy:basic", *this, { 720.f / 4 + 100.f, 405.f / 4 }, NetworkDataComponent::Owner::local_shared);
+
 	auto* daemonComp = EntitySystem::GetComp<DaemonComponent>(myDaemonId);
 	daemonComp->hostEntity = myPlayerId;
 	addEntityInputs({ {myDaemonId, playerInput} });
@@ -108,6 +110,7 @@ void ClientWorldScene::load(Game& game)
     world.getLevel(activeLevel).activate();
 
     // prepare spawning
+	/*
     auto* spawnComp = EntitySystem::GetComp<PlayerSpawnComponent>(myPlayerId);
     for(const auto& pair : world.getLevels()) {
         for(auto& entity : pair.second.getEntities()) {
@@ -115,8 +118,9 @@ void ClientWorldScene::load(Game& game)
             spawnComp->insertSpawnPos(pair.first, entity.pos + (entity.res / 2.f));
         }
     }
-    auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
-    plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_spawn"));
+	*/
+    // auto plrPhysicsComp = EntitySystem::GetComp<PhysicsComponent>(myPlayerId);
+    // plrPhysicsComp->teleport(spawnComp->getSpawnPos("Level_spawn"));
 
     // tell the server that we're ready
     ByteStream playerPacket;

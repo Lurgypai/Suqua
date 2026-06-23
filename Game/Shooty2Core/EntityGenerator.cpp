@@ -29,5 +29,4 @@ void EntityGenerator::RegisterSpawnFunctions() {
     EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:bullet:player:basic", SpawnBulletPlayerBasic));
     EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:bullet:enemy:basic", SpawnBulletEnemyBasic));
     EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:world:teleportzone", SpawnTeleportZone));
-    EntityGenerator::SpawnFunctions.insert(std::make_pair("entity:world:tile", SpawnTile));
 }

@@ -7,6 +7,7 @@ struct EntityAddBulletArgs {
     Vec2f res;
     TeamComponent::TeamId team;
     int damage;
+    int lifetime;
     std::string collisionHandler;
 };
 
