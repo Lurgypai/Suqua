@@ -39,22 +39,24 @@ void ItemSystem::loadItems(const std::string& filename) {
         std::string itemAbility = itemField["ability"];
         if(itemAbility == "ability:gun:basic") {
             checkForField(itemField, "offset");
-            checkForField(itemField, "bulletTag");
-            checkForField(itemField, "chamberSize");
-            checkForField(itemField, "fireDelay");
-            checkForField(itemField, "reloadDelay");
-            checkForField(itemField, "bulletCount");
-            checkForField(itemField, "bulletSpread");
-            checkForField(itemField, "velVariance");
+            checkForField(itemField, "bullet_tag");
+            checkForField(itemField, "chamber_size");
+            checkForField(itemField, "fire_delay");
+            checkForField(itemField, "reload_delay");
+            checkForField(itemField, "bullet_count");
+            checkForField(itemField, "bullet_spread");
+            checkForField(itemField, "base_vel");
+            checkForField(itemField, "vel_variance");
             items.emplace(itemTag, Item{itemTag, IAGunFire{
                 itemField["offset"],
-                itemField["bulletTag"],
-                itemField["chamberSize"],
-                itemField["fireDelay"],
-                itemField["reloadDelay"],
-                itemField["bulletCount"],
-                itemField["bulletSpread"],
-                itemField["velVariance"]
+                itemField["bullet_tag"],
+                itemField["chamber_size"],
+                itemField["fire_delay"],
+                itemField["reload_delay"],
+                itemField["bullet_count"],
+                itemField["bullet_spread"],
+                itemField["base_vel"],
+                itemField["vel_variance"]
             }});
 
         }
