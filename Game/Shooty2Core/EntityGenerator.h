@@ -48,7 +48,7 @@ public:
             NetworkDataComponent::Owner owner,
             const Suqua::UUID& uuid) override;
 
-private:
+protected:
     std::unordered_map<std::string, Entity> entities; 
 };
 

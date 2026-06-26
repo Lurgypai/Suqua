@@ -1,0 +1,15 @@
+{
+    "adds": [
+        {
+            "tag": "character",
+            "texture_path": "entity/player/player.png",
+            "anim_path": "entity/player/player_anim.json",
+            "offset": [-13, -24],
+            "shadow_offset": [-3, 5],
+            "up_down": true
+        },
+        {
+            "tag": "hands"
+        }
+    ]
+}

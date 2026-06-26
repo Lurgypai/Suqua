@@ -78,12 +78,7 @@ void ClientWorldScene::load(Game& game)
 	camId = GLRenderer::addCamera(cam);
 
 	// textures
-	GLRenderer::LoadTexture("player/player.png", "tex:hero");
-	GLRenderer::LoadTexture("player/shadow.png", "tex:shadow");
-	GLRenderer::LoadTexture("stranded/Enemies/Warrior/warrior.png", "tex:enemy:warrior");
-    GLRenderer::LoadTexture("player/bullet.png", "tex:bullet:player");
-	GLRenderer::LoadTexture("stranded/Tileset/custom_top_down.png", "tex:tileset");
-    GLRenderer::LoadTexture("enemy/basic.png", "tex:enemy:basic");
+	GLRenderer::LoadTexture("entity/player/shadow.png", "tex:shadow");
 
     //particles
     GLRenderer::GenParticleType("part:exit", 1, ComputeShader{ "particles/test.vert" });

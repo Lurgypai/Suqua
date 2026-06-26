@@ -1,0 +1,12 @@
+{
+    "adds": [
+        {
+            "tag": "character",
+            "texture_path": "entity/enemy/basic.png",
+            "anim_path": "entity/enemy/basic_anim.json",
+            "offset": [-13, -24],
+            "shadow_offset": [-3, 5],
+            "up_down": true
+        }
+    ]
+}

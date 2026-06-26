@@ -7,14 +7,13 @@ class CharacterGFXComponent {
 	CompMembers(CharacterGFXComponent);
 public:
     CharacterGFXComponent(EntityId id, const std::string& tag, const std::string& fileName,
-            Vec2f offset, Vec2f shadowOffset);
+            Vec2f offset, Vec2f shadowOffset, bool hasUpDown_ = false);
 
 	void loadSpriteSheet(const std::string& tag, const std::string& fileName,
-            Vec2f offset, Vec2f shadowOffset);
+            Vec2f offset, Vec2f shadowOffset, bool hasUpDown_ = false);
 	void update(int timeDelta);
 	void playAnimation(const std::string& tag, bool looping);
 	void stopAnimation();
-	void setHasUpDown(bool upDown);
 	void setColorOverlay(Color c);
 	void setOverlayAmount(float a);
 private:

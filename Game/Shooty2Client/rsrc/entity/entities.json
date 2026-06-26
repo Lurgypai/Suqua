@@ -102,6 +102,24 @@
             ]
         },
         {
+            "tag": "entity:bullet:player:sprite",
+            "adds": [
+                {
+                    "tag": "physics",
+                    "res": [32.0, 32.0],
+                    "collideable": true,
+                    "collideable_with": false,
+                    "centered": true
+                },
+                {
+                    "tag": "bullet",
+                    "res": [32.0, 32.0],
+                    "damage": 1,
+                    "lifetime": 2000
+                }
+            ]
+        },
+        {
             "tag": "entity:bullet:enemy:basic",
             "adds": [
                 {
