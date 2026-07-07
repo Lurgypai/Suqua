@@ -19,7 +19,6 @@ void IDKeyboardMouse::update() {
 
 	controller.set(ControllerBits::BUTTON_1, state[SDL_SCANCODE_R]);
 	controller.set(ControllerBits::BUTTON_2, state[SDL_SCANCODE_W]);
-	controller.set(ControllerBits::BUTTON_3, state[SDL_SCANCODE_A]);
 	controller.set(ControllerBits::BUTTON_4, state[SDL_SCANCODE_G]);
 
 	controller.set(ControllerBits::BUTTON_5, mouseState & SDL_BUTTON(SDL_BUTTON_LEFT));

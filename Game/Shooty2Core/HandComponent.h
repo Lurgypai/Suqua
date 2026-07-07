@@ -35,9 +35,9 @@ public:
 	// offset from body pos to hands
 	float handOffset;
 
-private:
 	// what controller buttons to use for each hand
 	std::vector<ControllerBits> handFlags;
+private:
 
 	std::vector<Vec2f> handTargetPos;
 	bool handsAligned;

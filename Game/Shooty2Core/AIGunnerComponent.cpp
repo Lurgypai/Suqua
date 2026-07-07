@@ -5,6 +5,7 @@
 #include "RandomUtil.h"
 #include "InventoryComponent.h"
 #include "HandComponent.h"
+#include "EntityBaseComponent.h"
 
 using TeamId = TeamComponent::TeamId;
 
@@ -81,6 +82,8 @@ static inline void beginAttacking(AIState& state, Controller& controller, Entity
 }
 
 void AIGunnerComponent::update(double delta, const ItemSystem& items) {
+    auto* base = EntitySystem::GetComp<EntityBaseComponent>(id);
+    if(!base->isActive) return;
     // idle
     //  sit and do nothing
     // walking

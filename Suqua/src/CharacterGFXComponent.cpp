@@ -10,13 +10,14 @@ CharacterGFXComponent::CharacterGFXComponent(
         const std::string& tag,
         const std::string& fileName,
         Vec2f offset,
-        Vec2f shadowOffset
+        Vec2f shadowOffset,
+        bool hasUpDown_
         ) :
     sprIndex{},
 	id{ id_ },
 	prevCardinalDir{ 0 },
 	isPlayingAnimation_{false},
-	hasUpDown{false}
+	hasUpDown{hasUpDown_}
 {
     if (!EntitySystem::Contains<RenderComponent>() || !EntitySystem::GetComp<RenderComponent>(id)) {
         EntitySystem::MakeComps<RenderComponent>(1, &id);
@@ -26,7 +27,8 @@ CharacterGFXComponent::CharacterGFXComponent(
 }
 
 void CharacterGFXComponent::loadSpriteSheet(const std::string& tag, const std::string& fileName,
-        Vec2f offset, Vec2f shadowOffset) {
+        Vec2f offset, Vec2f shadowOffset, bool hasUpDown_) {
+    hasUpDown = hasUpDown_;
 	auto renderComp = EntitySystem::GetComp<RenderComponent>(id);
 	sprIndex = renderComp->loadDrawable<AnimatedSprite>(tag, fileName);
 
@@ -170,10 +172,6 @@ void CharacterGFXComponent::playDefaultAnimations()
 
 void CharacterGFXComponent::startDefaultAnimations() {
 	doDefaultAnimations();
-}
-
-void CharacterGFXComponent::setHasUpDown(bool upDown) {
-	hasUpDown = upDown;
 }
 
 void CharacterGFXComponent::setColorOverlay(Color c) {

@@ -1,7 +1,7 @@
 #include "IAGunFire.h"
 #include "PhysicsComponent.h"
-#include "LifeTimeComponent.h"
 #include "HealthComponent.h"
+#include "TeamComponent.h"
 #include "EntitySpawnSystem.h"
 #include "RandomUtil.h"
 
@@ -12,6 +12,7 @@ IAGunFire::IAGunFire(float offset_,
         float reloadDelay_,
         int bulletCount_,
         float bulletSpread_,
+        float baseVel_,
         float velVariance_) :
 	offset{ offset_  },
     bulletTag{ bulletTag_ },
@@ -20,6 +21,7 @@ IAGunFire::IAGunFire(float offset_,
     reloadDelay{ reloadDelay_ },
     bulletCount{bulletCount_},
     bulletSpread{bulletSpread_},
+    baseVel{baseVel_},
     velVariance{velVariance_}, 
     state{ FireState::ready },
     elapsedTime{ 0.f },
@@ -36,7 +38,11 @@ void IAGunFire::doAbility(Scene& scene, EntityId sourceEntity, EntityId targetEn
     for(int i = 0; i != bulletCount; ++i) {
         auto bulletId = EntitySpawnSystem::SpawnEntity(bulletTag, scene,
                 firingPos, NetworkDataComponent::Owner::local_shared);
-
+        auto* ownerTeam = EntitySystem::GetComp<TeamComponent>(sourceEntity);
+        if(ownerTeam != nullptr) {
+            auto* bulletTeam = EntitySystem::GetComp<TeamComponent>(bulletId);
+            bulletTeam->teamId = ownerTeam->teamId;
+        }
 
         float baseAngle = controller.stick2.angle();
         if(bulletSpread != 0.f) {
@@ -46,13 +52,13 @@ void IAGunFire::doAbility(Scene& scene, EntityId sourceEntity, EntityId targetEn
         Vec2f directionVector{ 1.f, 0.f };
         directionVector.angle(baseAngle);
 
-        float baseVel = 260.f;
+        float vel = baseVel;
         if(velVariance != 0.f) {
             float velMod = randFloat(-velVariance / 2.f, velVariance / 2.f);
-            baseVel += velMod;
+            vel += velMod;
         }
         auto physicsComp = EntitySystem::GetComp<PhysicsComponent>(bulletId);
-        physicsComp->vel = directionVector * baseVel;
+        physicsComp->vel = directionVector * vel;
     }
 
     // adjust timers/delays

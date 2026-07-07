@@ -10,6 +10,7 @@ public:
             float reloadDelay_,
             int bulletCount_ = 1,
             float bulletSpread_ = 0.f,
+            float baseVel_ = 260.f,
             float velVariance_ = 0.f);
 
     virtual void doAbility(Scene& scene, EntityId sourceEntity, EntityId targetEntity,
@@ -32,6 +33,8 @@ public:
     int bulletCount;
     // spread on each shot
     float bulletSpread;
+    // base velocity
+    float baseVel;
     // variance in velocity in each shot
     float velVariance;
 private:

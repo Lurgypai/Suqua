@@ -2,7 +2,10 @@
 #include "../Shooty2Core/Shooty2Packet.h"
 #include "Game.h"
 
-ServerEntityGenerator::ServerEntityGenerator(Game* game_) : game{game_} {}
+ServerEntityGenerator::ServerEntityGenerator(const std::string& json, Game* game_) :
+    EntityGenerator{json},
+    game{game_}
+{}
 
 EntityId ServerEntityGenerator::SpawnEntity(
         const std::string& tag,

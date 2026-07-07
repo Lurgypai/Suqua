@@ -114,7 +114,7 @@ private:
 
 template<typename S, typename ... Args>
 inline SceneId Game::loadScene(char flags_, Args&&... args) {
-	ScenePtr scene = std::make_unique<S>(scenes.size(), flags_, args...);
+	ScenePtr scene = std::make_unique<S>(scenes.size(), flags_, std::forward<Args>(args)...);
 	scene->load(*this);
 	scenes.emplace_back(std::move(scene));
 	return scenes.size() - 1;

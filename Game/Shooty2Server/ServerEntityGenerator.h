@@ -8,7 +8,7 @@
 
 class ServerEntityGenerator : public EntityGenerator{
 public:
-    ServerEntityGenerator(Game* host);
+    ServerEntityGenerator(const std::string& json, Game* host);
     virtual ~ServerEntityGenerator() = default;
     virtual EntityId SpawnEntity(
             const std::string& tag,

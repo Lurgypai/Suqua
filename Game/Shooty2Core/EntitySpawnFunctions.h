@@ -11,14 +11,7 @@
 
 #include "Scene.h"
 #include "LifeTimeComponent.h"
-#include "PlayerSpawnComponent.h"
-#include "AIGunnerComponent.h"
-#include "DaemonComponent.h"
-#include "EntityBaseComponent.h"
 #include "NetworkDataComponent.h"
-#include "HandComponent.h"
-#include "InventoryComponent.h"
-#include "Shooty2NetworkDataFields.h"
 
 #include "EntityAddNetwork.h"
 #include "EntityAddPhysics.h"
@@ -50,6 +43,7 @@ static EntityId SpawnTeleportZone(
         true
     };
     EntityAddPhysics(entity, args);
+    // is there a tp component?
     
     return entity;
 }
@@ -141,8 +135,6 @@ static EntityId SpawnPlayer(
     EntityAddHandsArgs handsArgs {
         {0.f, -4.f},
         4.f,
-        ControllerBits::BUTTON_5,
-        ControllerBits::BUTTON_6
     };
     EntityAddHands(playerId, handsArgs);
 
@@ -168,8 +160,6 @@ static EntityId SpawnDaemon(
     EntityAddHandsArgs handsArgs{
         Vec2f{0.f, 5.f},
         5.f,
-        ControllerBits::BUTTON_7,
-        ControllerBits::BUTTON_8
     };
     EntityAddHands(entity, handsArgs);
     EntityAddDaemonArgs daemonArgs{
